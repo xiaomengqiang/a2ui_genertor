@@ -150,6 +150,28 @@ Save the generated JSON to a file, then validate it. NEVER output JSON that has 
 
 ---
 
+## Modification Workflow
+
+When the user asks to modify an already-generated prototype (e.g. "把标题改成蓝色"), do NOT regenerate from scratch — work from the current `data.js` content (the user may have edited it directly).
+
+1. **Extract:** Convert `data.js` to a working JSON file:
+   ```
+   node scripts/exchange-a2ui.mjs --extract "{artifact-folder}/{slug}/data.js" "output/a2ui-output-{timestamp}.json"
+   ```
+   The script strips the `window.__A2UI_DATA__` wrapper and pretty-prints the JSON.
+2. **Apply the change:** Read `output/a2ui-output-{timestamp}.json` (the file from step 1), then use the Edit tool to make ONLY the requested change — everything not mentioned by the user MUST stay byte-identical (no re-generation drift: same mock data, same ids, same styles).
+3. **Inject:** Convert the modified JSON back into `data.js`:
+   ```
+   node scripts/exchange-a2ui.mjs --inject "output/a2ui-output-{timestamp}.json" "{artifact-folder}/{slug}/data.js"
+   ```
+   Do NOT re-run `package-a2ui.mjs` — assets and `index.prototype.html` already exist; only `data.js` changes.
+4. **Output:** After inject succeeds, emit the final output — the `<artifact>` link to the existing preview page:
+   ```
+   <artifact type="text/link">{artifact-folder}/{slug}/index.prototype.html</artifact>
+   ```
+
+---
+
 ## Output Format (A2UI JSON)
 
 The generated content MUST be a single valid A2UI JSON object. Structure:

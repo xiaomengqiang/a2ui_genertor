@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React 模块化架构示例 (Context + Hooks + Components)</title>
+
+    <!-- 1. Core Libraries -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/dayjs@1/dayjs.min.js"></script>
+
+    <!-- 2. UI Components & Icons -->
+    <script src="https://unpkg.com/antd@5.18.0/dist/antd.min.js"></script>
+    <script src="https://unpkg.com/@ant-design/icons@5.3.7/dist/index.umd.js"></script>
+
+    <!-- 3. Babel Transpiler & Utility CSS -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        #root { height: 100%; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(140, 140, 140, 0.3); border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, createContext, useContext } = React;
+        const { Layout, Menu, Button, Card, Table, Tag, Space, Modal, Form, Input, DatePicker, Select, Statistic, Progress, Row, Col, ConfigProvider, theme, message, Avatar, Dropdown, Badge, Tooltip, Switch, ColorPicker, Segmented, Popconfirm } = antd;
+        
+        const AntIcons = window.icons || window.AntDesignIcons || {};
+        const { DashboardOutlined, ProjectOutlined, SettingOutlined, PlusOutlined, SearchOutlined, CheckCircleOutlined, SyncOutlined, ClockCircleOutlined, DeleteOutlined, EditOutlined, SunOutlined, MoonOutlined, BellOutlined, UserOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined, CheckOutlined, FireOutlined } = AntIcons;
+
+        // =========================================================================
+        // 模块 1：全局配置与状态 Context 模块 (AppContext.js)
+        // 作用：提供全局主题、颜色、暗黑模式切换，避免深层组件通信繁琐
+        // =========================================================================
+        const AppContext = createContext();
+
+        const AppProvider = ({ children }) => {
+            const [isDarkMode, setIsDarkMode] = useState(false);
+            const [primaryColor, setPrimaryColor] = useState('#1677ff');
+            const [collapsed, setCollapsed] = useState(false);
+            const [messageApi, contextHolder] = message.useMessage();
+
+            const value = {
+                isDarkMode,
+                setIsDarkMode,
+                primaryColor,
+                setPrimaryColor,
+                collapsed,
+                setCollapsed,
+                notify: messageApi
+            };
+
+            return (
+                <AppContext.Provider value={value}>
+                    <ConfigProvider
+                        theme={{
+                            algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
+                            token: { colorPrimary: primaryColor, borderRadius: 8 },
+                        }}
+                    >
+                        {contextHolder}
+                        {children}
+                    </ConfigProvider>
+                </AppContext.Provider>
+            );
+        };
+
+        const useApp = () => useContext(AppContext);
+
+        // =========================================================================
+        // 模块 2：自定义 Hook 模块 - 业务数据逻辑层 (useTaskManager.js)
+        // 作用：将数据的 CRUD、筛选、统计逻辑完全与 UI 视图分离
+        // =========================================================================
+        const initialMockTasks = [
+            { id: '1', title: '实现核心架构模块化拆分', status: 'completed', priority: 'high', assignee: '张三', date: '2026-08-10' },
+            { id: '2', title: '编写 Context API 全局状态管理', status: 'in_progress', priority: 'medium', assignee: '李四', date: '2026-08-15' },
+            { id: '3', title: '封装组件间自定义 Hook 接口', status: 'pending', priority: 'high', assignee: '王五', date: '2026-08-18' },
+        ];
+
+        function useTaskManager() {
+            const [tasks, setTasks] = useState(initialMockTasks);
+            const [searchText, setSearchText] = useState('');
+            const [statusFilter, setStatusFilter] = useState('all');
+
+            const addTask = (task) => {
+                const newTask = { id: Date.now().toString(), ...task };
+                setTasks(prev => [newTask, ...prev]);
+            };
+
+            const updateTask = (id, updatedValues) => {
+                setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updatedValues } : t));
+            };
+
+            const deleteTask = (id) => {
+                setTasks(prev => prev.filter(t => t.id !== id));
+            };
+
+            const toggleTaskStatus = (id) => {
+                setTasks(prev => prev.map(t => {
+                    if (t.id === id) {
+                        const nextStatus = t.status === 'completed' ? 'pending' : 'completed';
+                        return { ...t, status: nextStatus };
+                    }
+                    return t;
+                }));
+            };
+
+            const filteredTasks = useMemo(() => {
+                return tasks.filter(t => {
+                    const matchesSearch = t.title.toLowerCase().includes(searchText.toLowerCase()) ||
+                                          t.assignee.toLowerCase().includes(searchText.toLowerCase());
+                    const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
+                    return matchesSearch && matchesStatus;
+                });
+            }, [tasks, searchText, statusFilter]);
+
+            const stats = useMemo(() => {
+                const total = tasks.length;
+                const completed = tasks.filter(t => t.status === 'completed').length;
+                const inProgress = tasks.filter(t => t.status === 'in_progress').length;
+                const pending = tasks.filter(t => t.status === 'pending').length;
+                const rate = total ? Math.round((completed / total) * 100) : 0;
+                return { total, completed, inProgress, pending, rate };
+            }, [tasks]);
+
+            return {
+                tasks: filteredTasks,
+                allTasksCount: tasks.length,
+                stats,
+                searchText,
+                setSearchText,
+                statusFilter,
+                setStatusFilter,
+                addTask,
+                updateTask,
+                deleteTask,
+                toggleTaskStatus
+            };
+        }
+
+        // =========================================================================
+        // 模块 3：基础原子组件层 (UI Components)
+        // 作用：高度可复用、单一职责的低层级组件
+        // =========================================================================
+
+        const TaskStatusTag = ({ status }) => {
+            const statusConfig = {
+                completed: { color: 'success', text: '已完成', icon: <CheckCircleOutlined /> },
+                in_progress: { color: 'processing', text: '进行中', icon: <SyncOutlined spin /> },
+                pending: { color: 'warning', text: '待处理', icon: <ClockCircleOutlined /> },
+            };
+            const config = statusConfig[status] || { color: 'default', text: '未知', icon: null };
+            return <Tag color={config.color} icon={config.icon}>{config.text}</Tag>;
+        };
+
+        const StatCard = ({ title, value, prefix, valueStyle }) => (
+            <Card className="shadow-sm hover:shadow-md transition-shadow">
+                <Statistic title={title} value={value} prefix={prefix} valueStyle={valueStyle} />
+            </Card>
+        );
+
+        const TopHeaderBar = ({ currentTabTitle }) => {
+            const { isDarkMode, setIsDarkMode, primaryColor, setPrimaryColor, collapsed, setCollapsed } = useApp();
+
+            return (
+                <Layout.Header className={`px-6 flex items-center justify-between border-b ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-gray-200'}`}>
+                    <Space>
+                        <Button
+                            type="text"
+                            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                            onClick={() => setCollapsed(!collapsed)}
+                        />
+                        <span className="font-semibold text-base">{currentTabTitle}</span>
+                    </Space>
+
+                    <Space size="large">
+                        <Space size="small" className="hidden md:flex items-center">
+                            <span className="text-xs text-gray-400">主题主色:</span>
+                            <ColorPicker value={primaryColor} onChangeComplete={(c) => setPrimaryColor(c.toHexString())} size="small" />
+                        </Space>
+                        <Switch
+                            checked={isDarkMode}
+                            onChange={(v) => setIsDarkMode(v)}
+                            checkedChildren={<MoonOutlined />}
+                            unCheckedChildren={<SunOutlined />}
+                        />
+                        <Dropdown menu={{ items: [{ key: '1', label: '个人中心', icon: <UserOutlined /> }, { key: '2', label: '退出登录', icon: <LogoutOutlined />, danger: true }] }}>
+                            <Space className="cursor-pointer">
+                                <Avatar style={{ backgroundColor: primaryColor }} icon={<UserOutlined />} />
+                                <span className="font-medium hidden sm:inline-block">管理员</span>
+                            </Space>
+                        </Dropdown>
+                    </Space>
+                </Layout.Header>
+            );
+        };
+
+        const TaskFormModal = ({ open, onCancel, onSubmit, editingTask }) => {
+            const [form] = Form.useForm();
+
+            useEffect(() => {
+                if (open) {
+                    if (editingTask) {
+                        form.setFieldsValue({ ...editingTask, date: editingTask.date ? dayjs(editingTask.date) : null });
+                    } else {
+                        form.resetFields();
+                    }
+                }
+            }, [open, editingTask]);
+
+            const handleOk = () => {
+                form.validateFields().then(values => {
+                    onSubmit({ ...values, date: values.date ? values.date.format('YYYY-MM-DD') : '' });
+                    form.resetFields();
+                });
+            };
+
+            return (
+                <Modal title={editingTask ? "编辑任务" : "创建新任务"} open={open} onOk={handleOk} onCancel={onCancel} destroyOnClose>
+                    <Form form={form} layout="vertical" className="mt-4">
+                        <Form.Item name="title" label="任务名称" rules={[{ required: true, message: '请输入任务名称' }]}>
+                            <Input placeholder="输入任务描述" />
+                        </Form.Item>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item name="priority" label="优先级" initialValue="medium">
+                                    <Select>
+                                        <Select.Option value="high">高</Select.Option>
+                                        <Select.Option value="medium">中</Select.Option>
+                                        <Select.Option value="low">低</Select.Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item name="status" label="状态" initialValue="pending">
+                                    <Select>
+                                        <Select.Option value="pending">待处理</Select.Option>
+                                        <Select.Option value="in_progress">进行中</Select.Option>
+                                        <Select.Option value="completed">已完成</Select.Option>
+                                    </Select>
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item name="assignee" label="负责人" rules={[{ required: true }]}>
+                                    <Input placeholder="负责人姓名" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item name="date" label="截止日期" rules={[{ required: true }]}>
+                                    <DatePicker className="w-full" />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                    </Form>
+                </Modal>
+            );
+        };
+
+        // =========================================================================
+        // 模块 4：业务视图层组件 (Pages / Views)
+        // 作用：组合基础原子组件与业务 Hook，展现完整页面逻辑
+        // =========================================================================
+
+        const DashboardView = ({ stats }) => (
+            <div className="space-y-6">
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12} lg={6}>
+                        <StatCard title="任务总数" value={stats.total} prefix={<ProjectOutlined className="text-blue-500 mr-2" />} />
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                        <StatCard title="进行中" value={stats.inProgress} valueStyle={{ color: '#1677ff' }} prefix={<SyncOutlined spin className="mr-2" />} />
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                        <StatCard title="已完成" value={stats.completed} valueStyle={{ color: '#52c41a' }} prefix={<CheckCircleOutlined className="mr-2" />} />
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                        <StatCard title="待处理" value={stats.pending} valueStyle={{ color: '#faad14' }} prefix={<ClockCircleOutlined className="mr-2" />} />
+                    </Col>
+                </Row>
+                <Card title="完成度概览" className="shadow-sm">
+                    <div className="flex flex-col items-center justify-center py-4">
+                        <Progress type="circle" percent={stats.rate} width={140} />
+                        <p className="mt-4 text-gray-400 text-sm">解耦模块架构下的交互统计</p>
+                    </div>
+                </Card>
+            </div>
+        );
+
+        const TaskManagerView = ({ taskManager }) => {
+            const { notify, primaryColor } = useApp();
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [editingTask, setEditingTask] = useState(null);
+
+            const handleFormSubmit = (values) => {
+                if (editingTask) {
+                    taskManager.updateTask(editingTask.id, values);
+                    notify.success('更新成功！');
+                } else {
+                    taskManager.addTask(values);
+                    notify.success('新建成功！');
+                }
+                setIsModalOpen(false);
+                setEditingTask(null);
+            };
+
+            const columns = [
+                { title: '任务名称', dataIndex: 'title', key: 'title', render: (t, r) => <span className={r.status === 'completed' ? 'line-through text-gray-400' : 'font-medium'}>{t}</span> },
+                { title: '状态', dataIndex: 'status', key: 'status', render: (s) => <TaskStatusTag status={s} /> },
+                { title: '负责人', dataIndex: 'assignee', key: 'assignee', render: (name) => <Space><Avatar size="small" style={{ backgroundColor: primaryColor }}>{name[0]}</Avatar><span>{name}</span></Space> },
+                { title: '截止时间', dataIndex: 'date', key: 'date' },
+                {
+                    title: '操作', key: 'action', render: (_, record) => (
+                        <Space>
+                            <Button type="text" shape="circle" icon={<CheckOutlined style={{ color: record.status === 'completed' ? '#52c41a' : 'inherit' }} />} onClick={() => taskManager.toggleTaskStatus(record.id)} />
+                            <Button type="text" shape="circle" icon={<EditOutlined />} onClick={() => { setEditingTask(record); setIsModalOpen(true); }} />
+                            <Popconfirm title="确认删除？" onConfirm={() => { taskManager.deleteTask(record.id); notify.info('已删除'); }}>
+                                <Button type="text" danger shape="circle" icon={<DeleteOutlined />} />
+                            </Popconfirm>
+                        </Space>
+                    )
+                }
+            ];
+
+            return (
+                <Card className="shadow-sm">
+                    <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+                        <Space wrap>
+                            <Input placeholder="搜索任务..." prefix={<SearchOutlined />} value={taskManager.searchText} onChange={(e) => taskManager.setSearchText(e.target.value)} allowClear />
+                            <Select value={taskManager.statusFilter} onChange={(v) => taskManager.setStatusFilter(v)} className="w-32">
+                                <Select.Option value="all">全部</Select.Option>
+                                <Select.Option value="pending">待处理</Select.Option>
+                                <Select.Option value="in_progress">进行中</Select.Option>
+                                <Select.Option value="completed">已完成</Select.Option>
+                            </Select>
+                        </Space>
+                        <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditingTask(null); setIsModalOpen(true); }}>新建任务</Button>
+                    </div>
+
+                    <Table columns={columns} dataSource={taskManager.tasks} rowKey="id" pagination={{ pageSize: 5 }} />
+                    <TaskFormModal open={isModalOpen} editingTask={editingTask} onCancel={() => setIsModalOpen(false)} onSubmit={handleFormSubmit} />
+                </Card>
+            );
+        };
+
+        // =========================================================================
+        // 模块 5：应用主入口与组装 (App Container)
+        // 作用：把各个模块、Hook 和 View 组装起来
+        // =========================================================================
+
+        const MainLayout = () => {
+            const { collapsed, isDarkMode, primaryColor } = useApp();
+            const [currentTab, setCurrentTab] = useState('dashboard');
+            const taskManager = useTaskManager();
+
+            const tabTitles = { dashboard: '仪表盘', tasks: '任务模块管理', settings: '系统设置' };
+
+            return (
+                <Layout className="min-h-screen">
+                    <Layout.Sider trigger={null} collapsible collapsed={collapsed} theme={isDarkMode ? 'dark' : 'light'} className="shadow-md">
+                        <div className="h-16 flex items-center justify-center border-b dark:border-zinc-800 px-4">
+                            <FireOutlined style={{ fontSize: '24px', color: primaryColor }} />
+                            {!collapsed && <span className="ml-3 font-bold text-lg">Modular Hub</span>}
+                        </div>
+                        <Menu
+                            theme={isDarkMode ? 'dark' : 'light'}
+                            mode="inline"
+                            selectedKeys={[currentTab]}
+                            onClick={({ key }) => setCurrentTab(key)}
+                            items={[
+                                { key: 'dashboard', icon: <DashboardOutlined />, label: '仪表盘' },
+                                { key: 'tasks', icon: <ProjectOutlined />, label: '任务管理' },
+                            ]}
+                        />
+                    </Layout.Sider>
+
+                    <Layout className="flex flex-col flex-1">
+                        <TopHeaderBar currentTabTitle={tabTitles[currentTab]} />
+                        <Layout.Content className="p-6 flex-1 overflow-auto">
+                            {currentTab === 'dashboard' && <DashboardView stats={taskManager.stats} />}
+                            {currentTab === 'tasks' && <TaskManagerView taskManager={taskManager} />}
+                        </Layout.Content>
+                    </Layout>
+                </Layout>
+            );
+        };
+
+        const App = () => (
+            <AppProvider>
+                <MainLayout />
+            </AppProvider>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
