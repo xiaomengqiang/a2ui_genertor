@@ -1,17 +1,4 @@
 # TimePicker
-> id: string | component: "TimePicker" | props: object
-
-## props (required: `value`)
-- `value`: string | any[] | DataBinding — current value of the TimePicker. when setting range to true, the value is of array type
-- `placeholder?`: string | any[] | DataBinding — placeholder of the TimePicker. when setting range to true, the placeholder is of array type
-- `secondStep?`: number
-- `minuteStep?`: number
-- `hourStep?`: number
-- `range?`: boolean | DataBinding — setting the time range of the TimePicker
-- `size?`: "large" | "medium" | "small"
-- `format?`: string
-- `disabled?`: boolean | DataBinding
-- `className?`: string — Tailwind CSS classes for the component.
 
 ## 设计规范
 
@@ -21,11 +8,7 @@
 
 ## 使用规则
 
-- 单个时间点使用默认模式；时间范围使用 `range=true`，`value` 和 `placeholder` 使用数组。
-- 根据业务精度设置 `format`；需要秒时显示秒列，否则不要增加选择成本。
-- 仅在时间需要按固定间隔选择时设置 `hourStep`、`minuteStep` 或 `secondStep`。
 - 同一页面保持 12/24 小时制和时间格式一致；12 小时制必须明确 AM/PM。
-- 常规表单使用 `size=medium`；紧凑筛选区使用 `size=small`；同组控件尺寸一致。
 - 时间范围必须校验结束时间不早于开始时间。
 
 ## 布局
@@ -38,69 +21,3 @@
 - 不要用普通 Input 代替时间选择。
 - 不要混用多种时间格式，或在不需要时显示秒。
 - 不要使用开发组件不存在的属性或枚举值。
-
-
-## 示例
-
-# TimePicker | 时间选择器
-
-### Example: Basic TimePicker
-
-```json
-{
-  "id": "timePickerBasic",
-  "component": "TimePicker",
-  "props": {
-    "value": { "path": "/timeVal" },
-    "placeholder": "请选择时间"
-  }
-}
-```
-
-### Example: TimePicker with range (true)
-
-```json
-{
-  "id": "timePickerRange",
-  "component": "TimePicker",
-  "props": {
-    "value": { "path": "/timeRange" },
-    "placeholder": ["开始时间", "结束时间"],
-    "range": true
-  }
-}
-
-```
-
-### Example: TimePicker with size 
-
-```json
-{
-  "id": "timePickerLarge",
-  "component": "TimePicker",
-  "props": {
-    "value": { "path": "/largeTime" },
-    "placeholder": "大号时间选择器",
-    "size": "large"
-  }
-}
-```
-
-### Example: TimePicker with format
-
-```json
-{
-  "id": "timePickerFormat",
-  "component": "TimePicker",
-  "props": {
-    "value": { "path": "/formattedTime" },
-    "placeholder": "HH:mm:ss",
-    "format": "HH:mm:ss",
-    "hourStep": 1,
-    "minuteStep": 15,
-    "secondStep": 30,
-    "className": "w-48 bg-blue-50"
-  }
-}
-```
-
