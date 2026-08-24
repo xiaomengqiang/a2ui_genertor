@@ -9,11 +9,11 @@
 - `size?`: "small" | "medium" | "large"
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 示例
+------
 
-# Rate | 评分
+# Rate | 评分 示例
 
-### Example: Rate basic
+## Example: Rate basic
 
 ```json
 {
@@ -39,4 +39,3 @@
 	]
 }
 ```
-

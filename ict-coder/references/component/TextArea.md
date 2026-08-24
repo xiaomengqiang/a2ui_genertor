@@ -9,11 +9,11 @@
 - `autoSize?`: boolean
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 示例
+------
 
-# TextArea | 文本域
+# TextArea | 文本域 示例
 
-### Example: Basic TextArea
+## Example: Basic TextArea
 
 ```json
 {
@@ -37,7 +37,7 @@
 
 
 
-### Example: TextArea with size (small)
+## Example: TextArea with size (small)
 
 ```json
 {
@@ -59,7 +59,7 @@
 }
 ```
 
-### Example: TextArea with maxLength and autoSize
+## Example: TextArea with maxLength and autoSize
 
 ```json
 {
@@ -83,7 +83,7 @@
 ```
 
 
-### Example: TextArea with prefix/suffix
+## Example: TextArea with prefix/suffix
 
 ```json
 {

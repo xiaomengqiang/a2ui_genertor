@@ -10,11 +10,11 @@
 - `disabled?`: boolean
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 示例
+------
 
-# Segmented
+# Segmented 示例
 
-### Example: Segmented with data binding options
+## Example: Segmented with data binding options
 
 ```json
 {
@@ -56,7 +56,7 @@
 }
 ```
 
-### Example: Segmented with static options
+## Example: Segmented with static options
 
 ```json
 {
@@ -86,7 +86,7 @@
 }
 ```
 
-### Example: Segmented vertical
+## Example: Segmented vertical
 
 ```json
 {
@@ -117,4 +117,3 @@
   }
 }
 ```
-

@@ -11,9 +11,9 @@
 类型: StaticChildren | TemplateChildren
 > Child nodes can be any component. If using template loop format, the path must point to a Carousel data array.
 
-## 示例
+------
 
-# Carousel
+# Carousel 示例
 
 ## Usage constraints for child node ids
 
@@ -23,7 +23,7 @@
 - If two structures look similar, create separate child nodes such as `projectOverviewPanel` and `userOverviewPanel` instead of sharing `overviewPanel`.
 - Component-specific keys such as `props.key` can reuse the same semantic value in different components, but the node `id` must still be unique per usage.
 
-### Example: Carousel with dynamic item rendering
+## Example: Carousel with dynamic item rendering
 
 ```json
 {
@@ -90,7 +90,7 @@
 }
 ```
 
-### Example: Carousel with static items
+## Example: Carousel with static items
 
 ```json
 {
@@ -128,4 +128,3 @@
   }
 }
 ```
-

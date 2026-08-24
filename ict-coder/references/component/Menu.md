@@ -9,11 +9,11 @@
 - `items`: { `title`: string, `key`: string | number, `icon?`: string, `children?`: object }[] | DataBinding — The segmented options list.
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 示例
+------
 
-# Menu
+# Menu 示例
 
-### Example: Menu with data binding items
+## Example: Menu with data binding items
 
 ```json
 {
@@ -69,7 +69,7 @@
 ```
 
 
-### Example: Menu horizontal static
+## Example: Menu horizontal static
 
 ```json
 {
@@ -104,4 +104,3 @@
   }
 }
 ```
-

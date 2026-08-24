@@ -8,7 +8,7 @@
 - `shape?`: "outline" | "two-tone" | "square" | "circle" — Icon background shape with auto-tinted color.
 - `className?`: string — Tailwind CSS classes for the component.Mandatory: width (w-) and height (h-) classes must be explicitly defined.
 
-## 设计规范
+------
 
 # Icon 图标使用规范
 
@@ -55,12 +55,11 @@
 - 不得自行组合底色、描边或形状模拟 `circle`、`square` 或双色图标。
 - 不得混用风格、线宽或视觉体量明显不一致的图标。
 
+------
 
-## 示例
+# Icon 示例
 
-# Icon
-
-### Example: Icon basic
+## Example: Icon basic
 
 ```json
 {
@@ -75,7 +74,7 @@
 }
 ```
 
-### Example: Icon name path
+## Example: Icon name path
 
 ```json
 {
@@ -98,4 +97,3 @@
 	]
 }
 ```
-

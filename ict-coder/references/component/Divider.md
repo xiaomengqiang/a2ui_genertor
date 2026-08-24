@@ -10,7 +10,7 @@
 - `variant?`: "dashed" | "dotted" | "solid"
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 设计规范
+------
 
 # Divider 分割线使用规范
 
@@ -34,12 +34,11 @@
 - 不要硬编码虚线段长和间隔；使用组件默认样式。
 - 不要使用开发组件不存在的属性或枚举值。
 
+------
 
-## 示例
+# Divider 示例
 
-# Divider
-
-### Example: Divider value
+## Example: Divider value
 
 ```json
 {
@@ -60,4 +59,3 @@
 	]
 }
 ```
-

@@ -11,7 +11,7 @@
 - `closeIcon?`: string — When closable is set to true, the attribute takes effect,Valid kebab-case Lucide icon matching the context (e.g., 'chevron-right').
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 设计规范
+------
 
 # tag 标签使用规范
 
@@ -118,12 +118,11 @@
 - 不要在一个区域使用过多彩色标签。
 - 不要和 Badge 混用：Tag 标记内容，Badge 标记数量/通知。
 
+------
 
-## 示例
+# Tag 示例
 
-# Tag
-
-### Example: Tag value path
+## Example: Tag value path
 
 ```json
 {
@@ -146,7 +145,7 @@
 }
 ```
 
-### Example: Tag value with icon
+## Example: Tag value with icon
 
 ```json
 {
@@ -160,7 +159,7 @@
 },
 ```
 
-### Example: Tag close
+## Example: Tag close
 
 ```json
 {
@@ -173,4 +172,3 @@
 	}
 }
 ```
-

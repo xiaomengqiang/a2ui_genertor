@@ -9,11 +9,11 @@
 - `size?`: "medium" | "small"
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 示例
+------
 
-# Progress
+# Progress 示例
 
-### Example: Progress basic
+## Example: Progress basic
 
 ```json
 
@@ -29,4 +29,3 @@
 },
 
 ```
-

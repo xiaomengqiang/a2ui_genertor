@@ -13,13 +13,14 @@
 - `expandable?`: — Row expandable configuration.
   - `expandedRowKeys?`: string[] | DataBinding — Keys of rows that support expanding.
 - `rowClassName?`: string
+- `size?`: "large" | "medium" | "small"
 - `className?`: string
 
 ## children
 类型: TemplateChildren
 > A template for generating a dynamic list of children from a data model list. The componentId must be a TableRow.
 
-## 设计规范
+------
 
 # Table 表格使用规范
 
@@ -48,12 +49,11 @@
 - 不要用固定宽度破坏表格自适应。
 - 不要使用开发组件不存在的属性或枚举值。
 
+------
 
-## 示例
+# Table 示例
 
-# Table
-
-### Table Example: Multi-Column Rendering
+## Table Example: Multi-Column Rendering
 
 ```json
 {
@@ -128,7 +128,7 @@
 }
 ```
 
-### Table Example: Selection with Multi-Column
+## Table Example: Selection with Multi-Column
 
 ```json
 {
@@ -198,7 +198,7 @@
 }
 ```
 
-### Table Example: Expandable Row with Sub-Table
+## Table Example: Expandable Row with Sub-Table
 
 ```json
 {
@@ -326,4 +326,3 @@
   ]
 }
 ```
-

@@ -1,9 +1,4 @@
-/* @tailwindcss/browser 运行时主题配置 */
-/* 三层 token:base(色阶) → light/dark(语义) → theme(tailwind 映射) */
-@import "./base.css";
-@import "./light.css";  /* 默认亮色,:root 作用域 */
-@import "./dark.css";   /* 暗色,.dark 作用域,html.dark 时生效 */
-
+/* @tailwindcss/browser 专用:纯 @theme 映射层(变量层由 <link> 直接加载 base/light/dark) */
 @theme {
   /* ── colors → --color-* ── */
   --color-primary: var(--color-brand, #0067D1);

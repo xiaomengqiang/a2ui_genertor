@@ -12,11 +12,11 @@
 - `className?`: string — Tailwind CSS classes for the component.
 - `marks?`: object
 
-## 示例
+------
 
-# Slider | 滑动输入条
+# Slider | 滑动输入条 示例
 
-### Example: Basic Slider
+## Example: Basic Slider
 
 ```json
 {
@@ -31,7 +31,7 @@
 }
 ```
 
-### Example: Slider with range (dual thumb)
+## Example: Slider with range (dual thumb)
 
 ```json
 {
@@ -54,7 +54,7 @@
 }
 ```
 
-### Example: Slider with orientation (vertical)
+## Example: Slider with orientation (vertical)
 
 ```json
 {
@@ -69,7 +69,7 @@
 }
 ```
 
-### Example: Slider with input
+## Example: Slider with input
 
 ```json
 {
@@ -84,7 +84,7 @@
 }
 ```
 
-### Example: Slider with marks
+## Example: Slider with marks
 
 ```json
 {

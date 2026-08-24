@@ -8,19 +8,23 @@
   - `smooth?`: boolean — Whether to display as smooth curve
   - `color?`: string[] | DataBinding — Stick to default color groups. Override only upon explicit user request.
   - `step?`: boolean — Step line configuration - converts line to step chart
-  - `xAxis`: { `data`: string, `name?`: string } — X-axis base configuration (required)
+  - `xAxis`: — X-axis base configuration (required)
+    - `data`: string — Field name for X-axis dimension mapping
+    - `name?`: string — Setting the X-axis Name
   - `yAxisTitle`: string — MANDATORY: The visible title/label of the Y-axis. This must be a descriptive string (e.g., 'Revenue (USD)', 'Count').
-  - `markLine?`: { `top?`: number, `bottom?`: number } — markline configuration for displaying horizontal reference lines
+  - `markLine?`: — markline configuration for displaying horizontal reference lines
+    - `top?`: number — Upper threshold line value
+    - `bottom?`: number — Lower threshold line value
   - `area?`: boolean — Whether to display as area chart
 - `className`: string — Tailwind CSS classes for the component. Mandatory: width (w-) and height (h-) classes must be explicitly defined.
 
-## 示例
+------
 
-# LineChart | 折线图
+# LineChart | 折线图 示例
 
 The chart already includes a legend and does not require an additional one.
 
-### Example: Basic Line Chart
+## Example: Basic Line Chart
 - Use `xAxis.data` to specify the field name for X-axis
 - `yAxisTitle` is the Y-axis visible label (required)
 
@@ -42,7 +46,7 @@ The chart already includes a legend and does not require an additional one.
 }
 ```
 
-### Optional Props (add to `option`)
+## Optional Props (add to `option`)
 - `"smooth": true` — smooth curve display
 - `"step": true` — step line display
 - `"stack": true` — stacked lines

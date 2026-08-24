@@ -15,7 +15,7 @@
 类型: string[]
 > The element to be wrapped by the Badge. A static list of child component IDs. Note: The node ID count must be exactly 1;
 
-## 设计规范
+------
 
 # Badge 徽标使用规范
 
@@ -39,12 +39,11 @@
 - 不要用 Badge 表达分类或普通状态；此类信息使用 Tag。
 - 不要让 Badge 抢过锚点本身的视觉权重。
 
+------
 
-## 示例
+# Badge 示例
 
-# Badge
-
-### Example: Badge basic
+## Example: Badge basic
 
 ```json
 {
@@ -72,4 +71,3 @@
 	]
 }
 ```
-

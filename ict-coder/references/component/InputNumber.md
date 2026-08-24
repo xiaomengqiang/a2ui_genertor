@@ -11,7 +11,7 @@
 - `size?`: "large" | "medium" | "small"
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 设计规范
+------
 
 # InputNumber 计数器使用规范
 
@@ -32,12 +32,11 @@
 - 不要手动改写增减按钮样式。
 - 不要使用开发组件不存在的属性或枚举值。
 
+------
 
-## 示例
+# InputNumber | 数字输入框 示例
 
-# InputNumber | 数字输入框
-
-### Example: Basic InputNumber
+## Example: Basic InputNumber
 
 ```json
 {
@@ -50,7 +49,7 @@
 }
 ```
 
-### Example: InputNumber with range
+## Example: InputNumber with range
 
 ```json
 {
@@ -65,7 +64,7 @@
 }
 ```
 
-### Example: InputNumber with step
+## Example: InputNumber with step
 
 ```json
 {
@@ -81,7 +80,7 @@
 }
 ```
 
-### Example: InputNumber with controls
+## Example: InputNumber with controls
 
 ```json
 {
@@ -96,7 +95,7 @@
 }
 ```
 
-### Example: InputNumber with size
+## Example: InputNumber with size
 
 ```json
 {

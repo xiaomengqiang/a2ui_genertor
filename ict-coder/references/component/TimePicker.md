@@ -13,7 +13,7 @@
 - `disabled?`: boolean | DataBinding
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 设计规范
+------
 
 # TimePicker 时间选择器使用规范
 
@@ -39,12 +39,11 @@
 - 不要混用多种时间格式，或在不需要时显示秒。
 - 不要使用开发组件不存在的属性或枚举值。
 
+------
 
-## 示例
+# TimePicker | 时间选择器 示例
 
-# TimePicker | 时间选择器
-
-### Example: Basic TimePicker
+## Example: Basic TimePicker
 
 ```json
 {
@@ -57,7 +56,7 @@
 }
 ```
 
-### Example: TimePicker with range (true)
+## Example: TimePicker with range (true)
 
 ```json
 {
@@ -72,7 +71,7 @@
 
 ```
 
-### Example: TimePicker with size 
+## Example: TimePicker with size 
 
 ```json
 {
@@ -86,7 +85,7 @@
 }
 ```
 
-### Example: TimePicker with format
+## Example: TimePicker with format
 
 ```json
 {
@@ -103,4 +102,3 @@
   }
 }
 ```
-

@@ -10,7 +10,7 @@
 - `unCheckedChildrenIcon?`: string | DataBinding — lucide icon name to be shown when the state is unchecked.
 - `disabled?`: boolean | DataBinding
 
-## 设计规范
+------
 
 # Switch 开关使用规范
 
@@ -36,12 +36,11 @@
 - 不要同时堆叠无必要的控件内文字和图标。
 - 不要使用开发组件不存在的属性或枚举值。
 
+------
 
-## 示例
+# Switch | 开关 示例
 
-# Switch | 开关
-
-### Example: Switch basic
+## Example: Switch basic
 
 ```json
 {
@@ -53,7 +52,7 @@
 }
 ```
 
-### Example: Switch with text
+## Example: Switch with text
 
 ```json
 {
@@ -67,7 +66,7 @@
 }
 ```
 
-### Example: Switch with icons
+## Example: Switch with icons
 
 ```json
 {
@@ -81,7 +80,7 @@
 }
 ```
 
-### Example: Switch size
+## Example: Switch size
 
 ```json
 {
@@ -90,4 +89,3 @@
     "props": { "value": { "path": "/small" }, "size": "small" }
 }
 ```
-

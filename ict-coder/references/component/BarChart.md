@@ -6,20 +6,24 @@
 - `option`:
   - `data`: object[] | DataBinding — Core chart data source (required)
   - `direction?`: "vertical" | "horizontal" — Bar direction: vertical or horizontal
-  - `stack?`: boolean — Enable data stacking - bars will stack on top of each other instead of side by side
-  - `xAxis`: { `data`: string, `name?`: string } — X-axis base configuration (required)
+  - `stack?`: boolean (default: false) — Enable data stacking - bars will stack on top of each other instead of side by side
+  - `xAxis`: — X-axis base configuration (required)
+    - `data`: string — Field name for X-axis dimension mapping
+    - `name?`: string — Setting the X-axis Name
   - `yAxisTitle`: string — MANDATORY: The visible title/label of the Y-axis. This must be a descriptive string (e.g., 'Revenue (USD)', 'Count').
-  - `markLine?`: { `top?`: number, `bottom?`: number } — markline for displaying horizontal reference lines
+  - `markLine?`: — markline for displaying horizontal reference lines
+    - `top?`: number — Upper threshold line
+    - `bottom?`: number — Lower threshold line
   - `color?`: string[] | DataBinding — Stick to default color groups. Override only upon explicit user request.
 - `className`: string — Tailwind CSS classes for the component. Mandatory: width (w-) and height (h-) classes must be explicitly defined.
 
-## 示例
+------
 
-# BarChart | 柱状图
+# BarChart | 柱状图 示例
 
 The chart already includes a legend and does not require an additional one.
 
-### Example: Basic Bar Chart
+## Example: Basic Bar Chart
 - Use `xAxis.data` to specify the field name for X-axis dimension
 - `yAxisTitle` is the Y-axis visible label (required)
 
@@ -41,12 +45,12 @@ The chart already includes a legend and does not require an additional one.
 }
 ```
 
-### Optional Props (add to `option`)
+## Optional Props (add to `option`)
 - `"direction": "horizontal"` — horizontal bar orientation
 - `"color": ["#2070F3", "#63b430"]` — custom bar colors
 - `"markLine": { "top": 38 }` — threshold reference line
 
-### Example: Double-sided Bar Chart
+## Example: Double-sided Bar Chart
 - Use `type: "double-sides"` for bidirectional bars
 
 ```json
@@ -68,7 +72,7 @@ The chart already includes a legend and does not require an additional one.
 }
 ```
 
-### Example: Stacked Bar Chart
+## Example: Stacked Bar Chart
 - Use `type: "stack"` for stacked bars
 - Use `stack` object to define custom stack groups (field name arrays)
 

@@ -5,17 +5,17 @@
 ## props (required: `option`, `className`)
 - `option`:
   - `data`: { `nodes?`: { `value`: string, `name`: string }[], `links?`: { `source`: string, `target`: string, `value`: number }[] } | DataBinding — Core chart data source (required)
-  - `sortType?`: "unset" | "ascend" | "decline" — Sorting method for each column of data
+  - `sortType?`: "unset" | "ascend" | "decline" (default: "unset") — Sorting method for each column of data
   - `color?`: string[] | DataBinding — Stick to default color groups. Override only upon explicit user request.
 - `className`: string — Tailwind CSS classes for the component. Mandatory: width (w-) and height (h-) classes must be explicitly defined.
 
-## 示例
+------
 
-# SankeyChart | 桑基图
+# SankeyChart | 桑基图 示例
 
 The chart already includes a legend and does not require an additional one.
 
-### Example: Basic Sankey Chart
+## Example: Basic Sankey Chart
 ```json
 {
   "id": "sankeyChart",
@@ -54,5 +54,5 @@ The chart already includes a legend and does not require an additional one.
 }
 ```
 
-### Optional Props (add to `option`)
+## Optional Props (add to `option`)
 - `"color": ["#2070F3", "#63b430", "#715afb"]` — custom sankey colors

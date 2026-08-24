@@ -8,13 +8,13 @@
   - `color?`: string[] | DataBinding — Stick to default color groups. Override only upon explicit user request.
 - `className`: string — Tailwind CSS classes for the component. Mandatory: width (w-) and height (h-) classes must be explicitly defined.
 
-## 示例
+------
 
-# TreeMapChart | 矩形树图
+# TreeMapChart | 矩形树图 示例
 
 The chart already includes a legend and does not require an additional one.
 
-### Example: Basic TreeMap Chart
+## Example: Basic TreeMap Chart
 
 ```json
 {
@@ -93,7 +93,5 @@ The chart already includes a legend and does not require an additional one.
 }
 ```
 
-### Optional Props (add to `option`)
+## Optional Props (add to `option`)
 - `"color": ["#2070F3", "#63b430", "#715afb"]` — custom treeMap colors
-
-

@@ -5,6 +5,7 @@
 - `open`: DataBinding
 - `onClose`: Action — Fires when the modal requests to close. Typically a setState that writes false to the same path bound to `open`.
 - `mask?`: boolean (default: true)
+- `width?`: number | string (default: 520) — Modal width. Number is px, string is CSS size.
 - `title?`: string | DataBinding — Modal header title.
 - `footer?`: SlotNode — Footer content. Omit this prop when no footer is needed.
 - `className?`: string — Tailwind CSS classes for the component.
@@ -13,7 +14,7 @@
 类型: StaticChildren
 > The modal body content.
 
-## 设计规范
+------
 
 # Modal 模态弹窗使用规范
 
@@ -27,6 +28,7 @@
 - 底部操作区使用 `footer` 命名插槽，传入一个 `componentId`（通常是一个靠右排列的按钮组）；不需要底部时设 `footer: null`，不要把操作按钮塞进 `children`。
 - 默认 `mask: true`；仅在非阻断的轻提示场景才设 `mask: false`。
 - 标题使用 `title`；标题与触发该弹窗的动作保持同一动词语境（如“查看详情” → 标题“订单详情”）。
+- 使用 `width` 指定弹窗宽度，默认 `520`。
 
 ## 布局
 
@@ -39,14 +41,13 @@
 - 不要用 Modal 承载需要常驻或并行查看的内容；常驻内容用页面区域或抽屉。
 - 不要让两个 Modal 同时打开承担同一流程；嵌套弹窗会破坏焦点与可达性。
 - 不要在 `children` 和 `footer` 中放重复的操作入口；关闭/确认类按钮统一放 `footer`。
-- 不要臆造 API 未定义的属性（如 width、centered 等），需要时再补充。
+- 不要臆造 API 未定义的属性（如 centered 等），需要时再补充。
 
+------
 
-## 示例
+# Modal 示例
 
-# Modal
-
-### Example: A detail modal triggered by a button. `open` / `onClose` bind to the same shared boolean state, the body is a single wrapper node passed to `children`, and the footer is rendered via a SlotNode.
+## Example: A detail modal triggered by a button. `open` / `onClose` bind to the same shared boolean state, the body is a single wrapper node passed to `children`, and the footer is rendered via a SlotNode.
 
 ```json
 {
@@ -80,6 +81,7 @@
         "open": { "path": "/isDetailModalOpen" },
         "title": "订单详情",
         "mask": true,
+        "width": 640,
         "footer": { "componentId": "modalFooter" },
         "onClose": {
           "action": "setState",
@@ -137,7 +139,7 @@
 }
 ```
 
-### Example: Modal element only, no footer (`footer` omitted). Body content is still a single wrapper node.
+## Example: Modal element only, no footer (`footer` omitted). Body content is still a single wrapper node.
 
 ```json
 {
@@ -147,6 +149,7 @@
     "open": { "path": "/isDeleteModalOpen" },
     "title": "确认删除",
     "mask": true,
+    "width": 480,
     "onClose": {
       "action": "setState",
       "args": { "path": "/isDeleteModalOpen", "value": false }
@@ -160,4 +163,3 @@
   "props": { "className": "text-sm text-on-surface", "value": "删除后不可恢复，确定要继续吗？" }
 }
 ```
-

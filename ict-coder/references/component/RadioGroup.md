@@ -8,7 +8,7 @@
 - `className?`: string — Tailwind CSS classes for the component.
 - `size?`: "large" | "medium" | "small"
 
-## 设计规范
+------
 
 # RadioGroup 单选框使用规范
 
@@ -27,12 +27,11 @@
 - 不要用于长列表；使用 Select。
 - 不要使用开发组件不存在的属性或枚举值。
 
+------
 
-## 示例
+# RadioGroup | 单选组 示例
 
-# RadioGroup | 单选组
-
-### Example: RadioGroup basic
+## Example: RadioGroup basic
 
 ```json
 {
@@ -70,4 +69,3 @@
 	]
 }
 ```
-

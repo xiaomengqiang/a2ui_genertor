@@ -5,6 +5,7 @@
 - `open`: DataBinding
 - `onClose`: Action — Fires when the drawer requests to close. Typically a setState that writes false to the same path bound to `open`.
 - `placement?`: "right" | "left" | "top" | "bottom" (default: "right")
+- `width?`: number | string (default: 300) — Drawer width. Number is px, string is CSS size. Only for left/right placement.
 - `mask?`: boolean (default: true)
 - `title?`: string | DataBinding — Drawer header title.
 - `footer?`: SlotNode — Footer content. Omit this prop when no footer is needed.
@@ -14,7 +15,7 @@
 类型: StaticChildren
 > The drawer body content.
 
-## 设计规范
+------
 
 # Drawer 抽屉使用规范
 
@@ -29,6 +30,7 @@
 - 底部操作区使用 `footer` 命名插槽，传入一个 `componentId`（通常是一个按钮组）；不需要底部时省略 `footer`，不要把操作按钮塞进 `children`。
 - 默认 `mask: true`；仅在需要同时操作抽屉与底层页面时才设 `mask: false`。
 - 标题使用 `title`；标题与触发该抽屉的动作保持同一语境。
+- 使用 `width` 指定抽屉宽度，默认 `300`。
 
 ## 布局
 
@@ -41,14 +43,13 @@
 - 不要用 Drawer 承载强打断型的关键确认；强打断场景用 Modal。
 - 不要同时打开多个 Drawer 形成级联；需要分步时在同一抽屉内切换内容。
 - 不要在 `children` 和 `footer` 中放重复的操作入口；操作按钮统一放 `footer`。
-- 不要臆造 API 未定义的属性（如 width、height、closable 等），需要时再补充。
+- 不要臆造 API 未定义的属性（如 height、closable 等），需要时再补充。
 
+------
 
-## 示例
+# Drawer 示例
 
-# Drawer
-
-### Example: A detail drawer triggered by a button, sliding in from the right. `open` / `onClose` bind to the same shared boolean state, the body is a single wrapper node passed to `children`, and the footer is rendered via a SlotNode.
+## Example: A detail drawer triggered by a button, sliding in from the right. `open` / `onClose` bind to the same shared boolean state, the body is a single wrapper node passed to `children`, and the footer is rendered via a SlotNode.
 
 ```json
 {
@@ -83,6 +84,7 @@
         "placement": "right",
         "title": "订单详情",
         "mask": true,
+        "width": 560,
         "footer": { "componentId": "drawerFooter" },
         "onClose": {
           "action": "setState",
@@ -140,7 +142,7 @@
 }
 ```
 
-### Example: Drawer element only, no footer (`footer` omitted). Body content is still a single wrapper node.
+## Example: Drawer element only, no footer (`footer` omitted). Body content is still a single wrapper node.
 
 ```json
 {
@@ -151,6 +153,7 @@
     "placement": "left",
     "title": "筛选条件",
     "mask": true,
+    "width": 400,
     "onClose": {
       "action": "setState",
       "args": { "path": "/isFilterDrawerOpen", "value": false }
@@ -164,4 +167,3 @@
   "props": { "className": "text-sm text-on-surface", "value": "在此放置筛选表单内容。" }
 }
 ```
-

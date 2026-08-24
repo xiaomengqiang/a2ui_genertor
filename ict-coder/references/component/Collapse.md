@@ -13,7 +13,7 @@
 类型: StaticChildren | TemplateChildren
 > Child nodes must be CollapseItem components. If using template loop format, the path must point to a collapseItems data array.
 
-## 设计规范
+------
 
 # Collapse 折叠面板使用规范
 
@@ -40,10 +40,9 @@
 - 不要让标题栏辅助操作与展开点击产生冲突。
 - 不要使用开发组件不存在的属性或枚举值。
 
+------
 
-## 示例
-
-# Collapse
+# Collapse 示例
 
 ## Usage constraints for child node ids
 
@@ -53,7 +52,7 @@
 - If two structures look similar, create separate child nodes such as `projectOverviewPanel` and `userOverviewPanel` instead of sharing `overviewPanel`.
 - Component-specific keys such as `props.key` can reuse the same semantic value in different components, but the node `id` must still be unique per usage.
 
-### Example: Demonstrating the Component Composition between Collapse and CollapseItem, featuring Slot Syntax for flexible content distribution within individual items.
+## Example: Demonstrating the Component Composition between Collapse and CollapseItem, featuring Slot Syntax for flexible content distribution within individual items.
 
 ```json
 {
@@ -109,7 +108,7 @@
 
 ```
 
-### Example: Applicable to asymmetric attribute structures, not applicable to loops, and tiles all items. Slot Syntax (`componentId`) works in static tiling mode too, enabling complex component composition.
+## Example: Applicable to asymmetric attribute structures, not applicable to loops, and tiles all items. Slot Syntax (`componentId`) works in static tiling mode too, enabling complex component composition.
 
 ```json	
 {

@@ -8,7 +8,7 @@
 - `simple?`: boolean | DataBinding — Used to display a simplified pagination style.
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 设计规范
+------
 
 # Pagination 分页器使用规范
 
@@ -32,12 +32,11 @@
 - 不要把 Pagination 放得远离所控制的内容。
 - 不要生成 API 表中不存在的 pageSize、jump 等属性。
 
+------
 
-## 示例
+# Pagination | 分页 示例
 
-# Pagination | 分页
-
-### Example: Pagination basic
+## Example: Pagination basic
 
 ```json
 {
@@ -50,7 +49,7 @@
 }
 ```
 
-### Example: Pagination with data binding
+## Example: Pagination with data binding
 
 ```json
 {
@@ -70,4 +69,3 @@
   ]
 }
 ```
-

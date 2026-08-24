@@ -5,14 +5,13 @@
 - `value`: any[] | DataBinding — Used to set the selected value.
 - `options`: any[] | DataBinding — Semantic checkbox options.
 - `disabled?`: boolean | DataBinding — Determines if the checkbox is disabled.
-- `indeterminate?`: boolean | DataBinding — Determines if the checkbox is indeterminate.
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 示例
+------
 
-# CheckboxGroup | 复选框组
+# CheckboxGroup | 复选框组 示例
 
-### Example: CheckboxGroup basic
+## Example: CheckboxGroup basic
 
 ```json
 {
@@ -50,4 +49,3 @@
 	]
 }
 ```
-

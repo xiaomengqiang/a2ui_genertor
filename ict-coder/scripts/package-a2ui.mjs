@@ -122,8 +122,9 @@ if (existsSync(assetsDst)) {
 if (!assetsReady) fail(`Could not link or copy assets to: ${assetsDst}`);
 
 // verify runtime JS bundle reachable (follows symlink/junction when linked)
-const runtimeJs = readdirSync(assetsDst).find((f) => /^index-.*\.js$/.test(f));
-if (!runtimeJs) fail(`assets/ has no index-*.js — link/copy incomplete at: ${assetsDst}`);
+// accepts both "index.js" and hashed "index-xxxx.js" naming
+const runtimeJs = readdirSync(assetsDst).find((f) => /^index(-[\w-]+)?\.js$/.test(f));
+if (!runtimeJs) fail(`assets/ has no index.js — link/copy incomplete at: ${assetsDst}`);
 
 // ---------- 6. copy HTML as-is (small ~21KB, no rename) ----------
 const htmlDst = join(dest, 'index.prototype.html');

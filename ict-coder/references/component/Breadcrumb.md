@@ -6,7 +6,7 @@
 - `separator?`: string | DataBinding
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 设计规范
+------
 
 # Breadcrumb 面包屑使用规范
 
@@ -31,12 +31,11 @@
 - 不要为了凑层级添加虚假路径。
 - 不要使用开发组件不存在的属性或枚举值。
 
+------
 
-## 示例
+# Breadcrumb | 面包屑 示例
 
-# Breadcrumb | 面包屑
-
-### Example: Breadcrumb basic
+## Example: Breadcrumb basic
 
 ```json
 {
@@ -52,7 +51,7 @@
 }
 ```
 
-### Example: Breadcrumb with separator
+## Example: Breadcrumb with separator
 
 ```json
 {
@@ -69,7 +68,7 @@
 }
 ```
 
-### Example: Breadcrumb with icons
+## Example: Breadcrumb with icons
 
 ```json
 {
@@ -90,7 +89,7 @@
 }
 ```
 
-### Example: Breadcrumb replaces the current item with the separator
+## Example: Breadcrumb replaces the current item with the separator
 
 ```json
 {

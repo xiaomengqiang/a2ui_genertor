@@ -13,7 +13,7 @@
 - `onClick?`: Action — Fires when the button is clicked. Typically a setState action.
 - `className?`: string — Tailwind CSS classes for the component. To specify the button color, use the color property instead (default | primary | danger).
 
-## 设计规范
+------
 
 # Button 按钮使用规范
 
@@ -30,7 +30,7 @@
 - 同一操作组内按钮结构保持一致：统一使用纯文字、纯图标或图标加文字。
 - `shape=circle` 仅用于含义明确的纯图标操作，并提供 Tooltip 或无障碍名称；`shape=round` 仅在产品规范明确要求时使用。
 
-## 文字链接
+### 文字链接
 
 - 文字链接文案应说明目标或动作；正文中的链接与上下文字号一致，表格中的链接与表格文字一致。
 - 需要图标帮助识别时使用 `icon`，并通过 `iconPlacement=start | end` 确定位置；无必要时只用文字。
@@ -50,12 +50,11 @@
 - 不要用 `types=link` 承担保存、提交、新建等主操作。
 - 不要用 Button 代替 Checkbox、Radio、Switch 或 Tag。
 
+------
 
-## 示例
+# Button | 按钮 示例
 
-# Button | 按钮
-
-### Example: Button value path and color
+## Example: Button value path and color
 
 ```json
 {
@@ -78,7 +77,7 @@
 }
 ```
 
-### Example: Button icon
+## Example: Button icon
 
 ```json
  {
@@ -90,7 +89,7 @@
 },
 ```
 
-### Example: Button value with icon
+## Example: Button value with icon
 
 ```json
 {
@@ -105,7 +104,7 @@
 ```
 
 
-### Example: Link Button 
+## Example: Link Button 
 
 ```json
  {
@@ -118,7 +117,7 @@
 }
 ```
 
-### Example: Button onClick event
+## Example: Button onClick event
 
 ```json
 {

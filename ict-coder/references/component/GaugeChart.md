@@ -7,14 +7,16 @@
   - `data`: object[] | DataBinding — Core data source (required)
   - `color?`: string[] | DataBinding — Stick to default color groups. Override only upon explicit user request.
   - `text?`: { `offset?`: number[], `formatter?`: string } — Center text configuration
+    - `offset?`: number[]
+    - `formatter?`: string
   - `splitColor?`: number | string[][] — Color ranges as array of [threshold, color] pairs, e.g., [[0.25, '#0d9458'], [0.5, '#eeba18']]
 - `className`: string — Tailwind CSS classes for the component. Mandatory: width (w-) and height (h-) classes must be explicitly defined.
 
-## 示例
+------
 
-# GaugeChart | 仪表盘
+# GaugeChart | 仪表盘 示例
 
-### Example: Basic Gauge Chart
+## Example: Basic Gauge Chart
 - Use `data` prop with `value` and `name` fields
 
 ```json
@@ -30,7 +32,7 @@
 }
 ```
 
-### Optional Props (add to `option`)
+## Optional Props (add to `option`)
 - `"color": ["#2070F3"]` — custom gauge color
 - `"pointer": true` — show gauge pointer needle
 - `"min": 0, "max": 100, "splitNumber": 4` — custom range and divisions

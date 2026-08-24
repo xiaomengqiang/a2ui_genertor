@@ -6,20 +6,30 @@
 - `option`:
   - `data`: object[] | DataBinding — Core chart data source (required)
   - `lineOption`: { `dataName`: any[], `smooth?`: boolean } — Line chart options
+    - `dataName`: any[] — Data labels for the line chart
+    - `smooth?`: boolean — Whether to display as smooth curve
   - `barOption`: { `dataName`: any[], `label?`: { `show?`: boolean } } — Bar chart options
+    - `dataName`: any[] — Data labels for the bar chart
+    - `label?`: — Label configuration for the bar chart
+      - `show?`: boolean
   - `xAxis`: { `data`: string } — X-axis base configuration (required)
+    - `data`: string — Field name for X-axis dimension mapping
   - `yAxis`: { `dataName?`: any[], `name?`: string, `unit?`: string, `position?`: "left" | "right" }[]
   - `markLine?`: { `top?`: number, `topUse?`: any[], `bottom?`: number, `bottomUse?`: any[] } — markline for displaying horizontal reference lines
+    - `top?`: number — Upper threshold line
+    - `topUse?`: any[] — Data labels for the upper threshold line
+    - `bottom?`: number — Lower threshold line
+    - `bottomUse?`: any[] — Data labels for the lower threshold line
   - `color?`: string[] | DataBinding — Stick to default color groups. Override only upon explicit user request.
 - `className`: string — Tailwind CSS classes for the component. Mandatory: width (w-) and height (h-) classes must be explicitly defined.
 
-## 示例
+------
 
-# BarLineChart | 折柱混合图
+# BarLineChart | 折柱混合图 示例
 
 The chart already includes a legend and does not require an additional one.
 
-### Example: BarLineChart
+## Example: BarLineChart
 - Use `xAxis.data` to specify the field name for X-axis dimension
 - `yAxis` is the Y-axis (required)
 
@@ -69,5 +79,5 @@ The chart already includes a legend and does not require an additional one.
 }
 ```
 
-### Optional Props (add to `option`)
+## Optional Props (add to `option`)
 - `"markLine": { "top": 38, topUse: ['Domestic'] }` — threshold reference line

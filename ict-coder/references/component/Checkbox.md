@@ -11,7 +11,7 @@
 ## children
 类型: StaticChildren | TemplateChildren
 
-## 设计规范
+------
 
 # Checkbox 复选框使用规范
 
@@ -36,12 +36,11 @@
 - 不要用于立即生效的开关；使用 Switch。
 - 不要写开发 API 未提供的半选属性。
 
+------
 
-## 示例
+# Checkbox | 多选框 示例
 
-# Checkbox | 多选框
-
-### Example: Checkbox basic
+## Example: Checkbox basic
 
 ```json
 {
@@ -66,7 +65,7 @@
 	]
 }
 ```
-### Example: Checkbox children
+## Example: Checkbox children
 
 ```json
 {

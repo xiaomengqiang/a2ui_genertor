@@ -11,7 +11,7 @@
 - `password?`: boolean — masks the entered characters for secure password input.
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 设计规范
+------
 
 # Input 输入框使用规范
 
@@ -45,12 +45,11 @@
 - 不要使用开发组件不存在的属性或枚举值。
 - 不要试图用 Input 组件做多行输入，多行输入应当使用 TextArea 组件。
 
+------
 
-## 示例
+# Input | 输入框 示例
 
-# Input | 输入框
-
-### Example: Basic Input
+## Example: Basic Input
 
 ```json
 {
@@ -63,7 +62,7 @@
 }
 ```
 
-### Example: Input with size
+## Example: Input with size
 
 ```json
 {
@@ -85,7 +84,7 @@
 }
 ```
 
-### Example: Input with maxLength
+## Example: Input with maxLength
 
 ```json
 {
@@ -107,7 +106,7 @@
 }
 ```
 
-### Example: Input with prefix/suffix icon
+## Example: Input with prefix/suffix icon
 
 ```json
 {
@@ -130,7 +129,7 @@
 }
 ```
 
-### Example: Input with password
+## Example: Input with password
 
 ```json
 {
@@ -152,7 +151,7 @@
 }
 ```
 
-### Example: Input with className
+## Example: Input with className
 
 ```json
 {

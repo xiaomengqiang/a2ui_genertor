@@ -272,7 +272,7 @@
 /* Light */
 @font-face {
   font-family: 'HarmonyOS Sans';
-  src: url('./assets/font/HarmonyOS_SansSC/Light.woff2') format('truetype');
+  src: url('../font/HarmonyOS_SansSC/Light.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
 }
@@ -280,7 +280,7 @@
 /* Regular */
 @font-face {
   font-family: 'HarmonyOS Sans';
-  src: url('./assets/font/HarmonyOS_SansSC/Regular.woff2') format('truetype');
+  src: url('../font/HarmonyOS_SansSC/Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
 }
@@ -288,7 +288,7 @@
 /* Medium */
 @font-face {
   font-family: 'HarmonyOS Sans';
-  src: url('./assets/font/HarmonyOS_SansSC/Medium.woff2') format('truetype');
+  src: url('../font/HarmonyOS_SansSC/Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
 }
@@ -296,7 +296,7 @@
 /* Bold */
 @font-face {
   font-family: 'HarmonyOS Sans';
-  src: url('./assets/font/HarmonyOS_SansSC/Bold.woff2') format('truetype');
+  src: url('../font/HarmonyOS_SansSC/Bold.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
 }

@@ -8,7 +8,7 @@
 - `options`: { `title`: string, `key`: string, `icon?`: string, `children?`: object }[] | DataBinding — The Tree options list.
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 设计规范
+------
 
 # Tree 结构树使用规范
 
@@ -35,12 +35,11 @@
 - 不要在节点内放复杂表单、图表或多行说明。
 - 不要写 API 未提供的搜索、编辑、异步加载属性。
 
+------
 
-## 示例
+# Tree 示例
 
-# Tree
-
-### Example: Tree with data binding options
+## Example: Tree with data binding options
 
 ```json
 {
@@ -95,7 +94,7 @@
 }
 ```
 
-### Example: Tree with static options
+## Example: Tree with static options
 
 ```json
 {
@@ -145,4 +144,3 @@
   }
 }
 ```
-

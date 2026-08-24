@@ -11,11 +11,11 @@
 - `disabled?`: boolean | DataBinding
 - `className?`: string — Tailwind CSS classes for the component.
 
-## 示例
+------
 
-# DatePicker | 日期选择器
+# DatePicker | 日期选择器 示例
 
-### Example: Basic DatePicker
+## Example: Basic DatePicker
 
 ```json
 {
@@ -28,7 +28,7 @@
 }
 ```
 
-### Example: DatePicker with range
+## Example: DatePicker with range
 
 ```json
 {
@@ -42,7 +42,7 @@
 }
 ```
 
-### Example: DatePicker with picker types
+## Example: DatePicker with picker types
 
 ```json
 {
@@ -67,7 +67,7 @@
 }
 ```
 
-### Example: DatePicker with size
+## Example: DatePicker with size
 ```json
 {
   "state": {
@@ -88,7 +88,7 @@
 }
 ```
 
-### Example: DatePicker with format
+## Example: DatePicker with format
 
 ```json
 {
@@ -102,7 +102,7 @@
 }
 ```
 
-### Example: DatePicker with className
+## Example: DatePicker with className
 
 ```json
 {
@@ -116,7 +116,7 @@
 }
 ```
 
-### Example: DatePicker range with picker
+## Example: DatePicker range with picker
 
 ```json
 {

@@ -5,18 +5,18 @@
 ## props (required: `option`, `className`)
 - `option`:
   - `data`: object[] | DataBinding — Core chart data source (required)
-  - `sort?`: "descending" | "ascending" | "none"
+  - `sort?`: "descending" | "ascending" | "none" (default: "descending")
   - `direction?`: "vertical" | "horizontal" — FunnelChart direction: vertical or horizontal
   - `color?`: string[] | DataBinding — Stick to default color groups. Override only upon explicit user request.
 - `className`: string — Tailwind CSS classes for the component. Mandatory: width (w-) and height (h-) classes must be explicitly defined.
 
-## 示例
+------
 
-# FunnelChart | 漏斗图
+# FunnelChart | 漏斗图 示例
 
 The chart already includes a legend and does not require an additional one.
 
-### Example: Basic Funnel Chart
+## Example: Basic Funnel Chart
 - Data uses `name` and `value` fields, sorted by value descending by default
 
 ```json
@@ -37,8 +37,7 @@ The chart already includes a legend and does not require an additional one.
 }
 ```
 
-### Optional Props (add to `option`)
+## Optional Props (add to `option`)
 - `"sort": "ascending"` — sort direction (values: `"descending"`, `"ascending"`, `"none"`, default: `"descending"`)
 - `"direction": "horizontal"` — horizontal funnel orientation
 - `"color": ["#2070F3", "#63b430", "#715afb", "#2db8ca"]` — custom slice colors
-

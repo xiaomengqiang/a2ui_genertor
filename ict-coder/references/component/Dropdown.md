@@ -11,7 +11,7 @@
 类型: string[]
 > The element to be wrapped by the Dropdown. A static list of child component IDs. Note: The node ID count must be exactly 1;
 
-## 设计规范
+------
 
 # Dropdown 下拉菜单使用规范
 
@@ -35,12 +35,11 @@
 - 不要在菜单项内放表单、图表或长段说明。
 - 不要写 API 表未定义的 trigger 枚举值。
 
+------
 
-## 示例
+# Dropdown | 下拉菜单 示例
 
-# Dropdown | 下拉菜单
-
-### Example: Dropdown basic
+## Example: Dropdown basic
 
 ```json
 {
@@ -62,7 +61,7 @@
 }
 ```
 
-### Example: Dropdown with trigger
+## Example: Dropdown with trigger
 
 ```json
 {
@@ -85,7 +84,7 @@
 }
 ```
 
-### Example: Dropdown with placement
+## Example: Dropdown with placement
 
 ```json
 {
@@ -105,4 +104,3 @@
   "props": { "className": "p-4", "value": "左下角" }
 }
 ```
-

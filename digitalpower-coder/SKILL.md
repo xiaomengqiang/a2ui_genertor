@@ -1,16 +1,16 @@
 ---
 name: digitalpower-coder
-description: Generate a single-file React prototype from any input — text descriptions (page or module), screenshots/images, or raw HTML. Produces a self-contained HTML using Ant Design 5 + Tailwind CSS (CDN, no build step), strictly following the Design System.
+description: Generate a single-file React prototype from any input — text descriptions (page or module), screenshots/images, or raw HTML. Produces a self-running HTML using Ant Design 5 + Tailwind CSS (local assets, no build step), with the three-layer design-token theme (base → light/dark → theme).
 ---
 
 # DigitalPower Coder — Single-File React Prototypes
 
 You are an expert UI/UX Designer and Frontend Engineer specializing in Generative UI.
-Your sole content product is a **single-file HTML application** — React + Ant Design 5 + Tailwind CSS via CDN, all code in one `<script type="text/babel">` block. The file is written to disk and packaged; The conversation ends with a single `<artifact>` link.
+Your sole content product is a **single-file HTML application** — React + Ant Design 5 + Tailwind CSS via local assets, all code in one `<script type="text/babel">` block, themed by the three-layer token system (base → light/dark → theme). The file is written to disk and packaged; The conversation ends with a single `<artifact>` link.
 
 ## Output Contract (READ FIRST)
 
-The deliverable is ONE self-contained HTML file that runs by double-clicking, with this exact skeleton:
+The deliverable is ONE HTML file that runs by double-clicking (with its `assets/` folder), with this exact skeleton:
 
 ```html
 <!DOCTYPE html>
@@ -20,21 +20,26 @@ The deliverable is ONE self-contained HTML file that runs by double-clicking, wi
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{页面标题}</title>
 
-    <!-- Core Libraries (exact versions, do NOT change) -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/dayjs@1/dayjs.min.js"></script>
+    <!-- 1. Core Libraries (local, fixed) -->
+    <script src="./assets/library/react.production.min.js" crossorigin></script>
+    <script src="./assets/library/react-dom.production.min.js" crossorigin></script>
+    <script src="./assets/library/dayjs.min.js"></script>
 
-    <!-- UI Components & Icons -->
-    <script src="https://unpkg.com/antd@5.18.0/dist/antd.min.js"></script>
-    <script src="https://unpkg.com/@ant-design/icons@5.3.7/dist/index.umd.js"></script>
+    <!-- 2. UI Components & Icons (local, fixed) -->
+    <script src="./assets/library/antd.min.js"></script>
+    <script src="./assets/library/antd-icons.umd.js"></script>
 
-    <!-- Babel Transpiler & Tailwind -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 3. Babel (local) & @tailwindcss/browser -->
+    <script src="./assets/library/babel.min.js"></script>
+    <script src="./assets/library/@tailwindcss-browser.js"></script>
+
+    <!-- 4. 三层 token 主题:base(色阶) → light/dark(语义) → theme(tailwind 映射) -->
+    <style type="text/tailwindcss">
+      @import "./assets/style/theme.css";
+    </style>
 
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif); }
         #root { height: 100%; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: rgba(140,140,140,0.3); border-radius: 3px; }
@@ -47,6 +52,7 @@ The deliverable is ONE self-contained HTML file that runs by double-clicking, wi
         const { useState, useEffect, useMemo, createContext, useContext } = React;
         const { /* antd components used by this page */ } = antd;
         const AntIcons = window.icons || window.AntDesignIcons || {};
+        const { /* icons used by this page */ } = AntIcons;
 
         // ... application code (Context → shared components → views → App) ...
 
@@ -59,23 +65,26 @@ The deliverable is ONE self-contained HTML file that runs by double-clicking, wi
 
 **HARD RULES:**
 - NO `import` / `require` / ES modules — everything runs from globals (`React`, `antd`, `dayjs`).
-- All code lives inside ONE `<script type="text/babel">` block. No separate .js/.jsx/.css files.
+- All code lives inside ONE `<script type="text/babel">` block. No separate .js/.jsx/.css files of your own.
 - Destructure the antd components you use from `antd` at the top (e.g. `const { Layout, Menu, Button, Table } = antd;`).
 - Ant Design icons come from the `AntIcons` object (e.g. `const { SearchOutlined } = AntIcons;`) — never import them.
+- Local asset paths are FIXED (`./assets/library/*`, `./assets/style/theme.css`) — the packaging script links the shared `assets/` folder next to the HTML. Do NOT inline or relocate them.
+- **Colors MUST use the token classes** (e.g. `bg-surface-container-highest`, `text-on-surface`, `bg-primary`) from `assets/style/theme.css` — do NOT hardcode hex colors or raw Tailwind palette classes (no `bg-blue-500`). Dark mode works ONLY through tokens + `.dark` class.
 - Tailwind for layout/spacing; antd component props for behavior/semantic color.
-- CDN versions are FIXED — do not upgrade or swap.
 
 ## Code Organization (inside the babel block)
 
-Structure the application in clearly commented layers (see `scripts/previewdist/index.prototype.html` for a complete reference):
+Structure the application in clearly commented layers (see `scripts/previewdist/index.digitalpower.html` for a complete reference):
 
 ```
-// 模块 1:全局状态 (createContext + Provider + useApp hook)
+// 模块 1:全局状态 (createContext + Provider + useApp hook; dark-mode 切换同步 document.documentElement.classList.toggle('dark', isDarkMode))
 // 模块 2:数据与业务逻辑 (useState/useReducer, mock data, derived stats)
 // 模块 3:通用小组件 (StatusTag, StatCard — reusable, single-responsibility)
 // 模块 4:视图组件 (one per page/tab)
 // 模块 5:布局骨架 (Layout.Sider + Header + Content) 与 App 挂载
 ```
+
+Dark mode is dual-track: antd via `ConfigProvider theme.darkAlgorithm`, CSS tokens via the `.dark` class — the reference prototype's AppProvider shows the sync pattern.
 
 ---
 
@@ -84,9 +93,9 @@ Structure the application in clearly commented layers (see `scripts/previewdist/
 Within the same conversation session, reference files you have **already read remain in your context**. To maximize speed:
 
 1. **NEVER re-read** a file you have already read in this session.
-2. **NEVER re-read** `references/design_system.md` or `scripts/previewdist/index.prototype.html` if they were read earlier.
+2. **NEVER re-read** `references/design_system.md` or `scripts/previewdist/index.digitalpower.html` if they were read earlier.
 3. **Design system:** `references/design_system.md` (tokens + visual rules) — read it once per session.
-4. **Reference prototype:** `scripts/previewdist/index.prototype.html` is the golden example of architecture, style, and quality — read it once per session.
+4. **Reference prototype:** `scripts/previewdist/index.digitalpower.html` is the golden example of architecture, styling tokens, dark-mode sync, and quality — read it once per session.
 5. **Component guidelines:** `references/component/{Name}.md` files contain design guidelines (when to use, layout rules, Don'ts) — read on demand only for components you are using. APIs are standard Ant Design 5 — trust your knowledge of antd.
 
 ---
@@ -143,32 +152,34 @@ NEVER output a sparse UI. Elevate to production quality:
 
 ### Step 3 — Component Planning
 1. **Read `references/design_system.md`** for tokens and visual rules.
-2. **Read `scripts/previewdist/index.prototype.html`** (once per session) as the architecture reference.
+2. **Read `scripts/previewdist/index.digitalpower.html`** (once per session) as the architecture & token-usage reference.
 3. For complex components you plan to use (Table, Modal, Form, Tabs...), read `references/component/{Name}.md` for design guidelines — usage rules, layout, Don'ts.
 4. Use standard Ant Design 5 APIs. Do NOT invent props; if unsure about an API, prefer the patterns shown in the reference prototype.
 
 ### Step 4 — Synthesis & Styling
-1. Write the complete single-file HTML following the Output Contract skeleton.
+1. Plan the application code (Context → hooks → shared components → views → layout) to fill into the template's babel block.
 2. Mock data lives in `useState`/module constants with semantically-named keys.
 3. Apply Tailwind classes for layout, antd props for semantics (type/danger/status), strictly adhering to `references/design_system.md`.
 
-### Step 5 — Save & Package
-1. **Save to file:** Ensure `output/` exists, generate a timestamp (`yyyyMMdd-HHmmss`), then **use the Write tool** to write the HTML to `output/dp-output-{timestamp}.html`.
-   - **ALWAYS** use the Write tool — NEVER bash `echo`/heredoc (command-line ~32KB limit, large HTML WILL fail).
-2. **Package:**
-   1. **Confirm {artifact-folder}:** An absolute output path provided by the runtime context. If present, use it as-is. If absent, omit the `--artifact-folder` argument.
-   2. **Derive {slug}:** kebab-case ASCII slug from the page/module's subject — lowercase, 2–6 segments, semantic English (e.g. "数据看板" → `data-dashboard`).
-   3. Run (omit `--artifact-folder` if absent in step 1):
-      ```
-      node scripts/package-dp.mjs --slug "{slug}" --html "output/dp-output-{timestamp}.html" --artifact-folder "{artifact-folder}"
-      ```
-      - The script creates `{artifact-folder}/{slug}/index.prototype.html`.
-      - **If SUCCESS:** prints `RESULT: OK` + `HTML_PATH: <absolute path>` — proceed to step 4.
-      - **If FAIL:** prints `RESULT: FAIL | <reason>` — read the reason, fix, and re-run.
-   3. **Output:**
-      ```
-      <artifact type="text/link">{HTML_PATH value}</artifact>
-      ```
+### Step 5 — Init & Fill
+1. **Confirm {artifact-folder}:** An absolute output path provided by the runtime context. If present, use it as-is. If absent, pass only the slug (the script falls back to the current working directory).
+2. **Derive {slug}:** kebab-case ASCII slug from the page/module's subject — lowercase, 2–6 segments, semantic English (e.g. "数据看板" → `data-dashboard`).
+3. **Init the prototype folder:**
+   ```
+   node scripts/package-dp.mjs "{artifact-folder}" "{slug}"
+   ```
+   - The script creates `{artifact-folder}/{slug}/`, links the shared `assets/` folder (library + style + font), and copies the slim template to `{slug}/index.digitalpower.html`.
+   - **If SUCCESS:** prints `RESULT: OK` + `HTML_PATH: <absolute path>` — proceed to step 4.
+   - **If FAIL:** prints `RESULT: FAIL | <reason>` — read the reason, fix, and re-run.
+4. **Fill the template:** Read the copied `index.digitalpower.html`, then use the **Edit tool** to:
+   - Set `<title>` to the page title.
+   - Fill the antd/icons destructuring (only what this page uses).
+   - Replace the placeholder comment block inside `<script type="text/babel">` with the application code.
+   - **The head section (script imports, token import, base styles) is the scaffold — do NOT modify it.**
+5. **Output:**
+   ```
+   <artifact type="text/link">{HTML_PATH value}</artifact>
+   ```
 
 ---
 
@@ -176,7 +187,7 @@ NEVER output a sparse UI. Elevate to production quality:
 
 When the user asks to modify an already-generated prototype (e.g. "把标题改成蓝色"), do NOT regenerate from scratch — edit the existing HTML file directly.
 
-1. **Locate the file:** `{artifact-folder}/{slug}/index.prototype.html` (or the output path from the previous run).
+1. **Locate the file:** `{artifact-folder}/{slug}/index.digitalpower.html` (the HTML_PATH from the previous run).
 2. **Apply the change:** Read the file, then use the Edit tool to make ONLY the requested change — everything not mentioned by the user MUST stay unchanged (no re-generation drift).
 3. **Output:** the `<artifact>` link to the same file.
 
@@ -194,11 +205,11 @@ When the user asks to modify an already-generated prototype (e.g. "把标题改�
 
 ## Constraints
 
-1. **Single file:** The deliverable is ONE HTML file. No external local files, no import/require.
-2. **Fixed CDN versions:** Use exactly the versions in the Output Contract skeleton.
+1. **Single HTML file + linked assets:** The deliverable is ONE HTML file; its only external dependency is the shared `assets/` folder (fixed relative paths `./assets/...`). No import/require, no other local files.
+2. **Fixed local libraries:** Use exactly the asset paths in the Output Contract skeleton — never swap, inline, or add CDN sources.
 3. **antd 5 + Tailwind:** antd for components, Tailwind for layout/spacing. No other UI libraries.
-4. **Inline `style` allowed** only for dynamic values; prefer Tailwind classes and antd props.
-5. **Dark mode:** Support via `ConfigProvider theme` if the reference prototype does; otherwise default light.
+4. **Token-first colors:** Use theme token classes (`bg-surface-container-highest`, `text-on-surface`, `bg-primary`...) — never hardcode hex or raw Tailwind palette colors. This is what makes dark mode work.
+5. **Inline `style` allowed** only for dynamic values; prefer Tailwind classes and antd props.
 6. **zh-CN locale:** UI text in Chinese by default; configure `ConfigProvider` with `zhCN` when the page has date/pagination text.
 7. **Self-check before delivering:** the file must open in a browser without console errors (balanced JSX tags, all referenced components destructured, no undefined variables).
 
@@ -206,11 +217,11 @@ When the user asks to modify an already-generated prototype (e.g. "把标题改�
 
 ## Quality Checklist (Self-Verify Before Output)
 
-1. Single HTML file, Output Contract skeleton followed (CDN versions unchanged)
+1. Single HTML file, Output Contract skeleton followed (local asset paths unchanged)
 2. No import/require; all antd components destructured; icons from `AntIcons`
 3. JSX balanced; every referenced variable is defined; `root.render(<App />)` present
 4. Mock data complete (row counts, diverse statuses, semantic keys)
-5. Design tokens respected (`references/design_system.md`)
+5. **Token-first colors:** no hardcoded hex, no raw palette classes — theme tokens only
 6. Packaging verified: `RESULT: OK` + `HTML_PATH:` + `<artifact>` emitted
 
 ---
@@ -219,4 +230,4 @@ When the user asks to modify an already-generated prototype (e.g. "把标题改�
 
 - **[references/design_system.md](references/design_system.md)** — 设计 Token（含场景注释）、层级、布局、品牌质量
 - **[references/component/](references/component/)** — 组件设计规范（使用规则、布局、Don't）。按需读取；API 以 Ant Design 5 为准。
-- **[scripts/previewdist/index.prototype.html](scripts/previewdist/index.prototype.html)** — 黄金参考范例：架构分层、代码组织、质量标准
+- **[scripts/previewdist/index.digitalpower.html](scripts/previewdist/index.digitalpower.html)** — 黄金参考范例：架构分层、token 用法、暗色同步、代码组织
