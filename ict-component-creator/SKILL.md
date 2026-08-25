@@ -1,5 +1,5 @@
 ---
-name: ict-component
+name: ict-component-creator
 description: Generate a production-ready React component from a natural language description. Outputs a component folder (containing index.jsx + index.css) and a lightweight HTML preview entry that renders the component in-browser via Babel standalone — no build step required.
 ---
 
