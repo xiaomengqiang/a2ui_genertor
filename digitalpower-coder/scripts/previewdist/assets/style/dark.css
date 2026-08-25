@@ -194,16 +194,14 @@
   --icon-error: var(--red-30);
 
   /* Shadow (暗色模式下阴影更强) */
-   --shadow-none: none;
-   --shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.5);
-   --shadow-base: 0 4px 12px rgba(0, 0, 0, 0.5);
-   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
-   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
-   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5);
-   --shadow-r-sm: 1px 0 6px 0 rgba(0, 0, 0, 0.5);
-   --shadow-t-sm: 0 -1px 6px rgba(0, 0, 0, 0.5);
-   --shadow-l-base: -2px 0 12px 0 rgba(0, 0, 0, 0.5);
-   --shadow-l-md: -2px 0 24px 0 rgba(0, 0, 0, 0.5);
-
-
+  --shadow-none: none;
+  --shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.5);
+  --shadow-base: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-r-sm: 1px 0 6px 0 rgba(0, 0, 0, 0.5);
+  --shadow-t-sm: 0 -1px 6px rgba(0, 0, 0, 0.5);
+  --shadow-l-base: -2px 0 12px 0 rgba(0, 0, 0, 0.5);
+  --shadow-l-md: -2px 0 24px 0 rgba(0, 0, 0, 0.5);
 }

@@ -1,6 +1,6 @@
 ---
 name: digitalpower-coder
-description: Generate a single-file React prototype from any input — text descriptions (page or module), screenshots/images, or raw HTML. Produces a self-running HTML using Ant Design 5 + Tailwind CSS (local assets, no build step), with the three-layer design-token theme (base → light/dark → theme).
+description: Generate a single-file React prototype from any input — text descriptions (page or module), screenshots/images, or raw HTML. Produces a self-running HTML using Ant Design 5 + Tailwind CSS (local assets, no build step).
 ---
 
 # DigitalPower Coder — Single-File React Prototypes
@@ -10,40 +10,28 @@ Your sole content product is a **single-file HTML application** — React + Ant 
 
 ## Output Contract (READ FIRST)
 
-The deliverable is ONE HTML file that runs by double-clicking (with its `assets/` folder), with this exact skeleton:
+The deliverable is ONE HTML file (`index.digitalpower.html`) plus its linked `assets/` folder, created by copying the template (`scripts/previewdist/index.digitalpower.html`) via the packaging script. You do NOT write the HTML from scratch — you fill the template. Understand its structure:
 
 ```html
-<!DOCTYPE html>
-<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{页面标题}</title>
-
-    <!-- 1. Core Libraries (local, fixed) -->
-    <script src="./assets/library/react.production.min.js" crossorigin></script>
-    <script src="./assets/library/react-dom.production.min.js" crossorigin></script>
+    <!-- 1-3. Local libraries (FIXED — never modify) -->
+    <script src="./assets/library/react.production.min.js"></script>
+    <script src="./assets/library/react-dom.production.min.js"></script>
     <script src="./assets/library/dayjs.min.js"></script>
-
-    <!-- 2. UI Components & Icons (local, fixed) -->
     <script src="./assets/library/antd.min.js"></script>
     <script src="./assets/library/antd-icons.umd.js"></script>
-
-    <!-- 3. Babel (local) & @tailwindcss/browser -->
     <script src="./assets/library/babel.min.js"></script>
     <script src="./assets/library/@tailwindcss-browser.js"></script>
 
-    <!-- 4. 三层 token 主题:base(色阶) → light/dark(语义) → theme(tailwind 映射) -->
-    <style type="text/tailwindcss">
-      @import "./assets/style/theme.css";
-    </style>
+    <!-- 4. Token variables (base → light/dark), loaded via <link> (FIXED) -->
+    <link rel="stylesheet" href="./assets/style/base.css">
+    <link rel="stylesheet" href="./assets/style/light.css">
+    <link rel="stylesheet" href="./assets/style/dark.css">
 
-    <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif); }
-        #root { height: 100%; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: rgba(140,140,140,0.3); border-radius: 3px; }
-    </style>
+    <!-- 5. Inline @theme mapping (~430 lines, compiled by tailwindcss-browser at runtime) — FIXED, do NOT edit or inline-replicate -->
+    <style type="text/tailwindcss"> @theme { ... } </style>
+
+    <!-- 6. Base styles (FIXED) -->
 </head>
 <body>
     <div id="root"></div>
@@ -54,22 +42,27 @@ The deliverable is ONE HTML file that runs by double-clicking (with its `assets/
         const AntIcons = window.icons || window.AntDesignIcons || {};
         const { /* icons used by this page */ } = AntIcons;
 
+        // ▼▼ YOUR CODE GOES HERE ▼▼
         // ... application code (Context → shared components → views → App) ...
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
+        // ▲▲ YOUR CODE ENDS HERE ▲▲
     </script>
 </body>
-</html>
 ```
+
+**Editable zones vs FIXED zones:**
+- **You edit ONLY:** `<title>`, the two destructuring lines, and the application code between the markers inside the babel block.
+- **FIXED (never touch):** all script/link tags, the inline `@theme` block, base styles. The packaging script already copied them — they are the scaffold.
 
 **HARD RULES:**
 - NO `import` / `require` / ES modules — everything runs from globals (`React`, `antd`, `dayjs`).
-- All code lives inside ONE `<script type="text/babel">` block. No separate .js/.jsx/.css files of your own.
+- All code lives inside ONE `<script type="text/babel">` block.
 - Destructure the antd components you use from `antd` at the top (e.g. `const { Layout, Menu, Button, Table } = antd;`).
 - Ant Design icons come from the `AntIcons` object (e.g. `const { SearchOutlined } = AntIcons;`) — never import them.
-- Local asset paths are FIXED (`./assets/library/*`, `./assets/style/theme.css`) — the packaging script links the shared `assets/` folder next to the HTML. Do NOT inline or relocate them.
-- **Colors MUST use the token classes** (e.g. `bg-surface-container-highest`, `text-on-surface`, `bg-primary`) from `assets/style/theme.css` — do NOT hardcode hex colors or raw Tailwind palette classes (no `bg-blue-500`). Dark mode works ONLY through tokens + `.dark` class.
+- Asset paths are FIXED (`./assets/library/*`, `./assets/style/*`) — the packaging script links the shared `assets/` folder next to the HTML.
+- **Colors MUST use the token classes** (e.g. `bg-surface-container-highest`, `text-on-surface`, `bg-primary`) defined in the inline `@theme` — do NOT hardcode hex colors or raw Tailwind palette classes (no `bg-blue-500`). Dark mode works ONLY through tokens + the `.dark` class.
 - Tailwind for layout/spacing; antd component props for behavior/semantic color.
 
 ## Code Organization (inside the babel block)
