@@ -27,10 +27,12 @@ All component work happens in a working scaffold — run `init.mjs` to copy the 
 node scripts/init.mjs --artifact-folder "{artifact-folder}"
 ```
 
-- `{artifact-folder}` comes from the runtime context **[Artifact Folder]** Use it as-is — do NOT create, guess, or fabricate it. If absent, omit the flag and the scaffold is created in the current working directory.
-- The working scaffold lives at **`{artifact-folder}/preview`** — use this path as the root for every subsequent step (writing components, building, verifying).
+- `{artifact-folder}` comes from the runtime context **[Artifact Folder]** Use it as-is — do NOT create, guess, or fabricate it. If absent, omit the flag and the scaffold is created under the current working directory at `./preview`.
+- The actual working scaffold lives at **`{artifact-folder}/preview`** — use this path as the root for every subsequent step (writing components, building, verifying).
 
 ## Step 2 — Author the Component
+
+> **Reference example:** `scripts/preview/components/SegmentedSteps/` (in the skill folder, not the scaffold) — a complete component (index.jsx + index.css + README.md). Read it to see the full structure in practice.
 
 Analyze the request (purpose, data displayed, interactions), then create `{artifact-folder}/preview/components/{PascalCaseName}/` with three core files:
 
@@ -40,7 +42,7 @@ Analyze the request (purpose, data displayed, interactions), then create `{artif
   - `import { Icon } from "../../assets/shared/icons.js";` — icon component
   - `import "./index.css";` — component styles
 - `export default function ComponentName()` — must be a named function declaration
-- Sub-components live in the same file by default; multiple files are fine if reachable via relative imports
+- Sub-components and sub-modules may be split into multiple files in the same folder, accessible via relative imports
 - Add brief comments on key parts of the logic
 - **import/export syntax constraints:**
   Supported:
@@ -97,7 +99,7 @@ import ComponentName from "./components/ComponentName/index.jsx";
 </section>
 ```
 
-1. **Import:** `import ComponentName from "./ComponentName/index.jsx";` at the top of `demo.jsx`.
+1. **Import:** `import ComponentName from "./components/ComponentName/index.jsx";` at the top of `demo.jsx`.
 2. **Showcase dimensions:** cover the component's meaningful states — default, custom data, each prop's effect, interactive states, and relevant edge cases (empty, long text, many items...). List all cases, check the result of each scenario.
 3. **Layout freedom:** organize the page as you see fit. `demo.css` provides optional preset classes (`demo-section`, `demo-grid`, `demo-card`, `demo-item`...) you may use, restyle, or ignore — the gallery is a showcase page, not a template.
 
@@ -106,9 +108,8 @@ import ComponentName from "./components/ComponentName/index.jsx";
 Compile the scaffold into a single self-contained `index.components.html`, then machine-check it:
 
 ```
-cd "{artifact-folder}/preview"
-node build.mjs
-node verify-build.mjs
+node scripts/build.mjs --dir "{artifact-folder}/preview"
+node scripts/verify-build.mjs --dir "{artifact-folder}/preview"
 ```
 
 - `build.mjs`: bundles all imports into one offline `index.components.html` (local React/Babel/fonts/tokens inlined)
@@ -129,7 +130,7 @@ After component authoring + build & verify pass, emit the preview link as the fi
 **Read `references/design_system.md` before writing any component CSS** — it contains the full token map and usage rules.
 
 Key rules:
-- Use **theme-layer tokens** (`var(--primary)`, `var(--on-surface)`, `var(--surface-container)`, `var(--error-container)`, `var(--text-md)`…) — never hardcode hex in CSS, never use primitive scales (`--brand-50`, `--gray-90`); build.mjs CSS lint fails on both
+- Use **theme-layer tokens** (`var(--primary)`, `var(--on-surface)`, `var(--surface-container)`, `var(--error-container)`, `var(--text-md)`…) — hardcoded hex only when the requirement specifies an exact color. build.mjs CSS lint FAILs on `:root`/`.dark` blocks and unknown token names; 
 - Colors in JSX inline styles use hex — CSS files use tokens
 - Dark mode comes free: tokens flip under `.dark` automatically
 

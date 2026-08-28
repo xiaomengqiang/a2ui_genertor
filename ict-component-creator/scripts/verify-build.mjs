@@ -6,13 +6,20 @@
 // (exactly like the browser would), executes it with a stubbed DOM, and asserts that
 // ReactDOM.createRoot(...).render(<Demo/>) ran successfully.
 //
-// Usage:  node verify-build.mjs
+// Usage:  node verify-build.mjs --dir "<scaffold path>"
 
 import { readFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+// --- parse --dir argument (the scaffold path to verify) ---
+const args = process.argv.slice(2);
+const dirIdx = args.findIndex((a) => a === "--dir" || a === "-d");
+if (dirIdx === -1 || !args[dirIdx + 1]) {
+  console.error("FAIL  Missing --dir <scaffold path>. Usage: node verify-build.mjs --dir \"<path>\"");
+  process.exit(1);
+}
+const ROOT = resolve(args[dirIdx + 1]);
+
 const HTML = resolve(ROOT, "index.components.html");
 const LIB = (name) => resolve(ROOT, "assets/library", name);
 

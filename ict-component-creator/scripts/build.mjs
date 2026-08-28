@@ -11,17 +11,24 @@
 //      - hallucinated/renamed icon names FAIL the build with a clear message
 //      - injects the icon nodes into the shared icons.js module (const LUCIDE = {...})
 //   5. Inlines everything — React/ReactDOM/Babel from local assets/library,
-//      base+light+dark CSS into <style> (font url() paths rewritten to the HTML root),
+//      base+light+theme+dark CSS into <style> (font url() paths rewritten to the HTML root),
 //      all modules wrapped in IIFEs sharing one __export pool
 //   6. Writes a fully self-contained index.components.html that opens via double-click (file://)
 //
-// Usage:  node build.mjs
+// Usage:  node build.mjs --dir "<scaffold path>"
 
 import { readFile, writeFile } from "node:fs/promises";
-import { dirname, extname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { extname, resolve, dirname } from "node:path";
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+// --- parse --dir argument (the scaffold path to build) ---
+const args = process.argv.slice(2);
+const dirIdx = args.findIndex((a) => a === "--dir" || a === "-d");
+if (dirIdx === -1 || !args[dirIdx + 1]) {
+  console.error("FAIL  Missing --dir <scaffold path>. Usage: node build.mjs --dir \"<path>\"");
+  process.exit(1);
+}
+const ROOT = resolve(args[dirIdx + 1]);
+
 const ENTRY = resolve(ROOT, "demo.jsx");
 const OUT = resolve(ROOT, "index.components.html");
 const STYLE_DIR = resolve(ROOT, "assets/style");
@@ -76,7 +83,9 @@ function scanIconUsage(code, label) {
     let lm;
     while ((lm = STRING_LIT_RE.exec(em[1])) !== null) recordIconRef(lm[1], label);
   }
-}async function loadModule(filePath) {
+}
+
+async function loadModule(filePath) {
   filePath = resolve(filePath);
   if (loaded.has(filePath)) return;
   loaded.add(filePath);

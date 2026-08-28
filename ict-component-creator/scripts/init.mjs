@@ -6,7 +6,6 @@
 //
 // What gets copied (default, clean scaffold):
 //   assets/  (+ assets/library local UMD libs — fully offline)
-//   build.mjs, verify-build.mjs  (self-contained tooling, runs anywhere via __dirname)
 //   demo.css                     (preset gallery skeleton)
 //   demo.jsx                     (fresh starter, see STARTER_DEMO below)
 //
@@ -69,7 +68,7 @@ const withExamples = hasFlag("--with-examples", "-e");
 const dest = join(resolve(artifactFolder ? artifactFolder : process.cwd()), "preview");
 
 // --- validate template completeness ---
-for (const p of ["assets", "build.mjs", "verify-build.mjs", "demo.css", "demo.jsx"]) {
+for (const p of ["assets", "demo.css", "demo.jsx"]) {
   if (!existsSync(join(TEMPLATE, p))) fail(`preview template incomplete, missing: ${p}`);
 }
 
@@ -83,7 +82,7 @@ export default function Demo() {
   return (
     <div className="demo-page">
       <header className="demo-header">
-        <h1 className="demo-title">ICT 组件总览</h1>
+        <h1 className="demo-title">组件预览</h1>
         <p className="demo-subtitle">组件生成后将在此罗列其多种形态。</p>
       </header>
     </div>
@@ -103,8 +102,6 @@ try {
   mkdirSync(join(dest, "components"), { recursive: true });
 
   cpSync(join(TEMPLATE, "assets"), join(dest, "assets"), { recursive: true });
-  copyFileSync(join(TEMPLATE, "build.mjs"), join(dest, "build.mjs"));
-  copyFileSync(join(TEMPLATE, "verify-build.mjs"), join(dest, "verify-build.mjs"));
   copyFileSync(join(TEMPLATE, "demo.css"), join(dest, "demo.css"));
   writeFileSync(join(dest, "demo.jsx"), STARTER_DEMO, "utf8");
 
@@ -120,7 +117,7 @@ try {
   console.log("RESULT: OK");
   console.log(`PREVIEW_DIR: ${dest}`);
   console.log(withExamples ? "INIT: created (with example components)" : "INIT: created");
-  console.log("NEXT: write components into components/, add sections to demo.jsx, then run: node build.mjs && node verify-build.mjs");
+  console.log(`NEXT: write components into components/, add sections to ${dest}/demo.jsx, then run: node scripts/build.mjs --dir "${dest}" && node scripts/verify-build.mjs --dir "${dest}"`);
 } catch (err) {
   fail(err.message);
 }

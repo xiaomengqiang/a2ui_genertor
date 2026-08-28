@@ -9,7 +9,7 @@
 | **Theme (AI-facing)** | `assets/style/theme.css` | `:root` | **The layer components write against** — Material-style names |
 | Semantic (dark) | `assets/style/dark.css` | `.dark` | Same semantic names, dark values (add class `dark` to `<html>`) |
 
-**Component CSS uses the THEME layer first.** It is designed around AI-friendly, guessable names with `on-*` pairing conventions. Escape hatches below cover what the theme layer doesn't name. NEVER use primitive scales (`var(--brand-50)`, `var(--gray-90)`) — that breaks dark mode. NEVER hardcode hex — build.mjs fails on it.
+**Component CSS uses the THEME layer first.** It is designed around AI-friendly, guessable names with `on-*` pairing conventions. Escape hatches below cover what the theme layer doesn't name. Prefer theme-layer tokens; primitive scales (`var(--brand-50)`, `var(--gray-90)`) are allowed when needed. Hardcoded hex is discouraged but not blocked (build.mjs WARNs).
 
 ## Theme Layer Tokens (light values shown)
 
@@ -91,7 +91,7 @@ Companion line-height tokens exist: `--text-N--line-height`.
 - **Directional shadows:** `--elevation-r-sm`, `--elevation-t-sm`, `--elevation-l-base`, `--elevation-l-md` (right/top/left-only, for attached panels)
 - **State variants beyond primary:** `--color-error-hover`, `--color-warning-subtler`…
 
-**Forbidden:** primitive scales (`--brand-50`, `--gray-90`, `--red-05`…), hardcoded hex, `rgba()` literals for themed colors.
+**Forbidden:** `:root`/`.dark` blocks in component CSS, `rgba()` literals for themed colors.
 
 ## Design Rules
 
