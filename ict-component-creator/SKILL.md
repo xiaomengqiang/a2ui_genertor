@@ -34,7 +34,7 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 
 > **Reference example:** `scripts/preview/components/SegmentedSteps/` (in the skill folder, not the scaffold) — a complete component (index.jsx + index.css + README.md). Read it to see the full structure in practice.
 
-Analyze the request (purpose, data displayed, interactions), then create `{artifact-folder}/preview/components/{PascalCaseName}/` with three core files:
+Analyze the request (purpose, data displayed, interactions), then create `{artifact-folder}/preview/components/{PascalCaseName}/` with three core files (additional files allowed):
 
 1. **`index.jsx`** — standard, copy-paste-ready ES Module:
 - Imports:
@@ -42,7 +42,7 @@ Analyze the request (purpose, data displayed, interactions), then create `{artif
   - `import { Icon } from "../../assets/shared/icons.js";` — icon component
   - `import "./index.css";` — component styles
 - `export default function ComponentName()` — must be a named function declaration
-- Sub-components and sub-modules may be split into multiple files in the same folder, accessible via relative imports
+- For complex components, split sub-components and sub-modules into separate files in the same folder, imported via relative paths
 - Add brief comments on key parts of the logic
 - **import/export syntax constraints:**
   Supported:
