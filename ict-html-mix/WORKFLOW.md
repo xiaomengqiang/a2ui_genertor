@@ -49,7 +49,7 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 维护约定：
 
 - **JSON 是唯一事实源**：`.data.js` 孪生由 `validate-and-sync.ps1` 校验 PASS 后自动生成/覆盖，禁止手改。
-- **ict-coder 运行时重建后**：重跑 `powershell -ExecutionPolicy Bypass -File .\.opencode\skills\ict-html-mix\scripts\validate-and-sync.ps1 -GenMeta`（扇出刷新全部渲染器副本内嵌块 → bump 各宿主页 `?v=`）并重拷本地化页的 assets。
+- **ict-coder 运行时重建后**：重跑 `powershell -ExecutionPolicy Bypass -File "$Skills\ict-html-mix\scripts\validate-and-sync.ps1" -GenMeta`（`$Skills` 为技能根，定位方式见 SKILL.md 第 1 步「技能根定位」；扇出刷新全部渲染器副本内嵌块 → bump 各宿主页 `?v=`）并重拷本地化页的 assets。
 - Firefox 的 file:// 策略限制跨目录子资源加载，直开仅支持 Chrome/Edge（本地化页全程同目录/子目录加载，Firefox 也兼容）。
 - 只更新 JSON（渲染器未变）：直开页普通刷新即可（孪生带时间戳防缓存）；渲染器变更后需硬刷新 Ctrl+Shift+R（配合 `?v=` bump）。
 
@@ -72,7 +72,7 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 
 - **存储布局（两种，以页面现有 nodes 引用形态判定）**：**本地化**（现行默认）——页目录 `a2ui-data/<slug>/<slug>.json`（每节点独立文件夹）+ 页目录 `previewdist/`；**集中式**（既有页沿用）——项目根 `output/<module>[-<页标识>]-output.json` + 项目根 `previewdist/`。布局规则与判定特征见 SKILL.md 第 1 步存储布局表。
 - **孪生**：每个活跃 JSON 伴随同名 `.data.js`（file:// 直开用，校验时自动生成在其所在文件夹，勿手改）；`*.js` 数据源天然免孪生。
-- **本地化运行时**：页目录 `previewdist/` 来源 = **ict-coder 技能运行时**（`.opencode/skills/ict-coder/scripts/previewdist/`，~21.6MB 真拷贝：index.prototype.html + assets + uploads + 渲染器），previewdist **不从项目根取**（拷贝命令见 SKILL.md 第 1 步）；页面引用全 `./`、`?v=` 独立维护。
+- **本地化运行时**：页目录 `previewdist/` 来源 = **ict-coder 技能运行时**（`$Skills\ict-coder\scripts\previewdist\`，`$Skills` 为技能根，定位方式见 SKILL.md 第 1 步「技能根定位」；~21.6MB 真拷贝：index.prototype.html + assets + uploads + 渲染器），previewdist **不从项目根取**（拷贝命令见 SKILL.md 第 1 步）；页面引用全 `./`、`?v=` 独立维护。
 
 ---
 
