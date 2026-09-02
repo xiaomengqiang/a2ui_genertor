@@ -8,7 +8,7 @@
 //   4. Extracts used Lucide icons:
 //      - scans module sources for  name="x" / name={expr with "lit"} / icon: "x"  patterns
 //      - looks each name up in assets/library/lucide-icon-nodes.json (1777 icons)
-//      - hallucinated/renamed icon names FAIL the build with a clear message
+//      - names not in Lucide trigger a WARN (fine if icon-plus internal names; online-only render)
 //      - injects the icon nodes into the shared icons.js module (const LUCIDE = {...})
 //   5. Inlines everything — React/ReactDOM/Babel from local assets/library,
 //      base+light+theme+dark CSS into <style> (font url() paths rewritten to the HTML root),
@@ -181,20 +181,18 @@ if (!entryDefault) {
 // --- Lucide icon extraction & validation ---
 const lucideRaw = JSON.parse(await readFile(LUCIDE_JSON, "utf8"));
 const iconTableEntries = [];
-const missing = [];
+const nonLucideNames = [];
 for (const [kebab, usages] of [...iconRefs.entries()].sort()) {
   const nodes = lucideRaw[kebab];
   if (!nodes) {
-    missing.push(`  ${kebab}  <- used in ${[...usages].join(", ")}`);
+    nonLucideNames.push(`  ${kebab}  <- used in ${[...usages].join(", ")}`);
     continue;
   }
   iconTableEntries.push(`${JSON.stringify(kebab)}: ${JSON.stringify(nodes)}`);
 }
-if (missing.length) {
-  console.error("FAIL  Unknown icon names (typo, hallucination, or renamed in Lucide):");
-  console.error(missing.join("\n"));
-  console.error("Pick valid kebab-case names from Lucide (https://lucide.dev/icons).");
-  process.exit(1);
+if (nonLucideNames.length) {
+  console.log("WARN  Icon names not found in Lucide — OK if they are icon-plus internal names (render online); otherwise check the spelling:");
+  console.log(nonLucideNames.join("\n"));
 }
 const lucidePrelude = iconTableEntries.length
   ? `  const LUCIDE = {\n    ${iconTableEntries.join(",\n    ")},\n  };`

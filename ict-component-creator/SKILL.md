@@ -58,6 +58,9 @@ Analyze the request (purpose, data displayed, interactions), then create `{artif
   - `import * as`
   - aliased imports (`{ a as b }`)
   - npm packages beyond react/react-dom
+- **User assets:** if the user provides image files (svg/png/jpg), place them into `{artifact-folder}/preview/assets/uploads/` — the path resolves from the scaffold root:
+  - `<Icon src="./assets/uploads/logo.svg" size={28} />`
+  - `<img src="./assets/uploads/banner.png" />`
 
 2. **`index.css`** — component CSS (no Tailwind), semantic class names:
 - Colors/fonts/shadows/radius MUST use **theme-layer tokens** (refer to the Design Tokens section) — hardcoded hex only when the requirement specifies an exact color
@@ -138,9 +141,9 @@ Key rules:
 
 Read **`references/icons.md`** for the Icon component's full usage.
 
-- Icons MUST use Lucide icon names (kebab-case) — never invent names, never hand-write SVG path data
-- Icon name usage rules (including the runtime-assembly pitfall the build cannot catch): see `references/icons.md` Rules
-- `build.mjs` validates every name at build time; unknown names FAIL the build — fix and rebuild
+- Default to Lucide icon names (kebab-case) — never invent names, never hand-write SVG path data; use Icon `src` when the user provides image files
+- Icon name usage rules (including the runtime-assembly pitfall the build cannot catch): see the Lucide name mode section in `references/icons.md`
+- `build.mjs` validates every name at build time; non-Lucide names trigger a WARN (OK if icon-plus internal names, otherwise check spelling)
 
 ## References
 

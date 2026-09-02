@@ -28,9 +28,9 @@ let plusPromise = null; // singleton getConfig probe promise
 let iconConfig = null;
 let defaultColorId = "";
 const iconInfoMap = {}; // name -> { name, url }
-const svgCache = new Map(); // "name&style&color" -> svg text
+const svgCache = new Map(); // "name&variant&color" -> svg text
 
-// style prop -> getConfig style key (matches previewpc's shapeToStyleKey)
+// variant prop -> getConfig style key (matches previewpc's shapeToStyleKey)
 const STYLE_KEY = {
   lined: "border",
   filled: "filled",
@@ -44,8 +44,8 @@ function getStyleValue(styleKey) {
 }
 
 // resolve an API color id from the requested hex against getConfig colors
-function resolveColorId(style, colorHex) {
-  const styleValue = getStyleValue(STYLE_KEY[style] || "border");
+function resolveColorId(variant, colorHex) {
+  const styleValue = getStyleValue(STYLE_KEY[variant] || "border");
   const colors = (iconConfig?.colors || []).filter((c) => c.style === styleValue);
   if (colorHex) {
     const m = colors.find((c) =>
@@ -113,12 +113,12 @@ async function resolveIconInfo(name) {
   }
 }
 
-// fetch the SVG text for a name via getIcon (url + size + style + colorId + fileType=svg)
-async function fetchSvg(name, style, colorHex) {
+// fetch the SVG text for a name via getIcon (url + size + variant + colorId + fileType=svg)
+async function fetchSvg(name, variant, colorHex) {
   const info = await resolveIconInfo(name);
   if (!info) return "";
-  const styleValue = getStyleValue(STYLE_KEY[style] || "border");
-  const colorId = resolveColorId(style, colorHex);
+  const styleValue = getStyleValue(STYLE_KEY[variant] || "border");
+  const colorId = resolveColorId(variant, colorHex);
   try {
     const resp = await fetch(
       `${GET_ICON}?url=${encodeURIComponent(info.url)}&size=16&style=${encodeURIComponent(
@@ -135,29 +135,32 @@ async function fetchSvg(name, style, colorHex) {
 
 export function Icon({
   name,
+  src,
   size = 16,
   color,
   className = "",
+  style,
   strokeWidth = 2,
-  style = "lined",
+  variant = "lined",
 }) {
   const [plus, setPlus] = useState(plusState); // reuse already-probed result
   const [svg, setSvg] = useState(
-    () => svgCache.get(`${name}&${style}&${color}`) || ""
+    () => svgCache.get(`${name}&${variant}&${color}`) || ""
   );
 
   useEffect(() => {
+    if (src) return; // user-asset mode: no network needed
     let alive = true;
     ensurePlus().then((ok) => {
       if (!alive) return;
       setPlus(ok);
       if (!ok) return; // getConfig probe failed → Lucide branch
-      const key = `${name}&${style}&${color}`;
+      const key = `${name}&${variant}&${color}`;
       if (svgCache.has(key)) {
         setSvg(svgCache.get(key));
         return;
       }
-      fetchSvg(name, style, color).then((s) => {
+      fetchSvg(name, variant, color).then((s) => {
         if (!alive) return;
         svgCache.set(key, s);
         setSvg(s);
@@ -166,7 +169,20 @@ export function Icon({
     return () => {
       alive = false;
     };
-  }, [name, style, color]);
+  }, [src, name, variant, color]);
+
+  // user-provided asset (svg/png/jpg) via relative path — overrides name when both are set
+  if (src) {
+    return React.createElement("img", {
+      src: src,
+      width: size,
+      height: size,
+      className: className,
+      alt: "",
+      "aria-hidden": true,
+      style: { ...style, display: "inline-block", verticalAlign: "middle" },
+    });
+  }
 
   // probe not finished yet → render nothing
   if (plus === null) return null;
@@ -188,7 +204,7 @@ export function Icon({
         strokeLinejoin: "round",
         className: className,
         "aria-hidden": true,
-        style: { stroke: color || "currentColor" },
+        style: { ...style, stroke: color || "currentColor" },
       },
       nodes.map(([tag, attrs], i) =>
         React.createElement(tag, { key: i, ...attrs })
@@ -201,13 +217,14 @@ export function Icon({
     return React.createElement("span", {
       className,
       "aria-hidden": true,
-      style: { width: size, height: size },
+      style: { ...style, width: size, height: size },
     });
   }
+  
   return React.createElement("span", {
     className,
     "aria-hidden": true,
-    style: { width: size, height: size },
+    style: { ...style, width: size, height: size },
     dangerouslySetInnerHTML: { __html: svg },
   });
 }

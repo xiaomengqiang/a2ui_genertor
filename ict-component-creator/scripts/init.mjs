@@ -82,7 +82,10 @@ export default function Demo() {
   return (
     <div className="demo-page">
       <header className="demo-header">
-        <h1 className="demo-title">组件预览</h1>
+        <div className="demo-title">
+          <img src="./assets/uploads/logo.svg" alt="logo" style={{ width: 28, height: 28 }} />
+          <span>组件预览</span>
+        </div>
         <p className="demo-subtitle">组件生成后将在此罗列其多种形态。</p>
       </header>
     </div>
