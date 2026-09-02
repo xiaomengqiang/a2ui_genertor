@@ -143,7 +143,7 @@ Read **`references/icons.md`** for the Icon component's full usage.
 
 - Default to Lucide icon names (kebab-case) — never invent names, never hand-write SVG path data; use Icon `src` when the user provides image files
 - Icon name usage rules (including the runtime-assembly pitfall the build cannot catch): see the Lucide name mode section in `references/icons.md`
-- `build.mjs` validates every name at build time; non-Lucide names trigger a WARN (OK if icon-plus internal names, otherwise check spelling)
+- `build.mjs` validates every name at build time; non-Lucide names trigger a WARN — keep only user-requested names, otherwise pick a valid Lucide name
 
 ## References
 

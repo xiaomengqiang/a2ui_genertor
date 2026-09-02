@@ -8,7 +8,7 @@
 //   4. Extracts used Lucide icons:
 //      - scans module sources for  name="x" / name={expr with "lit"} / icon: "x"  patterns
 //      - looks each name up in assets/library/lucide-icon-nodes.json (1777 icons)
-//      - names not in Lucide trigger a WARN (fine if icon-plus internal names; online-only render)
+//      - names not in Lucide trigger a WARN (keep only if the user requested them)
 //      - injects the icon nodes into the shared icons.js module (const LUCIDE = {...})
 //   5. Inlines everything — React/ReactDOM/Babel from local assets/library,
 //      base+light+theme+dark CSS into <style> (font url() paths rewritten to the HTML root),
@@ -191,8 +191,9 @@ for (const [kebab, usages] of [...iconRefs.entries()].sort()) {
   iconTableEntries.push(`${JSON.stringify(kebab)}: ${JSON.stringify(nodes)}`);
 }
 if (nonLucideNames.length) {
-  console.log("WARN  Icon names not found in Lucide — OK if they are icon-plus internal names (render online); otherwise check the spelling:");
+  console.log("WARN  Icon names not found in Lucide:");
   console.log(nonLucideNames.join("\n"));
+  console.log("Keep them only if the user explicitly requested these names; otherwise pick valid names from https://lucide.dev/icons");
 }
 const lucidePrelude = iconTableEntries.length
   ? `  const LUCIDE = {\n    ${iconTableEntries.join(",\n    ")},\n  };`
