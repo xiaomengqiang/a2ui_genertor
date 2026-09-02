@@ -21,6 +21,22 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 ---
 
+## 前置步骤：承载页入位（会话上传文件场景，先于意图路由执行）
+
+若用户要修改的承载页 HTML 来自**当前会话上传的文件**（位于 `.octo/ses_<会话ID>/uploads/`）：
+
+1. **用户选定**：会话上传了多个 html 而用户未指明目标时，先列出 uploads 下的 html 供用户选择，不要猜。
+2. **复制副本**：选定后**必须先将该 html 复制**到当前会话产物目录 `[artifact-folder]`（即 `.octo/ses_<会话ID>/outputs/`，取运行时注入的 `[Artifact Folder]` 实际路径，勿硬编码会话 ID）：
+   ```powershell
+   Copy-Item -LiteralPath '<uploads 下选定的源 html>' -LiteralPath '<[artifact-folder]>'
+   ```
+3. **后续一律基于副本操作**：本地化拷贝（`previewdist/`）、`a2ui-data/` 存储、页尾 nodes 挂载等所有写操作，承载页路径均指向 outputs 下的副本；**副本所在目录即「页目录」**。`uploads/` 中的原始上传文件视为**只读源**，禁止直接修改或在其中派生产物。
+4. **交付说明**：完成后向用户回报副本路径（outputs 下可直接预览的页面文件）及配套产物位置；回退时只需还原/删除副本，原始上传不受影响。
+
+非上传来源（项目内既有页面）不经过此步骤，按原流程直接以项目路径为页目录。
+
+---
+
 ## 第零步：意图路由（必做）
 
 | 用户意图 | 路线 |
@@ -49,21 +65,29 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 以目标页**现有 nodes 数组的引用形态**为准选择布局；将集中式页改造为本地化时，先执行本地化拷贝并迁移既有数据，再统一改写引用。
 
-**页面本地化**：运行时从 ict-coder 技能拷贝（`.opencode/skills/ict-coder/scripts/previewdist/` → 页目录 `previewdist/`，含 `index.prototype.html` + `assets/` + `uploads/`，**不拷其 data.js**；渲染器从本技能 `scripts/PreviewRenderer.js` 拷入同目录），previewdist **不从项目根取**。数据用页目录 `a2ui-data/<slug>/`，页面引用全 `./` 相对路径、`?v=` 版本号**独立维护**。
+**技能根定位**（本地化拷贝与第 2 步校验共用的前置动作）：技能**不一定装在项目根**——运行时可能位于用户技能目录（如 `C:\Users\<user>\.config\octo\skill`）。命令中的技能路径一律以 `$Skills` 变量注入，**禁止硬编码**。解析顺序：① 优先运行时注入的技能目录（加载本技能时输出的 Skill directory 绝对路径的父目录）；② 兜底项目根 `.opencode\skills\`（项目内技能布局）；③ 两者皆无 → 立即停止并向用户报告，禁止盲跑。
 
-本地化拷贝命令（在项目根执行，`<页目录>` 换成实际页目录）：
 ```powershell
-Copy-Item '.opencode\skills\ict-coder\scripts\previewdist\index.prototype.html','.opencode\skills\ict-html-mix\scripts\PreviewRenderer.js' '<页目录>\previewdist\'; Copy-Item '.opencode\skills\ict-coder\scripts\previewdist\assets','<页目录>\previewdist\assets' -Recurse -Force; Copy-Item '.opencode\skills\ict-coder\scripts\previewdist\uploads','<页目录>\previewdist\uploads' -Recurse -Force
+# <技能目录> 换成 Skill directory 绝对路径（其父目录即技能根）；命中后 $Skills 即技能根
+$Skills = if (Test-Path -LiteralPath '<技能目录>') { Split-Path -LiteralPath '<技能目录>' -Parent } elseif (Test-Path -LiteralPath '.opencode\skills\ict-html-mix') { Join-Path (Get-Location).Path '.opencode\skills' } else { $null }
+if (-not $Skills) { Write-Error '技能根未定位到：运行时技能目录与项目根 .opencode\skills 均不存在' } else { $Skills }
+```
+
+**页面本地化**：运行时从 ict-coder 技能拷贝（`$Skills\ict-coder\scripts\previewdist\` → 页目录 `previewdist\`，含 `index.prototype.html` + `assets\` + `uploads\`，**不拷其 data.js**；渲染器从 `$Skills\ict-html-mix\scripts\PreviewRenderer.js` 拷入同目录），previewdist **不从项目根取**。数据用页目录 `a2ui-data/<slug>/`，页面引用全 `./` 相对路径、`?v=` 版本号**独立维护**。
+
+本地化拷贝命令（`<页目录>` 换成实际页目录；先建目录再拷贝，任意工作目录可执行）：
+```powershell
+New-Item -ItemType Directory -Path '<页目录>\previewdist' -Force | Out-Null; Copy-Item "$Skills\ict-coder\scripts\previewdist\index.prototype.html","$Skills\ict-html-mix\scripts\PreviewRenderer.js" '<页目录>\previewdist\' -Force; Copy-Item "$Skills\ict-coder\scripts\previewdist\assets" '<页目录>\previewdist\assets' -Recurse -Force; Copy-Item "$Skills\ict-coder\scripts\previewdist\uploads" '<页目录>\previewdist\uploads' -Recurse -Force
 ```
 
 「根据原内容」生成时，先从页面既有脚本/DOM 中提取真实数据（图表 series、文案、数值），保持数据保真，不凭空发明。跨页复用既有 JSON 派生产物时，数值字段必须与本页语境一致，不要照抄他页数值。
 
 ### 第 2 步：校验（硬门禁，未 PASS 禁止挂载）
 
-在项目根目录执行：
+用「技能根定位」解析出的 `$Skills` 执行（绝对路径注入，不依赖工作目录）：
 
-```
-powershell -ExecutionPolicy Bypass -File .\.opencode\skills\ict-html-mix\scripts\validate-and-sync.ps1 -InputFile <产物路径>
+```powershell
+powershell -ExecutionPolicy Bypass -File "$Skills\ict-html-mix\scripts\validate-and-sync.ps1" -InputFile <产物绝对路径>
 ```
 
 FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重跑，直到 `RESULT: PASS` 且 lint 告警清零。PASS 后自动生成同名 `.data.js` 孪生（file:// 直开用，勿手改）。规则详情见下方「校验规则」。
@@ -173,3 +197,4 @@ lint 告警必须清零后才挂载。常见修复：`no 'flex'` → className �
 4. `dataPath` 前缀：本地化页用 `./a2ui-data/<slug>/<slug>.json`；集中式页用 `../output/<name>.json`——以页面现有 nodes 引用形态为准（见第 1 步存储布局表）。
 5. 渲染器 `container` 必填；`data` 可替代 `dataPath` 传内联对象；都不传用 `previewdist/data.js` 默认数据。
 6. 免服务器 file:// 直开与 ict-coder 运行时重建后的 `-GenMeta` + 重拷 assets 流程，详见 WORKFLOW.md「免服务器 file:// 直开」。
+7. 会话上传的承载页 html **必须先复制到 `[artifact-folder]` 副本再操作**（见「前置步骤：承载页入位」）；`uploads/` 原始上传文件全程只读，禁止在 uploads 内直接修改或派生产物。
