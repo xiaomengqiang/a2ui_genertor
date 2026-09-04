@@ -1,0 +1,109 @@
+/* ============================================================
+   GTS gts-bridge.css — 桥接层（FIXED，与具体皮肤无关）
+   把皮肤定义的 --gts-* 语义 token 映射到 Element Plus 的
+   --el-* 体系变量。任何皮肤只要提供 --gts-* token，Element
+   Plus 组件即自动跟随换肤；light-N / dark-2 色阶由
+   color-mix 自动派生（混色底色 --gts-mix-base 在深色皮肤中
+   覆盖为深色表面即可）。
+   ============================================================ */
+
+:root {
+  /* ---- 品牌色 ---- */
+  --el-color-primary: var(--gts-color-primary, #0067d1);
+  --el-color-primary-light-3: var(--gts-color-primary-light-3, color-mix(in srgb, var(--gts-color-primary, #0067d1) 70%, var(--gts-mix-base)));
+  --el-color-primary-light-5: var(--gts-color-primary-light-5, color-mix(in srgb, var(--gts-color-primary, #0067d1) 50%, var(--gts-mix-base)));
+  --el-color-primary-light-7: var(--gts-color-primary-light-7, color-mix(in srgb, var(--gts-color-primary, #0067d1) 30%, var(--gts-mix-base)));
+  --el-color-primary-light-8: var(--gts-color-primary-light-8, color-mix(in srgb, var(--gts-color-primary, #0067d1) 20%, var(--gts-mix-base)));
+  --el-color-primary-light-9: var(--gts-color-primary-light-9, color-mix(in srgb, var(--gts-color-primary, #0067d1) 10%, var(--gts-mix-base)));
+  --el-color-primary-dark-2: color-mix(in srgb, var(--gts-color-primary, #0067d1) 80%, #000000);
+
+  /* ---- 功能色（success / warning / danger / error / info）---- */
+  --el-color-success: var(--gts-color-success, #09aa71);
+  --el-color-success-light-3: color-mix(in srgb, var(--gts-color-success, #09aa71) 70%, var(--gts-mix-base));
+  --el-color-success-light-5: color-mix(in srgb, var(--gts-color-success, #09aa71) 50%, var(--gts-mix-base));
+  --el-color-success-light-7: color-mix(in srgb, var(--gts-color-success, #09aa71) 30%, var(--gts-mix-base));
+  --el-color-success-light-8: color-mix(in srgb, var(--gts-color-success, #09aa71) 20%, var(--gts-mix-base));
+  --el-color-success-light-9: color-mix(in srgb, var(--gts-color-success, #09aa71) 10%, var(--gts-mix-base));
+  --el-color-success-dark-2: color-mix(in srgb, var(--gts-color-success, #09aa71) 80%, #000000);
+
+  --el-color-warning: var(--gts-color-warning, #f4840c);
+  --el-color-warning-light-3: color-mix(in srgb, var(--gts-color-warning, #f4840c) 70%, var(--gts-mix-base));
+  --el-color-warning-light-5: color-mix(in srgb, var(--gts-color-warning, #f4840c) 50%, var(--gts-mix-base));
+  --el-color-warning-light-7: color-mix(in srgb, var(--gts-color-warning, #f4840c) 30%, var(--gts-mix-base));
+  --el-color-warning-light-8: color-mix(in srgb, var(--gts-color-warning, #f4840c) 20%, var(--gts-mix-base));
+  --el-color-warning-light-9: color-mix(in srgb, var(--gts-color-warning, #f4840c) 10%, var(--gts-mix-base));
+  --el-color-warning-dark-2: color-mix(in srgb, var(--gts-color-warning, #f4840c) 80%, #000000);
+
+  --el-color-danger: var(--gts-color-danger, #e02128);
+  --el-color-danger-light-3: color-mix(in srgb, var(--gts-color-danger, #e02128) 70%, var(--gts-mix-base));
+  --el-color-danger-light-5: color-mix(in srgb, var(--gts-color-danger, #e02128) 50%, var(--gts-mix-base));
+  --el-color-danger-light-7: color-mix(in srgb, var(--gts-color-danger, #e02128) 30%, var(--gts-mix-base));
+  --el-color-danger-light-8: color-mix(in srgb, var(--gts-color-danger, #e02128) 20%, var(--gts-mix-base));
+  --el-color-danger-light-9: color-mix(in srgb, var(--gts-color-danger, #e02128) 10%, var(--gts-mix-base));
+  --el-color-danger-dark-2: color-mix(in srgb, var(--gts-color-danger, #e02128) 80%, #000000);
+
+  --el-color-error: var(--gts-color-error, #e02128);
+  --el-color-error-light-3: color-mix(in srgb, var(--gts-color-error, #e02128) 70%, var(--gts-mix-base));
+  --el-color-error-light-5: color-mix(in srgb, var(--gts-color-error, #e02128) 50%, var(--gts-mix-base));
+  --el-color-error-light-7: color-mix(in srgb, var(--gts-color-error, #e02128) 30%, var(--gts-mix-base));
+  --el-color-error-light-8: color-mix(in srgb, var(--gts-color-error, #e02128) 20%, var(--gts-mix-base));
+  --el-color-error-light-9: color-mix(in srgb, var(--gts-color-error, #e02128) 10%, var(--gts-mix-base));
+  --el-color-error-dark-2: color-mix(in srgb, var(--gts-color-error, #e02128) 80%, #000000);
+
+  --el-color-info: var(--gts-color-info, #777777);
+  --el-color-info-light-3: color-mix(in srgb, var(--gts-color-info, #777777) 70%, var(--gts-mix-base));
+  --el-color-info-light-5: color-mix(in srgb, var(--gts-color-info, #777777) 50%, var(--gts-mix-base));
+  --el-color-info-light-7: color-mix(in srgb, var(--gts-color-info, #777777) 30%, var(--gts-mix-base));
+  --el-color-info-light-8: color-mix(in srgb, var(--gts-color-info, #777777) 20%, var(--gts-mix-base));
+  --el-color-info-light-9: color-mix(in srgb, var(--gts-color-info, #777777) 10%, var(--gts-mix-base));
+  --el-color-info-dark-2: color-mix(in srgb, var(--gts-color-info, #777777) 80%, #000000);
+
+  /* ---- 文本色 ---- */
+  --el-text-color-primary: var(--gts-text-1, #191919);
+  --el-text-color-regular: var(--gts-text-2, #595959);
+  --el-text-color-secondary: var(--gts-text-3, #777777);
+  --el-text-color-placeholder: var(--gts-text-4, #939393);
+  --el-text-color-disabled: var(--gts-text-disabled, #c9c9c9);
+  --el-text-color-inverse: var(--gts-text-inverse, #ffffff);
+
+  /* ---- 背景色 ---- */
+  --el-bg-color: var(--gts-bg-container, #ffffff);
+  --el-bg-color-page: var(--gts-bg-page, #f3f3f3);
+  --el-bg-color-overlay: var(--gts-bg-overlay, #ffffff);
+
+  /* ---- 边框色 ---- */
+  --el-border-color: var(--gts-border-2, #c9c9c9);
+  --el-border-color-light: var(--gts-border-2, #c9c9c9);
+  --el-border-color-lighter: var(--gts-border-1, #dfdfdf);
+  --el-border-color-extra-light: var(--gts-border-1, #dfdfdf);
+  --el-border-color-dark: var(--gts-text-3, #777777);
+  --el-border-color-darker: var(--gts-text-2, #595959);
+
+  /* ---- 填充色 ---- */
+  --el-fill-color: var(--gts-bg-fill, #f3f3f3);
+  --el-fill-color-light: var(--gts-bg-fill, #f3f3f3);
+  --el-fill-color-lighter: var(--gts-bg-hover, rgba(25, 25, 25, 0.04));
+  --el-fill-color-extra-light: var(--gts-bg-hover, rgba(25, 25, 25, 0.04));
+  --el-fill-color-dark: color-mix(in srgb, var(--gts-bg-fill, #f3f3f3) 80%, var(--gts-text-1, #191919));
+  --el-fill-color-darker: color-mix(in srgb, var(--gts-bg-fill, #f3f3f3) 70%, var(--gts-text-1, #191919));
+  --el-fill-color-blank: var(--gts-bg-container, #ffffff);
+
+  /* ---- 遮罩 / 阴影 / 圆角 / 字体 ---- */
+  --el-mask-color: var(--gts-mask, rgba(0, 0, 0, 0.4));
+  --el-box-shadow: var(--gts-shadow-2, 0 12px 32px 4px rgba(0, 0, 0, 0.04), 0 8px 20px rgba(0, 0, 0, 0.08));
+  --el-box-shadow-light: var(--gts-shadow-1, 0 0 12px rgba(0, 0, 0, 0.12));
+  --el-box-shadow-lighter: var(--gts-shadow-1, 0 0 6px rgba(0, 0, 0, 0.12));
+  --el-box-shadow-dark: var(--gts-shadow-3, 0 16px 48px 16px rgba(0, 0, 0, 0.08), 0 12px 32px rgba(0, 0, 0, 0.12), 0 8px 16px -8px rgba(0, 0, 0, 0.16));
+  --el-border-radius-base: var(--gts-radius-sm, 4px);
+  --el-border-radius-small: calc(var(--gts-radius-sm, 4px) - 2px);
+  --el-border-radius-round: var(--gts-radius-full, 9999px);
+  --el-border-radius-circle: 100%;
+  --el-font-family: var(--gts-font-family);
+}
+
+/* 禁用色 */
+.el-button.is-disabled,
+.el-input.is-disabled .el-input__inner,
+.el-textarea.is-disabled .el-textarea__inner {
+  color: var(--el-text-color-disabled);
+}

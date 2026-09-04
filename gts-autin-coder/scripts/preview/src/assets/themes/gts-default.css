@@ -1,0 +1,57 @@
+/* ============================================================
+   GTS 皮肤：default（默认亮色皮肤）
+   ============================================================
+   换肤插槽说明（接入自有换肤体系时阅读）：
+   1. 一个皮肤 = 本目录下一个 css 文件，作用域固定为
+      html[data-gts-theme="<皮肤名>"]，文件内定义全部 --gts-* token。
+   2. 在 index.gts.html 的「换肤插槽」注释处追加对应 <link>。
+   3. 运行时切换：document.documentElement.setAttribute("data-gts-theme", "<皮肤名>")。
+   4. 深色皮肤记得覆盖 --gts-mix-base 为深色表面色（见 base.css）。
+   完整 token 清单与协议见同目录 README.md。
+   ============================================================ */
+
+html[data-gts-theme="default"] {
+  /* ---- 品牌色 ---- */
+  --gts-color-primary: #0067d1;
+  --gts-color-primary-hover: #2e86de;
+  --gts-color-primary-active: #004ea8;
+  --gts-color-on-primary: #ffffff;
+  --gts-color-primary-container: #e6f2fd;
+  --gts-color-on-primary-container: #003d83;
+
+  /* ---- 功能色 ---- */
+  --gts-color-success: #09aa71;
+  --gts-color-warning: #f4840c;
+  --gts-color-danger: #e02128;
+  --gts-color-error: #e02128;
+  --gts-color-info: #777777;
+
+  /* ---- 文本色 ---- */
+  --gts-text-1: #191919;
+  --gts-text-2: #595959;
+  --gts-text-3: #777777;
+  --gts-text-4: #939393;
+  --gts-text-disabled: #c9c9c9;
+  --gts-text-inverse: #ffffff;
+
+  /* ---- 背景色 ---- */
+  --gts-bg-page: #f3f3f3;
+  --gts-bg-container: #ffffff;
+  --gts-bg-overlay: #ffffff;
+  --gts-bg-hover: rgba(25, 25, 25, 0.04);
+  --gts-bg-fill: #f3f3f3;
+
+  /* ---- 边框色 ---- */
+  --gts-border-1: #dfdfdf;
+  --gts-border-2: #c9c9c9;
+
+  /* ---- 遮罩 / 阴影 / 圆角 ---- */
+  --gts-mask: rgba(0, 0, 0, 0.4);
+  --gts-shadow-1: 0 0 6px rgba(0, 0, 0, 0.12);
+  --gts-shadow-2: 0 12px 32px 4px rgba(0, 0, 0, 0.04), 0 8px 20px rgba(0, 0, 0, 0.08);
+  --gts-shadow-3: 0 16px 48px 16px rgba(0, 0, 0, 0.08), 0 12px 32px rgba(0, 0, 0, 0.12);
+  --gts-radius-sm: 4px;
+  --gts-radius-md: 6px;
+  --gts-radius-lg: 8px;
+  --gts-radius-full: 9999px;
+}
