@@ -1,0 +1,73 @@
+.ss-container {
+  width: 100%;
+}
+
+.ss-tracks {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.ss-track-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.ss-track {
+  width: 100%;
+  transition: background-color 0.25s ease, transform 0.15s ease;
+}
+
+.ss-track-hover {
+  transform: scaleY(1.15);
+}
+
+.ss-label-area {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.ss-label-item {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 0;
+  cursor: default;
+}
+
+.ss-value {
+  font-weight: 700;
+  transition: color 0.25s ease;
+}
+
+.ss-label-bottom {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1-5);
+  margin-top: var(--spacing-1);
+}
+
+.ss-step-icon {
+  flex-shrink: 0;
+  transition: opacity 0.25s ease;
+}
+
+.ss-step-icon-muted {
+  opacity: 0.4;
+}
+
+.ss-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  transition: opacity 0.25s ease;
+}
+
+.ss-label {
+  line-height: 1.5;
+  transition: color 0.25s ease;
+}
