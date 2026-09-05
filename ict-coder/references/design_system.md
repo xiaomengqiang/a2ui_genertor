@@ -12,7 +12,7 @@
     // 用于上述主按钮内部的文字或图标，确保对比度（如 bg-primary text-on-primary）。
     "on-primary": "#FFFFFF",
     // 当需要生成"轻量级高亮区块"（如选中的列表项底色、品牌宣传卡片的浅色背景）时。
-    "primary-container": "#E6F2FD",
+    "primary-container": "#EEF3FE",
     // 用于浅蓝色高亮区块内的文字，确保可读性。
     "on-primary-container": "#191919",
     // 生成不论亮暗模式都不变色的纯品牌色区块（如顶部的全宽导航栏 Header）。
@@ -34,7 +34,7 @@
     // 生成大部分标准的正文、主标题文字（text-on-surface）。
     "on-surface": "#191919",
     // 生成次要的交互容器，如搜索输入框的底色（bg-surface-variant）。
-    "surface-variant": "rgba(192,192,192,0.2)",
+    "surface-variant": "#F3F3F3",
     // 生成次要文本，如占位符（Placeholder）、日期、副标题。
     "on-surface-variant": "#777777",
 
@@ -90,10 +90,10 @@
     "on-warning-container": "#191919",
 
     // 用户提示包含"提示"、"新消息"、"系统通知"等中立意图时使用。
-    "info": "#0067D1",
+    "info": "#2070F3",
     "on-info": "#FFFFFF",
     // 通知类 Alert 提示框底色。
-    "info-container": "#E6F2FD",
+    "info-container": "#EEF3FE",
     "on-info-container": "#191919",
 
     "content-placeholder": "#939393",
@@ -141,7 +141,7 @@
     // 基础值设定 - 生成屏幕居中的超大模态弹窗（Modal Dialog）。
     "xl": "0 16px 48px 0 rgba(0, 0, 0, 0.16)",
     // 语义化调用，当用户明确要求"生成一个卡片"时，AI 直接使用此阴影。
-    "card": "1px 1px 6px 0 rgba(0, 0, 0, 0.08)",
+    "card": "0px 1px 6px 0 rgba(0, 0, 0, 0.08)",
     // 语义化调用，当用户要求"生成一个 Popover 气泡/工具提示"时，AI 直接使用此阴影。
     "popover": "0 8px 24px 0px rgba(0, 0, 0, 0.16)",
     // 语义化调用，当用户要求"生成一个确认弹窗"时，AI 直接使用此阴影。

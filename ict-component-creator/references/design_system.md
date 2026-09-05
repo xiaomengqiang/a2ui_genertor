@@ -27,7 +27,8 @@
 | Token | Value | Usage |
 |-------|-------|-------|
 | `--surface` | `#F3F3F3` | Page background |
-| `--surface-container` (+ `-low`/`-lowest`/`-high`/`-highest`, `-dim`/`-bright`, `-variant`) | `#FFFFFF` | Cards, panels, elevated surfaces |
+| `--surface-container` family (`-lowest`/`-low`/`-high`/`-highest`) | white (`-lowest` is `#F3F3F3`) | Cards, panels, elevated surfaces |
+| `--surface-variant` | `#F3F3F3` | Secondary interactive bg (input fills, inset blocks inside cards) |
 | `--on-surface` | `#191919` | Primary text |
 | `--on-surface-variant` | `#777777` | Secondary text, labels |
 | `--content-placeholder` | `#AEAEAE` | Placeholder text (`::placeholder`) |
@@ -65,26 +66,29 @@ Theme-layer aliases over light/dark `--elevation-*` values — they auto-switch 
 | `--shadow-xl` / `--shadow-modal` | Modals |
 
 ### Radius
-`--radius-xs` 2px · `--radius-base` / `--radius-action` / `--radius-badge` 4px · `--radius-md` 6px · `--radius-lg` / `--radius-container` / `--radius-overlay` 8px · `--radius-xl` 12px · `--radius-full` 9999px
+`--radius-none` 0px · `--radius-xs` 2px · `--radius-base` / `--radius-action` / `--radius-badge` 4px · `--radius-md` 6px · `--radius-lg` / `--radius-container` / `--radius-overlay` 8px · `--radius-xl` 12px · `--radius-full` 9999px
 
 ### Typography
 Font family: `var(--font-family)` (HarmonyOS Sans, already on `body` — do not re-declare).
 
+Font sizes are **rem** and scale with viewport: 1rem = 12px @≤1366 · 14px @1367-1680 · 16px @1681-1920 · 20px @>1920. Values below are shown at the 1920 baseline (1rem = 16px) — when writing rem values yourself, compute against this baseline.
+
 | Token | Size / Line-height | Usage |
 |-------|--------------------|-------|
-| `--text-sm` | 12px / 1.6 | Labels, captions |
-| `--text-md` | 14px / 1.5 | Body text |
-| `--text-lg` | 16px / 1.5 | Card titles |
-| `--text-xl` | 18px / 1.5 | Sub-headers |
-| `--text-2xl` | 20px / 1.4 | Section titles |
-| `--text-3xl` … `--text-9xl` | 24…96px | Page titles, hero |
+| `--text-sm` | 0.75rem (12px) / 1.6 | Labels, captions |
+| `--text-md` | 0.875rem (14px) / 1.5 | Body text |
+| `--text-lg` | 1rem (16px) / 1.5 | Card titles |
+| `--text-xl` | 1.125rem (18px) / 1.5 | Sub-headers |
+| `--text-2xl` | 1.25rem (20px) / 1.4 | Section titles |
+| `--text-3xl` … `--text-9xl` | 1.5rem…6rem (24…96px) | Page titles, hero |
 
-Companion line-height tokens exist: `--text-N--line-height`.
+Companion line-height tokens exist: `--text-N--line-height`. Pair them explicitly for headings and large text (body text inherits the global `line-height: 1.5` from `body`):
+`font-size: var(--text-2xl); line-height: var(--text-2xl--line-height);`
 
 ## Escape Hatches (semantic/base layer, allowed when theme has no equivalent)
 
 - **Chart series:** `var(--color-chart-1)` … `var(--color-chart-25)` — sequential, theme-aware
-- **Numeric spacing:** `var(--spacing-1)` (4px) … `var(--spacing-96)` (384px) from base.css
+- **Numeric spacing:** `var(--spacing-1)` (4px) … `var(--spacing-96)` (384px) from base.css — px values, do NOT scale with viewport (only font sizes scale)
 - **Font weights:** `var(--font-weight-light|normal|medium|semibold|bold)`
 - **Icon colors:** `var(--color-icon-primary|secondary|placeholder|disabled)`
 - **Specialized surfaces:** `--color-table-*` (zebra, sticky), `--color-tag-bg-*` / `--color-tag-text-*`, `--color-sidenav-bg`, `--color-message-bg-*`, `--color-bg-mask`
@@ -101,4 +105,4 @@ Companion line-height tokens exist: `--text-N--line-height`.
 4. **Z-index scale:** 10 dropdowns · 100 popovers · 1000 modals.
 5. **Disabled state:** text `var(--content-disabled)` on background `var(--surface)`.
 6. **Dark mode is free:** stay on theme/semantic tokens and the component re-themes under `.dark` automatically.
-7. **Machine-enforced:** build.mjs CSS lint fails on unknown `var(--*)` names and hardcoded hex in component CSS.
+7. **Machine-enforced:** build.mjs CSS lint FAILs on unknown `var(--*)` names and `:root`/`.dark` blocks; hardcoded hex triggers a WARN.
