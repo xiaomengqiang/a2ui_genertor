@@ -169,9 +169,6 @@ function wrapModule(mod) {
   return lines.join("\n");
 }
 
-const BASE_CSS = `body { margin: 0; font-family: var(--font-family); background-color: var(--surface); color: var(--on-surface); }
-#root { min-height: 100vh; }`;
-
 await loadModule(ENTRY);
 
 if (!entryDefault) {
@@ -282,9 +279,6 @@ const html = `<!DOCTYPE html>
 <script src="./assets/library/babel.min.js"></script>
 <style>
 ${cssParts.join("\n\n")}
-</style>
-<style>
-${BASE_CSS}
 </style>
 </head>
 <body>
