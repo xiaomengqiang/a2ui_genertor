@@ -70,7 +70,8 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 
 ## 数据存储规则
 
-- **存储布局（两种，以页面现有 nodes 引用形态判定）**：**本地化**（现行默认）——页目录 `a2ui-data/<slug>/<slug>.json`（每节点独立文件夹）+ 页目录 `previewdist/`；**集中式**（既有页沿用）——项目根 `output/<module>[-<页标识>]-output.json` + 项目根 `previewdist/`。布局规则与判定特征见 SKILL.md 第 1 步存储布局表。
+- **存储布局（两种，以页面现有 nodes 引用形态判定）**：**本地化**（现行默认）——页目录 `a2ui-data/<slug>/<slug>.json`（每节点独立文件夹，JSON 唯一事实源）+ 页目录 `previewdist/`；**集中式**（既有页沿用）——项目根 `output/<module>[-<页标识>]-output.json` + 项目根 `previewdist/`。布局规则与判定特征见 SKILL.md 第 1 步存储布局表。
+- **所有新产生的 JSON 必须直接写入 `a2ui-data/` 目录**，不使用 `output/` 作为中间暂存，也不走 package → extract → copy 的管道流程。ict-coder 的 Step 5 直接保存到 `a2ui-data/<slug>/<slug>.json`，无中间产物需清理。
 - **孪生**：每个活跃 JSON 伴随同名 `.data.js`（file:// 直开用，校验时自动生成在其所在文件夹，勿手改）；`*.js` 数据源天然免孪生。
 - **本地化运行时**：页目录 `previewdist/` 来源 = **ict-coder 技能运行时**（`$Skills\ict-coder\scripts\previewdist\`，`$Skills` 为技能根，定位方式见 SKILL.md 第 1 步「技能根定位」；~21.6MB 真拷贝：index.prototype.html + assets + uploads + 渲染器），previewdist **不从项目根取**（拷贝命令见 SKILL.md 第 1 步）；页面引用全 `./`、`?v=` 独立维护。
 
@@ -89,4 +90,3 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 | `<页目录>/a2ui-data/<slug>/` | 本地化页每节点数据文件夹（json + 孪生） |
 | `output/<name>.json` + `.data.js` | 集中式页数据产物 + file:// 孪生 |
 | 各承载页 `*.html` | 承载页（文档流布局，页尾内联编排） |
-
