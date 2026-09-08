@@ -15,7 +15,11 @@
 
 .ss-track {
   width: 100%;
-  transition: background-color 0.25s ease, transform 0.15s ease;
+  transition: background-color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+}
+
+.ss-track-inactive {
+  background-color: var(--color-comp-divider);
 }
 
 .ss-track-hover {
@@ -39,8 +43,13 @@
 }
 
 .ss-value {
+  color: var(--on-surface);
   font-weight: 700;
-  transition: color 0.25s ease;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.ss-value-muted {
+  color: var(--text-placeholder);
 }
 
 .ss-label-bottom {
@@ -68,6 +77,11 @@
 }
 
 .ss-label {
+  color: var(--text-secondary);
   line-height: 1.5;
-  transition: color 0.25s ease;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.ss-label-muted {
+  color: var(--text-placeholder);
 }

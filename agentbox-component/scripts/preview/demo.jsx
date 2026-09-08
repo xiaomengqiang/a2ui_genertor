@@ -17,7 +17,7 @@ const plainSteps = [
   { value: 156, label: "转化" },
 ];
 
-const brandColors = ["#0067D1", "#2E86DE", "#2070F3", "#5CA2E9", "#8ABEF3"];
+const chartColors = ["#564AF7", "#46B1E3", "#61CFBE", "#64BB5C", "#AC49F5"];
 
 export default function Demo() {
   return (
@@ -46,7 +46,7 @@ export default function Demo() {
           <div className="demo-item">
             <h3 className="demo-item-title">默认形态（无 icon，色点图例）</h3>
             <SegmentedSteps steps={plainSteps} />
-            <p className="demo-note">仅传 steps：系列色用内置图表色，图例回退为色点。</p>
+            <p className="demo-note">仅传 steps：系列色用内置图表色，图例退化为色点。</p>
           </div>
           <div className="demo-item">
             <h3 className="demo-item-title">五步用户旅程（数据驱动图标）</h3>
@@ -55,7 +55,7 @@ export default function Demo() {
           </div>
           <div className="demo-item">
             <h3 className="demo-item-title">进行中 + 自定义配色</h3>
-            <SegmentedSteps steps={journeySteps} colors={brandColors} activeIndex={2} />
+            <SegmentedSteps steps={journeySteps} colors={chartColors} activeIndex={2} />
             <p className="demo-note">activeIndex=2：前三步点亮，其余置灰；colors 支持任意色值数组。</p>
           </div>
         </div>

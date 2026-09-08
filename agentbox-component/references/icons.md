@@ -7,7 +7,7 @@ Default use **Lucide icon name** (`name` prop); only when the user explicitly pr
 ```jsx
 import { Icon } from "../../assets/shared/icons.js";
 
-<Icon name="chevron-down" size={16} color="#0067D1" className="chev"/>
+<Icon name="chevron-down" size={16} color="#0A59F7" className="chev"/>
 
 const item = { icon: "home", label: "首页" };
 <Icon name={item.icon} size={22} />

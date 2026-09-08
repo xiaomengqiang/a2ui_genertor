@@ -134,7 +134,7 @@ After component authoring + build & verify pass, emit the preview link as the fi
 **Read `references/design_system.md` before writing any component CSS** — it contains the full token map and usage rules.
 
 Key rules:
-- Use **theme-layer tokens** (`var(--primary)`, `var(--on-surface)`, `var(--surface-container)`, `var(--error-container)`, `var(--text-md)`…) — hardcoded hex only when the requirement specifies an exact color. build.mjs CSS lint FAILs on `:root`/`.dark` blocks and unknown token names; 
+- Use **theme-layer tokens** (`var(--primary)`, `var(--on-surface)`, `var(--surface-container)`, `var(--error-container)`, `var(--font-body-md)`…) — hardcoded hex only when the requirement specifies an exact color. build.mjs CSS lint FAILs on `:root`/`.dark` blocks and unknown token names; 
 - Colors in JSX inline styles use hex — CSS files use tokens
 - Dark mode comes free: tokens flip under `.dark` automatically
 

@@ -11,7 +11,7 @@
 //      - names not in Lucide trigger a WARN (keep only if the user requested them)
 //      - injects the icon nodes into the shared icons.js module (const LUCIDE = {...})
 //   5. Inlines everything — React/ReactDOM/Babel from local assets/library,
-//      base+light+theme+dark CSS into <style> (font url() paths rewritten to the HTML root),
+//      base+light+theme+dark+glass CSS into <style> (font url() paths rewritten to the HTML root),
 //      all modules wrapped in IIFEs sharing one __export pool
 //   6. Writes a fully self-contained index.components.html that opens via double-click (file://)
 //
@@ -273,7 +273,7 @@ const html = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ICT Components</title>
+<title>Agentbox Components</title>
 <script src="./assets/library/react.production.min.js"></script>
 <script src="./assets/library/react-dom.production.min.js"></script>
 <script src="./assets/library/babel.min.js"></script>
@@ -322,6 +322,6 @@ ${script}
 await writeFile(OUT, html, "utf8");
 console.log(`OK  ${OUT}`);
 console.log(`    modules (${modules.length}): ${modules.map((m) => m.label).join(", ")}`);
-console.log(`    css     (${cssFiles.length + STYLE_FILES.length}): style/(base,light,theme,dark) + ${cssFiles.map((c) => c.slice(ROOT.length + 1).replace(/\\/g, "/")).join(", ")}`);
+console.log(`    css     (${cssFiles.length + STYLE_FILES.length}): style/(base,light,theme,dark,glass) + ${cssFiles.map((c) => c.slice(ROOT.length + 1).replace(/\\/g, "/")).join(", ")}`);
 console.log(`    icons   (${iconTableEntries.length}): ${[...iconRefs.keys()].sort().join(", ") || "none"}`);
 console.log(`    entry   : __export.${entryDefault}`);

@@ -27,7 +27,8 @@
   --color-comp-emphasize-tertiary: var(--brand-10);
   --color-comp-background-list-card: var(--on-primary); 
   --color-comp-background-gray: var(--gray-01); 
-  --color-comp-background-gray-secondary: var(--gray-01); 
+  --color-comp-background-gray-secondary: var(--gray-01);
+  --color-fg-unchecked: var(--on-primary-20);
   --color-comp-divider: var(--container-20); 
 
   /* Comp Border Color（组件边框色）*/

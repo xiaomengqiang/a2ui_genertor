@@ -3,14 +3,14 @@ import { Icon } from "../../assets/shared/icons.js";
 import "./index.css";
 
 const builtInColors = [
-  "#0067D1",
-  "#09AA71",
-  "#FCC800",
-  "#F4840C",
-  "#E02128",
-  "#2070F3",
-  "#9B59B6",
-  "#1ABC9C",
+  "#564AF7",
+  "#46B1E3",
+  "#61CFBE",
+  "#64BB5C",
+  "#A5D61D",
+  "#AC49F5",
+  "#E64566",
+  "#E84026",
 ];
 
 export default function SegmentedSteps(props) {
@@ -56,7 +56,7 @@ export default function SegmentedSteps(props) {
                 style={{
                   height: `${trackHeight}px`,
                   borderRadius: `${trackRadius}px`,
-                  backgroundColor: isActive ? color : "#E8E8E8",
+                  ...(isActive ? { backgroundColor: color } : {}),
                 }}
               />
             </div>
@@ -69,6 +69,7 @@ export default function SegmentedSteps(props) {
           const color = colors[i % colors.length];
           const isActive = i <= activeIndex;
           const isHovered = hoveredIndex === i;
+          const emphasized = isActive || isHovered;
           return (
             <div
               key={i}
@@ -77,11 +78,10 @@ export default function SegmentedSteps(props) {
               onMouseLeave={() => setHoveredIndex(null)}
             >
               <div
-                className="ss-value"
+                className={`ss-value ${emphasized ? "" : "ss-value-muted"}`}
                 style={{
                   fontSize: `${valueFontSize}px`,
                   lineHeight: 1.4,
-                  color: isActive || isHovered ? "#191919" : "#AEAEAE",
                 }}
               >
                 {formatValue(step.value)}
@@ -92,22 +92,21 @@ export default function SegmentedSteps(props) {
                     name={step.icon}
                     size={13}
                     color={color}
-                    className={isActive || isHovered ? "ss-step-icon" : "ss-step-icon ss-step-icon-muted"}
+                    className={emphasized ? "ss-step-icon" : "ss-step-icon ss-step-icon-muted"}
                   />
                 ) : (
                   <span
                     className="ss-dot"
                     style={{
                       backgroundColor: color,
-                      opacity: isActive || isHovered ? 1 : 0.4,
+                      opacity: emphasized ? 1 : 0.4,
                     }}
                   />
                 )}
                 <span
-                  className="ss-label"
+                  className={`ss-label ${emphasized ? "" : "ss-label-muted"}`}
                   style={{
                     fontSize: `${labelFontSize}px`,
-                    color: isActive || isHovered ? "#777777" : "#AEAEAE",
                   }}
                 >
                   {step.label}
