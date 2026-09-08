@@ -23,6 +23,18 @@
   --color-interactive-select: var(--brand-20);
   --color-interactive-click: var(--container-15);
 
+  /* Functional Color（功能色）Dark Mode */
+  --color-error: #E85B49;
+  --color-alert: #F28A4B;
+  --color-warning: #F2C94C;
+  --color-success: #5BA854;
+  --color-info: #317AF7;
+  --color-error-container: #3D211E;
+  --color-alert-container: #3D291D;
+  --color-warning-container: #393116;
+  --color-success-container: #20351F;
+  --color-info-container: rgba(49, 122, 247, 0.3);
+
   /* Shadow（阴影）Dark Mode */
   --shadow-xs: 0 0 4px 0 rgba(0, 0, 0, 0.35);
   --shadow-sm: 0 2px 12px 0 rgba(0, 0, 0, 0.3);

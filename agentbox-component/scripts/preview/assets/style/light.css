@@ -57,11 +57,17 @@
   --color-interactive-select: var(--brand-20); 
   --color-interactive-click: var(--container-10);
 
-  /* Functional Color（功能色）*/
-  --color-error: var(--multi-color-08); 
-  --color-warning: var(--multi-color-09); 
-  --color-success: var(--multi-color-04); 
-  --color-info: var(--brand); 
+  /* Functional Color（功能色，设计师指定值，独立于 multi-color 色板）*/
+  --color-error: #E84026;
+  --color-alert: #ED6F21;
+  --color-warning: #EFBF00;
+  --color-success: #64BB5C;
+  --color-info: #0A59F7;
+  --color-error-container: #FDEBEB;
+  --color-alert-container: #FFF0E6;
+  --color-warning-container: #FFF7D6;
+  --color-success-container: #EDF7EB;
+  --color-info-container: #E6EEFE;
 
   /* Shadow（阴影）*/
   --shadow-xs: 0 0 4px 0 rgba(0, 0, 0, 0.1);

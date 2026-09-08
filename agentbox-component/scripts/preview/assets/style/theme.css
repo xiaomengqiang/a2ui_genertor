@@ -30,27 +30,27 @@
 
   --error: var(--color-error);
   --on-error: var(--white);
-  --error-container: var(--multi-color-aux-08);
+  --error-container: var(--color-error-container);
   --on-error-container: var(--color-font-primary);
+
+  --alert: var(--color-alert);
+  --on-alert: var(--white);
+  --alert-container: var(--color-alert-container);
+  --on-alert-container: var(--color-font-primary);
+
+  --warning: var(--color-warning);
+  --on-warning: var(--black);
+  --warning-container: var(--color-warning-container);
+  --on-warning-container: var(--color-font-primary);
 
   --success: var(--color-success);
   --on-success: var(--white);
-  --success-container: var(--multi-color-aux-04);
+  --success-container: var(--color-success-container);
   --on-success-container: var(--color-font-primary);
-
-  --critical: var(--color-warning); 
-  --on-critical: var(--white);
-  --critical-container: var(--multi-color-aux-09);
-  --on-critical-container: var(--color-font-primary);
-
-  --warning: var(--multi-color-11); 
-  --on-warning: var(--black); 
-  --warning-container: var(--multi-color-aux-11);
-  --on-warning-container: var(--color-font-primary);
 
   --info: var(--color-info);
   --on-info: var(--white);
-  --info-container: var(--brand-05);
+  --info-container: var(--color-info-container);
   --on-info-container: var(--color-font-primary);
 
   --text-secondary: var(--color-font-secondary);

@@ -54,13 +54,13 @@ Raw levels (use when you need the level explicitly): `--color-background-primary
 
 | State | Main | On | Container | On-container |
 |-------|------|----|-----------|--------------|
-| Error | `--error` #E84026 | `--on-error` #FFFFFF | `--error-container` #E87361 | `--on-error-container` rgba(0,0,0,.9) |
-| Success | `--success` #64BB5C | `--on-success` #FFFFFF | `--success-container` #92C48D | `--on-success-container` rgba(0,0,0,.9) |
-| Critical | `--critical` #ED6F21 | `--on-critical` #FFFFFF | `--critical-container` #ED955F | `--on-critical-container` rgba(0,0,0,.9) |
-| Warning | `--warning` #F7CE00 | `--on-warning` #000000 | `--warning-container` #F5DC62 | `--on-warning-container` rgba(0,0,0,.9) |
-| Info | `--info` #0A59F7 | `--on-info` #FFFFFF | `--info-container` rgba(10,89,247,.05) | `--on-info-container` rgba(0,0,0,.9) |
+| Error | `--error` #E84026 | `--on-error` #FFFFFF | `--error-container` #FDEBEB | `--on-error-container` rgba(0,0,0,.9) |
+| Alert | `--alert` #ED6F21 | `--on-alert` #FFFFFF | `--alert-container` #FFF0E6 | `--on-alert-container` rgba(0,0,0,.9) |
+| Warning | `--warning` #EFBF00 | `--on-warning` #000000 | `--warning-container` #FFF7D6 | `--on-warning-container` rgba(0,0,0,.9) |
+| Success | `--success` #64BB5C | `--on-success` #FFFFFF | `--success-container` #EDF7EB | `--on-success-container` rgba(0,0,0,.9) |
+| Info | `--info` #0A59F7 | `--on-info` #FFFFFF | `--info-container` #E6EEFE | `--on-info-container` rgba(0,0,0,.9) |
 
-Usage: solid state chip → bg `--error` + text `--on-error`; soft badge/alert → text `--error` on bg `--error-container`.
+Usage: solid state chip → bg `--error` + text `--on-error`; soft badge/alert → text `--error` on bg `--error-container`. Dark mode flips automatically.
 
 ### Text Colors (four tiers + aliases)
 
@@ -226,7 +226,7 @@ Usage: `className="glass-md my-card"`. No border-radius included — add `--radi
 - **Comp backgrounds:** `--color-comp-background-primary/secondary/tertiary`, `-emphasize`, `--color-comp-emphasize-secondary/tertiary` (brand 20%/10%), `-list-card`, `-gray`, `-gray-secondary`
 - **Comp border states:** `--color-comp-border` + `-hover/-focus/-active/-disabled`
 - **Interactive overlays:** `--color-interactive-hover/pressed/click/focus/select`
-- **Functional mains:** `--color-error/warning/success/info`
+- **Functional mains & containers:** `--color-error/alert/warning/success/info` + `--color-error-container` 等
 
 ## Design Rules
 
