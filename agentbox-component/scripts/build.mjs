@@ -32,7 +32,7 @@ const ROOT = resolve(args[dirIdx + 1]);
 const ENTRY = resolve(ROOT, "demo.jsx");
 const OUT = resolve(ROOT, "index.components.html");
 const STYLE_DIR = resolve(ROOT, "assets/style");
-const STYLE_FILES = ["base.css", "light.css", "theme.css", "dark.css"].map((f) => resolve(STYLE_DIR, f));
+const STYLE_FILES = ["base.css", "light.css", "theme.css", "dark.css", "glass.css"].map((f) => resolve(STYLE_DIR, f));
 const LUCIDE_JSON = resolve(ROOT, "assets/library/lucide-icon-nodes.json");
 const ICONS_MODULE = "assets/shared/icons.js";
 
@@ -282,6 +282,35 @@ ${cssParts.join("\n\n")}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="glass-xs">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="3" result="smooth"/>
+      <feDisplacementMap in="SourceGraphic" in2="smooth" scale="8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="glass-sm">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="3" result="smooth"/>
+      <feDisplacementMap in="SourceGraphic" in2="smooth" scale="15" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="glass-md">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="3" result="smooth"/>
+      <feDisplacementMap in="SourceGraphic" in2="smooth" scale="25" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="glass-lg">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="3" result="smooth"/>
+      <feDisplacementMap in="SourceGraphic" in2="smooth" scale="35" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="glass-xl">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="3" result="smooth"/>
+      <feDisplacementMap in="SourceGraphic" in2="smooth" scale="50" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
 <div id="root">Loading...</div>
 <script type="text/babel" data-presets="react">
 ${script}

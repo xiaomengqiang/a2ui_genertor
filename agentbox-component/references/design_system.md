@@ -194,6 +194,18 @@ Raw scale (when role tokens don't fit): `--font-size-xs/sm/base/md/lg/xl/2xl/3xl
 | `--ease-in` | Exits (accelerate away) |
 | `--ease-standard` | Movement/resize (both endpoints visible) |
 
+### Glass (utility classes)
+
+| Class | Blur | Bg | Border | Refraction | Usage |
+|-------|------|-----|--------|------------|-------|
+| `.glass-xs` | 4px | .05 | .10 | subtle | Light frost — large surfaces |
+| `.glass-sm` | 8px | .10 | .20 | light | Subtle panels |
+| `.glass-md` | 12px | .15 | .30 | medium | **Default** — cards, panels |
+| `.glass-lg` | 16px | .20 | .40 | strong | Toolbars, sidebars |
+| `.glass-xl` | 24px | .30 | .50 | heavy | Focal overlays, modals |
+
+Usage: `className="glass-md my-card"`. No border-radius included — add `--radius-*` yourself. Works over imagery/gradients/colored content (near-invisible on plain white).
+
 ### Checkbox / Radio unchecked
 
 `--color-fg-unchecked` rgba(255,255,255,.2) — the border/fill of unselected CheckBox & Radio controls.

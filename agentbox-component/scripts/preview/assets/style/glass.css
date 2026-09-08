@@ -1,0 +1,47 @@
+/* ==========================================================================
+   Glass（玻璃材质工具类，5 档）
+   依赖 build.mjs HTML 模板中预制的 SVG filter（#glass-xs…xl，Chromium 生效）
+   不支持 url() 的浏览器自动降级为纯 blur 毛玻璃（两行式写法）
+   最佳载体：图片/渐变/彩色内容之上；纯白背景上几乎不可见
+   不含 border-radius —— 圆角由组件用 --radius-* 自决
+   ========================================================================== */
+
+.glass-xs {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px) url(#glass-xs);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+}
+
+.glass-sm {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px) url(#glass-sm);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.glass-md {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px) url(#glass-md);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+.glass-lg {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px) url(#glass-lg);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.glass-xl {
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px) url(#glass-xl);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25);
+}
