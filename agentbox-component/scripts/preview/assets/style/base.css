@@ -118,19 +118,13 @@
 
   /* 11. Radius（圆角，px） */
   --radius-none: 0px;
-  --radius-level1: 2px;
-  --radius-level2: 4px;
-  --radius-level3: 6px;
-  --radius-level4: 8px;
-  --radius-level5: 10px;
-  --radius-level6: 12px;
-  --radius-level7: 14px;
-  --radius-level8: 16px;
-  --radius-level9: 18px;
-  --radius-level10: 20px;
-  --radius-level11: 22px;
-  --radius-level12: 24px;
-  --radius-level16: 32px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
   --radius-full: 9999px;
 
   /* 12. Spacing（间距，N × 4px，N-5 为半步长） */
@@ -147,6 +141,10 @@
   --spacing-5: 20px;
   --spacing-5-5: 22px;
   --spacing-6: 24px;
+  --spacing-7: 28px;
+  --spacing-8: 32px;
+  --spacing-9: 36px;
+  --spacing-10: 40px;
 
   /* 13. Border Width（边框宽度，px） */
   --border-width-none: 0px;

@@ -65,7 +65,8 @@ Analyze the request (purpose, data displayed, interactions), then create `{artif
 2. **`index.css`** — component CSS (no Tailwind), semantic class names:
 - Colors/fonts/shadows/radius MUST use **theme-layer tokens** (refer to the Design Tokens section) — hardcoded hex only when the requirement specifies an exact color
 - Spacing/margins/padding: plain px values
-- Do NOT define `:root` or `.dark` blocks — they are already defined globally in `assets/style/`
+- Do NOT define bare `:root` / `.dark` selectors (without a descendant suffix) — global tokens already live in `assets/style/`
+- Per-mode values tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override
 - The component root defaults to `width: 100%`, adjusted per actual needs
 
 3. **`README.md`** — component docs, concise, no essays:

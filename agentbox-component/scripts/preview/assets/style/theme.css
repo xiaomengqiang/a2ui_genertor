@@ -84,11 +84,11 @@
   --shadow-popover: var(--shadow-lg);
   --shadow-modal: var(--shadow-2xl);
 
-  /* ── radius → 用途别名（完整刻度用 base --radius-level*）── */
-  --radius-badge: var(--radius-level2);     /* 4px */
-  --radius-action: var(--radius-level2);    /* 4px */
-  --radius-container: var(--radius-level4); /* 8px */
-  --radius-overlay: var(--radius-level4);  /* 8px */
+  /* ── radius → 用途别名（完整刻度用 base --radius-*）── */
+  --radius-badge: var(--radius-sm);     /* 4px */
+  --radius-action: var(--radius-sm);    /* 4px */
+  --radius-container: var(--radius-lg); /* 8px */
+  --radius-overlay: var(--radius-lg);  /* 8px */
 
   /* ── borderWidth → 语义边框宽度（引用 base）── */
   --border-width-thin: var(--border-width-base);    /* 1px，常规描边 */
