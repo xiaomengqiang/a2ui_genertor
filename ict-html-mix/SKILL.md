@@ -27,9 +27,9 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 1. **用户选定**：会话上传了多个 html 而用户未指明目标时，先列出 uploads 下的 html 供用户选择，不要猜。
 2. **复制副本**：选定后**必须先将该 html 复制**到当前会话产物目录 `[artifact-folder]`（即 `.octo/ses_<会话ID>/outputs/`，取运行时注入的 `[Artifact Folder]` 实际路径，勿硬编码会话 ID）：
-   ```powershell
-   Copy-Item -LiteralPath '<uploads 下选定的源 html>' -LiteralPath '<[artifact-folder]>'
-   ```
+   ```powershell
+   Copy-Item -LiteralPath '<uploads 下选定的源 html>' -LiteralPath '<[artifact-folder]>'
+   ```
 3. **后续一律基于副本操作**：本地化拷贝（`previewdist/`）、`a2ui-data/` 存储、页尾 nodes 挂载等所有写操作，承载页路径均指向 outputs 下的副本；**副本所在目录即「页目录」**。`uploads/` 中的原始上传文件视为**只读源**，禁止直接修改或在其中派生产物。
 4. **交付说明**：完成后向用户回报副本路径（outputs 下可直接预览的页面文件）及配套产物位置；回退时只需还原/删除副本，原始上传不受影响。
 
@@ -54,9 +54,9 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 ### 第 1 步：生成 A2UI JSON
 
-用 **skill 工具加载 `ict-coder` 技能**并按其生成工作流产出 JSON。注意：本工作流**只借其生成能力**（其 Step 1–4 生成 + Step 5 校验），**不执行其 Step 6 打包/artifact 输出**；产物按下方表格命名并常驻（勿用其 `a2ui-output-{timestamp}` 时间戳名、勿 `--cleanup`）。用 **Write 工具**（禁 bash echo/Out-File/heredoc，命令行 ~32KB 限长会炸）写入。
+用 **skill 工具加载 `ict-coder` 技能**并按其生成工作流产出 JSON。注意：本工作流**只借其生成能力**（其 Step 1–4 生成 + Step 5 校验），**不执行其 Step 6 打包/artifact 输出**；ict-coder 的 Step 5 已直接写入 `a2ui-data/<slug>/<slug>.json`。
 
-> 捷径：若用户明确要直挂 ict-coder 已打包的产物（`{slug}/data.js`，自带 wrapper），可跳过第 2 步——`dataPath` 直指该 `.js` 文件即可（渲染器原生支持，免校验孪生）。
+> 捷径：若用户明确要直挂 ict-coder 已打包的产物（`{slug}/data.js`，自带 wrapper），可跳过第 2 步——`dataPath` 直指该 `.js` 文件即可（渲染器原生支持，免校验孪生）。但默认路径不走打包，直接走 `a2ui-data/`。
 
 | 存储布局 | 判定特征 | 产物路径 | 页面引用前缀 |
 |---|---|---|---|
@@ -103,23 +103,23 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 ```html
 <script src="./previewdist/PreviewRenderer.js?v=1"></script>
 <script>
-    (function () {
-        var nodes = [
-            { container: '<目标节点选择器>', dataPath: './a2ui-data/<slug>/<slug>.json' }
-        ];
-        var chain = Promise.resolve();
-        nodes.forEach(function (cfg) {
-            chain = chain.then(function () {
-                return new PreviewRenderer({
-                    container: cfg.container,
-                    distPath: './previewdist',
-                    dataPath: cfg.dataPath,
-                    autoInit: false
-                }).init();
-            });
-        });
-        chain.catch(function (e) { console.error('[A2UI] node render failed:', e); });
-    })();
+    (function () {
+        var nodes = [
+            { container: '<目标节点选择器>', dataPath: './a2ui-data/<slug>/<slug>.json' }
+        ];
+        var chain = Promise.resolve();
+        nodes.forEach(function (cfg) {
+            chain = chain.then(function () {
+                return new PreviewRenderer({
+                    container: cfg.container,
+                    distPath: './previewdist',
+                    dataPath: cfg.dataPath,
+                    autoInit: false
+                }).init();
+            });
+        });
+        chain.catch(function (e) { console.error('[A2UI] node render failed:', e); });
+    })();
 </script>
 ```
 
@@ -135,12 +135,19 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 
 1. **先理解目标区域布局语境**（Read 页面相关片段，看邻近节点的类名/列跨度/高度）。
 2. **贴合邻近语境造槽位**：
-   - grid 容器内新增 → 复用邻近卡片的类名与列跨度（如同款 `bg-white rounded-2xl p-5 border shadow-sm`）；
-   - 独行成行 → 显式定高（如 kpi 网格第 5 卡 `h-[152px]` 对齐同行卡高）；
-   - flex 父级 → 加 `flex-shrink-0` 防压缩塌缩；
-   - 不与既有节点重叠、不压缩既有布局。
-3. **不动任何既有节点**，只插入新槽位 + nodes 登记。
-4. 槽位容器类名若用 `flex-col`/`flex-row`/`flex-wrap` 必带 `flex`（校验 lint 会告警）。
+   - grid 容器内新增 → 复用邻近卡片的类名与列跨度（如同款 `bg-white rounded-2xl p-5 border shadow-sm`）；
+   - 独行成行 → 显式定高（如 kpi 网格第 5 卡 `h-[152px]` 对齐同行卡高）；
+   - flex 父级 → 加 `flex-shrink-0` 防压缩塌缩；
+   - 不与既有节点重叠、不压缩既有布局。
+3. **内容高度预判（防占位过高）**：
+   - 先评估渲染内容的预估高度：表格 ≈ 行数 × 行高（约 48px/行）+ 表头（约 45px）+ 内边距（约 40px）+ 分页条（约 45px，若启用）
+   - 若预估高度超过邻近卡片高度的 1.5 倍，槽位必须加 `max-h-[xxx]` + `overflow-hidden` 约束
+   - **表格/列表类内容默认策略**：
+     - 数据量 ≤ 5 行：默认 `pagination: false`，无需 max-h 约束
+     - 数据量 ＞ 5 行：**必须保留 `pagination: true`**（默认每页 5 行），槽位加 `max-h-[380px] overflow-hidden`
+     - 仅当用户明确要求"全部显示"时才设 `pagination: false`，此时必须配 `max-h` + `overflow-y-auto`
+4. **不动任何既有节点**，只插入新槽位 + nodes 登记。
+5. 槽位容器类名若用 `flex-col`/`flex-row`/`flex-wrap` 必带 `flex`（校验 lint 会告警）。
 
 ### 回退手段
 
@@ -156,20 +163,20 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 复用原 JSON 作为唯一事实源，**不新建文件、不新建页面节点**；patch 遵守 ict-coder 的最小变更纪律（只改用户所述，其余字节不动，杜绝重生成漂移）。
 
 1. **反查 dataPath**：目标节点的 `dataPath` 登记在承载页页尾编排脚本的 `nodes` 数组里：
-   ```powershell
-   Select-String -Path "<页面路径>" -Pattern '<节点选择器片段>' -Context 2,2
-   ```
-   （页面路径未知时可通配扫描：`Select-String -Path "*\*.html" ...`）
+   ```powershell
+   Select-String -Path "<页面路径>" -Pattern '<节点选择器片段>' -Context 2,2
+   ```
+   （页面路径未知时可通配扫描：`Select-String -Path "*\*.html" ...`）
 2. **读 JSON 理解结构**：
-   - `state`：扁平数据对象。`/xxx` 是根字段绝对路径，`xxx`（无斜杠）是列表项相对路径。
-   - `rootId`：根 element 的 id，顶层容器入口。
-   - `elements[]`：元素定义表，每个 element 只有 `id`/`component`/`props`/`children` 四键。
-   - `children` 两种形态：① 字符串数组 = 静态子 element id 列表；② `{path, componentId}` = 列表循环绑定（表格行、指标卡常用）。
-   - 定位修改点：从 `rootId` 沿 `children` 引用下行找到目标父容器。
+   - `state`：扁平数据对象。`/xxx` 是根字段绝对路径，`xxx`（无斜杠）是列表项相对路径。
+   - `rootId`：根 element 的 id，顶层容器入口。
+   - `elements[]`：元素定义表，每个 element 只有 `id`/`component`/`props`/`children` 四键。
+   - `children` 两种形态：① 字符串数组 = 静态子 element id 列表；② `{path, componentId}` = 列表循环绑定（表格行、指标卡常用）。
+   - 定位修改点：从 `rootId` 沿 `children` 引用下行找到目标父容器。
 3. **JSON patch**（只动 `state`/`elements`/`rootId`）：
-   - **容器子列表新增 element**：先在 `elements[]` push 新定义（id 全文件唯一，业务前缀防冲突），再把新 id 挂到目标父容器 `children` 数组（插入位置 = 数组位置）。
-   - **列表循环容器加一条数据**：`children` 为 `{path, componentId}` 时**只动 `state`**：给对应数组 push 一项（字段与行模板绑定对齐），不动 `elements`。
-   - **替换/修改已有元素**：定位 element 改 `props.className`/`props.value` 等；改文案优先动 `state`（保持数据/视图分层），`props` 用 `{path:"/xxx"}` 绑定。
+   - **容器子列表新增 element**：先在 `elements[]` push 新定义（id 全文件唯一，业务前缀防冲突），再把新 id 挂到目标父容器 `children` 数组（插入位置 = 数组位置）。
+   - **列表循环容器加一条数据**：`children` 为 `{path, componentId}` 时**只动 `state`**：给对应数组 push 一项（字段与行模板绑定对齐），不动 `elements`。
+   - **替换/修改已有元素**：定位 element 改 `props.className`/`props.value` 等；改文案优先动 `state`（保持数据/视图分层），`props` 用 `{path:"/xxx"}` 绑定。
 4. **写回 + 校验**：用 Edit 工具改 JSON，跑第 2 步校验命令，必须 PASS（孪生 .data.js 随之自动同步）。
 5. **告知用户刷新浏览器**即生效（页内 nodes 每次加载重新取数）。
 
@@ -184,8 +191,45 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 | JSON 语法 | FAIL（exit 1） | `ConvertFrom-Json` 解析失败 → `RESULT: FAIL (json syntax)` + 错误行上下文 |
 | flex 方向类必配 `flex`/`inline-flex` | lint 告警 | 方向类只设 `flex-direction` 不设 `display`；漏 `flex` 则容器停留 block、高度塌缩 |
 | `*Chart` 组件必含显式 `h-` 高度类 | lint 告警 | 缺 `h-` 则 DOM 塌 10px，ResizeObserver 只能按 0/10px 重绘 |
+| `Table` 关闭分页时的槽位高度约束 | lint 告警 | Pagination 未开启（false/缺失默认真）且数据行 ≥ 6 时提醒：「Table 关闭分页后内容行数较多，请确认槽位已设 max-h 防止布局撑开」 |
 
 lint 告警必须清零后才挂载。常见修复：`no 'flex'` → className 加 `flex`；`missing height class (h-)` → 加 `h-full`/`h-64` 等。
+
+---
+
+## 路线 A 布局冲突与容器高度陷阱
+
+### 陷阱 1：容器自带布局类与 JSON root 布局重复
+
+**场景**：路线 A 替换模式，目标容器 HTML 已有布局类（如 `class="grid grid-cols-1 lg:grid-cols-3 gap-6"`），而 JSON 的 root element 也带了相同的 grid/flex 布局类。
+
+**后果**：双重 grid/flex 声明导致渲染异常——容器自身布局和 A2UI 渲染内容的布局叠加冲突，内容失去正确的列跨度控制、列宽异常、内边距翻倍。
+
+**规范**：
+- **优先统一布局控制权**：路线 A 替换时，将容器 HTML 的布局类清空（改为普通空 div 或仅保留定位类），JSON root 完全掌控布局。不要让 HTML 和 JSON 各管一部分。
+- **例外**：如果容器仅为定位锚点（如 `id="xxx"` 且无布局类），则无需改动 HTML，JSON root 正常写布局类。
+- 若不确认容器担任布局角色还是纯锚点角色，一律清空 HTML 布局类、把布局控制权交给 JSON。
+
+### 陷阱 2：挂载容器必须用固定高度 `h-[xxx]`
+
+**场景**：路线 A/B 将 A2UI 内容挂载到容器，容器高度用 `min-h-[xxx]` 或 `max-h-[xxx]` 设置。
+
+**根因**：PreviewRenderer.js 注入的 CSS shim 强制内部元素 `height:100%; max-height:100%; overflow:hidden`，使渲染内容高度从容器继承。但 CSS 规范中 **`height:100%` 仅在父元素有明确 `height` 值时生效**（绝对值或百分比链到视口 / 定高祖先）。`min-height` / `max-height` 不参与百分比高度计算。高度继承链断裂后，内容以自然高度撑开到数千 px。
+
+**规范**：
+- A2UI 挂载容器**必须用 `h-[xxx]` 固定高度**（如 `h-[408px]`），不允许用 `min-h` / `max-h`。
+- 容器高度应根据内容精确计算：
+
+  | 内容类型 | 高度计算方式 |
+  |---|---|
+  | 折线图/柱状图卡片 | header(~80px) + chart(h-72=288px) + padding(40px) = **~408px** |
+  | 雷达图卡片 | header(~40px) + chart(h-72=288px) + padding(40px) = **~368px** |
+  | 表格卡片（有分页） | header(~80px) + table(5行×48px=240px) + pagination(~45px) + padding(40px) = **~405px** |
+  | 表格卡片（无分页） | header(~80px) + table(N行×48px) + padding(40px) |
+  | 纯指标卡 | header(~40px) + metric(~60px) + padding(40px) = **~140px** |
+
+- 若无法精确估算，取略高的值并用 `overflow-hidden` 约束（但优先精确计算避免留白）。
+- **iframe 预览与浏览器直接打开行为不同**：iframe 高度在首次布局后固定，A2UI 异步渲染完成后不自动伸缩，容器无定高时塌缩/溢出表现比浏览器更恶劣。
 
 ---
 
@@ -193,7 +237,7 @@ lint 告警必须清零后才挂载。常见修复：`no 'flex'` → className �
 
 1. `previewdist/`（项目根）对 Users 组只读，**勿改**；校验与元信息维护一律走本技能 `scripts/validate-and-sync.ps1`——校验必须 `RESULT: PASS` 且 lint 告警清零才挂载（结构合法性由 ict-coder 生成侧兜底）。
 2. 渲染器唯一权威源 = 本技能 `scripts/PreviewRenderer.js`，可改；改动需同步各运行时副本并 bump 宿主页 `?v=`（跑 `-GenMeta` 自动扇出：源 + 项目根 previewdist + 各 `<页目录>/previewdist/`）；只改 JSON/HTML 不需要 bump。
-3. JSON 只用 **Write/Edit 工具**写，禁命令行管道写文件。
+3. JSON 只用 **Write/Edit 工具**写，禁命令行管道写文件。所有 JSON 产物必须写入 `<页目录>/a2ui-data/<slug>/<slug>.json`，不得写入 `output/` 或其他临时目录。
 4. `dataPath` 前缀：本地化页用 `./a2ui-data/<slug>/<slug>.json`；集中式页用 `../output/<name>.json`——以页面现有 nodes 引用形态为准（见第 1 步存储布局表）。
 5. 渲染器 `container` 必填；`data` 可替代 `dataPath` 传内联对象；都不传用 `previewdist/data.js` 默认数据。
 6. 免服务器 file:// 直开与 ict-coder 运行时重建后的 `-GenMeta` + 重拷 assets 流程，详见 WORKFLOW.md「免服务器 file:// 直开」。
