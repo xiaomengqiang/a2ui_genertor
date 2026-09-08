@@ -258,4 +258,194 @@ class PreviewRenderer {
         await this._loadScriptOnce(`${distPath}/data.js`);
       } else {
         if (!PreviewRenderer._defaultDataJs) {
-          const dr = await fetch(`${distPath}/da
+          const dr = await fetch(`${distPath}/data.js`);
+          PreviewRenderer._defaultDataJs = dr.ok ? await dr.text() : '';
+        }
+        try { (new Function(PreviewRenderer._defaultDataJs))(); } catch (e) { /* ignore */ }
+      }
+    }
+
+    // 4. 本实例挂载点（工厂模式直接 mount 到该元素，不需要 #app id）
+    this._prepareTarget('.preview-a2ui-app');
+    const appDiv = document.createElement('div');
+    appDiv.className = 'preview-a2ui-app';   // 稳定标记类：垫片 CSS 锚点 + 「只删自产节点」清理锚点
+    this._appDiv = appDiv;                   // 记录自产节点，destroy 时只删它
+    // 显式 width/height:100%（而非 inset:0）：inset 简写在某些 cssText 解析下 bottom 不生效，
+    // appDiv 会退化成内容高度 → 整条 height:100% 链断裂。父级容器有确定高度，百分比可正确解析。
+    appDiv.style.cssText = 'width:100%;height:100%;';
+    this.container.appendChild(appDiv);
+
+    // 5. 工厂模式：整条 bundle 只解析执行一次，之后每个节点调 window.__A2UI_BOOT__ 挂载
+    //    （不再每节点重解析+重执行 IIFE）；置多实例标志 → bundle 暴露工厂而非自动 mount('#app')
+    window.__A2UI_MULTI__ = true;
+    if (!PreviewRenderer._bundleLoaded) {
+      PreviewRenderer._bundleLoaded = this._loadScripts(scriptUrls);
+    }
+    await PreviewRenderer._bundleLoaded;
+
+    if (typeof window.__A2UI_BOOT__ === 'function') {
+      // 新构建：工厂挂载，每实例只付 createApp+mount 成本。
+      // 先隐藏挂载点：首帧 flex 链/Tailwind 运行时/chart init 未稳定时，内容会按错误（偏小）尺寸
+      // 渲染再跳变；chart 无自身 ResizeObserver，但 HuiCharts 监听 window.resize，故布局落定后
+      // （双 rAF + 20ms）派发一次 resize 让 chart 重算到稳定尺寸，再显现。
+      appDiv.style.opacity = '0';
+      window.__A2UI_BOOT__(appDiv);
+      this._settleAndReveal(appDiv);
+    } else {
+      // 旧构建兜底：重新执行 IIFE，按 #app 挂载（每节点重解析一次）。
+      // 视觉对齐工厂分支：装载（=挂载）前先隐藏，bundle 执行完、布局落定后再显现——
+      // 慢（重复解析）不可免，但让用户看不见中间态。
+      const prevApp = document.getElementById('app');
+      if (prevApp) prevApp.removeAttribute('id');
+      appDiv.style.opacity = '0';
+      appDiv.id = 'app';
+      await this._loadScripts(scriptUrls);
+      this._settleAndReveal(appDiv);
+    }
+  }
+
+  // 布局落定后显现（假定调用方已 opacity:0 隐藏）：双 rAF + 20ms 等 flex 链/Tailwind 运行时/
+  // chart init 稳定，派发一次 window.resize（HuiCharts 监听）让 chart 按最终尺寸重算，再淡入。
+  _settleAndReveal(appDiv) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+        appDiv.style.opacity = '1';
+      }, 20);
+    }));
+  }
+
+  async loadData(source) {
+    let data;
+
+    if (typeof source === 'string') {
+      if (source.startsWith('http') || source.startsWith('/') || source.startsWith('./')) {
+        data = await this._loadFromUrl(source);
+      } else {
+        data = JSON.parse(source);
+      }
+    } else if (source instanceof File) {
+      data = await this._loadFromFile(source);
+    } else if (typeof source === 'object') {
+      data = source;
+    } else {
+      throw new Error('Invalid data source');
+    }
+
+    this.data = data;
+
+    if (this.options.useIframe && this.iframe) {
+      this.iframe.contentWindow.postMessage({
+        type: 'A2UI_UPDATE',
+        payload: data
+      }, '*');
+    } else {
+      window.__A2UI_DATA__ = data;
+      if (window.__A2UI_UPDATE__) {
+        window.__A2UI_UPDATE__(data);
+      }
+    }
+
+    if (this.options.onDataLoad) {
+      this.options.onDataLoad(data);
+    }
+
+    return this;
+  }
+
+  async _loadFromUrl(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to load data from ${url}`);
+    }
+    return await response.json();
+  }
+
+  async _loadFromFile(file) {
+    const text = await file.text();
+    return JSON.parse(text);
+  }
+
+  _handleError(error) {
+    console.error('PreviewRenderer Error:', error);
+
+    if (this.options.onError) {
+      this.options.onError(error);
+    } else {
+      this._showDefaultError(error);
+    }
+  }
+
+  // 错误提示为追加式（任何模式都不破坏容器内容）：
+  // 仅移除本渲染器先前注入的错误提示（幂等），再追加新的。
+  _showDefaultError(error) {
+    if (!this.container) return;
+
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'preview-renderer-error';
+    errorDiv.style.cssText = `
+      padding: 20px;
+      background: #ffebee;
+      border: 1px solid #ef5350;
+      border-radius: 8px;
+      color: #c62828;
+      margin: 20px;
+      font-family: sans-serif;
+    `;
+    errorDiv.innerHTML = `
+      <h3 style="margin: 0 0 10px 0; font-size: 16px;">预览加载失败</h3>
+      <p style="margin: 0; font-size: 14px;">${error.message}</p>
+      <p style="margin: 10px 0 0 0; font-size: 12px; color: #666;">
+        请确保 previewdist 已构建完成
+      </p>
+    `;
+    Array.from(this.container.querySelectorAll(':scope > .preview-renderer-error')).forEach(el => el.remove());
+    this.container.appendChild(errorDiv);
+  }
+
+  _handleRender() {
+    if (this.options.onRender) {
+      this.options.onRender(this.container);
+    }
+  }
+
+  setContainer(selector) {
+    this.options.container = selector;
+    this.container = this._getContainer();
+    return this;
+  }
+
+  setDistPath(path) {
+    this.options.distPath = path;
+    return this;
+  }
+
+  setDataPath(path) {
+    this.options.dataPath = path;
+    return this;
+  }
+
+  destroy() {
+    if (this.iframe) {
+      this.iframe.remove();
+      this.iframe = null;
+    }
+    // 只删自产节点：移除本实例的挂载点，不触碰宿主原有内容
+    if (this._appDiv) {
+      this._appDiv.remove();
+      this._appDiv = null;
+    }
+    this.container = null;
+    this.initialized = false;
+    this.data = null;
+    return this;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.PreviewRenderer = PreviewRenderer;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = PreviewRenderer;
+}
