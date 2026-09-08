@@ -10,7 +10,8 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 > **首要总则（凌驾于所有路线之上）**：凡经本 skill 的内容修改，**必须走工作流管线**——
 > 调用 `ict-coder` 生成/派生对应 JSON 文件 → `validate-and-sync.ps1` 校验 PASS → 渲染器挂载生效。
-> **一般不得直接编辑原页面的既有 DOM/内容/样式**来达成显示变化（绕过管线的手改一律禁止）。
+> **不得直接编辑原页面的既有 DOM/内容/样式**来达成显示变化（绕过管线的手改一律禁止）。
+> **即使目标是页面上已有的原生 HTML 内容（如原生表格、原生 DOM 元素、非 A2UI 渲染的内容），也不得直接编辑 HTML——必须先转化为 A2UI 渲染节点，再通过 JSON 层修改。**
 > 允许触碰页面的仅限工作流自身的结构登记操作：页尾 `nodes` 数组项、路线 B 的新槽位节点插入、
 > 渲染器 `script` 标签与 `?v=` bump。已渲染内容的微调走路线 C（JSON 层 patch，遵守 ict-coder
 > 的最小变更纪律：只改用户所述，其余字节不动）。
@@ -26,10 +27,15 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 若用户要修改的承载页 HTML 来自**当前会话上传的文件**（位于 `.octo/ses_<会话ID>/uploads/`）：
 
 1. **用户选定**：会话上传了多个 html 而用户未指明目标时，先列出 uploads 下的 html 供用户选择，不要猜。
-2. **复制副本**：选定后**必须先将该 html 复制**到当前会话产物目录 `[artifact-folder]`（即 `.octo/ses_<会话ID>/outputs/`，取运行时注入的 `[Artifact Folder]` 实际路径，勿硬编码会话 ID）：
+2. **复制副本并重命名**：选定后**必须先将该 html 复制**到当前会话产物目录 `[artifact-folder]`（即 `.octo/ses_<会话ID>/outputs/`，取运行时注入的 `[Artifact Folder]` 实际路径，勿硬编码会话 ID），同时将文件名改为 `{原文件名}.prototype.html`：
+
    ```powershell
-   Copy-Item -LiteralPath '<uploads 下选定的源 html>' -LiteralPath '<[artifact-folder]>'
+   $src = '<uploads 下选定的源 html 绝对路径>'
+   $dst = Join-Path '<[artifact-folder]>' "$([System.IO.Path]::GetFileNameWithoutExtension($src)).prototype.html"
+   Copy-Item -LiteralPath $src -LiteralPath $dst -Force
    ```
+
+   > 若源文件本身已包含 `.prototype.` 后缀（如 `xxx.prototype.html`），则保持原名不变，直接复制。
 3. **后续一律基于副本操作**：本地化拷贝（`previewdist/`）、`a2ui-data/` 存储、页尾 nodes 挂载等所有写操作，承载页路径均指向 outputs 下的副本；**副本所在目录即「页目录」**。`uploads/` 中的原始上传文件视为**只读源**，禁止直接修改或在其中派生产物。
 4. **交付说明**：完成后向用户回报副本路径（outputs 下可直接预览的页面文件）及配套产物位置；回退时只需还原/删除副本，原始上传不受影响。
 
@@ -54,13 +60,13 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 ### 第 1 步：生成 A2UI JSON
 
-用 **skill 工具加载 `ict-coder` 技能**并按其生成工作流产出 JSON。注意：本工作流**只借其生成能力**（其 Step 1–4 生成 + Step 5 校验），**不执行其 Step 6 打包/artifact 输出**；ict-coder 的 Step 5 已直接写入 `a2ui-data/<slug>/<slug>.json`。
+用 **skill 工具加载 `ict-coder` 技能**并按其生成工作流产出 JSON。注意：本工作流**只借其生成能力**（其 Step 1–4 生成 + Step 5 校验），**不执行其 Step 6 打包/artifact 输出**；ict-coder 的 Step 5 已直接写入 `a2ui-data/<slug>/data.json`。
 
 > 捷径：若用户明确要直挂 ict-coder 已打包的产物（`{slug}/data.js`，自带 wrapper），可跳过第 2 步——`dataPath` 直指该 `.js` 文件即可（渲染器原生支持，免校验孪生）。但默认路径不走打包，直接走 `a2ui-data/`。
 
 | 存储布局 | 判定特征 | 产物路径 | 页面引用前缀 |
 |---|---|---|---|
-| **本地化**（现行默认，新页面 / 新接入一律采用） | 页目录内有 `previewdist/` | `<页目录>/a2ui-data/<slug>/<slug>.json`（每节点独立文件夹） | `./` |
+| **本地化**（现行默认，新页面 / 新接入一律采用） | 页目录内有 `previewdist/` | `<页目录>/a2ui-data/<slug>/data.json`（每节点独立文件夹，JSON 文件名统一为 `data.json`） | `./` |
 | **集中式**（既有页面沿用） | nodes 引用 `../output/` | `output/<module>[-<页标识>]-output.json` | `../` |
 
 以目标页**现有 nodes 数组的引用形态**为准选择布局；将集中式页改造为本地化时，先执行本地化拷贝并迁移既有数据，再统一改写引用。
@@ -82,6 +88,8 @@ New-Item -ItemType Directory -Path '<页目录>\previewdist' -Force | Out-Null; 
 
 「根据原内容」生成时，先从页面既有脚本/DOM 中提取真实数据（图表 series、文案、数值），保持数据保真，不凭空发明。跨页复用既有 JSON 派生产物时，数值字段必须与本页语境一致，不要照抄他页数值。
 
+> **⚠️ 生成前必须读取页面上下文确定容器尺寸**：在调用 ict-coder 生成新 JSON 之前，**必须先读取承载页中目标容器及周边兄弟节点、父节点**的 HTML 片段，记录其实际高度、间距类（`gap-*`/`p-*`/`space-y-*`）、布局类（`grid`/`flex`/`grid-cols-*`）、父子关系与 DOM 顺序。容器 `h-[xxx]` 的高度值必须基于这些实际读取值计算，不得凭空估算。具体推导步骤见「陷阱 2 的高度推导步骤」。
+
 ### 第 2 步：校验（硬门禁，未 PASS 禁止挂载）
 
 用「技能根定位」解析出的 `$Skills` 执行（绝对路径注入，不依赖工作目录）：
@@ -90,7 +98,7 @@ New-Item -ItemType Directory -Path '<页目录>\previewdist' -Force | Out-Null; 
 powershell -ExecutionPolicy Bypass -File "$Skills\ict-html-mix\scripts\validate-and-sync.ps1" -InputFile <产物绝对路径>
 ```
 
-FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重跑，直到 `RESULT: PASS` 且 lint 告警清零。PASS 后自动生成同名 `.data.js` 孪生（file:// 直开用，勿手改）。规则详情见下方「校验规则」。
+FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重跑，直到 `RESULT: PASS` 且 lint 告警清零。PASS 后自动生成同名 `data.js` 孪生（file:// 直开用，勿手改）。规则详情见下方「校验规则」。
 
 ### 第 3 步：承载页页尾挂载
 
@@ -105,7 +113,7 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 <script>
     (function () {
         var nodes = [
-            { container: '<目标节点选择器>', dataPath: './a2ui-data/<slug>/<slug>.json' }
+            { container: '<目标节点选择器>', dataPath: './a2ui-data/<slug>/data.json' }
         ];
         var chain = Promise.resolve();
         nodes.forEach(function (cfg) {
@@ -124,6 +132,7 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 ```
 
 - **路线 A（替换）**：`container` 填既有节点选择器。渲染器默认 `replace:true` 清空该容器内容再渲染，容器节点本身保留——无需其他改动。
+  - **⚠️ 高度陷阱提醒**：路线 A 替换时，必须同步确认容器已设 `h-[xxx]` 固定高度。若容器无固定高度，需编辑页面为容器添加 `h-[xxx]` 类（按「陷阱 2：挂载容器必须用固定高度」的精确公式计算）。这是路线 A 挂载操作的**必要组成部分**，不得省略。
 - **路线 B（新增）**：先做第 4 步造槽位，再登记 nodes。
 - `dataPath` 支持 `*.js`（ict-coder 打包产物可直挂）与 `*.json`（常规形态）两种形态（详见 WORKFLOW.md「渲染器行为参考」）。
 - 多节点必须保持 promise 链**串行**（共享 `window.__A2UI_DATA__`，并发会张冠李戴），新增节点只追加数组项，勿改串行结构。
@@ -162,6 +171,8 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 
 复用原 JSON 作为唯一事实源，**不新建文件、不新建页面节点**；patch 遵守 ict-coder 的最小变更纪律（只改用户所述，其余字节不动，杜绝重生成漂移）。
 
+> **重要限制**：路线 C 仅适用于**已有 A2UI JSON 数据源的渲染节点**。如果目标是**原生 HTML 元素**（如原生表格 `<table>`、原生 DOM 元素、非 A2UI 渲染的内容），不能直接编辑 HTML 文件来完成修改（见首要总则「不得直接编辑原页面既有 DOM」）。必须先在路线 A/B 中将这些原生内容**替换为 A2UI 渲染节点**，之后对该节点的修改再走路线 C 的 JSON patch 流程。
+
 1. **反查 dataPath**：目标节点的 `dataPath` 登记在承载页页尾编排脚本的 `nodes` 数组里：
    ```powershell
    Select-String -Path "<页面路径>" -Pattern '<节点选择器片段>' -Context 2,2
@@ -177,7 +188,7 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
    - **容器子列表新增 element**：先在 `elements[]` push 新定义（id 全文件唯一，业务前缀防冲突），再把新 id 挂到目标父容器 `children` 数组（插入位置 = 数组位置）。
    - **列表循环容器加一条数据**：`children` 为 `{path, componentId}` 时**只动 `state`**：给对应数组 push 一项（字段与行模板绑定对齐），不动 `elements`。
    - **替换/修改已有元素**：定位 element 改 `props.className`/`props.value` 等；改文案优先动 `state`（保持数据/视图分层），`props` 用 `{path:"/xxx"}` 绑定。
-4. **写回 + 校验**：用 Edit 工具改 JSON，跑第 2 步校验命令，必须 PASS（孪生 .data.js 随之自动同步）。
+4. **写回 + 校验**：用 Edit 工具改 JSON，跑第 2 步校验命令，必须 PASS（孪生 `data.js` 随之自动同步）。
 5. **告知用户刷新浏览器**即生效（页内 nodes 每次加载重新取数）。
 
 ---
@@ -218,18 +229,39 @@ lint 告警必须清零后才挂载。常见修复：`no 'flex'` → className �
 
 **规范**：
 - A2UI 挂载容器**必须用 `h-[xxx]` 固定高度**（如 `h-[408px]`），不允许用 `min-h` / `max-h`。
-- 容器高度应根据内容精确计算：
+- 容器高度应基于**页面上下文读取**，在生成 A2UI JSON 时同步确定，**一步到位**：
 
-  | 内容类型 | 高度计算方式 |
-  |---|---|
-  | 折线图/柱状图卡片 | header(~80px) + chart(h-72=288px) + padding(40px) = **~408px** |
-  | 雷达图卡片 | header(~40px) + chart(h-72=288px) + padding(40px) = **~368px** |
-  | 表格卡片（有分页） | header(~80px) + table(5行×48px=240px) + pagination(~45px) + padding(40px) = **~405px** |
-  | 表格卡片（无分页） | header(~80px) + table(N行×48px) + padding(40px) |
-  | 纯指标卡 | header(~40px) + metric(~60px) + padding(40px) = **~140px** |
+  **高度推导步骤（按序执行，缺一不可）**：
+  1. **读目标容器当前尺寸与间距**：用 DevTools 或 Read 页面片段获取目标容器的 `offsetHeight` 或计算后高度，以及其 className 中的间距类（`p-*` 内边距）。
+  2. **读兄弟节点尺寸与间距**：读取目标容器同一父级下的相邻兄弟节点的实际高度与 className，确认行对齐关系（grid 同行容器高度 = 最高卡片高度），同时记录兄弟节点的 `p-*` 内外边距与 `rounded-*` 圆角风格。
+  3. **读父节点间距上下文**：读取父容器的 `gap-*`（子元素间距）、`space-y-*`/`space-x-*`（流向间距）等间距类，确认容器之间间距的精确像素值。
+  4. **读目标容器原有布局类**：记录容器当前 className 中的 `grid`/`flex`/`gap`/`p-*` 等布局类（后续清空用，见陷阱 1）。
+  5. **计算容器高度**= max(目标容器当前内容高度, 兄弟节点高度) + 上下间距补偿。若替换后内容高度变化，按新内容重新计算（见下方参考表，但**以实际读取值为准**，参考表仅做估算校验）。
+
+  **间距取值规则**：生成 A2UI JSON 时，容器/卡片的 `p-*` 内边距、`gap-*` 子元素间距、`rounded-*` 圆角等视觉属性，**必须从页面既有 DOM 中读取**——取同一父级下邻近卡片的 class 为基准，保持一致。例如页面中 KPI 卡片用 `p-5 rounded-2xl`，则 A2UI 生成的卡片也应用 `p-5 rounded-2xl`；父容器用 `gap-4`，则 A2UI JSON 的子容器间距也应用 `gap-4`。**禁止脱离页面上下文自行选择间距值。**
+
+  | 内容类型 | 数值来源 | 合计参考 |
+  |---|---|---|
+  | 折线图/柱状图卡片 | header(~80px) + chart(h-72=288px) + padding(40px) + gap(~8px) | **~416px** |
+  | 雷达图卡片 | header(~50px) + chart(h-72=288px) + padding(40px) + 居中余量(~30px) | **~408px** |
+  | 表格卡片（有分页） | header(~80px) + table(5行×48px=240px) + pagination(~45px) + padding(40px) | **~405px** |
+  | 表格卡片（无分页） | header(~80px) + table(N行×48px) + padding(40px) | 按行数动态计算 |
+  | 纯指标卡 | header(~40px) + metric(~60px) + padding(40px) | **~140px** |
 
 - 若无法精确估算，取略高的值并用 `overflow-hidden` 约束（但优先精确计算避免留白）。
 - **iframe 预览与浏览器直接打开行为不同**：iframe 高度在首次布局后固定，A2UI 异步渲染完成后不自动伸缩，容器无定高时塌缩/溢出表现比浏览器更恶劣。
+
+### 容器高度自检清单（路线 A/B 挂载前必过）
+
+每次生成新 A2UI JSON 并挂载到容器时，**必须逐项验证以下清单**，确认全部满足：
+
+1. **是否先读取了页面上下文？** —— 已读取目标容器、兄弟节点、父节点的实际尺寸与间距类（`gap`/`p-*`/`space-y-*`），而非凭空估算
+2. **容器是否有 `h-[xxx]` 固定高度？** —— 禁止使用 `min-h` / `max-h`
+3. **高度值是否 >= header + chart高度 + padding + gap 的总和？** —— 按页面上下文读取值推导并精确计算
+4. **内外间距是否与页面既有卡片一致？** —— A2UI 卡片的 `p-*`/`gap-*`/`rounded-*` 应取页面中邻近卡片的 class 值（如 `p-5 rounded-2xl`），不得自行发明间距数值
+5. **JSON 内的图表 `className` 是否包含 `h-` 类？** —— 如 `h-72`（BarChart / RadarChart / LineChart 等必须显式设高）
+6. **多个子卡片在同一行时，容器高度是否取了兄弟节点的最大值？** —— grid 行容器高度 = 读取到的最高卡片的实际高度
+7. **是否加了 `overflow-hidden` 做安全兜底？** —— 防止意外溢出撑开布局
 
 ---
 
@@ -237,8 +269,10 @@ lint 告警必须清零后才挂载。常见修复：`no 'flex'` → className �
 
 1. `previewdist/`（项目根）对 Users 组只读，**勿改**；校验与元信息维护一律走本技能 `scripts/validate-and-sync.ps1`——校验必须 `RESULT: PASS` 且 lint 告警清零才挂载（结构合法性由 ict-coder 生成侧兜底）。
 2. 渲染器唯一权威源 = 本技能 `scripts/PreviewRenderer.js`，可改；改动需同步各运行时副本并 bump 宿主页 `?v=`（跑 `-GenMeta` 自动扇出：源 + 项目根 previewdist + 各 `<页目录>/previewdist/`）；只改 JSON/HTML 不需要 bump。
-3. JSON 只用 **Write/Edit 工具**写，禁命令行管道写文件。所有 JSON 产物必须写入 `<页目录>/a2ui-data/<slug>/<slug>.json`，不得写入 `output/` 或其他临时目录。
-4. `dataPath` 前缀：本地化页用 `./a2ui-data/<slug>/<slug>.json`；集中式页用 `../output/<name>.json`——以页面现有 nodes 引用形态为准（见第 1 步存储布局表）。
+3. JSON 只用 **Write/Edit 工具**写，禁命令行管道写文件。所有 JSON 产物必须写入 `<页目录>/a2ui-data/<slug>/data.json`（其中 `<slug>` 为 kebab-case 命名，按业务语义区分不同修改点），不得写入 `output/` 或其他临时目录。
+4. `dataPath` 前缀：本地化页用 `./a2ui-data/<slug>/data.json`；集中式页用 `../output/<name>.json`——以页面现有 nodes 引用形态为准（见第 1 步存储布局表）。
 5. 渲染器 `container` 必填；`data` 可替代 `dataPath` 传内联对象；都不传用 `previewdist/data.js` 默认数据。
 6. 免服务器 file:// 直开与 ict-coder 运行时重建后的 `-GenMeta` + 重拷 assets 流程，详见 WORKFLOW.md「免服务器 file:// 直开」。
 7. 会话上传的承载页 html **必须先复制到 `[artifact-folder]` 副本再操作**（见「前置步骤：承载页入位」）；`uploads/` 原始上传文件全程只读，禁止在 uploads 内直接修改或派生产物。
+8. **容器高度硬约束**：每次路线 A/B 挂载新内容到容器时，必须严格遵循「陷阱 2」的固定高度规范与自检清单（见「容器高度自检清单」）。容器 `h-[xxx]` 的设置是挂载操作的**必要组成部分**，在生成 A2UI JSON 时同步完成高度计算并写入容器类名，不得遗漏或事后补救。任何因容器缺少固定高度导致内容溢出的问题，视为工作流执行缺陷。
+9. **禁止直接编辑原生 HTML 内容**：即使目标节点是原生 HTML 元素（如原生 `<table>`、`<div>`、`<span>` 等非 A2UI 渲染的内容），也**不得用 Edit 工具直接在 HTML 文件中增删改 DOM 元素、列、行、样式或文案**来满足用户需求。必须先用路线 A 将原生区域替换为 A2UI 渲染容器，再用ict-coder 生成或路线 C patch 完成内容修改。违反此条视为绕过管线操作，与首要总则冲突。
