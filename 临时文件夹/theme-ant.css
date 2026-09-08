@@ -1,0 +1,155 @@
+/* ==========================================================================
+   主题层 Theme（Ant Design v5 CSS 变量命名风格）
+   加载顺序：base → light → theme → dark
+   命名遵循 Ant Design v5：--color-{type}[-{variant}]
+   ========================================================================== */
+:root {
+  /* ── 品牌色 ── */
+  --color-primary: var(--brand);
+  --color-primary-hover: var(--brand-80);
+  --color-primary-active: var(--brand);
+  --color-primary-disabled: var(--brand-40);
+  --color-primary-bg: var(--brand-05);
+  --color-on-primary: var(--white);
+
+  /* ── 文本色 ── */
+  --color-text: var(--color-font-primary);
+  --color-text-secondary: var(--color-font-secondary);
+  --color-text-tertiary: var(--color-font-tertiary);
+  --color-text-quaternary: var(--color-font-fourth);
+  --color-text-placeholder: var(--color-font-tertiary);
+  --color-text-disabled: var(--color-font-fourth);
+
+  /* ── 品牌填充上的文字 ，AI能识别这个是反色吗？── */
+  --color-text-on-primary: var(--color-font-on-primary);
+  --color-text-on-secondary: var(--color-font-on-secondary);
+  --color-text-on-tertiary: var(--color-font-on-tertiary);
+  --color-text-on-quaternary: var(--color-font-on-fourth);
+  --color-text-on-placeholder: var(--color-font-on-tertiary);
+  --color-text-on-disabled: var(--color-font-on-fourth);
+
+  /* ── 背景色 ── */
+  --color-bg: var(--color-background-secondary);
+  --color-bg-container: var(--color-comp-background-primary);
+  --color-bg-elevated: var(--color-background-primary);
+  --color-bg-spot: var(--color-background-primary);
+  --color-bg-blur: var(--color-comp-background-tertiary);
+  --color-bg-gray: var(--color-comp-background-gray);
+  --color-bg-gray-secondary: var(--color-comp-background-gray-secondary);
+  --color-bg-list-card: var(--color-comp-background-list-card);
+  --color-bg-modal-sheet: var(--color-comp-background-gray-secondary);
+  --color-bg-inverse: var(--primary);
+
+  /* ── 填充色（交互态叠加）── */
+  --color-fill: var(--color-interactive-hover);
+  --color-fill-secondary: var(--color-interactive-pressed);
+  --color-fill-tertiary: var(--color-interactive-click);
+  --color-fill-quaternary: var(--color-interactive-select);
+  --color-fill-focus: var(--color-interactive-focus);
+
+  /* ── 边框色 ── */
+  --color-border: var(--color-comp-border);
+  --color-border-hover: var(--color-comp-border-hover);
+  --color-border-focus: var(--color-comp-border-focus);
+  --color-border-active: var(--color-comp-border-active);
+  --color-border-disabled: var(--color-comp-border-disabled);
+  --color-split: var(--color-comp-divider);
+
+  /* ── 功能色 ── */
+  --color-error: var(--color-error);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-info: var(--color-info);
+  --color-critical: var(--color-warning);
+
+  /* ── 功能色底色（container）── */
+  --color-error-bg: var(--multi-color-aux-08);
+  --color-success-bg: var(--multi-color-aux-04);
+  --color-warning-bg: var(--multi-color-aux-11);
+  --color-info-bg: var(--brand-05);
+
+  /* ── 功能色上的文字 ── */
+  --color-text-on-error: var(--white);
+  --color-text-on-success: var(--white);
+  --color-text-on-warning: var(--black);
+  --color-text-on-info: var(--white);
+
+  /* ── 图标色 ── */
+  --color-icon: var(--color-icon-primary);
+  --color-icon-secondary: var(--color-icon-secondary);
+  --color-icon-tertiary: var(--color-icon-tertiary);
+  --color-icon-on-primary: var(--color-icon-on-primary);
+  --color-icon-on-secondary: var(--color-icon-on-secondary);
+  --color-icon-on-tertiary: var(--color-icon-on-tertiary);
+
+  /* ── 反色 ── */
+  --color-inverse: var(--primary);
+  --color-text-inverse: var(--color-font-on-primary);
+  --color-text-inverse-secondary: var(--color-font-on-secondary);
+
+  /* ── 链接色 ── */
+  --color-link: var(--brand);
+  --color-link-hover: var(--brand-80);
+  --color-link-active: var(--brand);
+  --color-link-disabled: var(--brand-40);
+
+  /* ── 遮罩 ── */
+  --color-bg-mask: var(--container-15);
+
+  /* ── 间距（语义别名，完整刻度用 base --spacing-*）── */
+  --spacing-inline: var(--spacing-2);
+  --spacing-stack: var(--spacing-3);
+  --spacing-gutter: var(--spacing-4);
+  --spacing-inset: var(--spacing-6);
+  --spacing-section: var(--spacing-4);
+  --spacing-page: var(--spacing-6);
+
+  /* ── 阴影（用途别名，完整尺阶用 light/dark --shadow-*）── */
+  --shadow-none: none;
+  --shadow-card: var(--shadow-sm);
+  --shadow-dropdown: var(--shadow-md);
+  --shadow-popover: var(--shadow-lg);
+  --shadow-modal: var(--shadow-2xl);
+
+  /* ── 圆角（用途别名，完整刻度用 base --radius-level*）── */
+  --radius-badge: var(--radius-level2);
+  --radius-action: var(--radius-level2);
+  --radius-container: var(--radius-level4);
+  --radius-overlay: var(--radius-level4);
+
+  /* ── 边框宽度 ── */
+  --border-width: var(--border-width-base);
+  --border-width-bold: var(--border-width-medium);
+
+  /* ── 轮廓宽度 / 偏移 ── */
+  --outline-width-focus: var(--outline-width-base);
+  --outline-offset-gap: 2px;
+
+  /* ── 排印角色（字号+行高+字体族绑定，字重在其后组合）── */
+  /* Display（展示文本）*/
+  --font-display-sm: var(--font-size-4xl)/var(--line-height-tight) var(--font-family);
+  --font-display-md: var(--font-size-5xl)/var(--line-height-tight) var(--font-family);
+  --font-display-lg: var(--font-size-6xl)/var(--line-height-tight) var(--font-family);
+
+  /* Title（标题）*/
+  --font-title-sm: var(--font-size-xl)/var(--line-height-snug) var(--font-family);
+  --font-title-md: var(--font-size-2xl)/var(--line-height-snug) var(--font-family);
+  --font-title-lg: var(--font-size-3xl)/var(--line-height-snug) var(--font-family);
+
+  /* Subtitle（副标题）*/
+  --font-subtitle-sm: var(--font-size-base)/var(--line-height-base) var(--font-family);
+  --font-subtitle-md: var(--font-size-md)/var(--line-height-base) var(--font-family);
+  --font-subtitle-lg: var(--font-size-lg)/var(--line-height-base) var(--font-family);
+
+  /* Body（正文）*/
+  --font-body-sm: var(--font-size-sm)/var(--line-height-base) var(--font-family);
+  --font-body-md: var(--font-size-base)/var(--line-height-base) var(--font-family);
+  --font-body-lg: var(--font-size-md)/var(--line-height-base) var(--font-family);
+
+  /* Caption（注释，源表仅 m/l 两档）*/
+  --font-caption-md: var(--font-size-xs)/var(--line-height-base) var(--font-family);
+  --font-caption-lg: var(--font-size-sm)/var(--line-height-base) var(--font-family);
+
+  /* ── 字体族（已在 base 定义，此处保留兼容）── */
+  --font-family: 'HarmonyOS Sans', 'Microsoft YaHei', Arial, 'PingFang SC', 'San Francisco', sans-serif;
+}

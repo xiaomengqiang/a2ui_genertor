@@ -1,136 +1,128 @@
+/* ==========================================================================
+   主题层 Theme（AI 组件直接消费的终极语义层）
+   加载顺序：base → light → theme → dark*/
+
 :root {
-  --primary: var(--color-brand, #0067D1);
-  --on-primary: var(--color-text-inverse, #FFFFFF);
-  --primary-hover: var(--color-brand-hover, #2E86DE);
-  --primary-active: var(--color-brand-active, #004EA8);
-  --primary-disabled: var(--color-brand-disabled, #8ABEF3);
-  --primary-container: var(--color-info-primary-subtler, #EEF3FE);
-  --on-primary-container: var(--color-text-primary, #191919);
-  --primary-fixed: var(--color-brand, #0067D1);
-  --primary-fixed-dim: var(--color-brand-active, #004EA8);
-  --on-primary-fixed: var(--color-text-inverse, #FFFFFF);
-  --on-primary-fixed-variant: var(--color-text-inverse, #FFFFFF);
+  /* ── primary（品牌色族，部分占位）── */
+  --primary: var(--brand);
+  --on-primary: var(--white);
+  --primary-hover: var(--brand-80); 
+  --primary-active: var(--brand); 
+  --primary-disabled: var(--brand-40);
+  --primary-container: var(--brand-05); 
+  --on-primary-container: var(--color-font-primary);
 
-  --surface: var(--color-bg-1, #F3F3F3);
-  --surface-dim: var(--color-bg-2, #FFFFFF);
-  --surface-bright: var(--color-bg-2, #FFFFFF);
-  --on-surface: var(--color-text-primary, #191919);
-  --surface-variant: var(--color-bg-1, #F3F3F3);
-  --on-surface-variant: var(--color-text-secondary, #777777);
-  --surface-container-lowest: var(--color-bg-1, #F3F3F3);
-  --surface-container-low: var(--color-bg-2, #FFFFFF);
-  --surface-container: var(--color-bg-2, #FFFFFF);
-  --surface-container-high: var(--color-bg-2, #FFFFFF);
-  --surface-container-highest: var(--color-bg-2, #FFFFFF);
+  /* ── surface / on-surface（已重写，引用新 light/dark 语义 token）── */
+  --surface: var(--color-background-secondary);
+  --surface-dim: var(--color-background-tertiary);
+  --surface-bright: var(--color-background-primary);
+  --on-surface: var(--color-font-primary);
+  --surface-container-lowest: var(--color-background-primary);
+  --surface-container-low: var(--color-background-secondary);
+  --surface-container: var(--color-comp-background-tertiary);
+  --surface-container-high: var(--color-background-tertiary);
+  --surface-container-highest: var(--color-background-fourth);
 
-  --inverse-surface: var(--color-text-primary, #191919);
-  --inverse-on-surface: var(--color-text-inverse, #FFFFFF);
-  --inverse-on-surface-variant: var(--color-text-inverse-disabled, #FFFFFF);
-  --inverse-primary: var(--color-brand, #0067D1);
+  --inverse-surface: var(--primary);
+  --inverse-on-surface: var(--color-font-on-primary);
+  --inverse-on-surface-variant: var(--color-font-on-secondary);
+  --inverse-primary: var(--brand);
 
-  --error: var(--color-error, #E02128);
-  --on-error: var(--color-text-inverse, #FFFFFF);
-  --error-container: var(--color-message-bg-error, #FEE7E8);
-  --on-error-container: var(--color-text-primary, #191919);
+  --error: var(--color-error);
+  --on-error: var(--white);
+  --error-container: var(--multi-color-aux-08);
+  --on-error-container: var(--color-font-primary);
 
-  --success: var(--color-success, #09AA71);
-  --on-success: var(--color-text-inverse, #FFFFFF);
-  --success-container: var(--color-message-bg-success, #E7FBF2);
-  --on-success-container: var(--color-text-primary, #191919);
+  --success: var(--color-success);
+  --on-success: var(--white);
+  --success-container: var(--multi-color-aux-04);
+  --on-success-container: var(--color-font-primary);
 
-  --critical: var(--color-alert, #F4840C);
-  --on-critical: var(--color-text-inverse, #FFFFFF);
-  --critical-container: var(--color-message-bg-alert, #FEF5E8);
-  --on-critical-container: var(--color-text-primary, #191919);
+  --critical: var(--color-warning); 
+  --on-critical: var(--white);
+  --critical-container: var(--multi-color-aux-09);
+  --on-critical-container: var(--color-font-primary);
 
-  --warning: var(--color-warning, #FCC800);
-  --on-warning: var(--color-text-inverse, #FFFFFF);
-  --warning-container: var(--color-message-bg-warning, #FEFCE0);
-  --on-warning-container: var(--color-text-primary, #191919);
+  --warning: var(--multi-color-11); 
+  --on-warning: var(--black); 
+  --warning-container: var(--multi-color-aux-11);
+  --on-warning-container: var(--color-font-primary);
 
-  --info: var(--color-info-primary, #2070F3);
-  --on-info: var(--color-text-inverse, #FFFFFF);
-  --info-container: var(--color-message-bg-info, #EEF3FE);
-  --on-info-container: var(--color-text-primary, #191919);
+  --info: var(--color-info);
+  --on-info: var(--white);
+  --info-container: var(--brand-05);
+  --on-info-container: var(--color-font-primary);
 
-  --content-placeholder: var(--color-text-placeholder, #AEAEAE);
-  --content-disabled: var(--color-text-disabled, #C9C9C9);
-  --content-inverse-disabled: var(--color-text-inverse-disabled, #FFFFFF);
-  --interactive-link: var(--color-link, #0067D1);
-  --interactive-link-hover: var(--color-link-hover, #2E86DE);
-  --interactive-link-active: var(--color-link-active, #004EA8);
-  --interactive-link-visited: var(--color-link-visited, #715AFB);
-  --interactive-link-disabled: var(--color-link-disabled, #8ABEF3);
+  --text-secondary: var(--color-font-secondary);
+  --text-placeholder: var(--color-font-tertiary);
+  --text-disabled: var(--color-font-fourth);
+  --text-inverse-disabled: var(--color-font-on-fourth);
   
-  --scrim: var(--color-bg-mask, rgba(25, 25, 25, 0.3));
-  --outline: var(--color-border, #C9C9C9);
-  --outline-variant: var(--color-border-separator, #DFDFDF);
-  --divider: var(--color-border-separator, #DFDFDF);
-  --focus-ring: var(--color-border-focus, #0067D1);
-  --selected: var(--color-border-focus, #0067D1);
+  --interactive-link: var(--brand);
+  --interactive-link-hover: var(--brand-80);
+  --interactive-link-active: var(--brand);
+  --interactive-link-visited: var(--brand);
+  --interactive-link-disabled: var(--brand-40);
 
-  /* ── spacing → --spacing-* ── */
-  --spacing-inline: 8px;
-  --spacing-stack: 12px;
-  --spacing-gutter: 16px;
-  --spacing-inset: 24px;
-  --spacing-section: 16px;
-  --spacing-page: 32px;
+  --scrim: var(--container-15);
+  --divider: var(--color-comp-divider);
+  --focus-ring: var(--color-comp-border-focus);
+  --selected: var(--color-comp-border-focus);
 
-  /* ── boxShadow → --shadow-* (var-wrapped over light/dark --elevation-*; auto-switch with dark mode) ── */
-  --shadow-none: var(--elevation-none);
-  --shadow-sm: var(--elevation-sm);
-  --shadow-base: var(--elevation-base);
-  --shadow-md: var(--elevation-md);
-  --shadow-lg: var(--elevation-lg);
-  --shadow-xl: var(--elevation-xl);
-  --shadow-card: var(--elevation-sm);
-  --shadow-popover: var(--elevation-lg);
-  --shadow-modal: var(--elevation-xl);
+  /* ── spacing → 语义间距（引用 base --spacing-*）── */
+  --spacing-inline: var(--spacing-2);   /* 8px */
+  --spacing-stack: var(--spacing-3);     /* 12px */
+  --spacing-gutter: var(--spacing-4);    /* 16px */
+  --spacing-inset: var(--spacing-6);     /* 24px */
+  --spacing-section: var(--spacing-4);   /* 16px */
+  --spacing-page: var(--spacing-6);      /* 24px */
 
-  /* ── borderRadius → --radius-* ── */
-  --radius-none: 0px;
-  --radius-xs: 2px;
-  --radius-base: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
-  --radius-full: 9999px;
-  --radius-badge: 4px;
-  --radius-action: 4px;
-  --radius-container: 8px;
-  --radius-overlay: 8px;
+  /* ── shadow → 用途别名（引用 light/dark 已定义的 --shadow-* 尺阶）── */
+  --shadow-none: none;
+  --shadow-card: var(--shadow-sm);
+  --shadow-dropdown: var(--shadow-md);
+  --shadow-popover: var(--shadow-lg);
+  --shadow-modal: var(--shadow-2xl);
+
+  /* ── radius → 用途别名（完整刻度用 base --radius-level*）── */
+  --radius-badge: var(--radius-level2);     /* 4px */
+  --radius-action: var(--radius-level2);    /* 4px */
+  --radius-container: var(--radius-level4); /* 8px */
+  --radius-overlay: var(--radius-level4);  /* 8px */
+
+  /* ── borderWidth → 语义边框宽度（引用 base）── */
+  --border-width-thin: var(--border-width-base);    /* 1px，常规描边 */
+  --border-width-thick: var(--border-width-medium);  /* 2px，粗描边/强调 */
 
   /* ── outlineWidth / outlineOffset ── */
-  --outline-width-focus: 1px;
+  --outline-width-focus: var(--outline-width-base); /* 1px */
   --outline-offset-gap: 2px;
 
-  /* ── fontSize → --text-* (+ --text-*--line-height) ── */
-  --text-sm: 0.75rem;
-  --text-sm--line-height: 1.6;
-  --text-md: 0.875rem;
-  --text-md--line-height: 1.5;
-  --text-lg: 1rem;
-  --text-lg--line-height: 1.5;
-  --text-xl: 1.125rem;
-  --text-xl--line-height: 1.5;
-  --text-2xl: 1.25rem;
-  --text-2xl--line-height: 1.4;
-  --text-3xl: 1.5rem;
-  --text-3xl--line-height: 1.4;
-  --text-4xl: 1.75rem;
-  --text-4xl--line-height: 1.4;
-  --text-5xl: 2.25rem;
-  --text-5xl--line-height: 1.4;
-  --text-6xl: 3rem;
-  --text-6xl--line-height: 1.3;
-  --text-7xl: 3.75rem;
-  --text-7xl--line-height: 1.3;
-  --text-8xl: 4.5rem;
-  --text-8xl--line-height: 1.2;
-  --text-9xl: 6rem;
-  --text-9xl--line-height: 1.2;
+  /* ── typography → --font-*（排印角色：字号+行高+字体族绑定，字重在其后组合）── */
+  /* Display（展示文本）*/
+  --font-display-sm: var(--font-size-4xl)/var(--line-height-tight) var(--font-family); /* 38px/1.25 */
+  --font-display-md: var(--font-size-5xl)/var(--line-height-tight) var(--font-family); /* 48px/1.25 */
+  --font-display-lg: var(--font-size-6xl)/var(--line-height-tight) var(--font-family); /* 56px/1.25 */
 
-  /* ── fontFamily ── */
+  /* Title（标题）*/
+  --font-title-sm: var(--font-size-xl)/var(--line-height-snug) var(--font-family); /* 20px/1.375 */
+  --font-title-md: var(--font-size-2xl)/var(--line-height-snug) var(--font-family); /* 24px/1.375 */
+  --font-title-lg: var(--font-size-3xl)/var(--line-height-snug) var(--font-family); /* 30px/1.375 */
+
+  /* Subtitle（副标题）*/
+  --font-subtitle-sm: var(--font-size-base)/var(--line-height-base) var(--font-family); /* 14px/1.5 */
+  --font-subtitle-md: var(--font-size-md)/var(--line-height-base) var(--font-family); /* 16px/1.5 */
+  --font-subtitle-lg: var(--font-size-lg)/var(--line-height-base) var(--font-family); /* 18px/1.5 */
+
+  /* Body（正文）*/
+  --font-body-sm: var(--font-size-sm)/var(--line-height-base) var(--font-family); /* 12px/1.5 */
+  --font-body-md: var(--font-size-base)/var(--line-height-base) var(--font-family); /* 14px/1.5 */
+  --font-body-lg: var(--font-size-md)/var(--line-height-base) var(--font-family); /* 16px/1.5 */
+
+  /* Caption（注释，源表仅 m/l 两档）*/
+  --font-caption-md: var(--font-size-xs)/var(--line-height-base) var(--font-family); /* 10px/1.5 */
+  --font-caption-lg: var(--font-size-sm)/var(--line-height-base) var(--font-family); /* 12px/1.5 */
+
+  /* ── fontFamily（已在 base 定义，此处保留兼容）── */
   --font-family: 'HarmonyOS Sans', 'Microsoft YaHei', Arial, 'PingFang SC', 'San Francisco', sans-serif;
 }
