@@ -203,24 +203,24 @@ class PreviewRenderer {
     const meta = await this._getAppMeta(distPath);
     const scriptUrls = meta.scripts.map(src => src.startsWith('./') ? `${distPath}/${src.slice(2)}` : src);
 
-    // 2. 全局样式只注入一次（@theme / tailwind 运行时主题）+ 高度链垫片：
-    //    垫片强制应用外壳（PreviewPage 的 h-screen 链）填满 #app（=容器尺寸），避免直接模式下
-    //    100vh 把卡片撑爆；同时钉稳 shell→content-wrap→a2ui-surface 整条百分比高度链（图表卡
-    //    无内在高度，链断即永久空渲染）。overflow:hidden 覆盖 PreviewPage 根的 overflow-auto：
-    //    定尺寸预览卡挂载瞬间的布局抖动会闪滚动条，内容 w-full h-full 本就贴合，裁剪无副作用。
-    //    仅作用外壳层，不触碰卡片内部 flex 布局。
-    if (!PreviewRenderer._stylesInjected) {
-      PreviewRenderer._stylesInjected = true;
-      meta.styles.forEach(s => {
-        const ns = document.createElement('style');
-        ns.textContent = s.text;
-        if (s.type) ns.setAttribute('type', s.type);
-        document.head.appendChild(ns);
-      });
-      const shim = document.createElement('style');
-      shim.textContent = '.preview-a2ui-app>div,.preview-a2ui-app>div>div,.preview-a2ui-app .a2ui-surface{height:100%;max-height:100%;}.preview-a2ui-app,.preview-a2ui-app>div{overflow:hidden}';
-      document.head.appendChild(shim);
-    }
+    // 2. 全局样式只注入一次（@theme / tailwind 运行时主题）+ 内容撑开垫片：
+    //    垫片将 A2UI 渲染容器（appDiv → content-wrap → a2ui-surface）高度设为 auto，
+    //    让内容自然撑开容器高度，避免固定高度导致的内容截断或滚动条。
+    //    图表组件（BarChart/LineChart/RadarChart 等）自身带 h-[xxx] 固定高度，
+    //    不依赖 height:100% 继承——因此 auto 不影响图表正常渲染。
+    //    表格/列表类内容通过分页（每页5行）或 max-h 约束控制高度，不需要外层固定高度。
+    if (!PreviewRenderer._stylesInjected) {
+      PreviewRenderer._stylesInjected = true;
+      meta.styles.forEach(s => {
+        const ns = document.createElement('style');
+        ns.textContent = s.text;
+        if (s.type) ns.setAttribute('type', s.type);
+        document.head.appendChild(ns);
+      });
+      const shim = document.createElement('style');
+      shim.textContent = '.preview-a2ui-app>div,.preview-a2ui-app>div>div,.preview-a2ui-app .a2ui-surface{height:auto;}.preview-a2ui-app,.preview-a2ui-app>div{overflow:visible}';
+      document.head.appendChild(shim);
+    }
 
     // 3. 设置本实例数据（PreviewPage onMounted 读取 window.__A2UI_DATA__；调用方必须串行）
     if (this.options.data) {
@@ -239,15 +239,14 @@ class PreviewRenderer {
         if (typeof window.__A2UI_DATA__ === 'undefined' || !window.__A2UI_DATA__) {
           throw new Error(`data.js loaded but window.__A2UI_DATA__ missing/empty: ${this.options.dataPath}`);
         }
-      } else if (this._isFileProtocol()) {
-        // file:// 免服务器：JSON 改走孪生 .data.js（script 标签不受 CORS 限制）；时间戳防 file 缓存
-        const twin = this.options.dataPath.replace(/\.json$/, '.data.js');
-        delete window.__A2UI_FILE_DATA__;
-        await this._loadScriptOnce(`${twin}?t=${Date.now()}`);
-        if (typeof window.__A2UI_FILE_DATA__ === 'undefined') {
-          throw new Error(`Data twin missing/invalid: ${twin} (re-run validate-and-sync.ps1 in ict-html-mix skill scripts)`);
-        }
-        window.__A2UI_DATA__ = window.__A2UI_FILE_DATA__;
+        } else if (this._isFileProtocol()) {
+          // file:// 免服务器：加载 .js 数据文件（script 标签不受 CORS 限制）；时间戳防 file 缓存
+          const jsDataPath = this.options.dataPath.replace(/\.json$/, '.js');
+          delete window.__A2UI_DATA__;
+          await this._loadScriptOnce(`${jsDataPath}?t=${Date.now()}`);
+          if (typeof window.__A2UI_DATA__ === 'undefined') {
+            throw new Error(`Data file missing/invalid: ${jsDataPath} (re-run validate-and-sync.ps1)`);
+          }
       } else {
         const dr = await fetch(this.options.dataPath, { cache: 'no-store' });
         window.__A2UI_DATA__ = dr.ok ? await dr.json() : null;
@@ -270,9 +269,10 @@ class PreviewRenderer {
     const appDiv = document.createElement('div');
     appDiv.className = 'preview-a2ui-app';   // 稳定标记类：垫片 CSS 锚点 + 「只删自产节点」清理锚点
     this._appDiv = appDiv;                   // 记录自产节点，destroy 时只删它
-    // 显式 width/height:100%（而非 inset:0）：inset 简写在某些 cssText 解析下 bottom 不生效，
-    // appDiv 会退化成内容高度 → 整条 height:100% 链断裂。父级容器有确定高度，百分比可正确解析。
-    appDiv.style.cssText = 'width:100%;height:100%;';
+    // 显式 width:100% 让 appDiv 撑满容器宽度；高度不设（auto），由内容自然撑开。
+    // 图表组件自带 h-[xxx] 固定高度，内容总高度 = padding + header + chart h-[xxx]，
+    // 容器高度随之自然撑开，无需强制 height:100% 继承。
+    appDiv.style.cssText = 'width:100%;';
     this.container.appendChild(appDiv);
 
     // 5. 工厂模式：整条 bundle 只解析执行一次，之后每个节点调 window.__A2UI_BOOT__ 挂载
