@@ -27,15 +27,13 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 若用户要修改的承载页 HTML 来自**当前会话上传的文件**（位于 `.octo/ses_<会话ID>/uploads/`）：
 
 1. **用户选定**：会话上传了多个 html 而用户未指明目标时，先列出 uploads 下的 html 供用户选择，不要猜。
-2. **复制副本并重命名**：选定后**必须先将该 html 复制**到当前会话产物目录 `[artifact-folder]`（即 `.octo/ses_<会话ID>/outputs/`，取运行时注入的 `[Artifact Folder]` 实际路径，勿硬编码会话 ID），同时将文件名改为 `{原文件名}.prototype.html`：
+2. **复制副本并重命名**：选定后**必须先将该 html 复制**到当前会话产物目录 `[artifact-folder]`（即 `.octo/ses_<会话ID>/outputs/`，取运行时注入的 `[Artifact Folder]` 实际路径，勿硬编码会话 ID），同时将文件名改为 `{原文件名}.prototype.html`。用**文件工具**完成复制（跨平台，无需 shell）：
 
-   ```powershell
-   $src = '<uploads 下选定的源 html 绝对路径>'
-   $dst = Join-Path '<[artifact-folder]>' "$([System.IO.Path]::GetFileNameWithoutExtension($src)).prototype.html"
-   Copy-Item -LiteralPath $src -LiteralPath $dst -Force
-   ```
+   - **Read**：读取 uploads 下选定的源 html 全文；
+   - **Write**：将读到的完整内容写入 `<[artifact-folder]>/{原文件名}.prototype.html`。
 
-   > 若源文件本身已包含 `.prototype.` 后缀（如 `xxx.prototype.html`），则保持原名不变，直接复制。
+   > 若源文件本身已包含 `.prototype.` 后缀（如 `xxx.prototype.html`），则保持原名不变，直接复制。
+   > ⚠️ Read 对单行超过 2000 字符会截断：若源 html 内联了压缩脚本/超长样式行（工具生成页面常见），**禁止** Read+Write 复制，改用 shell 复制兜底（Windows `Copy-Item` / Unix `cp`），并核对副本与源文件大小一致。
 3. **后续一律基于副本操作**：本地化拷贝（`previewdist/`）、`a2ui-data/` 存储、页尾 nodes 挂载等所有写操作，承载页路径均指向 outputs 下的副本；**副本所在目录即「页目录」**。`uploads/` 中的原始上传文件视为**只读源**，禁止直接修改或在其中派生产物。
 4. **交付说明**：完成后向用户回报副本路径（outputs 下可直接预览的页面文件）及配套产物位置；回退时只需还原/删除副本，原始上传不受影响。
 
@@ -74,20 +72,27 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 以目标页**现有 nodes 数组的引用形态**为准选择布局；将集中式页改造为本地化时，先执行本地化拷贝并迁移既有数据，再统一改写引用。
 
-**技能根定位**（本地化拷贝与第 2 步校验共用的前置动作）：技能**不一定装在项目根**——运行时可能位于用户技能目录（如 `C:\Users\<user>\.config\octo\skill`）。命令中的技能路径一律以 `$Skills` 变量注入，**禁止硬编码**。解析顺序：① 优先运行时注入的技能目录（加载本技能时输出的 Skill directory 绝对路径的父目录）；② 兜底项目根 `.opencode\skills\`（项目内技能布局）；③ 两者皆无 → 立即停止并向用户报告，禁止盲跑。
+**技能目录定位**（本地化拷贝与第 2 步校验共用的前置动作）：技能**不一定装在项目根**——可能位于用户技能目录，且两个技能**不保证同级安装**。故不设「技能根」共享父目录假设，**按技能逐个直接取目录**（skill 工具加载技能时会输出其 Skill directory 绝对路径），全程禁止硬编码：
 
-```powershell
-# <技能目录> 换成 Skill directory 绝对路径（其父目录即技能根）；命中后 $Skills 即技能根
-$Skills = if (Test-Path -LiteralPath '<技能目录>') { Split-Path -LiteralPath '<技能目录>' -Parent } elseif (Test-Path -LiteralPath '.opencode\skills\ict-html-mix') { Join-Path (Get-Location).Path '.opencode\skills' } else { $null }
-if (-not $Skills) { Write-Error '技能根未定位到：运行时技能目录与项目根 .opencode\skills 均不存在' } else { $Skills }
-```
+1. **本技能目录 `<DirMix>`**：加载 ict-html-mix 时输出的 Skill directory 绝对路径（= 本 SKILL.md 所在目录）。
+2. **ict-coder 目录 `<DirCoder>`**：第 1 步本来就要用 skill 工具加载 ict-coder——其加载输出中的 Skill directory 绝对路径**顺手记录**即得，无需额外探测。
+3. **兜底**（加载输出未含目录信息时）：用 **Glob** 分别匹配 `**/ict-html-mix/SKILL.md` 与 `**/ict-coder/SKILL.md` 定位。
+4. 仍取不到 → 立即停止并向用户报告，禁止盲跑。
 
-**页面本地化**：运行时从 ict-coder 技能拷贝（`$Skills\ict-coder\scripts\previewdist\` → 页目录 `previewdist\`，含 `index.prototype.html` + `assets\` + `uploads\`，**不拷其 data.js**；渲染器从 `$Skills\ict-html-mix\scripts\PreviewRenderer.js` 拷入同目录），previewdist **不从项目根取**。数据用页目录 `a2ui-data/<slug>/`，页面引用全 `./` 相对路径、`?v=` 版本号**独立维护**。
+**页面本地化**：运行时从 ict-coder 技能拷贝（`<DirCoder>/scripts/previewdist/` → 页目录 `previewdist/`，含 `index.prototype.html` + `assets/` + `uploads/`，**不拷其 data.js**；渲染器从 `<DirMix>/scripts/PreviewRenderer.js` 拷入同目录），previewdist **不从项目根取**。数据用页目录 `a2ui-data/<slug>/`，页面引用全 `./` 相对路径、`?v=` 版本号**独立维护**。
 
-本地化拷贝命令（`<页目录>` 换成实际页目录；先建目录再拷贝，任意工作目录可执行）：
-```powershell
-New-Item -ItemType Directory -Path '<页目录>\previewdist' -Force | Out-Null; Copy-Item "$Skills\ict-coder\scripts\previewdist\index.prototype.html","$Skills\ict-html-mix\scripts\PreviewRenderer.js" '<页目录>\previewdist\' -Force; Copy-Item "$Skills\ict-coder\scripts\previewdist\assets" '<页目录>\previewdist\assets' -Recurse -Force; Copy-Item "$Skills\ict-coder\scripts\previewdist\uploads" '<页目录>\previewdist\uploads' -Recurse -Force
-```
+本地化拷贝（`<页目录>` 换成实际页目录、`<DirMix>`/`<DirCoder>` 换成上一步定位到的技能目录绝对路径；先建目录再拷贝，任意工作目录可执行），拷贝清单：
+
+| 源 | 目标（`<页目录>/previewdist/`） |
+|---|---|
+| `<DirCoder>/scripts/previewdist/index.prototype.html` | `previewdist/index.prototype.html` |
+| `<DirMix>/scripts/PreviewRenderer.js` | `previewdist/PreviewRenderer.js` |
+| `<DirCoder>/scripts/previewdist/assets/`（整目录） | `previewdist/assets/` |
+| `<DirCoder>/scripts/previewdist/uploads/`（整目录） | `previewdist/uploads/` |
+
+用 bash 工具以**当前平台原生复制命令**执行（Windows 下该工具即 PowerShell：`New-Item` + `Copy-Item -Recurse`；Linux/macOS：`mkdir -p` + `cp -r`）；源中的 `data.js` **不拷**。
+
+> ⚠️ 含二进制 assets（约 21.6MB），**禁止**用 Read/Write 工具复制（超长行截断 + 二进制损坏），必须走 shell 复制命令。
 
 「根据原内容」生成时，先从页面既有脚本/DOM 中提取真实数据（图表 series、文案、数值），保持数据保真，不凭空发明。跨页复用既有 JSON 派生产物时，数值字段必须与本页语境一致，不要照抄他页数值。
 
@@ -95,11 +100,7 @@ New-Item -ItemType Directory -Path '<页目录>\previewdist' -Force | Out-Null; 
 
 ### 第 2 步：校验（硬门禁，未 PASS 禁止挂载）
 
-用「技能根定位」解析出的 `$Skills` 执行（绝对路径注入，不依赖工作目录）：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File "$Skills\ict-html-mix\scripts\validate-and-sync.ps1" -InputFile <产物绝对路径>
-```
+用「技能目录定位」解析出的 `<DirMix>` 执行（绝对路径注入，不依赖工作目录），用 bash 工具按平台选解释器：Windows 直接 `powershell -ExecutionPolicy Bypass -File "<DirMix>/scripts/validate-and-sync.ps1" -InputFile <产物绝对路径>`；Linux/macOS 需已安装 PowerShell 7+，同参数改用 `pwsh -File`。
 
 FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重跑，直到 `RESULT: PASS` 且 lint 告警清零。PASS 后自动生成同名 `data.js` 孪生（file:// 直开用，勿手改）。规则详情见下方「校验规则」。
 
@@ -188,11 +189,10 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 
 > **重要限制**：路线 C 仅适用于**已有 A2UI JSON 数据源的渲染节点**。如果目标是**原生 HTML 元素**（如原生表格 `<table>`、原生 DOM 元素、非 A2UI 渲染的内容），不能直接编辑 HTML 文件来完成修改（见首要总则「不得直接编辑原页面既有 DOM」）。必须先在路线 A/B 中将这些原生内容**替换为 A2UI 渲染节点**，之后对该节点的修改再走路线 C 的 JSON patch 流程。
 
-1. **反查 dataPath**：目标节点的 `dataPath` 登记在承载页页尾编排脚本的 `nodes` 数组里：
-   ```powershell
-   Select-String -Path "<页面路径>" -Pattern '<节点选择器片段>' -Context 2,2
-   ```
-   （页面路径未知时可通配扫描：`Select-String -Path "*\*.html" ...`）
+1. **反查 dataPath**：目标节点的 `dataPath` 登记在承载页页尾编排脚本的 `nodes` 数组里，用 **Grep** 工具检索（跨平台）：
+   - 页面路径已知：Grep `pattern` 填 `<节点选择器片段>`，`path` 填该页面所在目录，`include` 填 `*.html`；
+   - 页面路径未知：同 pattern + `include` 填 `*.html`，在项目内全量扫描定位文件。
+   命中后 **Read** 该文件命中行号 ±3 行，即得 `container`/`dataPath` 登记项。
 2. **读 JSON 理解结构**：
    - `state`：扁平数据对象。`/xxx` 是根字段绝对路径，`xxx`（无斜杠）是列表项相对路径。
    - `rootId`：根 element 的 id，顶层容器入口。
@@ -236,47 +236,54 @@ lint 告警必须清零后才挂载。常见修复：`no 'flex'` → className �
 - **例外**：如果容器仅为定位锚点（如 `id="xxx"` 且无布局类），则无需改动 HTML，JSON root 正常写布局类。
 - 若不确认容器担任布局角色还是纯锚点角色，一律清空 HTML 布局类、把布局控制权交给 JSON。
 
-### 陷阱 2：挂载容器必须用固定高度 `h-[xxx]`
+### 陷阱 2：容器高度由内容自然撑开
 
-**场景**：路线 A/B 将 A2UI 内容挂载到容器，容器高度用 `min-h-[xxx]` 或 `max-h-[xxx]` 设置。
+**场景**：路线 A/B 将 A2UI 内容挂载到容器，容器高度应该由内容自然撑开，而不是强制设固定高度 h-[xxx]。
 
-**根因**：PreviewRenderer.js 注入的 CSS shim 强制内部元素 `height:100%; max-height:100%; overflow:hidden`，使渲染内容高度从容器继承。但 CSS 规范中 **`height:100%` 仅在父元素有明确 `height` 值时生效**（绝对值或百分比链到视口 / 定高祖先）。`min-height` / `max-height` 不参与百分比高度计算。高度继承链断裂后，内容以自然高度撑开到数千 px。
+**规范（核心原则——内容自然撑开，不截断、不滚动条）**：
+
+1. **图表组件（BarChart / LineChart / RadarChart 等）**：className 必须含显式 `h-[xxx]`（如 `h-[320px]`）——图表组件需要明确的高度值才能渲染，不依赖父容器高度。
+2. **卡片/容器高度**：由内容自然撑开，**不强制设 `h-[xxx]`**——内容高度 = padding + header + chart `h-[xxx]`，容器高度随之确定。渲染器 CSS shim 已设为 `height:auto`，内容自然撑开，不需要在容器上写死 `h-[xxx]`。
+3. **表格/列表内容**：通过分页（默认每页 5 行）或 `max-h-[xxx] overflow-y-auto` 控制高度——表格默认分页时高度 ≈ 412px（header + 5行 table + pagination + padding），与图表卡片高度自然对齐；用户要求全显时用 `max-h-[xxx]` + `overflow-y-auto`（允许滚动）。
+
+**常见误区**：
+- ~~必须给容器设 h-[xxx] 固定高度~~ → 错误：固定高度会截断超限内容，导致"只剩标题+部分内容"
+- ~~用 overflow:hidden 做安全兜底~~ → 错误：overflow-hidden 会静默截断内容，用户无法看到完整信息
+- ~~用 max-h + overflow-y-auto 给所有内容~~ → 不必要：图表组件自带 h-[xxx]，不会溢出，不需要滚动条
+
+**高度推导（参考值，实际以页面上下文为准）**：
+
+| 内容类型 | 高度策略 | 高度参考 |
+|---|---|---|
+| **图表卡片**（折线/柱状/雷达） | 容器不设固定高度，由内容撑开；图表 className 设 h-[xxx] | header(~44px) + chart(**h-[320px]**) + padding(48px) + gap(12px) ≈ **~428px**（内容自然撑开，容器高度 ≈ 428px） |
+| **表格卡片**（有分页，默认 5 行） | 表格设 `pagination: true`，容器不设固定高度；内容撑开 ≈ 412px | header(~80px) + table(5行×48px=240px) + pagination(~45px) + padding(48px) ≈ **~413px** |
+| **表格卡片**（无分页/用户全显） | 表格设 `pagination: false`，外层用 `max-h-[xxx] overflow-y-auto`（默认 max-h-[380px]）| 按实际行数计算：header + table(N行×48px) + padding → 外层 max-h 约束 |
+| **指标卡 / KPI 卡片** | 容器不设固定高度，由内容撑开 | header(~40px) + metric(~60px) + padding(48px) ≈ **~148px** |
+| **区域级容器**（含多卡片 grid） | 不设固定高度，由卡片撑开；卡片高度对齐由 grid `align-items: stretch` 自动处理 | = 行内最高卡片内容高度 |
+
+**间距取值规则**：A2UI 卡片的 `p-*`/`gap-*`/`rounded-*` 等视觉属性，**必须从页面既有 DOM 中读取**——取同一父级下邻近卡片的 class 为基准保持一致（如页面 KPI 卡片用 `p-5 rounded-2xl`，则 A2UI 卡片也用 `p-5 rounded-2xl`；父容器用 `gap-4`，A2UI JSON 子容器间距也用 `gap-4`）。**禁止脱离页面上下文自行选择间距值。**
+
+### 陷阱 3：表格/列表内容高度控制
+
+**场景**：表格/列表等可变长度内容高度不确定，需要控制最大高度，避免撑开布局或信息丢失。
 
 **规范**：
-- A2UI 挂载容器**必须用 `h-[xxx]` 固定高度**（如 `h-[408px]`），不允许用 `min-h` / `max-h`。
-- 容器高度应基于**页面上下文读取**，在生成 A2UI JSON 时同步确定，**一步到位**：
-
-  **高度推导步骤（按序执行，缺一不可）**：
-  1. **读目标容器当前尺寸与间距**：用 DevTools 或 Read 页面片段获取目标容器的 `offsetHeight` 或计算后高度，以及其 className 中的间距类（`p-*` 内边距）。
-  2. **读兄弟节点尺寸与间距**：读取目标容器同一父级下的相邻兄弟节点的实际高度与 className，确认行对齐关系（grid 同行容器高度 = 最高卡片高度），同时记录兄弟节点的 `p-*` 内外边距与 `rounded-*` 圆角风格。
-  3. **读父节点间距上下文**：读取父容器的 `gap-*`（子元素间距）、`space-y-*`/`space-x-*`（流向间距）等间距类，确认容器之间间距的精确像素值。
-  4. **读目标容器原有布局类**：记录容器当前 className 中的 `grid`/`flex`/`gap`/`p-*` 等布局类（后续清空用，见陷阱 1）。
-  5. **计算容器高度**= max(目标容器当前内容高度, 兄弟节点高度) + 上下间距补偿。若替换后内容高度变化，按新内容重新计算（见下方参考表，但**以实际读取值为准**，参考表仅做估算校验）。
-
-  **间距取值规则**：生成 A2UI JSON 时，容器/卡片的 `p-*` 内边距、`gap-*` 子元素间距、`rounded-*` 圆角等视觉属性，**必须从页面既有 DOM 中读取**——取同一父级下邻近卡片的 class 为基准，保持一致。例如页面中 KPI 卡片用 `p-5 rounded-2xl`，则 A2UI 生成的卡片也应用 `p-5 rounded-2xl`；父容器用 `gap-4`，则 A2UI JSON 的子容器间距也应用 `gap-4`。**禁止脱离页面上下文自行选择间距值。**
-
-  | 内容类型 | 数值来源 | 合计参考 |
-  |---|---|---|
-  | 折线图/柱状图卡片 | header(~80px) + chart(h-72=288px) + padding(40px) + gap(~8px) | **~416px** |
-  | 雷达图卡片 | header(~50px) + chart(h-72=288px) + padding(40px) + 居中余量(~30px) | **~408px** |
-  | 表格卡片（有分页） | header(~80px) + table(5行×48px=240px) + pagination(~45px) + padding(40px) | **~405px** |
-  | 表格卡片（无分页） | header(~80px) + table(N行×48px) + padding(40px) | 按行数动态计算 |
-  | 纯指标卡 | header(~40px) + metric(~60px) + padding(40px) | **~140px** |
-
-- 若无法精确估算，取略高的值并用 `overflow-hidden` 约束（但优先精确计算避免留白）。
-- **iframe 预览与浏览器直接打开行为不同**：iframe 高度在首次布局后固定，A2UI 异步渲染完成后不自动伸缩，容器无定高时塌缩/溢出表现比浏览器更恶劣。
+1. **表格默认分页**：`pagination: true`（默认每页 5 行），表格高度 ≈ 285px（表头 45px + 5行×48px = 285px），加上卡片 padding/gap 后总高度 ≈ 412px，与图表卡片高度自然对齐。
+2. **表格无分页（用户要求全显）**：`pagination: false`，外层卡片必须用 `max-h-[xxx] overflow-y-auto`（默认 `max-h-[380px]`），内容超限时允许滚动，**禁止用 overflow-hidden**（会静默截断）。
+3. **列表内容**：通过 `max-h-[xxx] overflow-y-auto` 控制最大高度，内容超限时允许滚动，不使用 overflow-hidden。
+4. **混合内容卡片**：以最长子项（如最长表格列）估算高度，用 `max-h-[xxx] overflow-y-auto`。
+5. **图表组件**：自带 h-[xxx] 固定高度，不会溢出，不需要额外约束。
 
 ### 容器高度自检清单（路线 A/B 挂载前必过）
 
 每次生成新 A2UI JSON 并挂载到容器时，**必须逐项验证以下清单**，确认全部满足：
 
 1. **是否先读取了页面上下文？** —— 已读取目标容器、兄弟节点、父节点的实际尺寸与间距类（`gap`/`p-*`/`space-y-*`），而非凭空估算
-2. **容器是否有 `h-[xxx]` 固定高度？** —— 禁止使用 `min-h` / `max-h`
-3. **高度值是否 >= header + chart高度 + padding + gap 的总和？** —— 按页面上下文读取值推导并精确计算
+2. **容器高度是否由内容自然撑开？** —— 容器**不强制设 h-[xxx] 固定高度**；图表组件（BarChart / LineChart / RadarChart）className 设显式 h-[xxx]（如 h-[320px]），容器高度由内容撑开
+3. **表格/列表是否有分页或 max-h 约束？** —— 表格默认分页（每页 5 行，高度 ≈ 412px）；无分页时用 `max-h-[xxx] overflow-y-auto` 控制高度，**禁止用 overflow-hidden**（会静默截断）
 4. **内外间距是否与页面既有卡片一致？** —— A2UI 卡片的 `p-*`/`gap-*`/`rounded-*` 应取页面中邻近卡片的 class 值（如 `p-5 rounded-2xl`），不得自行发明间距数值
-5. **JSON 内的图表 `className` 是否包含 `h-` 类？** —— 如 `h-72`（BarChart / RadarChart / LineChart 等必须显式设高）
-6. **多个子卡片在同一行时，容器高度是否取了兄弟节点的最大值？** —— grid 行容器高度 = 读取到的最高卡片的实际高度
-7. **是否加了 `overflow-hidden` 做安全兜底？** —— 防止意外溢出撑开布局
+5. **JSON 内的图表 className 是否包含 `h-` 类？** —— 图表组件必须显式设高（如 `h-[320px]`），否则图表塌陷为 0/10px
+6. **overflow 策略是否正确？** —— 图表用 `overflow-hidden`（安全兜底，不截断）；表格/列表用 `overflow-y-auto`（允许滚动，不截断）；禁止在 `max-h` 场景使用 `overflow-hidden`（触发校验脚本 lint 告警）
 
 ---
 
@@ -289,6 +296,6 @@ lint 告警必须清零后才挂载。常见修复：`no 'flex'` → className �
 5. 渲染器 `container` 必填；`data` 可替代 `dataPath` 传内联对象；都不传用 `previewdist/data.js` 默认数据。
 6. 免服务器 file:// 直开与 ict-coder 运行时重建后的 `-GenMeta` + 重拷 assets 流程，详见 WORKFLOW.md「免服务器 file:// 直开」。
 7. 会话上传的承载页 html **必须先复制到 `[artifact-folder]` 副本再操作**（见「前置步骤：承载页入位」）；`uploads/` 原始上传文件全程只读，禁止在 uploads 内直接修改或派生产物。
-8. **容器高度硬约束**：每次路线 A/B 挂载新内容到容器时，必须严格遵循「陷阱 2」的固定高度规范与自检清单（见「容器高度自检清单」）。容器 `h-[xxx]` 的设置是挂载操作的**必要组成部分**，在生成 A2UI JSON 时同步完成高度计算并写入容器类名，不得遗漏或事后补救。任何因容器缺少固定高度导致内容溢出的问题，视为工作流执行缺陷。
+8. **容器高度约束**：每次路线 A/B 挂载新内容到容器时，必须遵循「陷阱 2」的内容自然撑开原则——容器不强制设固定高度 h-[xxx]，由内容自然撑开；图表组件设显式 h-[xxx]，表格用分页或 max-h + overflow-y-auto 控制高度。任何因容器高度策略不当导致内容截断或撑开布局的问题，视为工作流执行缺陷。
 9. **禁止直接编辑原生 HTML 内容**：即使目标节点是原生 HTML 元素（如原生 `<table>`、`<div>`、`<span>` 等非 A2UI 渲染的内容），也**不得用 Edit 工具直接在 HTML 文件中增删改 DOM 元素、列、行、样式或文案**来满足用户需求。必须先用路线 A 将原生区域替换为 A2UI 渲染容器，再用ict-coder 生成或路线 C patch 完成内容修改。违反此条视为绕过管线操作，与首要总则冲突。
 10. **区域覆盖优先**：用户选中区域包含既有 A2UI 渲染子节点时，必须对**整个选中区域**做路线 A 整体替换——新 JSON 接管全区域布局与内容，并同步移除被覆盖的旧 nodes 项（见「路线 A 区域级替换」小节）；不得只针对内部子节点做局部修改来绕过区域级接管。

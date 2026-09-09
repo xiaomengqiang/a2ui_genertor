@@ -221,9 +221,14 @@ if ($json.elements) {
         }
         if ($rowCount -ge 6) {
           $extras += "'$($e.id)' (Table) has pagination disabled with $rowCount data rows -> may cause excessive slot height; confirm the host slot container has a max-h constraint"
-        }
-      }
-    }
+    # (d) 截断风险检查：max-h 配 overflow-hidden 会静默截断超限内容
+    $hasMaxH = @($tokens | Where-Object { $_ -match '^max-h-' }).Count -gt 0
+    $hasOverflowHidden = @($tokens | Where-Object { $_ -eq 'overflow-hidden' }).Count -gt 0
+    if ($hasMaxH -and $hasOverflowHidden) {
+      $extras += "'$($e.id)' has max-h-* with overflow-hidden -> content exceeding the limit will be silently truncated (title + partial content visible only); consider 'overflow-y-auto' to allow scrolling"
+    }
+  }
+}
   }
 }
 
@@ -239,13 +244,13 @@ if ($extras.Count -gt 0) {
 }
 
 # =============================================================
-# ③ .data.js 孪生生成：file:// 免服务器直开时，渲染器无法 fetch JSON（CORS），
-#    改以 <script> 加载本孪生（window.__A2UI_FILE_DATA__）。JSON 为唯一事实源，随校验自动同步。
+# ③ 直接生成 .js 数据文件：file:// 免服务器直开时，渲染器直接加载 .js，
+#    无需 .json 孪生。JSON 仍作为校验源，但最终产物仅为 .js。
 # =============================================================
 $finalRaw = [System.IO.File]::ReadAllText($InputFile, (New-Object System.Text.UTF8Encoding($false)))
-$twinPath = $InputFile -replace '\.json$', '.data.js'
+$jsPath = $InputFile -replace '\.json$', '.js'
 $utf8NoBom2 = New-Object System.Text.UTF8Encoding($false)
-[System.IO.File]::WriteAllText($twinPath, "window.__A2UI_FILE_DATA__ = $finalRaw`n", $utf8NoBom2)
+[System.IO.File]::WriteAllText($jsPath, "window.__A2UI_DATA__ = $finalRaw`n", $utf8NoBom2)
 Write-Output ""
-Write-Output "File-data twin: $twinPath (for file:// no-server access)"
+Write-Output "Generated data.js: $jsPath (for file:// no-server access)"
 exit 0
