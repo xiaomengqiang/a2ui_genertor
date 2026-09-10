@@ -29,11 +29,11 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 1. **用户选定**：会话上传了多个 html 而用户未指明目标时，先列出 uploads 下的 html 供用户选择，不要猜。
 2. **复制副本并重命名**：选定后**必须先将该 html 复制**到当前会话产物目录 `[artifact-folder]`（即 `.octo/ses_<会话ID>/outputs/`，取运行时注入的 `[Artifact Folder]` 实际路径，勿硬编码会话 ID），同时将文件名改为 `{原文件名}.prototype.html`。用**文件工具**完成复制（跨平台，无需 shell）：
 
-   - **Read**：读取 uploads 下选定的源 html 全文；
-   - **Write**：将读到的完整内容写入 `<[artifact-folder]>/{原文件名}.prototype.html`。
+   - **Read**：读取 uploads 下选定的源 html 全文；
+   - **Write**：将读到的完整内容写入 `<[artifact-folder]>/{原文件名}.prototype.html`。
 
-   > 若源文件本身已包含 `.prototype.` 后缀（如 `xxx.prototype.html`），则保持原名不变，直接复制。
-   > ⚠️ Read 对单行超过 2000 字符会截断：若源 html 内联了压缩脚本/超长样式行（工具生成页面常见），**禁止** Read+Write 复制，改用 shell 复制兜底（Windows `Copy-Item` / Unix `cp`），并核对副本与源文件大小一致。
+   > 若源文件本身已包含 `.prototype.` 后缀（如 `xxx.prototype.html`），则保持原名不变，直接复制。
+   > ⚠️ Read 对单行超过 2000 字符会截断：若源 html 内联了压缩脚本/超长样式行（工具生成页面常见），**禁止** Read+Write 复制，改用 shell 复制兜底（Windows `Copy-Item` / Unix `cp`），并核对副本与源文件大小一致。
 3. **后续一律基于副本操作**：本地化拷贝（`previewdist/`）、`a2ui-data/` 存储、页尾 nodes 挂载等所有写操作，承载页路径均指向 outputs 下的副本；**副本所在目录即「页目录」**。`uploads/` 中的原始上传文件视为**只读源**，禁止直接修改或在其中派生产物。
 4. **交付说明**：完成后向用户回报副本路径（outputs 下可直接预览的页面文件）及配套产物位置；回退时只需还原/删除副本，原始上传不受影响。
 
@@ -70,8 +70,8 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 1. **本技能目录 `<DirMix>`**：加载 ict-html-mix 时输出的 Skill directory 绝对路径（= 本 SKILL.md 所在目录）。
 2. **ict-coder 目录 `<DirCoder>`**：第 1 步本来就要用 skill 工具加载 ict-coder——其加载输出中的 Skill directory 绝对路径**顺手记录**即得，无需额外探测。
 3. **兜底**（加载输出未含目录信息时），按优先级依次探测，**禁止只依赖 Glob**：
-   a. **本技能所在目录的同级探测（首选）**：取 `<DirMix>` 的父目录（即本技能所在的技能安装目录），探测 `<父目录>/ict-coder/SKILL.md` 是否存在（用 bash 工具 `Test-Path` 按绝对路径直查）。**Glob 工具只扫描 opencode 当前工作空间**——当本技能装在工作空间之外时，ict-coder 同样在工作空间之外，Glob 必然落空；而同级绝对路径探测不受工作空间限制，两技能同目录安装时（常见布局）必然命中。
-   b. **Glob 工作空间扫描（次选）**：a 未命中且技能可能装在工作空间内时，用 **Glob** 分别匹配 `**/ict-html-mix/SKILL.md` 与 `**/ict-coder/SKILL.md`。
+   a. **本技能所在目录的同级探测（首选）**：取 `<DirMix>` 的父目录（即本技能所在的技能安装目录），探测 `<父目录>/ict-coder/SKILL.md` 是否存在（用 bash 工具 `Test-Path` 按绝对路径直查）。**Glob 工具只扫描 opencode 当前工作空间**——当本技能装在工作空间之外时，ict-coder 同样在工作空间之外，Glob 必然落空；而同级绝对路径探测不受工作空间限制，两技能同目录安装时（常见布局）必然命中。
+   b. **Glob 工作空间扫描（次选）**：a 未命中且技能可能装在工作空间内时，用 **Glob** 分别匹配 `**/ict-html-mix/SKILL.md` 与 `**/ict-coder/SKILL.md`。
 4. 仍取不到 → 立即停止并向用户报告，禁止盲跑。
 
 **页面本地化**：运行时从 ict-coder 技能拷贝（`<DirCoder>/scripts/previewdist/` → 页目录 `previewdist/`，含 `index.prototype.html` + `assets/` + `uploads/`，**不拷其 data.js**；渲染器从 `<DirMix>/scripts/PreviewRenderer.js` 拷入同目录），previewdist **不从项目根取**。数据用页目录 `a2ui-data/<slug>/`，页面引用全 `./` 相对路径、`?v=` 版本号**独立维护**。
@@ -112,7 +112,7 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 <script>
     (function () {
         var nodes = [
-            { container: '<目标节点选择器>', dataPath: './a2ui-data/<slug>/data.js' }
+            { container: '<目标节点选择器>', dataPath: './a2ui-data/<slug>/data.js' }
         ];
         var chain = Promise.resolve();
         nodes.forEach(function (cfg) {
@@ -185,9 +185,9 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 > **重要限制**：路线 C 仅适用于**已有 data.js 数据源的渲染节点**。如果目标是**原生 HTML 元素**（如原生表格 `<table>`、原生 DOM 元素、非 A2UI 渲染的内容），不能直接编辑 HTML 文件来完成修改（见首要总则「不得直接编辑原页面既有 DOM」）。必须先在路线 A/B 中将这些原生内容**替换为 A2UI 渲染节点**，之后对该节点的修改再走路线 C 的 data.js patch 流程。
 
 1. **反查 dataPath**：目标节点的 `dataPath` 登记在承载页页尾编排脚本的 `nodes` 数组里，用 **Grep** 工具检索（跨平台）：
-   - 页面路径已知：Grep `pattern` 填 `<节点选择器片段>`，`path` 填该页面所在目录，`include` 填 `*.html`；
-   - 页面路径未知：同 pattern + `include` 填 `*.html`，在项目内全量扫描定位文件。
-   命中后 **Read** 该文件命中行号 ±3 行，即得 `container`/`dataPath` 登记项。
+   - 页面路径已知：Grep `pattern` 填 `<节点选择器片段>`，`path` 填该页面所在目录，`include` 填 `*.html`；
+   - 页面路径未知：同 pattern + `include` 填 `*.html`，在项目内全量扫描定位文件。
+   命中后 **Read** 该文件命中行号 ±3 行，即得 `container`/`dataPath` 登记项。
 2. **读 data.js 理解结构**（文件内即 A2UI JSON 结构）：
    - `state`：扁平数据对象。`/xxx` 是根字段绝对路径，`xxx`（无斜杠）是列表项相对路径。
    - `rootId`：根 element 的 id，顶层容器入口。
@@ -231,6 +231,27 @@ lint 告警必须清零后才挂载。常见修复：`no 'flex'` → className �
 - **例外**：如果容器仅为定位锚点（如 `id="xxx"` 且无布局类），则无需改动 HTML，data.js root 正常写布局类。
 - 若不确认容器担任布局角色还是纯锚点角色，一律清空 HTML 布局类、把布局控制权交给 data.js。
 
+### 陷阱 1b：CSS 样式表中的布局类与 data.js root 布局双重叠加（高危）
+
+**场景**：路线 A 区域级替换，目标容器的布局并非通过 HTML `class` 属性定义，而是通过 CSS 样式表（`<style>` 或 `.css` 文件）中的类选择器定义。例如：
+```css
+.chart-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+```
+而 data.js root 元素也使用了 `grid grid-cols-[2fr_1fr] gap-6`。
+
+**后果**：外层 CSS grid 约束了 data.js root 容器，使其被当作单个网格项限制在一个单元格内。内部 data.js 的 grid 虽然定义了两列，但实际可用宽度仅为外层 grid 的一个单元格宽度，导致两列宽度异常（右列过窄或两列重叠）。此问题比陷阱 1 更隐蔽，因为布局类不在 HTML 元素上，容易遗漏检查。
+
+**规范**：
+1. **路线 A 区域级替换必须覆盖 CSS 布局类**：在目标容器 HTML 元素上添加 `style="display:block"` 内联样式，覆盖 CSS 样式表中的 grid/flex 声明，使容器退化为普通块级元素，data.js root 的 grid/flex 完全掌控布局。
+2. **禁止直接编辑 CSS 样式表**：样式表中可能包含响应式断点或其他复用规则，不可删除或修改。通过 HTML 元素上的 `style` 属性覆盖即可。
+3. **优先统一布局控制权**：data.js root 应承担全部布局职责。HTML 容器仅作为定位锚点（`id` 选择器），不应残留任何影响子元素布局的 CSS 属性。
+
+**自检**：每次路线 A 区域级替换后，检查目标容器在 CSS 样式表中是否有 grid/flex/position 规则。如有，必须在容器上加 `style="display:block"` 覆盖。
+
 ### 陷阱 2：容器高度由内容自然撑开
 
 **场景**：路线 A/B 将 A2UI 内容挂载到容器，容器高度应该由内容自然撑开，而不是强制设固定高度 h-[xxx]。
@@ -269,14 +290,49 @@ lint 告警必须清零后才挂载。常见修复：`no 'flex'` → className �
 4. **混合内容卡片**：以最长子项（如最长表格列）估算高度，用 `max-h-[xxx] overflow-y-auto`。
 5. **图表组件**：自带 h-[xxx] 固定高度，不会溢出，不需要额外约束。
 
-### 容器高度自检清单（路线 A/B 挂载前必过）
+### 陷阱 4：容器 CSS 提供视觉样式时 data.js 重复叠加
+
+**场景**：路线 A 替换模式，目标容器（HTML 节点）在页面 CSS 中已有视觉样式（`box-shadow`、`padding`、`border-radius`、`background` 等），而生成的 data.js 卡片也带了相同的样式（如 `p-6 rounded-[8px] shadow-sm bg-white`）。
+
+**后果**：视觉样式双重叠加——padding 翻倍（内容缩窄）、阴影叠影（生硬双重阴影）、圆角冲突、背景色叠加导致色差。尤其 padding 翻倍会使内容区实际宽度远小于相邻卡片，破坏布局对齐。
+
+**规范**（以容器为准，data.js 适配容器）：
+
+1. **读取容器已有样式**：生成 data.js 前，先读取目标容器在页面 CSS 中生效的样式（包括 `<style>` 中的类选择器、内联 `style` 属性）。重点关注以下属性：
+   - `padding` / `padding-left` / `padding-right` / `padding-top` / `padding-bottom`
+   - `box-shadow`
+   - `border-radius`
+   - `background` / `background-color`
+   - `border`
+2. **去重原则**：
+   - **容器已有 padding** → data.js 卡片**不设 `p-*`**（padding 由容器提供，data.js 内容直接填充）
+   - **容器已有 box-shadow** → data.js 卡片**不设 `shadow-*`**
+   - **容器已有 border-radius + overflow:hidden** → data.js 卡片**不设 `rounded-*`**
+   - **容器已有 background-color** → data.js 卡片**不设 `bg-*`**（透明背景，由容器底色呈现）
+3. **特例：容器被清空后样式失效**：若原容器有视觉样式但路线 A 替换时容器被清空为 `<div id="xxx"></div>`，此时容器自身已无子元素撑开，其 padding/shadow 虽在 CSS 中但视觉效果残缺。这种情况下：
+   - **将容器在 CSS 中的视觉样式（padding、shadow、rounded、background）全部迁移到 data.js root 的 className 中**，然后将容器 HTML 去掉其视觉类名（如去掉 `class="chart-card"`），改为纯占位符 `<div data-a2ui-container></div>`。
+   - **禁止**在保留容器 CSS 样式的同时又在 data.js 中重复设相同样式。
+4. **间距取值规则**（复述）：data.js 卡片的 `p-*`/`rounded-*`/`shadow-*` 等视觉属性，以**容器实际生效样式**为基准决定是否携带。同一区域内多个卡片应保持视觉一致。
+
+**自检（路线 A 挂载前必须逐项核对）**：
+
+生成 data.js 后、写入页面前，逐一检查以下四项是否在容器 CSS 和 data.js root className 之间**重复**：
+
+| 样式属性 | 容器 CSS 有？ | data.js root 有？ | 操作 |
+|---|---|---|---|
+| padding | 是 | 是 → **去重** | 去掉 data.js 的 `p-*`（容器提供）或去掉容器的类名、迁移到 data.js |
+| box-shadow | 是 | 是 → **去重** | 去掉 data.js 的 `shadow-*`（容器提供）或去掉容器的类名、迁移到 data.js |
+| border-radius | 是 | 是 → **去重** | 去掉 data.js 的 `rounded-*`（容器提供）或去掉容器的类名、迁移到 data.js |
+| background | 是 | 是 → **去重** | 去掉 data.js 的 `bg-*`（容器提供）或去掉容器的类名、迁移到 data.js |
+
+任一项重复即为缺陷，必须修复后继续。
 
 每次生成新 data.js 并挂载到容器时，**必须逐项验证以下清单**，确认全部满足：
 
 1. **是否先读取了页面上下文？** —— 已读取目标容器、兄弟节点、父节点的实际尺寸与间距类（`gap`/`p-*`/`space-y-*`），而非凭空估算
 2. **容器高度是否由内容自然撑开？** —— 容器**不强制设 h-[xxx] 固定高度**；图表组件（BarChart / LineChart / RadarChart）className 设显式 h-[xxx]（如 h-[320px]），容器高度由内容撑开
 3. **表格/列表是否有分页或 max-h 约束？** —— 表格默认分页（每页 5 行，高度 ≈ 412px）；无分页时用 `max-h-[xxx] overflow-y-auto` 控制高度，**禁止用 overflow-hidden**（会静默截断）
-4. **内外间距是否与页面既有卡片一致？** —— A2UI 卡片的 `p-*`/`gap-*`/`rounded-*` 应取页面中邻近卡片的 class 值（如 `p-5 rounded-2xl`），不得自行发明间距数值
+4. **视觉样式是否与容器 CSS 去除重复？** —— 逐一核对 padding/shadow/border-radius/background 四项，确保容器 CSS 和 data.js root className 之间无重复（见陷阱 4 自检表），不得自行发明间距数值
 5. **data.js 内的图表 className 是否包含 `h-` 类？** —— 图表组件必须显式设高（如 `h-[320px]`），否则图表塌陷为 0/10px
 6. **overflow 策略是否正确？** —— 图表用 `overflow-hidden`（安全兜底，不截断）；表格/列表用 `overflow-y-auto`（允许滚动，不截断）；禁止在 `max-h` 场景使用 `overflow-hidden`（触发校验脚本 lint 告警）
 
