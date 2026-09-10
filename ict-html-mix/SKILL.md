@@ -61,7 +61,12 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 ### 第 1 步：生成 A2UI data.js
 
-用 **skill 工具加载 `ict-coder` 技能**并按其生成工作流产出数据。注意：本工作流**只借其生成能力**（其 Step 1–4 生成 + Step 5 校验），**不执行其 Step 6 打包/artifact 输出**；产物**直接落盘为 `a2ui-data/<slug>/data.js`**（wrapper 格式 `window.__A2UI_DATA__ = <JSON>;`，http 与 file:// 均 script 直载）。
+用 **skill 工具加载 `ict-coder` 技能**并按其生成工作流产出数据。本工作流借其 **Step 1–5**（生成 + 结构校验），**不执行其 Step 6 打包/artifact 输出**。wrapper 落盘桥接（由本 skill 负责，ict-coder 不参与）：
+
+1. ict-coder 按 Step 1–5 正常产出并校验 `output/a2ui-output-{timestamp}.json`（结构校验须 PASS）；
+2. 本 skill 读取该校验通过的 JSON，用 **Write 工具**按 wrapper 格式 `window.__A2UI_DATA__ = <JSON>;` 写入 `<页目录>/a2ui-data/<slug>/data.js`（一节点一文件夹，slug 为 kebab-case）；
+3. 随后由第 2 步 `validate-and-sync.ps1` 校验 wrapper 语法 + lint（结构校验 + 语法 lint 双保险，对象不同、不可互替）；
+4. 中间产物 `output/a2ui-output-{timestamp}.json` 在 wrapper 写入且两道校验均 PASS 后删除（不作为交付物）。
 
 存储布局唯一：**本地化**——数据落 `<页目录>/a2ui-data/<slug>/data.js`（每节点独立文件夹，文件名统一为 `data.js`），页面引用前缀 `./`；运行时副本 `<页目录>/previewdist/`。无集中式布局、无 `output/` 中转、无 `.json` 中间产物。
 
