@@ -12,7 +12,7 @@
 
 宿主页页尾引用渲染器并登记 nodes（完整挂载模板与登记步骤见 SKILL.md 第 3 步）。
 
-- **渲染器位置（唯一源 + 运行时副本，`-GenMeta` 扇出同步）**：唯一权威源 `scripts/PreviewRenderer.js`（本技能目录）→ 运行时副本 `previewdist/PreviewRenderer.js`（项目根，集中式页引用）+ 各 `<页目录>/previewdist/PreviewRenderer.js`（本地化页）。改源必 bump 宿主页 `?v=`（Pitfall #6）。
+- **渲染器位置（唯一源 + 运行时副本，`-GenMeta` 扇出同步）**：唯一权威源 `scripts/PreviewRenderer.js`（本技能目录）→ 运行时副本 `previewdist/PreviewRenderer.js`（项目根，历史副本）+ 各 `<页目录>/previewdist/PreviewRenderer.js`（本地化页）。改源必 bump 宿主页 `?v=`（Pitfall #6）。
 - **http 入口页自适应**：fetch `index.html` 失败自动回退 `index.prototype.html`（ict-coder 运行时入口）。
 
 ### replace 双模式
@@ -26,7 +26,7 @@
 
 ### 渲染步骤（自动，每节点）
 
-1. 取数（`*.json` fetch 或孪生；`*.js` script 直载）→ 写入 `window.__A2UI_DATA__`
+1. 取数（`*.js` script 直载，文件自写 `window.__A2UI_DATA__`）
 2. 容器内创建 appDiv（显式 `width/height:100%`）挂载点
 3. 加载 previewdist 应用 JS：有 `__A2UI_BOOT__` 工厂出口则工厂挂载（bundle 只解析一次）；否则旧构建兜底（`#app` 挂载，每节点重执行 IIFE——**ict-coder 运行时即此模式**，功能/视觉等价，仅多节点首屏略慢；耗时大头是 bundle 解析 + Tailwind 浏览器运行时编译，两模式共有）
 4. 预隐藏 + 布局落定后派发 `resize` 再显现（两种模式行为一致）
@@ -41,17 +41,16 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 | 环节 | http（服务器） | file://（直开） |
 |---|---|---|
 | 应用元信息（styles+scripts） | fetch 入口页（自适应 index.html / index.prototype.html） | `PreviewRenderer.js` 内嵌块 `__A2UI_EMBEDDED_META__` |
-| 节点数据（`*.json`） | fetch | 同目录 `.data.js` 孪生（script 加载，`window.__A2UI_FILE_DATA__`） |
-| 节点数据（`*.js`，ict-coder 产物） | script 直载（文件自写 `window.__A2UI_DATA__`） | 同左（天然免孪生） |
+| 节点数据（`*.js` = data.js 产物，唯一形态） | script 直载（文件自写 `window.__A2UI_DATA__`） | 同左（天然支持 file://） |
 | 默认数据 | fetch `previewdist/data.js` 后执行 | script 直载 `data.js` |
 | bundle 脚本 | script 标签 | 同左（不变） |
 
 维护约定：
 
-- **JSON 是唯一事实源**：`.data.js` 孪生由 `validate-and-sync.ps1` 校验 PASS 后自动生成/覆盖，禁止手改。
+- **data.js 是唯一数据产物**：自带 wrapper（`window.__A2UI_DATA__ = <JSON>;`），由生成侧直接产出；无孪生、无中间 `.json` 文件，禁止手改 wrapper 结构。
 - **ict-coder 运行时重建后**：重跑 `powershell -ExecutionPolicy Bypass -File "<DirMix>/scripts/validate-and-sync.ps1" -GenMeta`（`<DirMix>` 为本技能目录，定位方式见 SKILL.md 第 1 步「技能目录定位」；扇出刷新全部渲染器副本内嵌块 → bump 各宿主页 `?v=`）并重拷本地化页的 assets。
 - Firefox 的 file:// 策略限制跨目录子资源加载，直开仅支持 Chrome/Edge（本地化页全程同目录/子目录加载，Firefox 也兼容）。
-- 只更新 JSON（渲染器未变）：直开页普通刷新即可（孪生带时间戳防缓存）；渲染器变更后需硬刷新 Ctrl+Shift+R（配合 `?v=` bump）。
+- 只更新 data.js（渲染器未变）：普通刷新即可（script 加载带时间戳防缓存）；渲染器变更后需硬刷新 Ctrl+Shift+R（配合 `?v=` bump）。
 
 ---
 
@@ -70,9 +69,9 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 
 ## 数据存储规则
 
-- **存储布局（两种，以页面现有 nodes 引用形态判定）**：**本地化**（现行默认）——页目录 `a2ui-data/<slug>/<slug>.json`（每节点独立文件夹，JSON 唯一事实源）+ 页目录 `previewdist/`；**集中式**（既有页沿用）——项目根 `output/<module>[-<页标识>]-output.json` + 项目根 `previewdist/`。布局规则与判定特征见 SKILL.md 第 1 步存储布局表。
-- **所有新产生的 JSON 必须直接写入 `a2ui-data/` 目录**，不使用 `output/` 作为中间暂存，也不走 package → extract → copy 的管道流程。ict-coder 的 Step 5 直接保存到 `a2ui-data/<slug>/<slug>.json`，无中间产物需清理。
-- **孪生**：每个活跃 JSON 伴随同名 `.data.js`（file:// 直开用，校验时自动生成在其所在文件夹，勿手改）；`*.js` 数据源天然免孪生。
+- **存储布局（唯一：本地化）**：页目录 `a2ui-data/<slug>/data.js`（每节点独立文件夹，自带 wrapper 的唯一数据产物）+ 页目录 `previewdist/`。无集中式布局、无 `output/` 中转。
+- **所有新产生的 data.js 必须直接写入 `a2ui-data/` 目录**，不使用 `output/` 作为中间暂存，也不走 package → extract → copy 的管道流程。生成侧（ict-coder Step 1–5）直接落盘 `a2ui-data/<slug>/data.js`，无中间产物需清理。
+- **无孪生机制**：data.js 自带 wrapper（`window.__A2UI_DATA__ = <JSON>;`），http 与 file:// 均 script 直载，天然免任何转换产物。
 - **本地化运行时**：页目录 `previewdist/` 来源 = **ict-coder 技能运行时**（`<DirCoder>/scripts/previewdist/`，`<DirCoder>` 为 ict-coder 技能目录，定位方式见 SKILL.md 第 1 步「技能目录定位」；~21.6MB 真拷贝：index.prototype.html + assets + uploads + 渲染器），previewdist **不从项目根取**（拷贝命令见 SKILL.md 第 1 步）；页面引用全 `./`、`?v=` 独立维护。
 
 ---
@@ -81,12 +80,12 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 
 | 文件 | 角色 |
 |---|---|
-| `.opencode/skills/ict-html-mix/SKILL.md` | **执行手册**：意图路由 / 路线操作步骤 / 硬约束 |
-| `.opencode/skills/ict-html-mix/WORKFLOW.md`（本文件） | **参考手册**：渲染器行为 / file:// 原理 / Pitfalls / 存储规则 / 文件清单 |
-| `.opencode/skills/ict-html-mix/scripts/validate-and-sync.ps1` | **唯一维护脚本（双模式）**：`-InputFile` JSON 语法 + 项目 lint（flex/图表高度）+ file:// 孪生生成（A2UI 结构校验由 ict-coder 生成侧兜底）；`-GenMeta` 提取 ict-coder 运行时元信息扇出回写渲染器内嵌块 || `.opencode/skills/ict-coder/` | 生成技能：产出 A2UI JSON（另含打包为独立原型页能力）；本工作流仅借其生成能力 |
-| `.opencode/skills/ict-html-mix/scripts/PreviewRenderer.js` | **渲染器唯一权威源**（`-GenMeta` 扇出同步到各运行时副本） |
-| `previewdist/` | 项目根运行时（集中式页引用） |
+| `<ict-html-mix 技能目录>/SKILL.md` | **执行手册**：意图路由 / 路线操作步骤 / 硬约束 |
+| `<ict-html-mix 技能目录>/WORKFLOW.md`（本文件） | **参考手册**：渲染器行为 / file:// 原理 / Pitfalls / 存储规则 / 文件清单 |
+| `<ict-html-mix 技能目录>/scripts/validate-and-sync.ps1` | **唯一维护脚本（双模式）**：`-InputFile` data.js 语法校验（剥 wrapper）+ 项目 lint（A2UI 结构校验由 ict-coder 生成侧兜底）；`-GenMeta` 提取 ict-coder 运行时元信息扇出回写渲染器内嵌块 |
+| `<ict-coder 技能目录>` | 生成技能：产出 A2UI 数据（本工作流直接落盘为 `a2ui-data/<slug>/data.js`，仅借其 Step 1–5 生成能力） |
+| `<ict-html-mix 技能目录>/scripts/PreviewRenderer.js` | **渲染器唯一权威源**（`-GenMeta` 扇出同步到各运行时副本） |
+| `previewdist/` | 项目根运行时（历史副本，`-GenMeta` 兼容同步） |
 | `<页目录>/previewdist/` | 本地化页运行时副本（来源 = ict-coder 运行时） |
-| `<页目录>/a2ui-data/<slug>/` | 本地化页每节点数据文件夹（json + 孪生） |
-| `output/<name>.json` + `.data.js` | 集中式页数据产物 + file:// 孪生 |
+| `<页目录>/a2ui-data/<slug>/` | 本地化页每节点数据文件夹（data.js，唯一数据产物） |
 | 各承载页 `*.html` | 承载页（文档流布局，页尾内联编排） |

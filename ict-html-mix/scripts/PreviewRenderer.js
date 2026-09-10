@@ -3,7 +3,7 @@
 // validate-and-sync.ps1 -GenMeta 扇出同步到各页目录（项目根 previewdist/ + 各 <页目录>/previewdist/，
 // 页面实际加载后者）。宿主页引用带 ?v= 缓存指纹（独立维护，源变更必 bump 并硬刷新）。
 //
-// replace 构造选项（双模式，见 .opencode/skills/ict-html-mix/WORKFLOW.md）：
+// replace 构造选项（双模式，见 ict-html-mix 技能 WORKFLOW.md）：
 //   replace:true（默认）——「替换/修改节点」：清空节点内容再渲染新的（=v1 语义）
 //   replace:false       ——「新增/共存」：不清宿主内容，仅移除自产节点（幂等重挂）后追加
 // container 为必填项（缺省 init 时显式报错）。
@@ -12,15 +12,13 @@
 // 免服务器 file:// 支持：Chromium 下 file:// 页面的 fetch/XHR 全被 CORS 拦截，故本渲染器在
 // file: 协议时改走 <script> 标签加载（经典 script 不受此限）：
 //   - 应用元信息（styles+scripts 清单）：使用下方 __A2UI_EMBEDDED_META__ 内嵌块（由
-//     .opencode/skills/ict-html-mix/scripts/validate-and-sync.ps1 -GenMeta 从 ict-coder 技能的
+//     validate-and-sync.ps1 -GenMeta（ict-html-mix 技能 scripts/）从 ict-coder 技能的
 //     scripts/previewdist/index.prototype.html 提取并回写本文件；该运行时重建后需重跑刷新内嵌块，
 //     并 bump 宿主页 ?v=；http 模式则运行时 fetch 入口页自适应 index.html / index.prototype.html）
-// 节点数据 dataPath 三种形态（_initDirect 第 3 步）：
-//   - *.json（裸 JSON）：http 走 fetch；file:// 走孪生 .data.js（validate-and-sync.ps1 校验 PASS 后
-//     自动生成，内容为 window.__A2UI_FILE_DATA__ = <JSON>）
-//   - *.js（自带 wrapper 的 data.js，ict-coder 产物格式 window.__A2UI_DATA__ = {...}）：
-//     协议无关一律 script 标签直载，文件自身写 __A2UI_DATA__，天然免孪生
-//   - 都不传：previewdist/data.js 默认数据（其自身代码写 window.__A2UI_DATA__，script 直载）
+// 节点数据 dataPath 两种形态（_initDirect 第 3 步）：
+//   - *.js（唯一产物形态 data.js，自带 wrapper：window.__A2UI_DATA__ = {...}）：
+//     协议无关一律 script 标签直载，文件自身写 __A2UI_DATA__（http/file:// 通用）
+//   - 都不传：previewdist/data.js 默认数据（其自身代码写 window.__A2UI_DATA__，script 直载）
 // ── 内嵌应用元信息（生成物，勿手改）──────────────────────────
 // __A2UI_FILE_META_BEGIN__
 var __A2UI_EMBEDDED_META__ = {
@@ -149,7 +147,7 @@ class PreviewRenderer {
   async _getAppMeta(distPath) {
     if (this._isFileProtocol()) {
       if (!__A2UI_EMBEDDED_META__ || !__A2UI_EMBEDDED_META__.scripts) {
-        throw new Error('Embedded app meta missing: run validate-and-sync.ps1 -GenMeta in .opencode/skills/ict-html-mix/scripts/ (then bump host ?v=)');
+        throw new Error('Embedded app meta missing: run validate-and-sync.ps1 -GenMeta in ict-html-mix scripts/ (then bump host ?v=)');
       }
       return __A2UI_EMBEDDED_META__;
     }
@@ -222,36 +220,22 @@ class PreviewRenderer {
       document.head.appendChild(shim);
     }
 
-    // 3. 设置本实例数据（PreviewPage onMounted 读取 window.__A2UI_DATA__；调用方必须串行）
-    if (this.options.data) {
-      window.__A2UI_DATA__ = this.options.data;
-    } else if (this.options.dataPath) {
-      if (/\.js(\?|$)/i.test(this.options.dataPath)) {
-        // dataPath 直接指向自带 wrapper 的 data.js（ict-coder 产物格式：window.__A2UI_DATA__ = {...}）：
-        // script 标签加载（http/file:// 通用，不受 fetch 的 file:// CORS 限制），文件自身写 __A2UI_DATA__，
-        // 此处无需（也不得）再赋值；时间戳防缓存（等价 fetch 分支的 no-store）。天然免 .data.js 孪生。
-        const sep = this.options.dataPath.includes('?') ? '&' : '?';
-        await this._loadScriptOnce(`${this.options.dataPath}${sep}t=${Date.now()}`);
-        if (!window.__A2UI_DATA__ && window.__A2UI_FILE_DATA__) {
-          // 兜底：误指向 .data.js 孪生（写 __A2UI_FILE_DATA__）时取用之
-          window.__A2UI_DATA__ = window.__A2UI_FILE_DATA__;
-        }
-        if (typeof window.__A2UI_DATA__ === 'undefined' || !window.__A2UI_DATA__) {
-          throw new Error(`data.js loaded but window.__A2UI_DATA__ missing/empty: ${this.options.dataPath}`);
-        }
-        } else if (this._isFileProtocol()) {
-          // file:// 免服务器：加载 .js 数据文件（script 标签不受 CORS 限制）；时间戳防 file 缓存
-          const jsDataPath = this.options.dataPath.replace(/\.json$/, '.js');
-          delete window.__A2UI_DATA__;
-          await this._loadScriptOnce(`${jsDataPath}?t=${Date.now()}`);
-          if (typeof window.__A2UI_DATA__ === 'undefined') {
-            throw new Error(`Data file missing/invalid: ${jsDataPath} (re-run validate-and-sync.ps1)`);
-          }
-      } else {
-        const dr = await fetch(this.options.dataPath, { cache: 'no-store' });
-        window.__A2UI_DATA__ = dr.ok ? await dr.json() : null;
-      }
-    } else {
+    // 3. 设置本实例数据（PreviewPage onMounted 读取 window.__A2UI_DATA__；调用方必须串行）
+    if (this.options.data) {
+      window.__A2UI_DATA__ = this.options.data;
+    } else if (this.options.dataPath) {
+      // dataPath 只支持 *.js（唯一产物形态 data.js，自带 wrapper：window.__A2UI_DATA__ = {...}）：
+      // script 标签直载（http/file:// 通用，不受 fetch 的 file:// CORS 限制），文件自身写
+      // __A2UI_DATA__，此处无需（也不得）再赋值；时间戳防缓存。非 .js 路径直接报错。
+      if (!/\.js(\?|$)/i.test(this.options.dataPath)) {
+        throw new Error(`dataPath must be a .js data file (window.__A2UI_DATA__ = {...} wrapper), got: ${this.options.dataPath}`);
+      }
+      const sep = this.options.dataPath.includes('?') ? '&' : '?';
+      await this._loadScriptOnce(`${this.options.dataPath}${sep}t=${Date.now()}`);
+      if (typeof window.__A2UI_DATA__ === 'undefined' || !window.__A2UI_DATA__) {
+        throw new Error(`data.js loaded but window.__A2UI_DATA__ missing/empty: ${this.options.dataPath}`);
+      }
+    } else {
       // 默认数据 previewdist/data.js：其自身代码会写入 window.__A2UI_DATA__
       if (this._isFileProtocol()) {
         await this._loadScriptOnce(`${distPath}/data.js`);
