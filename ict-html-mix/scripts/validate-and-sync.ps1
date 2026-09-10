@@ -9,8 +9,8 @@
 #     ③ PASS 后生成 .data.js 孪生（file:// 直开用）
 #     注：A2UI 结构校验（三键结构/元素键锁/id 唯一/children/path）不在本脚本职责内，
 #         由 ict-coder 技能生成侧校验兜底；本项目只管渲染关切（lint）。
-#   元信息模式：-GenMeta
-#     从 ict-coder 技能运行时（.opencode/skills/ict-coder/scripts/previewdist/index.prototype.html）
+#   元信息模式：-GenMeta
+#     从 ict-coder 技能运行时（ict-coder/scripts/previewdist/index.prototype.html）
 #     提取 styles+scripts 清单，回写渲染器内嵌块（__A2UI_EMBEDDED_META__，file:// 免服务器直开用），
 #     **扇出同步全部渲染器**（唯一源 + 运行时副本）：
 #       a) 唯一权威源：本技能 scripts/PreviewRenderer.js（与本脚本同目录）
@@ -45,18 +45,27 @@ function Show-Usage {
 if ($GenMeta) {
   if ($InputFile) { Show-Usage; exit 1 }
 
-  # 元信息来源：ict-coder 技能运行时（页面本地 previewdist 副本的标准来源，previewdist 不从项目根取）
-  $indexHtml = Join-Path $projRoot '.opencode\skills\ict-coder\scripts\previewdist\index.prototype.html'
+  # 元信息来源：ict-coder 技能运行时（页面本地 previewdist 副本的标准来源，previewdist 不从项目根取）
+  # ict-coder 定位（禁止只依赖项目工作空间）：① 本技能同级目录（从脚本自身位置上溯 2 级的父目录，
+  #    即 ict-html-mix 所在的技能安装目录，ict-coder 同级安装时命中）；
+  # ② 项目根 .opencode\skills（旧布局兜底）。按序取第一个存在者。
+  $skillParent = Split-Path -Parent (Split-Path -Parent $root)  # 本技能所在目录（ict-html-mix 的父目录）
+  $ictCoderCandidates = @(
+    (Join-Path $skillParent 'ict-coder\scripts\previewdist\index.prototype.html'),
+    (Join-Path $projRoot '.opencode\skills\ict-coder\scripts\previewdist\index.prototype.html')
+  )
+  $indexHtml = $ictCoderCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+  if (-not $indexHtml) {
+    Write-Output "FATAL: ict-coder runtime entry not found. Tried:"
+    $ictCoderCandidates | ForEach-Object { Write-Output "  - $_" }
+    exit 1
+  }
   # 渲染器唯一权威源：本技能 scripts/ 目录（与本脚本同目录）
   $rendererFile = Join-Path $root 'PreviewRenderer.js'
   # 运行时副本：项目根 previewdist/（集中式承载页引用）
   $liveCopy = Join-Path $projRoot 'previewdist\PreviewRenderer.js'
 
-  if (-not (Test-Path -LiteralPath $indexHtml)) {
-    Write-Output "FATAL: ict-coder runtime entry not found: $indexHtml"
-    exit 1
-  }
-  if (-not (Test-Path -LiteralPath $rendererFile)) {
+  if (-not (Test-Path -LiteralPath $rendererFile)) {
     Write-Output "FATAL: renderer source not found: $rendererFile"
     exit 1
   }

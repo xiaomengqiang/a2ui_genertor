@@ -76,7 +76,9 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 1. **本技能目录 `<DirMix>`**：加载 ict-html-mix 时输出的 Skill directory 绝对路径（= 本 SKILL.md 所在目录）。
 2. **ict-coder 目录 `<DirCoder>`**：第 1 步本来就要用 skill 工具加载 ict-coder——其加载输出中的 Skill directory 绝对路径**顺手记录**即得，无需额外探测。
-3. **兜底**（加载输出未含目录信息时）：用 **Glob** 分别匹配 `**/ict-html-mix/SKILL.md` 与 `**/ict-coder/SKILL.md` 定位。
+3. **兜底**（加载输出未含目录信息时），按优先级依次探测，**禁止只依赖 Glob**：
+   a. **本技能所在目录的同级探测（首选）**：取 `<DirMix>` 的父目录（即本技能所在的技能安装目录），探测 `<父目录>/ict-coder/SKILL.md` 是否存在（用 bash 工具 `Test-Path` 按绝对路径直查）。**Glob 工具只扫描 opencode 当前工作空间**——当本技能装在工作空间之外时，ict-coder 同样在工作空间之外，Glob 必然落空；而同级绝对路径探测不受工作空间限制，两技能同目录安装时（常见布局）必然命中。
+   b. **Glob 工作空间扫描（次选）**：a 未命中且技能可能装在工作空间内时，用 **Glob** 分别匹配 `**/ict-html-mix/SKILL.md` 与 `**/ict-coder/SKILL.md`。
 4. 仍取不到 → 立即停止并向用户报告，禁止盲跑。
 
 **页面本地化**：运行时从 ict-coder 技能拷贝（`<DirCoder>/scripts/previewdist/` → 页目录 `previewdist/`，含 `index.prototype.html` + `assets/` + `uploads/`，**不拷其 data.js**；渲染器从 `<DirMix>/scripts/PreviewRenderer.js` 拷入同目录），previewdist **不从项目根取**。数据用页目录 `a2ui-data/<slug>/`，页面引用全 `./` 相对路径、`?v=` 版本号**独立维护**。
