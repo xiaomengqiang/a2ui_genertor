@@ -49,6 +49,7 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 
 - **data.js 是唯一数据产物**：自带 wrapper（`window.__A2UI_DATA__ = <JSON>;`），由生成侧直接产出；无孪生、无中间 `.json` 文件，禁止手改 wrapper 结构。
 - **默认数据回退仅项目根运行时适用**：本地化页拷贝清单不含 `previewdist/data.js`，nodes 未传 `dataPath` 时渲染器对缺失的默认数据**显式报错**（不会静默沿用串行链上一节点残留的全局数据）；本工作流 nodes 登记一律显式传 `dataPath`。
+- **file:// 直开是默认与唯一常规交付方式；http 兜底仅限环境持续拦截时**：经典 `<script>` 本不受 file:// CORS 限制（上表原理），工作流交付一律 file:// 直开，**常规情况下禁止向用户建议起 http 服务**。仅当个别环境（企业安全策略 / 杀软 / 文件带 MotW 标记）持续拦截本地脚本加载——表现为重试后仍报 `Failed to load script` 且 Chrome/Edge 皆然——才用兜底：在**页目录**起本地 http 服务（如 `python -m http.server 8899` 或 `npx serve`），浏览器改开 `http://localhost:8899/<页面>.prototype.html`——页面与数据全为相对路径，**零改动**即可工作（元信息自动改走 fetch 路径）。禁止为绕过此问题向承载页注入 CDN 脚本或绝对路径引用（bundle 是完整应用而非纯 Tailwind 运行时，CDN 替代不了；绝对路径破坏可移植性，且两者均越过工作流的页面修改边界）。
 - **ict-coder 运行时重建后**：重跑 `powershell -ExecutionPolicy Bypass -File "<DirMix>/scripts/validate-and-sync.ps1" -GenMeta -ProjectRoot <项目根>`（`<DirMix>` 为本技能目录，定位方式见 SKILL.md 第 1 步「技能目录定位」；技能装在项目外/非标准层级时 `-ProjectRoot` **必须显式传**，否则项目根按位置推断会算错；扇出刷新全部渲染器副本内嵌块 → bump 各宿主页 `?v=`）并重拷本地化页的 assets。
 - Firefox 的 file:// 策略限制跨目录子资源加载，直开仅支持 Chrome/Edge（本地化页全程同目录/子目录加载，Firefox 也兼容）。
 - 只更新 data.js（渲染器未变）：普通刷新即可（script 加载带时间戳防缓存）；渲染器变更后需硬刷新 Ctrl+Shift+R（配合 `?v=` bump）。
@@ -64,7 +65,7 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 3. **`loadData` 不认 `'../'` 前缀 URL、也不支持 `*.js` wrapper 文件**：URL 判定只认 `'http'/'/'/'./'` 开头且按裸 JSON 解析。运行时注入数据先自行 `fetch` 拿对象再 `loadData(对象)`；`*.js` 数据源改用初始 `dataPath`（原生支持）。
 4. **多节点必须串行**：共享 `window.__A2UI_DATA__`，并发会张冠李戴。页内编排用 promise 链串行。
 5. **卡片/图表不撑满容器**：appDiv 用显式 `position:absolute;top:0;left:0;width:100%;height:100%`（**不是** `inset:0`——简写在某些环境 `bottom` 不生效，appDiv 退化成内容高度、整链塌缩）。排查：DevTools 看 `.preview-a2ui-app` 的 `offsetHeight` 是否 = 容器高度。
-6. **改渲染器必 bump `?v=`**：渲染器唯一权威源在本技能 `scripts/PreviewRenderer.js`，运行时副本（项目根 previewdist / 各本地化页 previewdist）由 `-GenMeta` 扇出同步；宿主页引用带 `?v=N` 缓存指纹，每次改源 +1（本地化页版本号**独立**维护）；首次验证用 Ctrl+Shift+R 硬刷新。多次"改了没生效"实为浏览器吃了旧 JS——排障先排除缓存。
+6. **改渲染器必 bump `?v=` / 偶发「Failed to load script: ./previewdist/assets/index.js」**：渲染器唯一权威源在本技能 `scripts/PreviewRenderer.js`，运行时副本（项目根 previewdist / 各本地化页 previewdist）由 `-GenMeta` 扇出同步；宿主页引用带 `?v=N` 缓存指纹，每次改源 +1（本地化页版本号**独立**维护）；首次验证用 Ctrl+Shift+R 硬刷新。多次"改了没生效"实为浏览器吃了旧 JS——排障先排除缓存。另：**偶发**「预览加载失败 Failed to load script: ./previewdist/assets/index.js」多为瞬态原因——页面打开时 previewdist/assets（~5MB bundle）**仍在拷贝中**、服务器/文件瞬时不可达、缓存损坏。渲染器已内置自愈：脚本加载失败自动重试 3 次（重试带防缓存戳、间隔递增），且 bundle 加载失败**不缓存失败态**（后续节点/重挂可重试，一次失败不再毒化整页）。仍失败时确认 previewdist/assets/index.js 完整在位（拷贝是否完成）后硬刷新；file:// 下**持续**失败（重试后仍报错且 Chrome/Edge 皆然，属环境拦截）才按「免服务器 file:// 直开」维护约定的 http 本地服务兜底处理——偶发失败重试已自愈，不应建议用户起服务。
 
 ### 布局类 Pitfalls（路线 A 挂载前必读，#7–#11）
 
@@ -98,6 +99,7 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 ## 数据存储规则
 
 - **存储布局（唯一：本地化）**：页目录 `a2ui-data/<slug>/data.js`（每节点独立文件夹，自带 wrapper 的唯一数据产物）+ 页目录 `previewdist/`。最终交付物无集中式布局。
+- **落盘/引用双铁律**：data.js 只落 `a2ui-data/<slug>/`，页面 nodes 只引用 `./a2ui-data/<slug>/data.js`——存储与引用都不得越出 a2ui-data 目录体系。`previewdist/` 只放运行时（渲染器/assets），**严禁存放任何 data.js 数据文件**。ict-coder 单独工作流经 Step 6 `package-a2ui.mjs` 把 data.js 产到 `{artifact-folder}/{slug}/`（外层平铺），修改流用 `exchange-a2ui.mjs --inject` 回写同位置——**Step 6 打包与上述两脚本在本工作流一律禁止调用**（冲突说明与落盘后自检见 SKILL.md 第 1 步）。
 - **中间产物口径（与 SKILL.md 第 1 步一致）**：不走 package → extract → copy 管道。ict-coder Step 1–5 产出的 `output/a2ui-output-{timestamp}.json` **仅为短暂中间产物**（落当前工作空间根 `output/`）——由 ict-html-mix 读取后用 Write 落盘为 `a2ui-data/<slug>/data.js`（wrapper 内 JSON 多行缩进），双道校验（ict-coder 结构校验 + validate-and-sync 语法/lint）均 PASS 后即删除；最终交付物只有 data.js，`output/` 不留残余。
 - **无孪生机制**：data.js 自带 wrapper（`window.__A2UI_DATA__ = <JSON>;`），http 与 file:// 均 script 直载，天然免任何转换产物。
 - **本地化运行时**：页目录 `previewdist/` 来源 = **ict-coder 技能运行时**（`<DirCoder>/scripts/previewdist/`，`<DirCoder>` 为 ict-coder 技能目录，定位方式见 SKILL.md 第 1 步「技能目录定位」；~21.6MB 真拷贝：index.prototype.html + assets + uploads + 渲染器），previewdist **不从项目根取**（拷贝命令见 SKILL.md 第 1 步）；页面引用全 `./`、`?v=` 独立维护。

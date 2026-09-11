@@ -119,16 +119,31 @@ class PreviewRenderer {
     }
   }
 
-  // 串行逐个加载脚本，加载完即移除标签（旧构建兜底重挂时复用以重新执行 IIFE）
-  _loadScriptOnce(url) {
-    return new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = url;
-      s.onload = () => { s.remove(); resolve(); };
-      s.onerror = () => { s.remove(); reject(new Error(`Failed to load script: ${url}`)); };
-      document.head.appendChild(s);
-    });
-  }
+  // 串行逐个加载脚本，加载完即移除标签（旧构建兜底重挂时复用以重新执行 IIFE）。
+  // 偶发加载失败（页面打开时 assets 仍在拷贝 / 杀软瞬时锁文件 / 服务器瞬断 / 缓存损坏）自动重试：
+  // 首次按原 URL（吃浏览器缓存），重试附加时间戳绕过缓存；共 4 次尝试、退避 300/900/1800ms
+  // （~3s 窗口覆盖 previewdist 拷贝收尾）。经典 <script>（非 module）不受 file:// CORS 限制，
+  // file:// 下持续失败多为拷贝未完成或环境策略拦截，按最终报错提示走 http 本地服务兜底。
+  _loadScriptOnce(url, attempt = 0) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = attempt === 0 ? url : `${url}${url.includes('?') ? '&' : '?'}retry=${Date.now()}`;
+      s.onload = () => { s.remove(); resolve(); };
+      s.onerror = () => {
+        s.remove();
+        const backoff = [300, 900, 1800];
+        if (attempt < 3) {
+          setTimeout(() => this._loadScriptOnce(url, attempt + 1).then(resolve, reject), backoff[attempt]);
+        } else {
+          const hint = this._isFileProtocol()
+            ? 'file:// preview requires Chrome/Edge; ensure previewdist copy finished; fallback: serve the page dir via local http (e.g. python -m http.server 8899) and open http://localhost:8899/<page>.html'
+            : 'check previewdist/ assets exist on the server, then hard-refresh (Ctrl+Shift+R)';
+          reject(new Error(`Failed to load script: ${url} (after ${attempt + 1} attempts; ${hint})`));
+        }
+      };
+      document.head.appendChild(s);
+    });
+  }
 
   _loadScripts(scripts) {
     return scripts.reduce((chain, src) => chain.then(() => this._loadScriptOnce(src)), Promise.resolve());
@@ -276,7 +291,10 @@ class PreviewRenderer {
     //    （不再每节点重解析+重执行 IIFE）；置多实例标志 → bundle 暴露工厂而非自动 mount('#app')
     window.__A2UI_MULTI__ = true;
     if (!PreviewRenderer._bundleLoaded) {
-      PreviewRenderer._bundleLoaded = this._loadScripts(scriptUrls);
+      PreviewRenderer._bundleLoaded = this._loadScripts(scriptUrls).catch(err => {
+        PreviewRenderer._bundleLoaded = null; // 失败不缓存：一次瞬态失败不得永久毒化同页后续节点/重挂
+        throw err;
+      });
     }
     await PreviewRenderer._bundleLoaded;
 

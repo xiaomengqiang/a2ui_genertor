@@ -10,6 +10,7 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 > **首要总则（凌驾于所有路线之上）**：凡经本 skill 的**内容**修改，必须走工作流管线——
 > 调用 `ict-coder` 生成/派生对应 **data.js** 数据文件 → `validate-and-sync.ps1` 校验 PASS → 渲染器挂载生效。
+> **落盘/引用双铁律**：① 生成的 data.js **只能**落盘 `<页目录>/a2ui-data/<slug>/data.js`；② 页面 nodes 的 `dataPath` **只能**写 `./a2ui-data/<slug>/data.js`（细节见硬约束 3/4）。③ ict-coder **仅借其 Step 1–5**，**禁止其 Step 6 打包**（`package-a2ui.mjs` 产物落 `{artifact-folder}/{slug}/` 外层平铺，直接违反铁律①）。
 > **禁止直接编辑承载页的既有 DOM/内容/样式来达成显示变化**（包括原生表格、原生 DOM 元素等非 A2UI 渲染的原生 HTML 内容——必须先转化为 A2UI 渲染节点，再通过 data.js 数据层修改；绕过管线的手改一律禁止）。
 >
 > 允许触碰页面的操作仅两类（其余一律走 data.js）：
@@ -30,9 +31,6 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 1. **用户选定**：会话上传了多个 html 而用户未指明目标时，先列出 uploads 下的 html 供用户选择，不要猜。
 2. **复制副本并重命名**：选定后**必须先将该 html 复制**到当前会话产物目录 `[artifact-folder]`（即 `.octo/ses_<会话ID>/outputs/`，取运行时注入的 `[Artifact Folder]` 实际路径，勿硬编码会话 ID），同时将文件名改为 `{原文件名}.prototype.html`。用**文件工具**完成复制（跨平台，无需 shell）：
-   - **Read**：读取 uploads 下选定的源 html 全文；
-   - **Write**：将读到的完整内容写入 `<[artifact-folder]>/{原文件名}.prototype.html`。
-
    - **Read**：读取 uploads 下选定的源 html 全文；
    - **Write**：将读到的完整内容写入 `<[artifact-folder]>/{原文件名}.prototype.html`。
 
@@ -67,11 +65,17 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 ### 第 1 步：生成 A2UI data.js
 
-用 **skill 工具加载 `ict-coder` 技能**并按其生成工作流产出数据。本工作流借其 **Step 1–5**（生成 + 结构校验），**不执行其 Step 6 打包/artifact 输出**。wrapper 落盘桥接（由本 skill 负责，ict-coder 不参与）：
+用 **skill 工具加载 `ict-coder` 技能**并按其生成工作流产出数据。本工作流借其 **Step 1–5**（生成 + 结构校验），**禁止执行其 Step 6 打包/artifact 输出**（原生产物外层平铺，与本工作流存储布局冲突，见下方冲突说明）。wrapper 落盘桥接（由本 skill 负责，ict-coder 不参与）：
+
+> **⚠️ ict-coder 原生产物路径冲突说明（本步必读，防产物散落外层）**：ict-coder **单独使用**时，经 Step 6 `package-a2ui.mjs` 把 data.js 直接产到 `{artifact-folder}/{slug}/data.js`（**外层平铺**，与预览 HTML 同级），其修改流则用 `exchange-a2ui.mjs --inject` 回写同位置——该布局**仅限 ict-coder 独立出页场景**，在本工作流中一律禁止，规避措施：
+> 1. **禁止调用** `package-a2ui.mjs`、`exchange-a2ui.mjs --inject`、ict-coder 的 Step 6 与 `<artifact>` 输出——它们全都会把 data.js 落到外层；
+> 2. ict-coder 职责到 Step 5 为止（`output/` 中间 JSON 结构校验 PASS），wrapper 落盘 `<页目录>/a2ui-data/<slug>/data.js` 由**本 skill 用 Write 工具**完成，路线 C 的 patch 用 Edit 直改该文件；
+> 3. ict-coder 技能加载后其文档上下文全程在场，凡其产物路径/命令与本 SKILL.md 冲突处，**一律以本 SKILL.md 为准**；
+> 4. **落盘后自检（强制）**：确认 `<页目录>/a2ui-data/<slug>/data.js` 在位、`output/` 中间 JSON 已删、`[artifact-folder]` 外层与 `previewdist/` 内**无新增任何 data.js**——发现外层产物即为本步执行缺陷，立即删除并改落 a2ui-data。
 
 1. ict-coder 按 Step 1–5 正常产出并校验 `output/a2ui-output-{timestamp}.json`（结构校验须 PASS）。
    注意 ict-coder 文档内命令均为相对路径（`scripts/validate-a2ui.mjs`、`output/`），跨技能调用时工作目录不保证在其技能目录——其校验命令与中间 JSON 的一应读写**一律改用 `<DirCoder>` 解析出的绝对路径**（如 `node "<DirCoder>/scripts/validate-a2ui.mjs" "<工作空间根>/output/a2ui-output-{timestamp}.json" --fix`）；中间 JSON 实际落盘在**当前工作空间根**的 `output/`（与页目录可能相距甚远，勿混淆）；
-2. 本 skill 读取该校验通过的 JSON，用 **Write 工具**按 wrapper 格式 `window.__A2UI_DATA__ = <JSON>;` 写入 `<页目录>/a2ui-data/<slug>/data.js`（一节点一文件夹，slug 为 kebab-case）。**wrapper 内 JSON 必须保持多行缩进格式（每键一行），禁止压缩为单行**——路线 C 的 Read/Edit patch 依赖逐行读写，单行超过 2000 字符会被 Read 截断，Edit 将失配或改坏文件；
+2. 本 skill 读取该校验通过的 JSON，用 **Write 工具**按 wrapper 格式 `window.__A2UI_DATA__ = <JSON>;` 写入 `<页目录>/a2ui-data/<slug>/data.js`（一节点一文件夹，slug 为 kebab-case）。**这是 data.js 唯一允许的落盘位置**——禁止写入 `previewdist/`（ict-coder 单独工作流 Step 6 的产物位置，本工作流不适用）、`output/`、页目录根或任何其他目录。**wrapper 内 JSON 必须保持多行缩进格式（每键一行），禁止压缩为单行**——路线 C 的 Read/Edit patch 依赖逐行读写，单行超过 2000 字符会被 Read 截断，Edit 将失配或改坏文件；
 3. 随后由第 2 步 `validate-and-sync.ps1` 校验 wrapper 语法 + lint（结构校验 + 语法 lint 双保险，对象不同、不可互替）；
 4. 中间产物 `output/a2ui-output-{timestamp}.json` 在 wrapper 写入且两道校验均 PASS 后删除（不作为交付物）。
 
@@ -124,7 +128,7 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 ### 第 2 步：校验（硬门禁，未 PASS 禁止挂载）
 
-用「技能目录定位」解析出的 `<DirMix>` 执行（绝对路径注入，不依赖工作目录），用 bash 工具按平台选解释器：Windows 直接 `powershell -ExecutionPolicy Bypass -File "<DirMix>/scripts/validate-and-sync.ps1" -InputFile <产物绝对路径>`；Linux/macOS 需已安装 PowerShell 7+，同参数改用 `pwsh -File`（无 pwsh 时向用户报告，禁止跳过校验挂载）。
+用「技能目录定位」解析出的 `<DirMix>` 执行（绝对路径注入，不依赖工作目录），用 bash 工具按平台选解释器：Windows 直接 `powershell -ExecutionPolicy Bypass -File "<DirMix>/scripts/validate-and-sync.ps1" -InputFile <产物绝对路径>`；Linux/macOS 需已安装 PowerShell 7+，同参数改用 `pwsh -File`（无 pwsh 时向用户报告，禁止跳过校验挂载）。`-InputFile` **必须传 `<页目录>/a2ui-data/<slug>/data.js` 落盘件本身的绝对路径**，不得校验任何别处副本。
 
 FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重跑，直到 `RESULT: PASS` 且 lint 告警清零。**data.js 本身即最终产物**（无孪生 / 中间 `.json` 文件）。本脚本只管**渲染关切**（JSON 语法 + 项目 lint）；A2UI 结构校验由 ict-coder 生成侧兜底，二者对象不同、不可互替。
 
@@ -175,7 +179,7 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 
 - **路线 A（替换）**：`container` 填既有节点选择器。渲染器默认 `replace:true` 清空该容器内容再渲染，容器节点本身保留——无需其他改动。高度策略按第 1 步速查表执行（容器不写死高度）。
 - **路线 B（新增）**：先做第 4 步造槽位，再登记 nodes；nodes 条目**须带 `replace: false`**（模板已按 `cfg.replace` 透传）。新建空槽位时默认 true 虽无害，但向**已有内容的容器**追加共存节点时必须显式 false，否则会清空宿主原有内容。
-- `dataPath` 只支持 `*.js` 一种形态（data.js 自带 wrapper，http/file:// 均 script 直载）；不再使用 `*.json`。
+- `dataPath` **必须**为 `./a2ui-data/<slug>/data.js`——从页目录以 `./` 前缀相对引用 a2ui-data 目录，禁止指向 `previewdist/data.js`、项目根路径、绝对路径或任何非 a2ui-data 位置（与硬约束 4 对应）；只支持 `*.js` 一种形态（data.js 自带 wrapper，http/file:// 均 script 直载），不再使用 `*.json`。
 - 多节点必须保持 promise 链**串行**（共享 `window.__A2UI_DATA__`，并发会张冠李戴），新增节点只追加数组项，勿改串行结构。
 - **挂载前自检（逐项核对）**：① 间距/视觉类取自页面实读值；② 图表组件 className 含显式 `h-`；③ 表格有分页或 `max-h` + `overflow-y-auto`；④ 容器无写死 `h-[xxx]`；⑤ 容器 CSS 与 data.js root 之间 padding/shadow/rounded/bg 四项无重复（去重表见 WORKFLOW.md Pitfall #11）。
 
@@ -238,17 +242,11 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 
 ## 路线 D：移除节点（删除/下线）
 
-**职责范围**：本脚本只管**渲染关切**——JSON 语法 + 项目 lint。A2UI 结构校验（三键结构/元素键锁/id 唯一/children/path/括号）**不在本脚本内**，由 ict-coder 技能生成侧校验兜底。
-
-| 检查 | 级别 | 说明 |
-|---|---|---|
-| data.js 语法 | FAIL（exit 1） | 非 `window.__A2UI_DATA__ = {...}` wrapper 开头，或剥壳后 `ConvertFrom-Json` 解析失败 → `RESULT: FAIL` + 错误行上下文 |
-| flex 方向类必配 `flex`/`inline-flex` | lint 告警 | 方向类只设 `flex-direction` 不设 `display`；漏 `flex` 则容器停留 block、高度塌缩 |
-| `*Chart` 组件必含显式 `h-` 高度类 | lint 告警 | 缺 `h-` 则 DOM 塌 10px，ResizeObserver 只能按 0/10px 重绘 |
-| `Table` 关闭分页时的槽位高度约束 | lint 告警 | Pagination 未开启（false/缺失默认真）且数据行 ≥ 6 时提醒：「Table 关闭分页后内容行数较多，请确认槽位已设 max-h 防止布局撑开」 |
-| `max-h-*` 配 `overflow-hidden` | lint 告警 | data.js 元素 className 同时含 `max-h-*` 与 `overflow-hidden` 时告警：超限内容会被静默截断，改用 `overflow-y-auto`。注：lint 只扫 data.js 元素，页面槽位 HTML 不在扫描范围，需按速查铁律 2 人工遵守 |
-
-lint 告警必须清零后才挂载。常见修复：`no 'flex'` → className 加 `flex`；`missing height class (h-)` → 加 `h-full`/`h-64` 等。
+1. **确认对象与后果**：用路线 C 第 1 步同款 Grep 反查目标节点的 nodes 登记项。若该节点当初经路线 A 替换了原生内容（原生内容已不在页面上），删除后**无法**自动还原原生内容，须先告知用户后果并确认；容器只是变回空节点，不会报错。
+2. **删除 nodes 数组项**：只删目标项，其余条目与串行结构不动。
+3. **槽位处理**：路线 B 自建的新槽位节点一并移除该 DOM 节点；路线 A 只清空过内容的容器**保留**（原生内容还原走 git / 备份）。
+4. **数据文件夹保留**：`a2ui-data/<slug>/` 一律保留作回退依据（回退 = 重新登记 nodes 项），除非用户明确要求清理。
+5. **告知用户刷新浏览器**生效。
 
 ---
 
@@ -257,7 +255,7 @@ lint 告警必须清零后才挂载。常见修复：`no 'flex'` → className �
 1. 项目根 `previewdist/` 为**历史集中式副本**（可能对 Users 组只读；本地化页一律用页目录副本，不引用它）；校验与元信息维护一律走本技能 `scripts/validate-and-sync.ps1`——校验必须 `RESULT: PASS` 且 lint 告警清零才挂载（结构合法性由 ict-coder 生成侧兜底）。
 2. 渲染器唯一权威源 = 本技能 `scripts/PreviewRenderer.js`，可改；改动需同步各运行时副本并 bump 宿主页 `?v=`（跑 `-GenMeta -ProjectRoot <项目根>` 自动扇出：源 + 项目根历史副本 + 各 `<页目录>/previewdist/` 递归扫描；技能装在项目外时**必须显式传 `-ProjectRoot`**，否则项目根按位置推断会算错；项目根历史副本若 ACL 拒写仅 WARN，不阻塞）；只改 data.js/HTML 不需要 bump。
 3. data.js 只用 **Write/Edit 工具**写，禁命令行管道写文件。所有 data.js 产物必须写入 `<页目录>/a2ui-data/<slug>/data.js`（`<slug>` 为 kebab-case 命名，按业务语义区分不同修改点；文件内容 = `window.__A2UI_DATA__ = <JSON>;`，wrapper 内 JSON 保持多行缩进，见第 1 步），不得写入 `output/` 或其他临时目录。
-4. `dataPath` 前缀：一律 `./a2ui-data/<slug>/data.js`（唯一存储布局为本地化，渲染器只支持 `*.js` 形态）。
+4. **落盘与引用双唯一**：data.js 只落 `<页目录>/a2ui-data/<slug>/data.js`（见硬约束 3），nodes 的 `dataPath` 一律 `./a2ui-data/<slug>/data.js`——存储与引用都必须且只能在 a2ui-data 目录体系内；禁止落盘/引用 `previewdist/`、`output/`、页目录根等其他位置（渲染器只支持 `*.js` 形态）。**禁止使用 ict-coder 的 Step 6 打包**：不得调用 `package-a2ui.mjs`、`exchange-a2ui.mjs --inject` 及 `<artifact>` 输出——其产物落 `{artifact-folder}/{slug}/` 外层平铺，直接违反本条（冲突说明与自检见第 1 步）。
 5. 渲染器 `container` 必填；`data` 可替代 `dataPath` 传内联对象；都不传回退 `previewdist/data.js` 默认数据——**该回退仅项目根运行时适用**（本地化页拷贝清单不含 data.js，缺失时渲染器显式报错，不会静默沿用上一节点数据）。本工作流 nodes 登记一律显式传 `dataPath`，不依赖该回退。
 6. 免服务器 file:// 直开与 ict-coder 运行时重建后的 `-GenMeta` + 重拷 assets 流程，详见 WORKFLOW.md「免服务器 file:// 直开」。
 7. 会话上传的承载页 html **必须先复制到 `[artifact-folder]` 副本再操作**（见「前置步骤：承载页入位」）；`uploads/` 原始上传文件全程只读，禁止在 uploads 内直接修改或派生产物。
