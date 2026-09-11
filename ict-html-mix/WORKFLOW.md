@@ -48,7 +48,8 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 维护约定：
 
 - **data.js 是唯一数据产物**：自带 wrapper（`window.__A2UI_DATA__ = <JSON>;`），由生成侧直接产出；无孪生、无中间 `.json` 文件，禁止手改 wrapper 结构。
-- **ict-coder 运行时重建后**：重跑 `powershell -ExecutionPolicy Bypass -File "<DirMix>/scripts/validate-and-sync.ps1" -GenMeta`（`<DirMix>` 为本技能目录，定位方式见 SKILL.md 第 1 步「技能目录定位」；扇出刷新全部渲染器副本内嵌块 → bump 各宿主页 `?v=`）并重拷本地化页的 assets。
+- **默认数据回退仅项目根运行时适用**：本地化页拷贝清单不含 `previewdist/data.js`，nodes 未传 `dataPath` 时渲染器对缺失的默认数据**显式报错**（不会静默沿用串行链上一节点残留的全局数据）；本工作流 nodes 登记一律显式传 `dataPath`。
+- **ict-coder 运行时重建后**：重跑 `powershell -ExecutionPolicy Bypass -File "<DirMix>/scripts/validate-and-sync.ps1" -GenMeta -ProjectRoot <项目根>`（`<DirMix>` 为本技能目录，定位方式见 SKILL.md 第 1 步「技能目录定位」；技能装在项目外/非标准层级时 `-ProjectRoot` **必须显式传**，否则项目根按位置推断会算错；扇出刷新全部渲染器副本内嵌块 → bump 各宿主页 `?v=`）并重拷本地化页的 assets。
 - Firefox 的 file:// 策略限制跨目录子资源加载，直开仅支持 Chrome/Edge（本地化页全程同目录/子目录加载，Firefox 也兼容）。
 - 只更新 data.js（渲染器未变）：普通刷新即可（script 加载带时间戳防缓存）；渲染器变更后需硬刷新 Ctrl+Shift+R（配合 `?v=` bump）。
 
@@ -65,12 +66,39 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 5. **卡片/图表不撑满容器**：appDiv 用显式 `position:absolute;top:0;left:0;width:100%;height:100%`（**不是** `inset:0`——简写在某些环境 `bottom` 不生效，appDiv 退化成内容高度、整链塌缩）。排查：DevTools 看 `.preview-a2ui-app` 的 `offsetHeight` 是否 = 容器高度。
 6. **改渲染器必 bump `?v=`**：渲染器唯一权威源在本技能 `scripts/PreviewRenderer.js`，运行时副本（项目根 previewdist / 各本地化页 previewdist）由 `-GenMeta` 扇出同步；宿主页引用带 `?v=N` 缓存指纹，每次改源 +1（本地化页版本号**独立**维护）；首次验证用 Ctrl+Shift+R 硬刷新。多次"改了没生效"实为浏览器吃了旧 JS——排障先排除缓存。
 
+### 布局类 Pitfalls（路线 A 挂载前必读，#7–#11）
+
+> 执行规范（速查表/速查铁律）已内联于 SKILL.md 第 1 步（唯一口径）；以下为原理、后果与排障细节。高度参考值与 SKILL.md 同源：表格分页 ≈ 413px，图表卡 ≈ 424px。
+
+7. **容器 HTML 布局类与 data.js root 布局重复**：路线 A 替换时，目标容器 HTML 已有布局类（如 `class="grid grid-cols-1 lg:grid-cols-3 gap-6"`），而 data.js 的 root element 又写了相同 grid/flex 布局 → 双重布局声明叠加，内容失去列跨度控制、列宽异常、内边距翻倍。**规范**：清空容器布局类（改为普通空 div 或仅保留定位/id 类），布局控制权统一交 data.js root；容器本就是纯锚点（仅 `id` 无布局类）则无需改动。不确定容器是布局角色还是锚点角色时，一律清空布局类。
+8. **CSS 样式表布局类双重叠加（高危，区域级替换常见）**：目标容器布局不在 HTML `class` 属性上，而在 `<style>` / `.css` 的类选择器里（如 `.chart-container { display:grid; grid-template-columns:2fr 1fr; gap:24px }`）→ 外层 CSS grid 把 data.js root 当成单个网格项压进一个单元格，内部两列实际只占一个单元格宽度，列宽异常/重叠。比 #7 更隐蔽（布局类不在 HTML 上，易漏查）。**规范**：在容器 HTML 元素上加 `style="display:block"` 内联覆盖 CSS 的 grid/flex 声明，使容器退化为普通块级元素；**禁止直接编辑样式表**（可能含响应式断点/复用规则）。**自检**：每次区域级替换后，检查容器在 CSS 样式表中是否有 grid/flex/position 规则，有则必须内联覆盖。
+9. **容器高度必须由内容自然撑开**：核心原则——容器不写死 `h-[xxx]` 固定高度（会截断超限内容，出现"只剩标题+部分内容"），高度控制放在 data.js 内部（图表显式 `h-[xxx]`、表格分页或 `max-h` + `overflow-y-auto`）。各类内容高度推导（参考值，实际以页面上下文为准）：
+   - **图表组件**（BarChart/LineChart/RadarChart 等）：className 必含显式 `h-[xxx]`（如 `h-[320px]`），不依赖父容器高度；卡片总高 ≈ header(44) + chart(320) + padding(48) + gap(12) ≈ **424px**。
+   - **表格默认分页**（每页 5 行）：高度 ≈ 表头区(80) + 5行×48 + 分页条(45) + padding(48) ≈ **413px**，与图表卡自然对齐，无需 max-h。
+   - **表格全显**（用户明确要求）：按实际行数 × 48px/行估算，外层 `max-h-[380px] overflow-y-auto` 约束。
+   - **指标/KPI 卡**：≈ header(40) + metric(60) + padding(48) ≈ **148px**。
+   - **多卡区域容器**：不设固定高，= 行内最高卡片；行内高度对齐交给 grid `align-items: stretch`。
+
+   **常见误区**：给容器写死 h-[xxx]（截断超限内容）；用 overflow:hidden 做安全兜底（静默截断，见 #10）；给图表套 max-h+滚动（图表自带 h-[xxx] 不会溢出，不需要）。
+   **间距取值规则**：`p-*`/`gap-*`/`rounded-*` 等视觉属性必须从页面既有 DOM 实读取值——同一父级下邻近卡片的 class 为基准（页面 KPI 用 `p-5 rounded-2xl` 则 A2UI 卡片同款；父容器 `gap-4` 则子容器间距同 `gap-4`），禁止脱离页面上下文自选数值。
+10. **表格/列表可变高度内容的 overflow 策略**：`max-h-*` 必须配 `overflow-y-auto`（超限可滚动），**禁止配 `overflow-hidden`**（静默截断，用户看不到完整信息）；列表内容与混合内容卡片（以最长子项估高）同样用 `max-h` + `overflow-y-auto`；图表组件自带 h-[xxx] 固定高度，不需要额外约束。
+11. **视觉样式与容器 CSS 重复叠加**：路线 A 替换时，容器在页面 CSS 中已有视觉样式（`box-shadow`/`padding`/`border-radius`/`background`），data.js 卡片又带同款（如 `p-6 rounded-[8px] shadow-sm bg-white`）→ padding 翻倍（内容区缩窄、破坏与相邻卡片对齐）、阴影叠影、圆角/背景冲突。**去重原则**：容器已有的视觉属性，data.js 不再设——
+
+    | 样式属性 | 容器 CSS 有？ | data.js root 有？ | 操作 |
+    |---|---|---|---|
+    | padding | 是 | 是 → **去重** | 去掉 data.js 的 `p-*`（容器提供）或去掉容器的类名、迁移到 data.js |
+    | box-shadow | 是 | 是 → **去重** | 去掉 data.js 的 `shadow-*`（容器提供）或去掉容器的类名、迁移到 data.js |
+    | border-radius | 是 | 是 → **去重** | 去掉 data.js 的 `rounded-*`（容器提供）或去掉容器的类名、迁移到 data.js |
+    | background | 是 | 是 → **去重** | 去掉 data.js 的 `bg-*`（容器提供）或去掉容器的类名、迁移到 data.js |
+
+    任一项重复即为缺陷。**特例（容器被清空后样式失效）**：原容器有视觉样式但路线 A 替换后被清空为 `<div id="xxx"></div>`，容器自身已无子元素撑开，CSS 视觉样式残缺——此时把容器的视觉样式（padding/shadow/rounded/background）**全部迁移**到 data.js root 的 className，容器 HTML 去掉视觉类名（如去掉 `class="chart-card"`）改为纯定位锚点 `<div id="xxx"></div>`。**id 必须保留**（nodes 登记的 container 选择器靠它命中，删掉 id 挂载即失败）；禁止保留容器 CSS 样式的同时又在 data.js 中重复设。
+
 ---
 
 ## 数据存储规则
 
-- **存储布局（唯一：本地化）**：页目录 `a2ui-data/<slug>/data.js`（每节点独立文件夹，自带 wrapper 的唯一数据产物）+ 页目录 `previewdist/`。无集中式布局、无 `output/` 中转。
-- **所有新产生的 data.js 必须直接写入 `a2ui-data/` 目录**，不使用 `output/` 作为中间暂存，也不走 package → extract → copy 的管道流程。生成侧（ict-coder Step 1–5）直接落盘 `a2ui-data/<slug>/data.js`，无中间产物需清理。
+- **存储布局（唯一：本地化）**：页目录 `a2ui-data/<slug>/data.js`（每节点独立文件夹，自带 wrapper 的唯一数据产物）+ 页目录 `previewdist/`。最终交付物无集中式布局。
+- **中间产物口径（与 SKILL.md 第 1 步一致）**：不走 package → extract → copy 管道。ict-coder Step 1–5 产出的 `output/a2ui-output-{timestamp}.json` **仅为短暂中间产物**（落当前工作空间根 `output/`）——由 ict-html-mix 读取后用 Write 落盘为 `a2ui-data/<slug>/data.js`（wrapper 内 JSON 多行缩进），双道校验（ict-coder 结构校验 + validate-and-sync 语法/lint）均 PASS 后即删除；最终交付物只有 data.js，`output/` 不留残余。
 - **无孪生机制**：data.js 自带 wrapper（`window.__A2UI_DATA__ = <JSON>;`），http 与 file:// 均 script 直载，天然免任何转换产物。
 - **本地化运行时**：页目录 `previewdist/` 来源 = **ict-coder 技能运行时**（`<DirCoder>/scripts/previewdist/`，`<DirCoder>` 为 ict-coder 技能目录，定位方式见 SKILL.md 第 1 步「技能目录定位」；~21.6MB 真拷贝：index.prototype.html + assets + uploads + 渲染器），previewdist **不从项目根取**（拷贝命令见 SKILL.md 第 1 步）；页面引用全 `./`、`?v=` 独立维护。
 
