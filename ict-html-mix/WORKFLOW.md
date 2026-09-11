@@ -59,7 +59,7 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 
 > 排障先看这里。
 
-1. **应用外壳 `h-screen` 撑爆小容器（直接模式）**：卡片高度变 100vh。已内置垫片 CSS 钉稳 `shell → content-wrap → a2ui-surface` 高度链为 `100%`；**不要去改 previewpc 内部**。
+1. **应用外壳 `h-screen` 撑爆小容器（直接模式）**：卡片高度变 100vh。已内置垫片 CSS 钉稳 `shell → content-wrap → a2ui-surface` 高度链为 `100%`；**不要去改 previewpc 内部**。同一垫片已将外壳各层背景透明化——外壳自带 `bg-gray-50` 默认底色会强加于宿主页，需要背景时由 data.js 元素自带 `bg-*` 类提供（外壳层用 `background:transparent!important` 覆盖，Tailwind 运行时类无法反超）。
 2. **图表卡高度塌成 10px**：根因是纯 CSS 高度链——`flex-col` 漏 `flex` → 子项 `flex-1` 失效。硬规则：凡 `flex-col`/`flex-row`/`flex-wrap` 必带 `flex`；图表组件（component 名以 `Chart` 结尾）`className` 必含显式 `h-` 高度类（`h-full`/`h-64`，`min-h-0` 不算）。图表 DOM 拿到真实高度后自带 ResizeObserver 自愈，无需改图表组件。
 3. **`loadData` 不认 `'../'` 前缀 URL、也不支持 `*.js` wrapper 文件**：URL 判定只认 `'http'/'/'/'./'` 开头且按裸 JSON 解析。运行时注入数据先自行 `fetch` 拿对象再 `loadData(对象)`；`*.js` 数据源改用初始 `dataPath`（原生支持）。
 4. **多节点必须串行**：共享 `window.__A2UI_DATA__`，并发会张冠李戴。页内编排用 promise 链串行。
@@ -108,7 +108,7 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
 
 | 文件 | 角色 |
 |---|---|
-| `<ict-html-mix 技能目录>/SKILL.md` | **执行手册**：意图路由 / 路线操作步骤 / 硬约束 |
+| `<ict-html-mix 技能目录>/SKILL.md` | **执行手册**：意图路由 / 路线 A–D 操作步骤 / 挂载模板 / 校验门禁 / 高度速查表 / 硬约束 |
 | `<ict-html-mix 技能目录>/WORKFLOW.md`（本文件） | **参考手册**：渲染器行为 / file:// 原理 / Pitfalls / 存储规则 / 文件清单 |
 | `<ict-html-mix 技能目录>/scripts/validate-and-sync.ps1` | **唯一维护脚本（双模式）**：`-InputFile` data.js 语法校验（剥 wrapper）+ 项目 lint（A2UI 结构校验由 ict-coder 生成侧兜底）；`-GenMeta` 提取 ict-coder 运行时元信息扇出回写渲染器内嵌块 |
 | `<ict-coder 技能目录>` | 生成技能：产出 A2UI 数据（本工作流直接落盘为 `a2ui-data/<slug>/data.js`，仅借其 Step 1–5 生成能力） |

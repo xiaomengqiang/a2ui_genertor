@@ -202,11 +202,13 @@ class PreviewRenderer {
     const scriptUrls = meta.scripts.map(src => src.startsWith('./') ? `${distPath}/${src.slice(2)}` : src);
 
     // 2. 全局样式只注入一次（@theme / tailwind 运行时主题）+ 内容撑开垫片：
-    //    垫片将 A2UI 渲染容器（appDiv → content-wrap → a2ui-surface）高度设为 auto，
-    //    让内容自然撑开容器高度，避免固定高度导致的内容截断或滚动条。
-    //    图表组件（BarChart/LineChart/RadarChart 等）自身带 h-[xxx] 固定高度，
-    //    不依赖 height:100% 继承——因此 auto 不影响图表正常渲染。
-    //    表格/列表类内容通过分页（每页5行）或 max-h 约束控制高度，不需要外层固定高度。
+    //    垫片将 A2UI 渲染容器（appDiv → content-wrap → a2ui-surface）高度设为 auto，
+    //    让内容自然撑开容器高度，避免固定高度导致的内容截断或滚动条。
+    //    图表组件（BarChart/LineChart/RadarChart 等）自身带 h-[xxx] 固定高度，
+    //    不依赖 height:100% 继承——因此 auto 不影响图表正常渲染。
+    //    表格/列表类内容通过分页（每页5行）或 max-h 约束控制高度，不需要外层固定高度。
+    //    同一选择器组将外壳各层背景透明化：bundle 外壳（PreviewPage 根 div）自带
+    //    bg-gray-50 默认底色，会强加于宿主页——需要背景时由 data.js 元素自带 bg-* 类。
     if (!PreviewRenderer._stylesInjected) {
       PreviewRenderer._stylesInjected = true;
       meta.styles.forEach(s => {
@@ -216,7 +218,7 @@ class PreviewRenderer {
         document.head.appendChild(ns);
       });
       const shim = document.createElement('style');
-      shim.textContent = '.preview-a2ui-app>div,.preview-a2ui-app>div>div,.preview-a2ui-app .a2ui-surface{height:auto;}.preview-a2ui-app,.preview-a2ui-app>div{overflow:visible}';
+      shim.textContent = '.preview-a2ui-app>div,.preview-a2ui-app>div>div,.preview-a2ui-app .a2ui-surface{height:auto;background:transparent!important}.preview-a2ui-app,.preview-a2ui-app>div{overflow:visible}';
       document.head.appendChild(shim);
     }
 

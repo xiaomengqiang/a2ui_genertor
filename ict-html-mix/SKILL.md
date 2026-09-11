@@ -1,6 +1,6 @@
 ﻿---
 name: ict-html-mix
-description: A2UI 节点工作流：在承载页上生成、校验、替换、新增或修改 A2UI 渲染节点，覆盖节点完整生命周期。内置工作流文档与校验脚本，调用 ict-coder 技能生成 data.js → validate-and-sync.ps1 校验 → 挂载到页面节点。用户只需提供 页面 + 节点 + 需求。Use when the user mentions 承载页/替换节点/新增节点/渲染到节点/A2UI/code_artifact, or wants to modify already-rendered A2UI content.
+description: A2UI 节点工作流：在承载页上生成、校验、替换、新增、修改或移除 A2UI 渲染节点，覆盖节点完整生命周期。管线：ict-coder 生成 data.js → validate-and-sync.ps1 校验 → 页面挂载。用户只需提供 页面 + 节点 + 需求。Use when the user mentions 承载页/替换节点/新增节点/渲染到节点/A2UI/code_artifact, or wants to modify already-rendered A2UI content.
 ---
 
 # A2UI 节点工作流（执行手册）
@@ -30,6 +30,8 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 1. **用户选定**：会话上传了多个 html 而用户未指明目标时，先列出 uploads 下的 html 供用户选择，不要猜。
 2. **复制副本并重命名**：选定后**必须先将该 html 复制**到当前会话产物目录 `[artifact-folder]`（即 `.octo/ses_<会话ID>/outputs/`，取运行时注入的 `[Artifact Folder]` 实际路径，勿硬编码会话 ID），同时将文件名改为 `{原文件名}.prototype.html`。用**文件工具**完成复制（跨平台，无需 shell）：
+   - **Read**：读取 uploads 下选定的源 html 全文；
+   - **Write**：将读到的完整内容写入 `<[artifact-folder]>/{原文件名}.prototype.html`。
 
    - **Read**：读取 uploads 下选定的源 html 全文；
    - **Write**：将读到的完整内容写入 `<[artifact-folder]>/{原文件名}.prototype.html`。
@@ -47,15 +49,17 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 | 用户意图 | 路线 |
 |---|---|
-| 「在 X **上**加一个 Y」「给 X 的表格加一行」「修改 X 的 Z」 | **路线 C 修改模式**（patch 既有 data.js，不改页面结构） |
+| 「在 X **上**加一个 Y」「给 X 的表格加一行」「修改 X 的 Z」（X 为已渲染 A2UI 节点） | **路线 C 修改模式**（patch 既有 data.js，不改页面结构） |
 | 「替换 X 节点为 Y」「把 X 渲染成 Y」 | **路线 A 替换模式**（清空 X 内容渲染新内容，容器保留） |
 | 「在 X 后新增一张独立卡」「页面加一个新模块」 | **路线 B 新增模式**（造新槽位 + 挂载） |
-| 「把 X 区域整体改为 Y」且 X 内部**已含 A2UI 渲染子节点**（X 为外层大区域） | **路线 A 区域级替换**（整个选中区域接管重渲染，见「路线 A 区域级替换」小节） |
+| 「把 X 区域整体改为 Y」且 X 内部**已含 A2UI 渲染子节点**（X 为外层大区域） | **路线 A 区域级替换**（见「路线 A 区域级替换」小节） |
+| 「删掉 X」「下线 X」「不要这个节点了」 | **路线 D 移除模式**（见「路线 D：移除节点」小节） |
+| 以上都不匹配 / 意图模糊 | 用 question 工具向用户澄清，**禁止猜路线** |
 
-**硬约束：禁止无差别删除节点；禁止绕过管线直接手改原页面内容（见首要总则）。**
+**硬约束：禁止无差别删除节点（删除走路线 D 且先确认）；禁止绕过管线直接手改原页面内容（见首要总则）。**
 路线 A 只清空目标容器内容由渲染器重渲染；路线 B 不动任何既有节点。
 
-**区域覆盖优先规则**：处理粒度以**用户选中区域**为准。当用户选中的目标区域**包含**既有 A2UI 渲染子节点（选中范围大于页尾 nodes 中已登记的 container）时，必须对**整个选中区域**走路线 A 整体替换（见「路线 A 区域级替换」小节）——**禁止**退化为只针对内部部分子节点的局部修补（路线 C patch / 逐卡拆改）来绕过区域级接管。
+**区域覆盖优先规则**：处理粒度以**用户选中区域**为准。当用户选中的目标区域**包含**既有 A2UI 渲染子节点（选中范围大于页尾 nodes 中已登记的 container）时，必须对**整个选中区域**走路线 A 整体替换——**禁止**退化为只针对内部部分子节点的局部修补（路线 C patch / 逐卡拆改）来绕过区域级接管。
 
 ---
 
@@ -82,7 +86,7 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
    b. **Glob 工作空间扫描（次选）**：a 未命中且技能可能装在工作空间内时，用 **Glob** 分别匹配 `**/ict-html-mix/SKILL.md` 与 `**/ict-coder/SKILL.md`。
 4. 仍取不到 → 立即停止并向用户报告，禁止盲跑。
 
-**页面本地化**：运行时从 ict-coder 技能拷贝（`<DirCoder>/scripts/previewdist/` → 页目录 `previewdist/`，含 `index.prototype.html` + `assets/` + `uploads/`，**不拷其 data.js**；渲染器从 `<DirMix>/scripts/PreviewRenderer.js` 拷入同目录），previewdist **不从项目根取**。数据用页目录 `a2ui-data/<slug>/`，页面引用全 `./` 相对路径、`?v=` 版本号**独立维护**。
+**页面本地化**：运行时从 ict-coder 技能拷贝（`<DirCoder>/scripts/previewdist/` → 页目录 `previewdist/`），previewdist **不从项目根取**。数据用页目录 `a2ui-data/<slug>/`，页面引用全 `./` 相对路径、`?v=` 版本号**独立维护**。
 
 本地化拷贝（`<页目录>` 换成实际页目录、`<DirMix>`/`<DirCoder>` 换成上一步定位到的技能目录绝对路径；先建目录再拷贝，任意工作目录可执行），拷贝清单：
 
@@ -120,9 +124,19 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 
 ### 第 2 步：校验（硬门禁，未 PASS 禁止挂载）
 
-用「技能目录定位」解析出的 `<DirMix>` 执行（绝对路径注入，不依赖工作目录），用 bash 工具按平台选解释器：Windows 直接 `powershell -ExecutionPolicy Bypass -File "<DirMix>/scripts/validate-and-sync.ps1" -InputFile <产物绝对路径>`；Linux/macOS 需已安装 PowerShell 7+，同参数改用 `pwsh -File`。
+用「技能目录定位」解析出的 `<DirMix>` 执行（绝对路径注入，不依赖工作目录），用 bash 工具按平台选解释器：Windows 直接 `powershell -ExecutionPolicy Bypass -File "<DirMix>/scripts/validate-and-sync.ps1" -InputFile <产物绝对路径>`；Linux/macOS 需已安装 PowerShell 7+，同参数改用 `pwsh -File`（无 pwsh 时向用户报告，禁止跳过校验挂载）。
 
-FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重跑，直到 `RESULT: PASS` 且 lint 告警清零。**data.js 本身即最终产物**（无孪生 / 中间 `.json` 文件）。规则详情见下方「校验规则」。
+FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重跑，直到 `RESULT: PASS` 且 lint 告警清零。**data.js 本身即最终产物**（无孪生 / 中间 `.json` 文件）。本脚本只管**渲染关切**（JSON 语法 + 项目 lint）；A2UI 结构校验由 ict-coder 生成侧兜底，二者对象不同、不可互替。
+
+| 检查 | 级别 | 说明 |
+|---|---|---|
+| data.js 语法 | FAIL（exit 1） | 非 `window.__A2UI_DATA__ = {...}` wrapper 开头，或剥壳后 `ConvertFrom-Json` 解析失败 → `RESULT: FAIL` + 错误行上下文 |
+| flex 方向类必配 `flex`/`inline-flex` | lint 告警 | `flex-col`/`flex-row`/`flex-wrap` 漏配 `flex` → 容器停留 block、高度塌缩 |
+| `*Chart` 组件必含显式 `h-` 高度类 | lint 告警 | 缺 `h-` 则 DOM 塌 10px，ResizeObserver 只能按 0/10px 重绘 |
+| Table 关分页时的槽位高度约束 | lint 告警 | `pagination` 显式为 `false`（缺省视为开启）且数据行 ≥ 6 时提醒确认槽位已设 max-h |
+| `max-h-*` 配 `overflow-hidden` | lint 告警 | 静默截断，改用 `overflow-y-auto`。注：lint 只扫 data.js 元素，页面槽位 HTML 不在扫描范围，须按速查铁律 2 人工遵守 |
+
+常见修复：`no 'flex'` → className 加 `flex`；`missing height class (h-)` → 加 `h-full`/`h-64` 等。
 
 ### 第 3 步：承载页页尾挂载
 
@@ -183,8 +197,6 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 
 **判定特征**：用户指定的目标容器位于某个已登记 nodes 项的 container **外围**（选择器覆盖范围更大，区域内含一个或多个已挂载的 A2UI 渲染子节点）。典型场景：第一张卡已替换为 A2UI 柱状图，用户随后选中整个 `section.chart-container` 要求改为别的组合。
 
-**规则（处理粒度以用户选中区域为准，禁止拆成内部局部修补）**：
-
 1. **整体接管**：以整个选中区域为 container 走完整管线（生成 → 校验 PASS → 挂载）。新 data.js 的 root 承担区域内**全部**布局与内容编排——区域内多卡片布局在 root 内以 grid/flex 复刻原区域结构（列跨度、gap 取自实读值）；既有 A2UI 子节点与原生子元素的数据按数据保真原则一并并入新 data.js，不凭空发明。
 2. **移除被覆盖的旧 nodes 项（硬性）**：旧 container 落在新 container 内部，区域整体 replace 后旧容器 DOM 已被清空重渲染，旧选择器将失配或指向新内容——保留会导致渲染报错或重复挂载。登记新 nodes 项的同时，必须从 `nodes` 数组删除**全部**被新 container 覆盖的旧项。
 3. **旧数据文件夹保留不删**：被取代的旧 `a2ui-data/<slug>/` 保留作回退依据；新节点使用体现区域语义的新 slug（如 `chart-area-mixed`），不得复用旧 slug。
@@ -224,7 +236,7 @@ FAIL（仅语法错误会 FAIL）则读错误上下文 → Edit 修复 → 重�
 
 ---
 
-## 校验规则（validate-and-sync.ps1）
+## 路线 D：移除节点（删除/下线）
 
 **职责范围**：本脚本只管**渲染关切**——JSON 语法 + 项目 lint。A2UI 结构校验（三键结构/元素键锁/id 唯一/children/path/括号）**不在本脚本内**，由 ict-coder 技能生成侧校验兜底。
 
