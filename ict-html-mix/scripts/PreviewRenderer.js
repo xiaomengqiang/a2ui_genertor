@@ -151,21 +151,31 @@ class PreviewRenderer {
       }
       return __A2UI_EMBEDDED_META__;
     }
-    if (!PreviewRenderer._appMeta) {
-      let resp = await fetch(`${distPath}/index.html`);
-      if (!resp.ok) resp = await fetch(`${distPath}/index.prototype.html`);
-      if (!resp.ok) throw new Error(`Failed to load ${distPath}/index.html (also tried index.prototype.html)`);
-      const doc = new DOMParser().parseFromString(await resp.text(), 'text/html');
-      PreviewRenderer._appMeta = {
-        styles: Array.from(doc.querySelectorAll('style')).map(s => ({
-          text: s.textContent,
-          type: s.getAttribute('type'),
-        })),
-        scripts: Array.from(doc.querySelectorAll('script[src]'))
-          .map(s => s.getAttribute('src'))
-          .filter(src => src && !src.includes('data.js')),
-      };
-    }
+    if (!PreviewRenderer._appMeta) {
+      let resp = await fetch(`${distPath}/index.html`);
+      let body = resp.ok ? await resp.text() : '';
+
+      // 如果 index.html 加载失败或内容为空，回退加载 index.prototype.html
+      if (!body) {
+        resp = await fetch(`${distPath}/index.prototype.html`);
+        body = resp.ok ? await resp.text() : ''; // 此处补上了 body 的更新
+      }
+
+      if (!resp.ok || !body) {
+        throw new Error(`Failed to load ${distPath}/index.html (also tried index.prototype.html)`);
+      }
+
+      const doc = new DOMParser().parseFromString(body, 'text/html');
+      PreviewRenderer._appMeta = {
+        styles: Array.from(doc.querySelectorAll('style')).map(s => ({
+          text: s.textContent,
+          type: s.getAttribute('type'),
+        })),
+        scripts: Array.from(doc.querySelectorAll('script[src]'))
+          .map(s => s.getAttribute('src'))
+          .filter(src => src && !src.includes('data.js')),
+      };
+    }
     return PreviewRenderer._appMeta;
   }
 
