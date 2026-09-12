@@ -29,12 +29,14 @@
 ## 使用规则
 
 - 必须设置唯一 `rowKey`、`dataSource` 和 `columns`；每列必须设置 `columns.title` 与 `columns.dataIndex`。
-- 数字右对齐，短状态可居中，其余默认左对齐，通过 `columns.align=left | center | right` 设置。
+- 数字类右对齐，其余优先左对齐，通过 `columns.align=left | center | right` 设置。
 - 仅冻结列设置 `columns.fixed=start | end` 和 `columns.width`；操作列可设置窄 `columns.width`；长文本列可设置 `columns.minWidth`，不要给所有列固定宽度。
 - 需要列筛选或排序时使用 `columns.filters`、`columns.sort=true`，不要手画控件。
 - 默认保留组件分页；仅需显示全部行时设置 `pagination=false`。
 - 批量选择使用 `rowSelection.type=checkbox | radio`；展开行使用 `expandable.expandedRowKeys` 和 TableRow 的 `expandedRowRender`。
-- 行内操作使用 `Button types=link`；状态使用文本、图标或 Tag，不使用 Badge。
+- 操作列使用纯图标 Button：设置 `icon`、`shape=circle`、`size=small`，不设置 `value`。
+- 数据列中的链接式操作（如点击名称查看详情）使用 `Button types=link`，与表格文字一致。
+- 状态使用文本、图标或 Tag，不使用 Badge。
 
 ## 布局
 
@@ -48,6 +50,7 @@
 - 不要把标准表格行做成 Card。
 - 不要用固定宽度破坏表格自适应。
 - 不要使用开发组件不存在的属性或枚举值。
+- 不要在操作列使用文字按钮、带文字的图标按钮或 `types=link`。
 
 ------
 
@@ -75,7 +78,7 @@
           { "title": "Device Name", "dataIndex": "name" },
           { "title": "Type", "dataIndex": "type" },
           { "title": "Status", "dataIndex": "status" },
-          { "title": "Action", "dataIndex": "action", "width": 120 }
+          { "title": "Action", "dataIndex": "action", "width": 80 }
         ]
       },
       "children": {
@@ -118,9 +121,25 @@
     },
     {
       "id": "action_cell_comp",
+      "component": "div",
+      "props": { "className": "flex items-center gap-1" },
+      "children": ["action_view_btn", "action_edit_btn"]
+    },
+    {
+      "id": "action_view_btn",
       "component": "Button",
       "props": {
-        "value": "Detail",
+        "icon": "eye",
+        "shape": "circle",
+        "size": "small"
+      }
+    },
+    {
+      "id": "action_edit_btn",
+      "component": "Button",
+      "props": {
+        "icon": "square-pen",
+        "shape": "circle",
         "size": "small"
       }
     }

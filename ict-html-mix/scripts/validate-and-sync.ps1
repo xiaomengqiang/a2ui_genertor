@@ -5,16 +5,20 @@
 #     ① data.js 语法校验（剥 wrapper：window.__A2UI_DATA__ = <JSON>; → JSON 解析，失败即 FAIL）
 #     ② 项目 lint：(a) flex 方向类必配 flex/inline-flex（漏则容器停留 block、高度塌缩）
 #                  (b) *Chart 组件必含显式 h- 高度类（缺则 DOM 塌 10px，RO 按 0/10px 重绘）
+#                  (c) Table 关闭分页且数据行 ≥ 6 时提醒确认槽位 max-h 约束
+#                  (d) max-h-* 配 overflow-hidden 告警（静默截断，建议 overflow-y-auto）
 #     ③ 无产物生成——data.js 本身即最终产物（无孪生 / 中间 .json 文件）
 #     注：A2UI 结构校验（三键结构/元素键锁/id 唯一/children/path）不在本脚本职责内，
 #         由 ict-coder 技能生成侧校验兜底；本项目只管渲染关切（lint）。
-#   元信息模式：-GenMeta
+#   元信息模式：-GenMeta [-ProjectRoot <项目根>]
 #     从 ict-coder 技能运行时（ict-coder/scripts/previewdist/index.prototype.html）
 #     提取 styles+scripts 清单，回写渲染器内嵌块（__A2UI_EMBEDDED_META__，file:// 免服务器直开用），
 #     **扇出同步全部渲染器**（唯一源 + 运行时副本）：
 #       a) 唯一权威源：本技能 scripts/PreviewRenderer.js（与本脚本同目录）
-#       b) 运行时副本：项目根 previewdist/PreviewRenderer.js（集中式承载页引用）
-#       c) 各 <页目录>/previewdist/PreviewRenderer.js 本地运行时副本（本地化承载页引用）
+#       b) 历史副本：项目根 previewdist/PreviewRenderer.js（旧集中式页引用；ACL 拒写仅 WARN 不阻塞）
+#       c) 各 <页目录>/previewdist/PreviewRenderer.js 本地运行时副本（递归扫描，含 .octo/ses_*/outputs/ 嵌套布局）
+#     项目根解析：-ProjectRoot 显式优先；缺省按位置推断（技能装在项目根下 4 级布局时成立）。
+#     技能装在项目外（如用户技能目录）时 -GenMeta 必须显式传 -ProjectRoot，否则扇出目标全错。
 #     previewdist 重新构建后必须重跑（bundle 文件名带 hash 会变；本地副本的 assets/ 需另行重拷）。
 #     注意：会改写渲染器 → 需 bump 各宿主页 ?v=（本地副本版本号独立）并硬刷新。
 #
@@ -25,19 +29,24 @@
 # 退出码：0 = 成功；1 = 失败/用法错误。
 param(
   [string]$InputFile,
-  [switch]$GenMeta
+  [switch]$GenMeta,
+  [string]$ProjectRoot
 )
 
 $ErrorActionPreference = 'Continue'
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path                                # .../ict-html-mix/scripts
-$projRoot = [System.IO.Path]::GetFullPath((Join-Path $root '..\..\..\..'))             # 项目根 html-previewpc/
+# 项目根解析：-ProjectRoot 显式优先（技能装在项目外/非标准层级时必须传）；缺省按位置推断
+# （技能装在 <项目根>/<技能安装目录>/ict-html-mix/scripts 布局时上溯 4 级成立，仅 -GenMeta 使用；
+#  用 Split-Path 链而非 '..\..' 字面量，跨平台——Linux/macOS pwsh 路径分隔符为 /）。
+$projRoot = if ($ProjectRoot) { [System.IO.Path]::GetFullPath($ProjectRoot) } else { [System.IO.Path]::GetFullPath((Split-Path -Parent (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $root))))) }
 
 function Show-Usage {
   Write-Output "Usage (interpreter per platform, same as SKILL.md step 2; <DirMix> = ict-html-mix skill dir):"
   Write-Output "  Windows    : powershell -ExecutionPolicy Bypass -File `"<DirMix>/scripts/validate-and-sync.ps1`" -InputFile <data.js absolute path>"
   Write-Output "  Linux/macOS: pwsh -ExecutionPolicy Bypass -File `"<DirMix>/scripts/validate-and-sync.ps1`" -InputFile <data.js absolute path>"
   Write-Output "  gen meta   : same commands with -GenMeta instead of -InputFile (after previewdist rebuild; bumps renderer file)"
+  Write-Output "  proj root  : -ProjectRoot <dir>  explicit project root for -GenMeta (required when skill is installed outside the project)"
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -49,11 +58,12 @@ if ($GenMeta) {
   # 元信息来源：ict-coder 技能运行时（页面本地 previewdist 副本的标准来源，previewdist 不从项目根取）
   # ict-coder 定位（禁止只依赖项目工作空间）：① 本技能同级目录（从脚本自身位置上溯 2 级的父目录，
   #    即 ict-html-mix 所在的技能安装目录，ict-coder 同级安装时命中）；
-  # ② 项目根 .opencode\skills（旧布局兜底）。按序取第一个存在者。
+  # ② 项目根 .opencode/skills（旧布局兜底）。按序取第一个存在者。
+  # 子路径一律用 '/' 分隔（Windows 的 .NET/PowerShell 路径 API 同样接受，Linux/macOS 原生一致）。
   $skillParent = Split-Path -Parent (Split-Path -Parent $root)  # 本技能所在目录（ict-html-mix 的父目录）
   $ictCoderCandidates = @(
-    (Join-Path $skillParent 'ict-coder\scripts\previewdist\index.prototype.html'),
-    (Join-Path $projRoot '.opencode\skills\ict-coder\scripts\previewdist\index.prototype.html')
+    (Join-Path $skillParent 'ict-coder/scripts/previewdist/index.prototype.html'),
+    (Join-Path $projRoot '.opencode/skills/ict-coder/scripts/previewdist/index.prototype.html')
   )
   $indexHtml = $ictCoderCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
   if (-not $indexHtml) {
@@ -63,8 +73,8 @@ if ($GenMeta) {
   }
   # 渲染器唯一权威源：本技能 scripts/ 目录（与本脚本同目录）
   $rendererFile = Join-Path $root 'PreviewRenderer.js'
-  # 运行时副本：项目根 previewdist/（集中式承载页引用）
-  $liveCopy = Join-Path $projRoot 'previewdist\PreviewRenderer.js'
+  # 历史副本：项目根 previewdist/（旧集中式页引用；可能 ACL 拒写，扇出失败仅 WARN）
+  $liveCopy = Join-Path $projRoot 'previewdist/PreviewRenderer.js'
 
   if (-not (Test-Path -LiteralPath $rendererFile)) {
     Write-Output "FATAL: renderer source not found: $rendererFile"
@@ -112,8 +122,19 @@ if ($GenMeta) {
   #   b) 运行时副本：项目根 previewdist/（http 承载页引用；旧文件可能 ACL 拒写）
   #   c) 各 <页目录>/previewdist/ 本地运行时副本（本地化承载页引用）
   $targets = @($rendererFile, $liveCopy)
-  $localCopies = Get-ChildItem (Join-Path $projRoot '*\previewdist\PreviewRenderer.js') -ErrorAction SilentlyContinue
-  if ($localCopies) { $targets += $localCopies.FullName }
+  # 本地运行时副本：递归扫描（覆盖 .octo/ses_*/outputs/<页目录>/previewdist/ 等嵌套布局）；
+  # 跳过 node_modules/.git 等大目录与项目根 previewdist 本身；排除 ict-html-mix 安装目录（那是权威源，非副本）。
+  $skipDirs = @('node_modules', '.git')
+  $localCopies = @()
+  if (Test-Path -LiteralPath $projRoot) {
+    $localCopies = Get-ChildItem -Path $projRoot -Directory -ErrorAction SilentlyContinue |
+      Where-Object { $_.Name -notin $skipDirs -and $_.Name -ne 'previewdist' } |
+      ForEach-Object {
+        Get-ChildItem -Path $_.FullName -Filter 'PreviewRenderer.js' -Recurse -Depth 8 -ErrorAction SilentlyContinue |
+          Where-Object { $_.FullName -match 'previewdist[\\/]' -and $_.FullName -notmatch '[\\/]ict-html-mix[\\/]' }
+      }
+  }
+  if ($localCopies) { $targets += @($localCopies.FullName) }
   foreach ($t in ($targets | Select-Object -Unique)) {
     try {
       [System.IO.File]::WriteAllText($t, $newJs, $utf8NoBom)

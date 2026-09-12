@@ -8,10 +8,15 @@
 
 ## Action
 > Declarative event action. When the event fires, the declared action mutates state.
-- `action`: "setState" — The action to perform when the event fires.
+- `action`: "setState" | "cycleState" — The action to perform when the event fires.
 - `args`: { `path`: string, `value`: any }
   - `path`: string — JSON Pointer path to the state key to update.
-  - `value`: any — The value to write into the state path.
+  - `value`: any — `setState`: the value to write into the state path. `cycleState`: an array cycled through on each fire; the default initial value is the first entry.
+
+## Condition
+> Element-level conditional rendering, attached beside `props` on ANY element (HTML5 tag or A2UI component). Non-matching elements are not rendered at all.
+- `path`: string — JSON Pointer path to the state value to test.
+- `in`: string[] — The element renders only when the current value at `path` matches any entry in this list.
 
 ## SlotNode
 > Slot binding: Reference to a specific child node.

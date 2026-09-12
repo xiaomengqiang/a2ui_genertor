@@ -22,7 +22,8 @@
 ## 使用规则
 
 - 使用 `value` 设置按钮文字。
-- 普通操作使用 `types=default`；表格行内操作、上下文跳转或下载入口使用 `types=link`。
+- 普通操作使用 `types=default`；上下文跳转使用 `types=link`。
+- 表格操作列使用纯图标 Button：`icon` + `shape=circle` + `size=small`，不设置 `value`。
 - 主操作使用 `color=primary`，每个操作区域最多一个；中性或次要操作使用 `color=default`。
 - 删除、停用、清空等破坏性操作使用 `color=danger`，并配合确认。
 - 常规页面使用 `size=medium`；低密度强调场景使用 `size=large`；表格和紧凑区域使用 `size=small`。
@@ -34,7 +35,7 @@
 
 - 文字链接文案应说明目标或动作；正文中的链接与上下文字号一致，表格中的链接与表格文字一致。
 - 需要图标帮助识别时使用 `icon`，并通过 `iconPlacement=start | end` 确定位置；无必要时只用文字。
-- 正文链接应放在能说明其含义的句子或段落中；表格行内操作可以独立使用。
+- 正文链接应放在能说明其含义的句子或段落中。
 - 不要手动覆盖组件的颜色或样式。
 
 ## 布局
