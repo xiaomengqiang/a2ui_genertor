@@ -34,7 +34,8 @@
 - 需要列筛选或排序时使用 `columns.filters`、`columns.sort=true`，不要手画控件。
 - 默认保留组件分页；仅需显示全部行时设置 `pagination=false`。
 - 批量选择使用 `rowSelection.type=checkbox | radio`；展开行使用 `expandable.expandedRowKeys` 和 TableRow 的 `expandedRowRender`。
-- 行内操作使用纯图标 Button：设置 `icon`、`shape=circle`、`size=small`，不设置 `value`。
+- 操作列使用纯图标 Button：设置 `icon`、`shape=circle`、`size=small`，不设置 `value`。
+- 数据列中的链接式操作（如点击名称查看详情）使用 `Button types=link`，与表格文字一致。
 - 状态使用文本、图标或 Tag，不使用 Badge。
 
 ## 布局

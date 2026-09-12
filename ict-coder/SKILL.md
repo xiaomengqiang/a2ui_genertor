@@ -35,6 +35,7 @@ A2UI JSON pages are built from HTML5 tags + A2UI components. A2UI Component APIs
 - `href?`: string | DataBinding — Hyperlink reference for 'a' tags.
 - `target?`: "_blank" | "_self" | "_parent" | "_top" — Where to open the linked document (used with 'a' tags).
 - `title?`: string | DataBinding — Extra information about an element, usually shown as a tooltip on hover.
+- `onClick?`: Action — Fires when the element is clicked. Typically a setState action.
 
 ### condition
 Element conditional rendering (sibling of `props`): `{ "path": "/stateKey", "in": ["v1"] }` — the element renders ONLY when the value at `path` is contained in `in`.

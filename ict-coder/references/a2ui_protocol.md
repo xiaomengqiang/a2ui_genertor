@@ -100,7 +100,7 @@ The same loop pattern applies to: `Tab/TabItem`, `Steps/StepItem`, `Table/TableR
 Interactivity follows one pattern: an event Action mutates `state`, and components bound to the same paths react. Three canonical scenarios:
 
 **Scenario 1 — Button Controls Modal/Drawer:**
-- Open trigger: `{ "component": "Button", "props": { "value": "Open", "onClick": { "action": "setState", "args": { "path": "/isModalOpen", "value": true } } } }`
+- Open trigger (`onClick` works on Button or HTML5 tag): `{ "component": "Button", "props": { "value": "Open", "onClick": { "action": "setState", "args": { "path": "/isModalOpen", "value": true } } } }`
 - Modal/Drawer (same path in and out): `{ "component": "Modal", "props": { "open": { "path": "/isModalOpen" }, "onClose": { "action": "setState", "args": { "path": "/isModalOpen", "value": false } } } }`
 - `onClose` fires on mask click, close icon, or ESC; `state` MUST declare the initial `"isModalOpen": false`.
 
@@ -168,7 +168,7 @@ Interactivity follows one pattern: an event Action mutates `state`, and componen
                     },
                     "props": {
                         "type": "object",
-                        "description": "Component-specific properties. For A2UI components, see references/component/{ComponentName}.md; HTML5 tags support className, value, src, children, href, etc.",
+                        "description": "Component-specific properties. For A2UI components, see references/component/{ComponentName}.md; HTML5 tags support className, value, src, children, href, onClick, etc.",
                         "additionalProperties": true
                     },
                     "condition": {
