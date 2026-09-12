@@ -38,6 +38,7 @@ The JSON is a single object containing three top-level keys: `state`, `rootId`, 
     - **Bad:** `btn1`, `actionBtnItem`(missing zone), `div3`(no semantics).
     - **Good:** `headerNavBtn`, `sidebarSearchInput`, `mainMetricCard`, `mainTableIdCell`.
   - **No Missing Elements:** Every ID referenced in `children` MUST be defined in the `elements` array.
+  - **Conditional Rendering:** ANY element (HTML5 tag or A2UI component) accepts an optional `condition` beside `props`: `{ "path": "/stateKey", "in": ["show12, show3"] }` — renders ONLY when the value at `path` is contained in `in`. 
   - **Complete Rendering:** Fully resolve the UI tree to all absolute bottom leaf nodes.  
 
 ## 3. Data Binding
@@ -94,6 +95,32 @@ The same loop pattern applies to: `Tab/TabItem`, `Steps/StepItem`, `Table/TableR
 - `key` / `label` / `icon`: Relative data bindings mapped directly from the current array item.
 - `content`: Slot binding. MUST use `{ "componentId": "elementId" }` to reference the complex structural node (e.g., a `div` containing the actual tab body).
 
+## 6. Interaction Events
+
+Interactivity follows one pattern: an event Action mutates `state`, and components bound to the same paths react. Three canonical scenarios:
+
+**Scenario 1 — Button Controls Modal/Drawer:**
+- Open trigger: `{ "component": "Button", "props": { "value": "Open", "onClick": { "action": "setState", "args": { "path": "/isModalOpen", "value": true } } } }`
+- Modal/Drawer (same path in and out): `{ "component": "Modal", "props": { "open": { "path": "/isModalOpen" }, "onClose": { "action": "setState", "args": { "path": "/isModalOpen", "value": false } } } }`
+- `onClose` fires on mask click, close icon, or ESC; `state` MUST declare the initial `"isModalOpen": false`.
+
+**Scenario 2 — Controlled Tabs via Shared Key:**
+- Trigger Buttons (each writes a different key to ONE shared path): `{ "component": "Button", "props": { "value": "Tab 1", "onClick": { "action": "setState", "args": { "path": "/tabsActiveKey", "value": "tab1" } } } }` / `{ "component": "Button", "props": { "value": "Tab 2", "onClick": { "action": "setState", "args": { "path": "/tabsActiveKey", "value": "tab2" } } } }`
+- Tabs (binds `activeKey` to the shared path): `{ "component": "Tabs", "props": { "activeKey": { "path": "/tabsActiveKey" } } }`
+- TabItem (`key` MUST equal the `value` written by its Button's `onClick`): `{ "component": "TabItem", "props": { "key": "tab1", "label": "Tab 1" } }`
+- `state` MUST declare the initial `activeKey` value (e.g., `"tabsActiveKey": "tab1"`).
+
+**Scenario 3 — cycleState Rotation with condition:**
+- Button (each click advances the path to the NEXT entry, loops back after the last): `{ "component": "Button", "props": { "value": "Next", "onClick": { "action": "cycleState", "args": { "path": "/demoStep", "value": ["step1", "step2", "step3", "step4"] } } } }`
+- Conditionally rendered element (`condition` sits beside `props`; it renders ONLY when the current value of `path` is contained in `in` — e.g. `/demoStep` = `"step1"` matches `"in": ["step1"]`): `{ "component": "div", "condition": { "path": "/demoStep", "in": ["step1"] }, "props": {}, "children": [] }`
+- Non-matching elements are NOT rendered at all (no placeholder space).
+- The shared data MUST declare a default value — the initial value is `value[0]` (e.g., `"demoStep": "step1"`).
+- Combination — A alone ↔ B and C together: `"onClick": { "action": "cycleState", "args": { "path": "/displayMode", "value": ["modeA", "modeBC"] } }`; Div A: `{ "condition": { "path": "/displayMode", "in": ["modeA"] } }`, Div B / Div C: `{ "condition": { "path": "/displayMode", "in": ["modeBC"] } }` — under `modeBC`, B and C render together while A does not.
+
+**INTERACTION CRITICAL CONSTRAINTS:**
+- Every `path` referenced by an Action or a binding MUST exist in `state`.
+- Interaction paths MUST stay at the top level of `state`, NEVER inside loop data.
+
 ------
 
 # A2UI STRUCTURE SCHEMA
@@ -143,6 +170,28 @@ The same loop pattern applies to: `Tab/TabItem`, `Steps/StepItem`, `Table/TableR
                         "type": "object",
                         "description": "Component-specific properties. For A2UI components, see references/component/{ComponentName}.md; HTML5 tags support className, value, src, children, href, etc.",
                         "additionalProperties": true
+                    },
+                    "condition": {
+                        "type": "object",
+                        "description": "Element conditional rendering. Renders the element only when the value at `path` is contained in `in`.",
+                        "required": [
+                            "path",
+                            "in"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                            "path": {
+                                "type": "string",
+                                "description": "JSON Pointer path to the state value to test."
+                            },
+                            "in": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "The element renders when the bound value matches any entry in this list."
+                            }
+                        }
                     },
                     "children": {
                         "oneOf": [

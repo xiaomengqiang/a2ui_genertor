@@ -25,7 +25,7 @@ Within the same conversation session, reference files and component APIs you hav
 A2UI JSON pages are built from HTML5 tags + A2UI components. A2UI Component APIs: read `references/component/{ComponentName}.md` on demand. HTML5 tag props are listed below.
 
 > Standard HTML5 tags: `div` `span` `p` `img` `a` `section` `header` `main` `aside` `nav` `footer` `h1`–`h6` `ul` `ol` `li`
-> id: string | component: any lowercase HTML5 tag | props: object | children: object
+> id: string | component: any lowercase HTML5 tag | props: object | condition?: object | children: object
 
 ### props
 - `className?`: string — Tailwind CSS classes for layout, spacing, color, and styling.
@@ -35,6 +35,9 @@ A2UI JSON pages are built from HTML5 tags + A2UI components. A2UI Component APIs
 - `href?`: string | DataBinding — Hyperlink reference for 'a' tags.
 - `target?`: "_blank" | "_self" | "_parent" | "_top" — Where to open the linked document (used with 'a' tags).
 - `title?`: string | DataBinding — Extra information about an element, usually shown as a tooltip on hover.
+
+### condition
+Element conditional rendering (sibling of `props`): `{ "path": "/stateKey", "in": ["v1"] }` — the element renders ONLY when the value at `path` is contained in `in`.
 
 ### children
 StaticChildren (`["id1", "id2"]`) | TemplateChildren (`{ "path": "/list", "componentId": "templateId" }` for loops).
@@ -235,7 +238,7 @@ For **module-level** generation: `rootId` is the module's outer container.
     - ❌ WRONG: `"items": { "title": "A" }, { "title": "B" }`
     - ✅ RIGHT: `"items": [{ "title": "A" }, { "title": "B" }]`
     - Strikes hardest in `state` data when output JSON is long. Every array MUST start with `[` and end with `]`.
-15. **Schema lock:** Every element MUST use `"id"`, `"component"`, `"props"`, `"children"` — NEVER `"type"`/`"class"`/`"style"`/`"tagName"`/`"attributes"`. Common confusions:
+15. **Schema lock:** Every element MUST use `"id"`, `"component"`, `"props"`, `"children"` (optional `"condition"`) — NEVER `"type"`/`"class"`/`"style"`/`"tagName"`/`"attributes"`. Common confusions:
     - `"component"` not ~~`"type"`~~
     - `"props"` not ~~`"properties"`~~, ~~`"attributes"`~~
     - `"className"` not ~~`"class"`~~
