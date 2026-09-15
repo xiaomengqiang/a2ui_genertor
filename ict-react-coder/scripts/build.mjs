@@ -46,12 +46,14 @@ const IMPORT_RE = /^[ \t]*import\s+(?:(\w+)\s*,\s*)?(?:(\w+)\s+)?(?:\{([^}]*)\})
 const SIDE_EFFECT_RE = /^[ \t]*import\s*["']([^"']+)["'];?[ \t]*$/gm;
 
 // Icon usage patterns scanned across all module sources:
+// 只匹配 <Icon ...> 标签自身的 name 属性 — antd Form.Item/Input 等组件的 name="field"
+// 是表单字段名,不能当图标名扫描。
 const ICON_SCAN_PATTERNS = [
-  /\bname=["']([a-z0-9-]+)["']/g,                 // <Icon name="chevron-down" (any tag, any order)
-  /\bicon[a-z]*\s*[:=]\s*["']([a-z0-9-]+)["']/g, // icon: "grid" data fields / icon="x" attrs
+  /<Icon\b[^>]*?\bname=["']([a-z0-9-]+)["']/gs,   // <Icon name="chevron-down" (属性任意顺序)
+  /\bicon[a-z]*\s*[:=]\s*["']([a-z0-9-]+)["']/g,  // icon: "grid" data fields / icon="x" attrs
 ];
-// Dynamic name expressions — extract every string literal inside: name={a ? "x" : "y"}
-const NAME_EXPR_RE = /\bname=\{([^}]*)\}/g;
+// Dynamic name expressions — extract every string literal inside: <Icon name={a ? "x" : "y"}>
+const NAME_EXPR_RE = /<Icon\b[^>]*?\bname=\{([^}]*)\}/gs;
 const STRING_LIT_RE = /["']([a-z0-9-]+)["']/g;
 
 function splitNames(named) {

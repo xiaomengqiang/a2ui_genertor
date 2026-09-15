@@ -1,0 +1,64 @@
+/* 布局骨架 — token 优先 */
+.shell {
+  min-height: 100vh;
+  background: var(--surface-container-lowest);
+}
+
+.shell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 var(--spacing-page);
+  background: var(--surface-container-highest);
+  border-bottom: 1px solid var(--divider);
+}
+
+.shell-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline);
+}
+
+.shell-brand-icon {
+  color: var(--primary);
+}
+
+.shell-brand-text {
+  font: var(--font-body-l);
+  font-weight: var(--font-weight-medium);
+  color: var(--on-surface);
+}
+
+.shell-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-stack);
+}
+
+.shell-search {
+  width: 220px;
+}
+
+.shell-avatar {
+  background: var(--primary);
+  color: var(--on-primary);
+  font: var(--font-body-s);
+  cursor: pointer;
+}
+
+.shell-sider {
+  background: var(--surface-container-highest);
+  border-right: 1px solid var(--divider);
+}
+
+.shell-content {
+  padding: var(--spacing-stack) var(--spacing-page) var(--spacing-page);
+}
+
+/* 面包屑:视觉权重低于内容标题 */
+.shell-breadcrumb {
+  margin-bottom: var(--spacing-stack);
+  font: var(--font-caption-m);
+  color: var(--on-surface-variant);
+}

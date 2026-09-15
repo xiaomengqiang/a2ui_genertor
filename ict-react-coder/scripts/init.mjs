@@ -117,9 +117,7 @@ const STARTER_CSS = `/* 应用级基础样式 — 页面骨架的 token 消费�
   min-height: 100vh;
   background: var(--surface-container-lowest);
   color: var(--on-surface);
-  font-family: var(--font-family);
-  font-size: var(--text-md);
-  line-height: var(--text-md--line-height);
+  font: var(--font-body-m);
 }
 `;
 
@@ -154,6 +152,7 @@ try {
       rmSync(assetsDst, { force: true });
       cpSync(ASSETS_SRC, assetsDst, { recursive: true });
       assetsReady = existsSync(assetsDst);
+      if (assetsReady) console.log("NOTE  junction unavailable — assets fully copied (skill asset updates will NOT propagate; delete the assets folder to re-link)");
     } catch {
       assetsReady = false;
     }

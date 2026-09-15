@@ -1,0 +1,2045 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设备接入配置向导</title>
+<!-- 1. Core Libraries (local UMD) -->
+<script src="./assets/library/react.production.min.js"></script>
+<script src="./assets/library/react-dom.production.min.js"></script>
+<script src="./assets/library/dayjs.min.js"></script>
+<!-- 2. UI Components (local UMD, antd 内置图标随包携带) -->
+<script src="./assets/library/antd.min.js"></script>
+<!-- 3. Babel Transpiler (local) -->
+<script src="./assets/library/babel.min.js"></script>
+<!-- 4. 四层 token CSS(base → light → theme → dark)内联 -->
+<style>
+:root {
+  /* ==========================================================================
+    1. 基础色阶 (Primitive Colors)
+    ========================================================================== */
+  /* brand */
+  --brand-05: #E6F2FD;
+  --brand-10: #B8D9F9;
+  --brand-20: #8ABEF3;
+  --brand-30: #5CA2E9;
+  --brand-40: #2E86DE;
+  --brand-50: #0067D1;
+  --brand-60: #004EA8;
+  --brand-70: #003D83;
+  --brand-80: #002E6A;
+  --brand-90: #00214B;
+
+  /* gray */
+  --gray-0: #FFFFFF;
+  --gray-05: #F3F3F3;
+  --gray-10: #DFDFDF;
+  --gray-20: #C9C9C9; 
+  --gray-30: #AEAEAE;
+  --gray-40: #939393;
+  --gray-50: #777777;
+  --gray-60: #595959;
+  --gray-70: #393939;
+  --gray-80: #2A2A2A;
+  --gray-90: #191919;
+  --gray-100: #000000;
+
+  /* red */
+  --red-05: #FEE7E8;
+  --red-10: #FABDC1;
+  --red-20: #F59297;
+  --red-30: #EE696F;
+  --red-40: #E7434A;
+  --red-50: #E02128;
+  --red-60: #C7000B;
+  --red-70: #850F12;
+  --red-80: #59080A;
+  --red-90: #350305;
+
+  /* rose */
+  --rose-05: #FEE5F2;
+  --rose-10: #FCC3E0;
+  --rose-20: #F99AC7;
+  --rose-30: #F470AB;
+  --rose-40: #ED448A;
+  --rose-50: #E61866;
+  --rose-60: #C40054;
+  --rose-70: #811439;
+  --rose-80: #540D24;
+  --rose-90: #330614;
+
+  /* orange */
+  --orange-05: #FEF5E8;
+  --orange-10: #FDE2BD;
+  --orange-20: #FCCE92;
+  --orange-30: #F9B766;
+  --orange-40: #F69E39;
+  --orange-50: #F4840C;
+  --orange-60: #C76207;
+  --orange-70: #954304;
+  --orange-80: #642802;
+  --orange-90: #3D1601;
+
+  /* yellow */
+  --yellow-05: #FEFCE0;
+  --yellow-10: #FEF8B8;
+  --yellow-20: #FEF08A;
+  --yellow-30: #FDE55C;
+  --yellow-40: #FCD72E;
+  --yellow-50: #FCC800;
+  --yellow-60: #D19F00;
+  --yellow-70: #9E7400;
+  --yellow-80: #614500;
+  --yellow-90: #2E1F00;
+
+  /* green */
+  --green-05: #F2FBE9;
+  --green-10: #DFF4CC;
+  --green-20: #C6E9A8;
+  --green-30: #A8DB81;
+  --green-40: #87C859;
+  --green-50: #62B42E;
+  --green-60: #488E20;
+  --green-70: #316614;
+  --green-80: #1B3E0A;
+  --green-90: #0C2004;
+
+  /* mint */
+  --mint-05: #E7FBF2;
+  --mint-10: #BCF2DB;
+  --mint-20: #8FE5C2;
+  --mint-30: #63D5A8;
+  --mint-40: #36C18D;
+  --mint-50: #09AA71;
+  --mint-60: #058358;
+  --mint-70: #036142;
+  --mint-80: #02422E;
+  --mint-90: #00291D;
+
+  /* cyan */
+  --cyan-05: #E8FCFD;
+  --cyan-10: #C9F6F9;
+  --cyan-20: #A4ECF1;
+  --cyan-30: #7DDFE7;
+  --cyan-40: #55CCD9;
+  --cyan-50: #2CB8C9;
+  --cyan-60: #1C94A4;
+  --cyan-70: #127180;
+  --cyan-80: #094C57;
+  --cyan-90: #04282F;
+
+  /* blue */
+  --blue-05: #EEF3FE;
+  --blue-10: #D0D8FD;
+  --blue-20: #B0BFFD;
+  --blue-30: #8CA3FA;
+  --blue-40: #668CF7;
+  --blue-50: #2070F3;
+  --blue-60: #1F55B5;
+  --blue-70: #1B3F86;
+  --blue-80: #112857;
+  --blue-90: #081635;
+
+  /* indigo */
+  --indigo-05: #EEEEFE;
+  --indigo-10: #D5D3FD;
+  --indigo-20: #BFB9FA;
+  --indigo-30: #A89FF9;
+  --indigo-40: #8E81F4;
+  --indigo-50: #715AFB;
+  --indigo-60: #5531EB;
+  --indigo-70: #3F21B5;
+  --indigo-80: #281675;
+  --indigo-90: #160B48;
+
+  /* purple */
+  --purple-05: #F7EDFE;
+  --purple-10: #E8CFFE;
+  --purple-20: #D9B1FD;
+  --purple-30: #CB8EFB;
+  --purple-40: #BF68FA;
+  --purple-50: #B62BF7;
+  --purple-60: #8A21BC;
+  --purple-70: #651B8B;
+  --purple-80: #41125A;
+  --purple-90: #260937;
+
+  /* pink */
+  --pink-05: #FDE6FC;
+  --pink-10: #F9C5F6;
+  --pink-20: #F39DEC;
+  --pink-30: #EB74DF;
+  --pink-40: #E049CE;
+  --pink-50: #D41DBC;
+  --pink-60: #9F1C8D;
+  --pink-70: #751868;
+  --pink-80: #4C0F43;
+  --pink-90: #2E0728;
+
+  /* ==========================================================================
+    3. 尺寸与形状变量 (Sizes & Shapes)
+    ========================================================================== */
+  /* Radius */
+  --radius-none: 0;
+  --radius-xs: 2px;
+  --radius-base: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* ==========================================================================
+     4. 文本排版 (Typography)
+     ========================================================================== */
+  /* Font Family */
+  --font-family: 'HarmonyOS Sans', 'Microsoft YaHei', Arial, 'PingFang SC', 'San Francisco', sans-serif;
+
+  /* Font Size */
+  --font-size-sm: 0.625rem;
+  --font-size-base: 0.75rem;
+  --font-size-md: 0.875rem;
+  --font-size-lg: 1rem;
+  --font-size-xl: 1.125rem;
+  --font-size-2xl: 1.25rem;
+  --font-size-3xl: 1.5rem;
+  --font-size-4xl: 1.75rem;
+  --font-size-5xl: 1.875rem;
+  --font-size-6xl: 2rem;
+  --font-size-7xl: 2.25rem;
+  --font-size-8xl: 2.5rem;
+  --font-size-12xl: 3rem;
+  --font-size-16xl: 3.5rem;
+  --font-size-18xl: 3.75rem;
+  --font-size-24xl: 4.5rem;
+
+  /* Line Height */
+  --line-height-xs: 2;
+  --line-height-sm: 1.625;
+  --line-height-md: 1.5;
+  --line-height-lg: 1.5;
+  --line-height-xl: 1.5;
+  --line-height-2xl: 1.375;
+  --line-height-3xl: 1.375;
+  --line-height-4xl: 1.375;
+  --line-height-5xl: 1.375;
+  --line-height-6xl: 1.375;
+  --line-height-7xl: 1.25;
+  --line-height-8xl: 1.25;
+  --line-height-9xl: 1.25;
+
+  /* Font Weight */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ==========================================================================
+     5. 间距 (Spacing)
+     ========================================================================== */
+  --spacing-0: 0px;
+  --spacing-0-5: 2px;
+  --spacing-1: 4px;
+  --spacing-1-5: 6px;
+  --spacing-2: 8px;
+  --spacing-2-5: 10px;
+  --spacing-3: 12px;
+  --spacing-3-5: 14px;
+  --spacing-4: 16px;
+  --spacing-4-5: 18px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-7: 28px;
+  --spacing-8: 32px;
+  --spacing-9: 36px;
+  --spacing-10: 40px;
+  --spacing-11: 44px;
+  --spacing-12: 48px;
+  --spacing-14: 56px;
+  --spacing-15: 60px;
+  --spacing-16: 64px;
+  --spacing-17: 68px;
+  --spacing-18: 72px;
+  --spacing-19: 76px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
+  --spacing-28: 112px;
+  --spacing-32: 128px;
+  --spacing-36: 144px;
+  --spacing-40: 160px;
+  --spacing-44: 176px;
+  --spacing-48: 192px;
+  --spacing-52: 208px;
+  --spacing-56: 224px;
+  --spacing-60: 240px;
+  --spacing-64: 256px;
+  --spacing-72: 288px;
+  --spacing-80: 320px;
+  --spacing-96: 384px;
+}
+
+/* rem scale — html font-size by viewport width */
+@media (max-width: 1366px) { 
+  html { font-size: 12px; } 
+}
+@media (min-width: 1367px) and (max-width: 1680px) { 
+  html { font-size: 14px; } 
+}
+@media (min-width: 1681px) and (max-width: 1920px) {
+   html { font-size: 16px; } 
+  }
+@media (min-width: 1921px) { 
+  html { font-size: 20px; } 
+}
+
+
+/* Light */
+@font-face {
+  font-family: 'HarmonyOS Sans';
+  src: url('assets/font/HarmonyOS_SansSC/Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+}
+
+/* Regular */
+@font-face {
+  font-family: 'HarmonyOS Sans';
+  src: url('assets/font/HarmonyOS_SansSC/Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Medium */
+@font-face {
+  font-family: 'HarmonyOS Sans';
+  src: url('assets/font/HarmonyOS_SansSC/Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+}
+
+/* Bold */
+@font-face {
+  font-family: 'HarmonyOS Sans';
+  src: url('assets/font/HarmonyOS_SansSC/Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+}
+
+
+/* ── body base ── */
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  line-height: 1.5;
+  background-color: var(--surface);
+  color: var(--on-surface);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Standard scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #dfdfdf;
+  border-radius: 4px;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track-piece {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #dededf;
+}
+
+
+:root {
+  /* 品牌色 */
+  --color-brand: var(--brand-50);
+  --color-brand-hover: var(--brand-40);
+  --color-brand-focus: var(--brand-50);
+  --color-brand-active: var(--brand-60);
+  --color-brand-disabled: var(--brand-20);
+  /* 文本色 */
+  --color-text-primary: var(--gray-90);
+  --color-text-secondary: var(--gray-50);
+  --color-text-placeholder: var(--gray-30);
+  --color-text-disabled: var(--gray-20);
+  --color-text-inverse: var(--gray-0);
+  --color-text-inverse-disabled: var(--gray-0);
+  --color-text-on: var(--brand-50);
+  --color-link: var(--brand-50);
+  --color-link-hover: var(--brand-40);
+  --color-link-active: var(--brand-60);
+  --color-link-visited: var(--indigo-50);
+  --color-link-disabled: var(--brand-20);
+  /* 背景色 */
+  --color-bg-1: var(--gray-05);
+  --color-bg-2: var(--gray-0);
+  --color-bg-3: var(--gray-0);
+  --color-bg-4: var(--gray-0);
+  --color-bg-5: var(--gray-0);
+  --color-bg-6: rgb(from var(--gray-20) r g b / 0.2);
+  --color-bg-mask: rgb(from var(--gray-90) r g b / 0.3);
+  /* 填充色 */
+  --color-fill-disabled: var(--gray-10);
+  --color-hover: rgb(from var(--gray-90) r g b / 0.05);
+  --color-fill-disabled-subtle: rgb(from var(--gray-90) r g b / 0.05);
+  --color-fill: rgb(from var(--gray-90) r g b / 0.05);
+  --color-select: var(--brand-05);
+  --color-fill-subtle: var(--gray-0);
+  /* 图标色 */
+  --color-icon-primary: var(--gray-90);
+  --color-icon-secondary: var(--gray-50);
+  --color-icon-tertiary: var(--gray-40);
+  --color-icon-placeholder: var(--gray-30);
+  --color-icon-disabled: var(--gray-20);
+  --color-icon-inverse: var(--gray-0);
+  --color-icon-hover: var(--brand-40);
+  --color-icon-focus: var(--brand-50);
+  --color-icon-active: var(--brand-60);
+  /* 边框色 */
+  --color-border: var(--gray-20);
+  --color-border-hover: var(--gray-90);
+  --color-border-focus: var(--brand-50);
+  --color-border-active: var(--brand-10);
+  --color-border-disabled: var(--gray-20);
+  --color-border-separator: var(--gray-10);
+  --color-border-separator-sbutle: var(--gray-05);
+  /* 功能色-错误 */
+  --color-error: var(--red-50);
+  --color-error-hover: var(--red-40);
+  --color-error-active: var(--red-60);
+  --color-error-disabled: var(--red-10);
+  --color-error-subtle: var(--red-20);
+  --color-error-subtler: var(--red-05);
+  /* 功能色-告警 */
+  --color-alert: var(--orange-50);
+  --color-alert-hover: var(--orange-40);
+  --color-alert-active: var(--orange-60);
+  --color-alert-disabled: var(--orange-10);
+  --color-alert-subtle: var(--orange-20);
+  --color-alert-subtler: var(--orange-05);
+  /* 功能色-提醒 */
+  --color-warning: var(--yellow-50);
+  --color-warning-hover: var(--yellow-40);
+  --color-warning-active: var(--yellow-60);
+  --color-warning-disabled: var(--yellow-10);
+  --color-warning-bold: var(--yellow-60);
+  --color-warning-subtle: var(--yellow-20);
+  --color-warning-subtler: var(--yellow-05);
+  /* 功能色-成功 */
+  --color-success: var(--mint-50);
+  --color-success-hover: var(--mint-40);
+  --color-success-active: var(--mint-60);
+  --color-success-disabled: var(--mint-10);
+  --color-success-subtle: var(--mint-20);
+  --color-success-subtler: var(--mint-05);
+  /* 功能色-信息 */
+  --color-info-primary: var(--blue-50);
+  --color-info-primary-subtle: var(--blue-30);
+  --color-info-primary-subtler: var(--blue-05);
+  --color-info-secondary: var(--blue-30);
+  --color-info-secondary-hover: var(--blue-20);
+  --color-info-secondary-active: var(--blue-40);
+  --color-info-secondary-disabled: var(--blue-10);
+  --color-info-secondary-subtle: var(--blue-05);
+  /* 功能色-失效 */
+  --color-none: var(--gray-30);
+  --color-none-hover: var(--gray-20);
+  --color-none-active: var(--gray-40);
+  --color-none-disabled: var(--gray-10);
+  --color-none-subtle: var(--gray-05);
+  /* 推荐图表色 */
+  --color-chart-1: var(--blue-50);
+  --color-chart-2: var(--green-50);
+  --color-chart-3: var(--indigo-50);
+  --color-chart-4: var(--cyan-50);
+  --color-chart-5: var(--orange-40);
+  --color-chart-6: var(--brand-30);
+  --color-chart-7: var(--purple-40);
+  --color-chart-8: var(--rose-40);
+  --color-chart-9: var(--indigo-20);
+  --color-chart-10: var(--yellow-60);
+  --color-chart-11: var(--brand-10);
+  --color-chart-12: var(--green-60);
+  --color-chart-13: var(--purple-20);
+  --color-chart-14: var(--cyan-60);
+  --color-chart-15: var(--orange-20);
+  --color-chart-16: var(--rose-60);
+  --color-chart-17: var(--cyan-20);
+  --color-chart-18: var(--blue-60);
+  --color-chart-19: var(--green-20);
+  --color-chart-20: var(--indigo-70);
+  --color-chart-21: var(--rose-10);
+  --color-chart-22: var(--cyan-70);
+  --color-chart-23: var(--yellow-20);
+  --color-chart-24: var(--purple-70);
+  --color-chart-25: var(--mint-20);
+  /* 特殊场景 */
+  --color-scrollbar: var(--gray-10);
+  --color-scrollbar-hover: var(--gray-30);
+  --color-card-gray-disabled: rgb(from var(--gray-30) r g b / 0.05);
+  --color-card-white-disabled: rgb(from var(--gray-0) r g b / 0.5);
+  --color-sidenav-bg: rgb(from var(--gray-05) r g b / 0.5);
+  --color-table-header: rgb(from var(--gray-90) r g b / 0.05);
+  --color-table-zebra: rgb(from var(--gray-40) r g b / 0.05);
+  --color-message-bg-info: var(--blue-05);
+  --color-message-bg-success: var(--mint-05);
+  --color-message-bg-warning: var(--yellow-05);
+  --color-message-bg-alert: var(--orange-05);
+  --color-message-bg-error: var(--red-05);
+  /* ICT3.0 3.0告警色 */
+  --color-alert-urgent: #F43146;
+  --color-alert-primary: #EC6F1A;
+  --color-alert-secondary: #EEBA18;
+  --color-alert-success: #2DA769;
+  --color-alert-running: #5990FD;
+  --color-alert-none: #939393;
+  /* ICT3.1 表格 */
+  --color-table-1: var(--brand-05);
+  --color-table-2: var(--brand-10);
+  --color-table-sticky-1: var(--brand-05);
+  --color-table-sticky-2: var(--brand-10);
+  --color-table-sticky-bg: var(--gray-0);
+  --color-table-sticky-header: var(--gray-05);
+  /* 标签配色 */
+  --color-tag-text-purple: var(--purple-60);
+  --color-tag-bg-purple: rgb(from var(--purple-10) r g b / 0.6);
+  --color-tag-text-cyan: var(--cyan-80);
+  --color-tag-bg-cyan: rgb(from var(--cyan-60) r g b / 0.15);
+  --color-tag-text-rose: var(--rose-60);
+  --color-tag-bg-rose: var(--rose-05);
+  --color-tag-text-green: var(--green-70);
+  --color-tag-bg-green: var(--green-10);
+  --color-tag-text-pink: var(--pink-60);
+  --color-tag-bg-pink: var(--pink-05);
+  --color-tag-text-indigo: var(--indigo-80);
+  --color-tag-bg-indigo: rgb(from var(--indigo-10) r g b / 0.6);
+  --color-tag-text-none: var(--gray-70);
+  --color-tag-bg-none: rgb(from var(--gray-90) r g b / 0.05);
+  --color-tag-text-error: var(--red-60);
+  --color-tag-bg-error: var(--red-05);
+  --color-tag-text-alert: var(--orange-70);
+  --color-tag-bg-alert: var(--orange-10);
+  --color-tag-text-warning: var(--yellow-80);
+  --color-tag-bg-warning: rgb(from var(--yellow-30) r g b / 0.6);
+  --color-tag-text-success: var(--mint-70);
+  --color-tag-bg-success: rgb(from var(--mint-10) r g b / 0.6);
+  --color-tag-text-info: var(--blue-60);
+  --color-tag-bg-info: rgb(from var(--blue-10) r g b / 0.5);
+  /* Border */
+  --border: var(--gray-20);
+  --border-light: var(--gray-10);
+  --border-primary: var(--brand-50);
+  --border-success: var(--mint-20);
+  --border-warning: var(--yellow-20);
+  --border-alert: var(--orange-20);
+  --border-error: var(--red-20);
+  /* Icon */
+  --icon-primary: var(--brand-50);
+  --icon-success: var(--mint-50);
+  --icon-warning: var(--yellow-50);
+  --icon-critical: var(--orange-50);
+  --icon-alert: var(--orange-50);
+  --icon-error: var(--red-50);
+  /* Shadow */
+  --shadow-none: none;
+  --shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.08);
+  --shadow-base: 0 4px 12px rgba(0, 0, 0, 0.16);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+  --shadow-r-sm: 1px 0 6px 0 rgba(0, 0, 0, 0.08);
+  --shadow-t-sm: 0 -1px 6px rgba(0, 0, 0, 0.08);
+  --shadow-l-base: -2px 0 12px 0 rgba(0, 0, 0, 0.08);
+  --shadow-l-md: -2px 0 24px 0 rgba(0, 0, 0, 0.08);
+}
+
+
+:root {
+  --primary: var(--color-brand);
+  --on-primary: var(--color-text-inverse);
+  --primary-hover: var(--color-brand-hover);
+  --primary-active: var(--color-brand-active);
+  --primary-disabled: var(--color-brand-disabled);
+  --primary-container: var(--color-info-primary-subtler);
+  --on-primary-container: var(--color-text-primary);
+  --primary-fixed: var(--color-brand);
+  --primary-fixed-dim: var(--color-brand-active);
+  --on-primary-fixed: var(--color-text-inverse);
+  --on-primary-fixed-variant: var(--color-text-inverse);
+
+  --surface: var(--color-bg-1);
+  --surface-dim: var(--color-bg-2);
+  --surface-bright: var(--color-bg-2);
+  --on-surface: var(--color-text-primary);
+  --surface-variant: var(--color-bg-1);
+  --on-surface-variant: var(--color-text-secondary);
+  --surface-container-lowest: var(--color-bg-1);
+  --surface-container-low: var(--color-bg-2);
+  --surface-container: var(--color-bg-2);
+  --surface-container-high: var(--color-bg-2);
+  --surface-container-highest: var(--color-bg-2);
+
+  --inverse-surface: var(--color-text-primary);
+  --inverse-on-surface: var(--color-text-inverse);
+  --inverse-on-surface-variant: var(--color-text-inverse-disabled);
+  --inverse-primary: var(--color-brand);
+
+  --error: var(--color-error);
+  --on-error: var(--color-text-inverse);
+  --error-container: var(--color-message-bg-error);
+  --on-error-container: var(--color-text-primary);
+
+  --success: var(--color-success);
+  --on-success: var(--color-text-inverse);
+  --success-container: var(--color-message-bg-success);
+  --on-success-container: var(--color-text-primary);
+
+  --critical: var(--color-alert);
+  --on-critical: var(--color-text-inverse);
+  --critical-container: var(--color-message-bg-alert);
+  --on-critical-container: var(--color-text-primary);
+
+  --warning: var(--color-warning);
+  --on-warning: var(--color-text-inverse);
+  --warning-container: var(--color-message-bg-warning);
+  --on-warning-container: var(--color-text-primary);
+
+  --info: var(--color-info-primary);
+  --on-info: var(--color-text-inverse);
+  --info-container: var(--color-message-bg-info);
+  --on-info-container: var(--color-text-primary);
+
+  --content-placeholder: var(--color-text-placeholder);
+  --content-disabled: var(--color-text-disabled);
+  --content-inverse-disabled: var(--color-text-inverse-disabled);
+
+  --interactive-link: var(--color-link);
+  --interactive-link-hover: var(--color-link-hover);
+  --interactive-link-active: var(--color-link-active);
+  --interactive-link-visited: var(--color-link-visited);
+  --interactive-link-disabled: var(--color-link-disabled);
+  
+  --scrim: var(--color-bg-mask);
+  --outline: var(--color-border);
+  --outline-variant: var(--color-border-separator);
+  --divider: var(--color-border-separator);
+  --focus-ring: var(--color-border-focus);
+  --selected: var(--color-border-focus);
+
+  /* ── spacing → --spacing-* ── */
+  --spacing-inline: var(--spacing-2);   /* 8px */
+  --spacing-stack: var(--spacing-3);    /* 12px */
+  --spacing-gutter: var(--spacing-4);  /* 16px */
+  --spacing-inset: var(--spacing-6);    /* 24px */
+  --spacing-section: var(--spacing-4); /* 16px */
+  --spacing-page: var(--spacing-8);      /* 32px */
+
+  /* ── boxShadow 语义别名(尺阶 --shadow-* 由 light/dark 层定义,暗色自动加深) ── */
+  --shadow-card: var(--shadow-sm);
+  --shadow-popover: var(--shadow-lg);
+  --shadow-modal: var(--shadow-xl);
+
+  /* ── borderRadius → --radius-* ── */
+  --radius-badge: var(--radius-base);  /* 4px */
+  --radius-action: var(--radius-base); /* 4px */
+  --radius-container: var(--radius-lg); /* 8px */
+  --radius-overlay: var(--radius-lg);  /* 8px */
+
+  /* ── outlineWidth / outlineOffset ── */
+  --outline-width-focus: 1px;
+  --outline-offset-gap: 2px;
+
+  /* ── typography → --font-*（角色化 font 简写：字号/行高 字族；字重另行用 --font-weight-* 组合）── */
+  /* Display 展示文本 — 英雄标语、数据看板大数字 */
+  --font-display-l: var(--font-size-12xl)/1.3 var(--font-family); /* 48px */
+  --font-display-m: var(--font-size-7xl)/1.4 var(--font-family);  /* 36px */
+  --font-display-s: var(--font-size-4xl)/1.4 var(--font-family);  /* 28px */
+  /* Headline 标题 — 弹窗主标题(H2)→区块标题(H3)→卡片标题 */
+  --font-headline-l: var(--font-size-3xl)/1.4 var(--font-family); /* 24px */
+  --font-headline-m: var(--font-size-2xl)/1.4 var(--font-family); /* 20px */
+  --font-headline-s: var(--font-size-xl)/1.5 var(--font-family);  /* 18px */
+  /* Body 正文 — 表单标签/按钮文字→表格正文→辅助说明 */
+  --font-body-l: var(--font-size-lg)/1.5 var(--font-family);      /* 16px */
+  --font-body-m: var(--font-size-md)/1.5 var(--font-family);      /* 14px */
+  --font-body-s: var(--font-size-base)/1.6 var(--font-family);    /* 12px */
+  /* Caption 注释 — 时间戳/表格附加信息→底部免责声明 */
+  --font-caption-m: var(--font-size-base)/1.6 var(--font-family); /* 12px */
+  --font-caption-s: var(--font-size-sm)/1.5 var(--font-family);   /* 10px */
+
+  /* ── fontFamily ── */
+  --font-family: 'HarmonyOS Sans', 'Microsoft YaHei', Arial, 'PingFang SC', 'San Francisco', sans-serif;
+}
+
+.dark {
+  /* 品牌色 */
+  --color-brand: var(--brand-50);
+  --color-brand-hover: var(--brand-40);
+  --color-brand-focus: var(--brand-50);
+  --color-brand-active: var(--brand-60);
+  --color-brand-disabled: var(--brand-70);
+  /* 文本色 */
+  --color-text-primary: var(--gray-0);
+  --color-text-secondary: var(--gray-20);
+  --color-text-placeholder: var(--gray-40);
+  --color-text-disabled: var(--gray-40);
+  --color-text-inverse: var(--gray-0);
+  --color-text-inverse-disabled: rgb(from var(--gray-05) r g b / 0.3);
+  --color-text-on: var(--gray-0);
+  --color-link: var(--brand-30);
+  --color-link-hover: var(--brand-20);
+  --color-link-active: var(--brand-40);
+  --color-link-visited: var(--indigo-50);
+  --color-link-disabled: var(--brand-60);
+  /* 背景色 */
+  --color-bg-1: var(--gray-100);
+  --color-bg-2: var(--gray-90);
+  --color-bg-3: var(--gray-80);
+  --color-bg-4: var(--gray-70);
+  --color-bg-5: rgb(from var(--gray-05) r g b / 0.1);
+  --color-bg-6: rgb(from var(--gray-05) r g b / 0.1);
+  --color-bg-mask: rgb(from var(--gray-0) r g b / 0.7);
+  /* 填充色 */
+  --color-fill-disabled: var(--gray-60);
+  --color-hover: rgb(from var(--gray-05) r g b / 0.2);
+  --color-fill-disabled-subtle: rgb(from var(--gray-05) r g b / 0.2);
+  --color-fill: rgb(from var(--gray-05) r g b / 0.2);
+  --color-select: rgb(from var(--brand-50) r g b / 0.4);
+  --color-fill-subtle: rgb(from var(--gray-100) r g b / 0);
+  /* 图标色 */
+  --color-icon-primary: var(--gray-10);
+  --color-icon-secondary: var(--gray-30);
+  --color-icon-tertiary: var(--gray-50);
+  --color-icon-placeholder: var(--gray-40);
+  --color-icon-disabled: var(--gray-40);
+  --color-icon-inverse: var(--gray-0);
+  --color-icon-hover: var(--brand-20);
+  --color-icon-focus: var(--brand-30);
+  --color-icon-active: var(--brand-40);
+  /* 边框色 */
+  --color-border: var(--gray-50);
+  --color-border-hover: var(--gray-05);
+  --color-border-focus: var(--brand-40);
+  --color-border-active: var(--brand-80);
+  --color-border-disabled: var(--gray-60);
+  --color-border-separator: rgb(from var(--gray-05) r g b / 0.15);
+  --color-border-separator-sbutle: rgb(from var(--gray-05) r g b / 0.1);
+  /* 功能色-错误 */
+  --color-error: var(--red-40);
+  --color-error-hover: var(--red-30);
+  --color-error-active: var(--red-50);
+  --color-error-disabled: var(--red-80);
+  --color-error-subtle: var(--red-60);
+  --color-error-subtler: var(--red-80);
+  /* 功能色-告警 */
+  --color-alert: var(--orange-50);
+  --color-alert-hover: var(--orange-40);
+  --color-alert-active: var(--orange-60);
+  --color-alert-disabled: var(--orange-80);
+  --color-alert-subtle: var(--orange-60);
+  --color-alert-subtler: var(--orange-80);
+  /* 功能色-提醒 */
+  --color-warning: var(--yellow-40);
+  --color-warning-hover: var(--yellow-30);
+  --color-warning-active: var(--yellow-50);
+  --color-warning-disabled: var(--yellow-80);
+  --color-warning-bold: var(--yellow-60);
+  --color-warning-subtle: var(--yellow-60);
+  --color-warning-subtler: var(--yellow-80);
+  /* 功能色-成功 */
+  --color-success: var(--mint-60);
+  --color-success-hover: var(--mint-50);
+  --color-success-active: var(--mint-60);
+  --color-success-disabled: var(--mint-80);
+  --color-success-subtle: var(--mint-60);
+  --color-success-subtler: var(--mint-80);
+  /* 功能色-信息 */
+  --color-info-primary: var(--blue-50);
+  --color-info-primary-subtle: var(--blue-60);
+  --color-info-primary-subtler: var(--blue-80);
+  --color-info-secondary: var(--blue-60);
+  --color-info-secondary-hover: var(--blue-40);
+  --color-info-secondary-active: var(--blue-60);
+  --color-info-secondary-disabled: var(--blue-80);
+  --color-info-secondary-subtle: var(--blue-80);
+  /* 功能色-失效 */
+  --color-none: var(--gray-60);
+  --color-none-hover: rgb(from var(--gray-05) r g b / 0.2);
+  --color-none-active: var(--gray-50);
+  --color-none-disabled: var(--gray-90);
+  --color-none-subtle: var(--gray-90);
+  /* 推荐图表色 */
+  --color-chart-1: var(--blue-50);
+  --color-chart-2: var(--green-50);
+  --color-chart-3: var(--indigo-50);
+  --color-chart-4: var(--cyan-50);
+  --color-chart-5: var(--orange-40);
+  --color-chart-6: var(--brand-30);
+  --color-chart-7: var(--purple-60);
+  --color-chart-8: var(--rose-60);
+  --color-chart-9: var(--indigo-60);
+  --color-chart-10: var(--yellow-60);
+  --color-chart-11: var(--brand-60);
+  --color-chart-12: var(--green-60);
+  --color-chart-13: var(--purple-70);
+  --color-chart-14: var(--cyan-60);
+  --color-chart-15: var(--orange-70);
+  --color-chart-16: var(--rose-60);
+  --color-chart-17: var(--cyan-70);
+  --color-chart-18: var(--blue-60);
+  --color-chart-19: var(--green-70);
+  --color-chart-20: var(--indigo-70);
+  --color-chart-21: var(--rose-70);
+  --color-chart-22: var(--cyan-30);
+  --color-chart-23: var(--yellow-70);
+  --color-chart-24: var(--purple-50);
+  --color-chart-25: var(--mint-70);
+  /* 特殊场景 */
+  --color-scrollbar: var(--gray-60);
+  --color-scrollbar-hover: var(--gray-40);
+  --color-card-gray-disabled: rgb(from var(--gray-40) r g b / 0.05);
+  --color-card-white-disabled: rgb(from var(--gray-40) r g b / 0.1);
+  --color-sidenav-bg: var(--gray-70);
+  --color-table-header: rgb(from var(--gray-05) r g b / 0.1);
+  --color-table-zebra: rgb(from var(--gray-50) r g b / 0.15);
+  --color-message-bg-info: rgb(from var(--blue-50) r g b / 0.15);
+  --color-message-bg-success: rgb(from var(--mint-60) r g b / 0.15);
+  --color-message-bg-warning: rgb(from var(--yellow-40) r g b / 0.15);
+  --color-message-bg-alert: rgb(from var(--orange-50) r g b / 0.15);
+  --color-message-bg-error: rgb(from var(--red-40) r g b / 0.15);
+  /* ICT3.0 3.0告警色 */
+  --color-alert-urgent: #F43146;
+  --color-alert-primary: #EC6F1A;
+  --color-alert-secondary: #EEBA18;
+  --color-alert-success: #0D9458;
+  --color-alert-running: #5990FD;
+  --color-alert-none: #818181;
+  /* ICT3.1 表格 */
+  --color-table-1: rgb(from var(--brand-50) r g b / 0.2);
+  --color-table-2: rgb(from var(--brand-50) r g b / 0.4);
+  --color-table-sticky-1: var(--brand-80);
+  --color-table-sticky-2: var(--brand-70);
+  --color-table-sticky-bg: var(--gray-70);
+  --color-table-sticky-header: var(--gray-70);
+  /* 标签配色 */
+  --color-tag-text-purple: var(--purple-30);
+  --color-tag-bg-purple: rgb(from var(--purple-30) r g b / 0.15);
+  --color-tag-text-cyan: var(--cyan-40);
+  --color-tag-bg-cyan: rgb(from var(--cyan-50) r g b / 0.15);
+  --color-tag-text-rose: var(--rose-30);
+  --color-tag-bg-rose: rgb(from var(--rose-30) r g b / 0.15);
+  --color-tag-text-green: var(--green-50);
+  --color-tag-bg-green: rgb(from var(--green-40) r g b / 0.15);
+  --color-tag-text-pink: var(--pink-30);
+  --color-tag-bg-pink: rgb(from var(--pink-30) r g b / 0.15);
+  --color-tag-text-indigo: var(--indigo-30);
+  --color-tag-bg-indigo: rgb(from var(--indigo-30) r g b / 0.15);
+  --color-tag-text-none: var(--gray-30);
+  --color-tag-bg-none: rgb(from var(--gray-30) r g b / 0.15);
+  --color-tag-text-error: var(--red-40);
+  --color-tag-bg-error: rgb(from var(--red-30) r g b / 0.15);
+  --color-tag-text-alert: var(--orange-40);
+  --color-tag-bg-alert: rgb(from var(--orange-50) r g b / 0.15);
+  --color-tag-text-warning: var(--yellow-50);
+  --color-tag-bg-warning: rgb(from var(--yellow-30) r g b / 0.15);
+  --color-tag-text-success: var(--mint-40);
+  --color-tag-bg-success: rgb(from var(--mint-50) r g b / 0.15);
+  --color-tag-text-info: var(--blue-30);
+  --color-tag-bg-info: rgb(from var(--blue-40) r g b / 0.15);
+  /* Border */
+  --border: var(--gray-50);
+  --border-light: rgb(from var(--gray-05) r g b / 0.15);
+  --border-primary: var(--brand-30);
+  --border-success: var(--mint-20);
+  --border-warning: var(--yellow-20);
+  --border-alert: var(--orange-20);
+  --border-error: var(--red-20);
+  /* Icon */
+  --icon-primary: var(--brand-30);
+  --icon-success: var(--mint-30);
+  --icon-warning: var(--yellow-30);
+  --icon-critical: var(--orange-30);
+  --icon-alert: var(--orange-30);
+  --icon-error: var(--red-30);
+  /* Shadow (暗色模式下阴影更强) */
+  --shadow-none: none;
+  --shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.5);
+  --shadow-base: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-r-sm: 1px 0 6px 0 rgba(0, 0, 0, 0.5);
+  --shadow-t-sm: 0 -1px 6px rgba(0, 0, 0, 0.5);
+  --shadow-l-base: -2px 0 12px 0 rgba(0, 0, 0, 0.5);
+  --shadow-l-md: -2px 0 24px 0 rgba(0, 0, 0, 0.5);
+}
+
+
+/* 应用级基础样式 — 页面骨架的 token 消费示例 */
+.app-root {
+  min-height: 100vh;
+  background: var(--surface-container-lowest);
+  color: var(--on-surface);
+  font: var(--font-body-m);
+}
+
+
+
+/* 布局骨架 — token 优先 */
+.shell {
+  min-height: 100vh;
+  background: var(--surface-container-lowest);
+}
+
+.shell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 var(--spacing-page);
+  background: var(--surface-container-highest);
+  border-bottom: 1px solid var(--divider);
+}
+
+.shell-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline);
+}
+
+.shell-brand-icon {
+  color: var(--primary);
+}
+
+.shell-brand-text {
+  font: var(--font-body-l);
+  font-weight: var(--font-weight-medium);
+  color: var(--on-surface);
+}
+
+.shell-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-stack);
+}
+
+.shell-search {
+  width: 220px;
+}
+
+.shell-avatar {
+  background: var(--primary);
+  color: var(--on-primary);
+  font: var(--font-body-s);
+  cursor: pointer;
+}
+
+.shell-sider {
+  background: var(--surface-container-highest);
+  border-right: 1px solid var(--divider);
+}
+
+.shell-content {
+  padding: var(--spacing-stack) var(--spacing-page) var(--spacing-page);
+}
+
+/* 面包屑:视觉权重低于内容标题 */
+.shell-breadcrumb {
+  margin-bottom: var(--spacing-stack);
+  font: var(--font-caption-m);
+  color: var(--on-surface-variant);
+}
+
+
+/* 步骤流面板 — token 优先 */
+.step-panel {
+  background: var(--surface-container-highest);
+  border-radius: var(--radius-container);
+  box-shadow: var(--shadow-card);
+  padding: var(--spacing-inset);
+}
+
+.step-content {
+  margin-top: var(--spacing-section);
+  min-height: 320px;
+  padding: var(--spacing-inset);
+  background: var(--surface-container-low);
+  border-radius: var(--radius-container);
+}
+
+.step-form {
+  max-width: 640px;
+}
+
+.step-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-gutter);
+}
+
+.confirm-alert {
+  margin-bottom: var(--spacing-stack);
+}
+
+.confirm-group {
+  margin-top: var(--spacing-stack);
+}
+
+.confirm-group + .confirm-group {
+  margin-top: var(--spacing-section);
+}
+
+/* 底部按钮组靠右:次要(上一步)在左,主操作(下一步/提交)在最右 */
+.step-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-section);
+  padding-top: var(--spacing-stack);
+  border-top: 1px solid var(--divider);
+}
+
+/* 窄屏时双列表单退化为单列 */
+@media (max-width: 768px) {
+  .step-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+</style>
+<!-- 5. Base styles -->
+<style>
+body, html { margin: 0; padding: 0; height: 100%; font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif); }
+#root { height: 100%; }
+</style>
+</head>
+<body>
+<div id="root">Loading...</div>
+<script>
+// 注册 classic JSX 运行时 preset(新版 babel-standalone 默认 automatic,
+// 产出的 import "react/jsx-runtime" 无法在经典脚本中执行)
+Babel.registerPreset("react-classic", {
+  presets: [[Babel.availablePresets["react"], { runtime: "classic" }]],
+});
+</script>
+<script type="text/babel" data-presets="react-classic">
+var __export = {};
+/* ===== assets/shared/antd-zh-cn.js ===== */
+(function () {
+// antd-zh-cn.js — 中文 locale 补丁包
+// antd.min.js / dayjs.min.js UMD 均不含 locale 包,本文件补齐:
+//   1. 注册 dayjs zh-cn locale(星期/月份/相对时间中文化)
+//   2. 导出 antd ConfigProvider 可用的 zhCN locale 对象
+//
+// 用法(页面入口):
+//   import zhCN from "./assets/shared/antd-zh-cn.js";
+//   <ConfigProvider locale={zhCN}> ... </ConfigProvider>
+
+
+
+// ---- 1. 注册 dayjs zh-cn locale(dayjs.min.js 核心包不带任何 locale) ----
+dayjs.locale(
+  "zh-cn",
+  {
+    name: "zh-cn",
+    weekdays: "星期日_星期一_星期二_星期三_星期四_星期五_星期六".split("_"),
+    weekdaysShort: "周日_周一_周二_周三_周四_周五_周六".split("_"),
+    weekdaysMin: "日_一_二_三_四_五_六".split("_"),
+    months: "一月_二月_三月_四月_五月_六月_七月_八月_九月_十月_十一月_十二月".split("_"),
+    monthsShort: "1月_2月_3月_4月_5月_6月_7月_8月_9月_10月_11月_12月".split("_"),
+    weekStart: 1,
+    formats: {
+      LT: "HH:mm",
+      LTS: "HH:mm:ss",
+      L: "YYYY/MM/DD",
+      LL: "YYYY年M月D日",
+      LLL: "YYYY年M月D日 Ah点mm分",
+      LLLL: "YYYY年M月D日ddddAh点mm分",
+      l: "YYYY/M/D",
+      ll: "YYYY年M月D日",
+      lll: "YYYY年M月D日 HH:mm",
+      llll: "YYYY年M月D日dddd HH:mm",
+    },
+    relativeTime: {
+      future: "%s内",
+      past: "%s前",
+      s: "几秒",
+      m: "1 分钟",
+      mm: "%d 分钟",
+      h: "1 小时",
+      hh: "%d 小时",
+      d: "1 天",
+      dd: "%d 天",
+      M: "1 个月",
+      MM: "%d 个月",
+      y: "1 年",
+      yy: "%d 年",
+    },
+    meridiem(hour, minute) {
+      const hm = hour * 100 + minute;
+      if (hm < 600) return "凌晨";
+      if (hm < 900) return "早上";
+      if (hm < 1130) return "上午";
+      if (hm < 1230) return "中午";
+      if (hm < 1800) return "下午";
+      return "晚上";
+    },
+    ordinal(number, period) {
+      switch (period) {
+        case "W":
+          return `${number}周`;
+        default:
+          return `${number}日`;
+      }
+    },
+  },
+  true
+);
+
+// ---- 2. antd zh_CN locale(对齐 antd 5 官方 zh_CN,常用组件全量) ----
+const typeTemplate = "${label}不是一个有效的${type}";
+
+const zhCN = {
+  locale: "zh-cn",
+  dayjsLocale: "zh-cn",
+
+  Pagination: {
+    items_per_page: "条/页",
+    jump_to: "跳至",
+    jump_to_confirm: "确定",
+    page: "页",
+    prev_page: "上一页",
+    next_page: "下一页",
+    prev_5: "向前 5 页",
+    next_5: "向后 5 页",
+    prev_3: "向前 3 页",
+    next_3: "向后 3 页",
+  },
+
+  DatePicker: {
+    lang: {
+      placeholder: "请选择日期",
+      yearPlaceholder: "请选择年份",
+      quarterPlaceholder: "请选择季度",
+      monthPlaceholder: "请选择月份",
+      weekPlaceholder: "请选择周",
+      rangePlaceholder: ["开始日期", "结束日期"],
+      rangeYearPlaceholder: ["开始年份", "结束年份"],
+      rangeMonthPlaceholder: ["开始月份", "结束月份"],
+      rangeWeekPlaceholder: ["开始周", "结束周"],
+      locale: "zh_cn",
+      today: "今天",
+      now: "此刻",
+      backToToday: "返回今天",
+      ok: "确定",
+      timeSelect: "选择时间",
+      dateSelect: "选择日期",
+      weekSelect: "选择周",
+      clear: "清除",
+      month: "月",
+      year: "年",
+      previousMonth: "上个月 (翻页上键)",
+      nextMonth: "下个月 (翻页下键)",
+      monthSelect: "选择月份",
+      yearSelect: "选择年份",
+      decadeSelect: "选择年代",
+      yearFormat: "YYYY年",
+      dayFormat: "D日",
+      dateFormat: "YYYY年M月D日",
+      dateTimeFormat: "YYYY年M月D日 HH时mm分ss秒",
+      previousYear: "上一年 (Control键加左方向键)",
+      nextYear: "下一年 (Control键加右方向键)",
+      previousDecade: "上一年代",
+      nextDecade: "下一年代",
+      previousCentury: "上一世纪",
+      nextCentury: "下一世纪",
+      shortWeekDays: ["一", "二", "三", "四", "五", "六", "日"],
+    },
+    timePickerLocale: { placeholder: "请选择时间" },
+  },
+
+  TimePicker: { placeholder: "请选择时间" },
+
+  Calendar: {
+    lang: {
+      placeholder: "请选择日期",
+      yearPlaceholder: "请选择年份",
+      quarterPlaceholder: "请选择季度",
+      monthPlaceholder: "请选择月份",
+      weekPlaceholder: "请选择周",
+      rangePlaceholder: ["开始日期", "结束日期"],
+      locale: "zh_cn",
+      today: "今天",
+      now: "此刻",
+      backToToday: "返回今天",
+      ok: "确定",
+      timeSelect: "选择时间",
+      dateSelect: "选择日期",
+      weekSelect: "选择周",
+      clear: "清除",
+      month: "月",
+      year: "年",
+      previousMonth: "上个月 (翻页上键)",
+      nextMonth: "下个月 (翻页下键)",
+      monthSelect: "选择月份",
+      yearSelect: "选择年份",
+      decadeSelect: "选择年代",
+      yearFormat: "YYYY年",
+      dayFormat: "D日",
+      dateFormat: "YYYY年M月D日",
+      dateTimeFormat: "YYYY年M月D日 HH时mm分ss秒",
+      previousYear: "上一年 (Control键加左方向键)",
+      nextYear: "下一年 (Control键加右方向键)",
+      previousDecade: "上一年代",
+      nextDecade: "下一年代",
+      previousCentury: "上一世纪",
+      nextCentury: "下一世纪",
+      shortWeekDays: ["一", "二", "三", "四", "五", "六", "日"],
+    },
+    timePickerLocale: { placeholder: "请选择时间" },
+  },
+
+  global: { placeholder: "请选择" },
+
+  Table: {
+    filterTitle: "筛选",
+    filterConfirm: "确定",
+    filterReset: "重置",
+    filterEmptyText: "无筛选项",
+    filterCheckall: "全选",
+    filterSearchPlaceholder: "在筛选项中搜索",
+    emptyText: "暂无数据",
+    selectAll: "全选当页",
+    selectInvert: "反选当页",
+    selectNone: "清空所有",
+    selectionAll: "全选所有",
+    sortTitle: "排序",
+    expand: "展开行",
+    collapse: "关闭行",
+    triggerDesc: "点击降序",
+    triggerAsc: "点击升序",
+    cancelSort: "取消排序",
+  },
+
+  Modal: { okText: "确定", cancelText: "取消", justOkText: "知道了" },
+
+  Tour: { Next: "下一步", Previous: "上一步", Finish: "结束" },
+
+  Popconfirm: { okText: "确定", cancelText: "取消" },
+
+  Transfer: {
+    titles: ["", ""],
+    searchPlaceholder: "请输入搜索内容",
+    itemUnit: "项",
+    itemsUnit: "项",
+    remove: "删除",
+    selectCurrent: "全选当页",
+    removeCurrent: "删除当页",
+    selectAll: "全选所有",
+    removeAll: "删除全部",
+    selectInvert: "反选当页",
+  },
+
+  Upload: {
+    uploading: "文件上传中",
+    removeFile: "删除文件",
+    uploadError: "上传错误",
+    previewFile: "预览文件",
+    downloadFile: "下载文件",
+  },
+
+  Empty: { description: "暂无数据" },
+
+  Icon: { icon: "图标" },
+
+  Text: {
+    edit: "编辑",
+    copy: "复制",
+    copied: "复制成功",
+    expand: "展开",
+    collapse: "收起",
+  },
+
+  Form: {
+    optional: "（可选）",
+    defaultValidateMessages: {
+      default: "字段验证错误${label}",
+      required: "请输入${label}",
+      enum: "${label}必须是其中一个[${enum}]",
+      whitespace: "${label}不能为空字符",
+      date: {
+        format: "${label}日期格式无效",
+        parse: "${label}不能转换为日期",
+        invalid: "${label}是一个无效日期",
+      },
+      types: {
+        string: typeTemplate,
+        method: typeTemplate,
+        array: typeTemplate,
+        object: typeTemplate,
+        number: typeTemplate,
+        date: typeTemplate,
+        boolean: typeTemplate,
+        integer: typeTemplate,
+        float: typeTemplate,
+        regexp: typeTemplate,
+        email: typeTemplate,
+        url: typeTemplate,
+        hex: typeTemplate,
+      },
+      string: {
+        len: "${label}须为${len}个字符",
+        min: "${label}最少${min}个字符",
+        max: "${label}最多${max}个字符",
+        range: "${label}须在${min}-${max}个字符之间",
+      },
+      number: {
+        len: "${label}必须等于${len}",
+        min: "${label}最小值为${min}",
+        max: "${label}最大值为${max}",
+        range: "${label}须在${min}-${max}之间",
+      },
+      array: {
+        len: "须为${len}个${label}",
+        min: "最少${min}个${label}",
+        max: "最多${max}个${label}",
+        range: "${label}数量须在${min}-${max}之间",
+      },
+      pattern: { mismatch: "${label}与模式不匹配（${pattern}）" },
+    },
+  },
+
+  Image: { preview: "预览" },
+
+  QRCode: { expired: "二维码已过期", refresh: "点击刷新", scanned: "已扫描" },
+
+  ColorPicker: {
+    presetEmpty: "暂无",
+    transparent: "无色",
+    singleColor: "单色",
+    gradientColor: "渐变色",
+  },
+};
+  Object.assign(__export, { zhCN });
+})();
+
+/* ===== src/context.jsx ===== */
+(function () {
+  const { useState, useEffect, createContext, useContext } = React;
+  const { ConfigProvider, theme } = antd;
+// Layer 1: 全局状态 — dark 模式双轨同步(antd algorithm + .dark class)
+const AppContext = createContext(null);
+
+function AppProvider({ children }) {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [isDark]);
+
+  const value = {
+    isDark,
+    toggleDark: () => setIsDark((d) => !d),
+  };
+
+  return (
+    <AppContext.Provider value={value}>
+      <ConfigProvider theme={{ algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
+        {children}
+      </ConfigProvider>
+    </AppContext.Provider>
+  );
+}
+
+function useApp() {
+  return useContext(AppContext);
+}
+  Object.assign(__export, { AppProvider, useApp });
+})();
+
+/* ===== assets/shared/icons.js ===== */
+(function () {
+  const LUCIDE = {
+    "arrow-left": [["path",{"d":"m12 19-7-7 7-7"}],["path",{"d":"M19 12H5"}]],
+    "arrow-right": [["path",{"d":"M5 12h14"}],["path",{"d":"m12 5 7 7-7 7"}]],
+    "bell": [["path",{"d":"M10.268 21a2 2 0 0 0 3.464 0"}],["path",{"d":"M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"}]],
+    "gauge": [["path",{"d":"m12 14 4-4"}],["path",{"d":"M3.34 19a10 10 0 1 1 17.32 0"}]],
+    "moon": [["path",{"d":"M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"}]],
+    "rotate-ccw": [["path",{"d":"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"}],["path",{"d":"M3 3v5h5"}]],
+    "search": [["path",{"d":"m21 21-4.34-4.34"}],["circle",{"cx":"11","cy":"11","r":"8"}]],
+    "server": [["rect",{"width":"20","height":"8","x":"2","y":"2","rx":"2","ry":"2"}],["rect",{"width":"20","height":"8","x":"2","y":"14","rx":"2","ry":"2"}],["line",{"x1":"6","x2":"6.01","y1":"6","y2":"6"}],["line",{"x1":"6","x2":"6.01","y1":"18","y2":"18"}]],
+    "settings": [["path",{"d":"M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"}],["circle",{"cx":"12","cy":"12","r":"3"}]],
+    "sun": [["circle",{"cx":"12","cy":"12","r":"4"}],["path",{"d":"M12 2v2"}],["path",{"d":"M12 20v2"}],["path",{"d":"m4.93 4.93 1.41 1.41"}],["path",{"d":"m17.66 17.66 1.41 1.41"}],["path",{"d":"M2 12h2"}],["path",{"d":"M20 12h2"}],["path",{"d":"m6.34 17.66-1.41 1.41"}],["path",{"d":"m19.07 4.93-1.41 1.41"}]],
+    "zap": [["path",{"d":"M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"}]],
+  };
+  const { useState, useEffect } = React;
+// ---- Lucide (offline fallback, table injected at build time) ----
+const ICONS = typeof LUCIDE !== "undefined" ? LUCIDE : {};
+
+function camelToKebab(s) {
+  return s.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+}
+
+function lookupIcon(name) {
+  if (!name) return null;
+  return (
+    ICONS[name] ||
+    ICONS[camelToKebab(name)] ||
+    ICONS[name.replace(/-([a-z])/g, (_m, c) => c.toUpperCase())] ||
+    null
+  );
+}
+
+// ---- icon-plus (联通) online flow, same as packages/previewpc ----
+const ICON_API_BASE = "https://octo.hdesign.huawei.com";
+const GET_CONFIG = `${ICON_API_BASE}/assetRepository/iconPlus/getConfig`;
+const GET_ICON_INFO = `${ICON_API_BASE}/assetRepository/iconPlus/getIconInfo`;
+const GET_ICON = `${ICON_API_BASE}/assetRepository/iconPlus/getIcon`;
+
+let plusState = null; // null = probing, true = icon-plus available, false = fall back to Lucide
+let plusPromise = null; // singleton getConfig probe promise
+let iconConfig = null;
+let defaultColorId = "";
+const iconInfoMap = {}; // name -> { name, url }
+const svgCache = new Map(); // "name&variant&color" -> svg text
+
+// variant prop -> getConfig style key (matches previewpc's shapeToStyleKey)
+const STYLE_KEY = {
+  lined: "border",
+  filled: "filled",
+  "two-tone": "two_colors1",
+  circle: "round_bottom2",
+  square: "square_bottom2",
+};
+
+function getStyleValue(styleKey) {
+  return iconConfig?.style?.find((s) => s.key === styleKey)?.value || styleKey;
+}
+
+// resolve an API color id from the requested hex against getConfig colors
+function resolveColorId(variant, colorHex) {
+  const styleValue = getStyleValue(STYLE_KEY[variant] || "border");
+  const colors = (iconConfig?.colors || []).filter((c) => c.style === styleValue);
+  if (colorHex) {
+    const m = colors.find((c) =>
+      c.value.split(",").map((v) => v.trim()).includes(colorHex)
+    );
+    if (m) return m.id;
+  }
+  return defaultColorId || colors[0]?.id || "";
+}
+
+// getConfig probe == 联通可用性验证 (same as previewpc fetchIconConfig)
+function ensurePlus() {
+  if (plusPromise) return plusPromise;
+  plusPromise = (async () => {
+    try {
+      const resp = await fetch(GET_CONFIG);
+      if (!resp.ok) {
+        plusState = false;
+        return false;
+      }
+      iconConfig = await resp.json();
+      const linear = iconConfig.colors?.find(
+        (c) => c.type === "linear" || c.type === "通用色"
+      );
+      defaultColorId =
+        linear?.id || iconConfig.colors?.[0]?.id || "";
+      plusState = true;
+      return true;
+    } catch (e) {
+      plusState = false;
+      return false;
+    }
+  })();
+  return plusPromise;
+}
+
+// pick the best icon-plus match for a keyword (prefer system-icon group, then name contains keyword, else first)
+function selectBestIcon(icons, keyword) {
+  return (
+    icons.find(
+      (i) => Array.isArray(i.group) && i.group.some((g) => g.includes("系统图标"))
+    ) ||
+    icons.find((i) => i.name?.toLowerCase().includes(keyword.toLowerCase())) ||
+    icons[0]
+  );
+}
+
+// name -> { name, url } via getIconInfo (cached in iconInfoMap)
+async function resolveIconInfo(name) {
+  if (iconInfoMap[name]) return iconInfoMap[name];
+  try {
+    const resp = await fetch(
+      `${GET_ICON_INFO}?keyword=${encodeURIComponent(name)}&topK=2&source_id=6`
+    );
+    const data = await resp.json(); // [{ keyword, icons: [{ icon_id, name, category, group[], url }] }]
+    const entry = (Array.isArray(data) ? data : [data]).find(
+      (d) => d.icons?.length
+    );
+    const selected = selectBestIcon(entry?.icons || [], name);
+    if (!selected?.url) return null;
+    iconInfoMap[name] = { name: selected.name, url: selected.url };
+    return iconInfoMap[name];
+  } catch (e) {
+    return null;
+  }
+}
+
+// fetch the SVG text for a name via getIcon (url + size + variant + colorId + fileType=svg)
+async function fetchSvg(name, variant, colorHex) {
+  const info = await resolveIconInfo(name);
+  if (!info) return "";
+  const styleValue = getStyleValue(STYLE_KEY[variant] || "border");
+  const colorId = resolveColorId(variant, colorHex);
+  try {
+    const resp = await fetch(
+      `${GET_ICON}?url=${encodeURIComponent(info.url)}&size=16&style=${encodeURIComponent(
+        styleValue
+      )}&color=${encodeURIComponent(colorId)}&fileType=svg`
+    );
+    const data = await resp.json(); // { url, name, data } or array
+    const item = Array.isArray(data) ? data[0] : data;
+    return item?.data || ""; // raw SVG text, injected as-is
+  } catch (e) {
+    return "";
+  }
+}
+
+function Icon({
+  name,
+  src,
+  size = 16,
+  color,
+  className = "",
+  style,
+  strokeWidth = 2,
+  variant = "lined",
+}) {
+  const [plus, setPlus] = useState(plusState); // reuse already-probed result
+  const [svg, setSvg] = useState(
+    () => svgCache.get(`${name}&${variant}&${color}`) || ""
+  );
+
+  useEffect(() => {
+    if (src) return; // user-asset mode: no network needed
+    let alive = true;
+    ensurePlus().then((ok) => {
+      if (!alive) return;
+      setPlus(ok);
+      if (!ok) return; // getConfig probe failed → Lucide branch
+      const key = `${name}&${variant}&${color}`;
+      if (svgCache.has(key)) {
+        setSvg(svgCache.get(key));
+        return;
+      }
+      fetchSvg(name, variant, color).then((s) => {
+        if (!alive) return;
+        svgCache.set(key, s);
+        setSvg(s);
+      });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [src, name, variant, color]);
+
+  // user-provided asset (svg/png/jpg) via relative path — overrides name when both are set
+  if (src) {
+    return React.createElement("img", {
+      src: src,
+      width: size,
+      height: size,
+      className: className,
+      alt: "",
+      "aria-hidden": true,
+      style: { ...style, display: "inline-block", verticalAlign: "middle" },
+    });
+  }
+
+  // probe not finished yet → render nothing
+  if (plus === null) return null;
+
+  // icon-plus unavailable (offline) → Lucide fallback (original behavior)
+  if (plus === false) {
+    const nodes = lookupIcon(name);
+    if (!nodes) return null;
+    return React.createElement(
+      "svg",
+      {
+        xmlns: "http://www.w3.org/2000/svg",
+        width: size,
+        height: size,
+        viewBox: "0 0 24 24",
+        fill: "none",
+        strokeWidth: strokeWidth,
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+        className: className,
+        "aria-hidden": true,
+        style: { ...style, stroke: color || "currentColor" },
+      },
+      nodes.map(([tag, attrs], i) =>
+        React.createElement(tag, { key: i, ...attrs })
+      )
+    );
+  }
+
+  // icon-plus available → render fetched SVG text as-is (only width/height on the wrapper)
+  if (!svg) {
+    return React.createElement("span", {
+      className,
+      "aria-hidden": true,
+      style: { ...style, width: size, height: size },
+    });
+  }
+  
+  return React.createElement("span", {
+    className,
+    "aria-hidden": true,
+    style: { ...style, width: size, height: size },
+    dangerouslySetInnerHTML: { __html: svg },
+  });
+}
+  Object.assign(__export, { Icon });
+})();
+
+/* ===== src/data.js ===== */
+(function () {
+// Layer 2: mock 数据与流程配置
+
+// 侧边菜单(亮色体系,默认不生成深色侧导航)
+const menuItems = [
+  { key: "overview", icon: "gauge", label: "设备总览" },
+  { key: "devices", icon: "server", label: "设备管理" },
+  { key: "alarms", icon: "bell", label: "告警中心" },
+  { key: "settings", icon: "settings", label: "系统设置" },
+];
+
+// 面包屑路径(真实层级,不凑假路径)
+const breadcrumbs = ["设备管理", "新建接入", "配置向导"];
+
+// 步骤定义(横向 Steps 不承载长文案,说明放内容区)
+const stepItems = [
+  { key: "basic", title: "基础信息" },
+  { key: "network", title: "网络配置" },
+  { key: "confirm", title: "确认提交" },
+];
+
+const deviceTypeOptions = [
+  { value: "inverter", label: "光伏逆变器" },
+  { value: "turbine", label: "风力发电机组" },
+  { value: "storage", label: "储能电池簇" },
+  { value: "meter", label: "智能电表" },
+];
+
+const stationOptions = [
+  { value: "north-wind-03", label: "华北风电场-03" },
+  { value: "east-pv-11", label: "华东光伏站-11" },
+  { value: "south-storage-02", label: "华南储能站-02" },
+];
+
+const protocolOptions = [
+  { value: "modbus-tcp", label: "Modbus TCP" },
+  { value: "iec104", label: "IEC 104" },
+  { value: "mqtt", label: "MQTT" },
+];
+
+// 第三步确认页的字段分组呈现配置
+const confirmGroups = [
+  {
+    key: "basic",
+    title: "基础信息",
+    fields: [
+      ["deviceName", "设备名称"],
+      ["deviceType", "设备类型"],
+      ["station", "所属站点"],
+      ["protocol", "接入协议"],
+      ["remark", "备注"],
+    ],
+  },
+  {
+    key: "network",
+    title: "网络配置",
+    fields: [
+      ["host", "通信地址"],
+      ["port", "端口"],
+      ["collectInterval", "采集周期(秒)"],
+      ["encrypted", "链路加密"],
+    ],
+  },
+];
+
+// label → 文案映射(用于确认页回显)
+const labelMaps = {
+  deviceType: Object.fromEntries(deviceTypeOptions.map((o) => [o.value, o.label])),
+  station: Object.fromEntries(stationOptions.map((o) => [o.value, o.label])),
+  protocol: Object.fromEntries(protocolOptions.map((o) => [o.value, o.label])),
+  encrypted: { true: "已启用", false: "未启用" },
+};
+  Object.assign(__export, { menuItems, breadcrumbs, stepItems, deviceTypeOptions, stationOptions, protocolOptions, confirmGroups, labelMaps });
+})();
+
+/* ===== src/views/steps/BasicInfoForm.jsx ===== */
+(function () {
+  const { Form, Input, Select, Radio } = antd;
+  const { deviceTypeOptions, stationOptions, protocolOptions } = __export;
+// Layer 4: 步骤一 — 基础信息表单
+function BasicInfoForm({ form, initialValues }) {
+  return (
+    <Form form={form} layout="vertical" initialValues={initialValues} className="step-form">
+      <Form.Item
+        name="deviceName"
+        label="设备名称"
+        rules={[{ required: true, message: "请输入设备名称" }, { max: 32, message: "不超过 32 个字符" }]}
+      >
+        <Input placeholder="如:华北风电场-03 逆变器 A12" allowClear />
+      </Form.Item>
+
+      <div className="step-form-row">
+        <Form.Item
+          name="deviceType"
+          label="设备类型"
+          rules={[{ required: true, message: "请选择设备类型" }]}
+        >
+          <Select placeholder="请选择设备类型" options={deviceTypeOptions} />
+        </Form.Item>
+        <Form.Item
+          name="station"
+          label="所属站点"
+          rules={[{ required: true, message: "请选择所属站点" }]}
+        >
+          <Select placeholder="请选择所属站点" options={stationOptions} />
+        </Form.Item>
+      </div>
+
+      <Form.Item name="protocol" label="接入协议" rules={[{ required: true, message: "请选择接入协议" }]}>
+        <Radio.Group>
+          {protocolOptions.map((p) => (
+            <Radio.Button key={p.value} value={p.value}>
+              {p.label}
+            </Radio.Button>
+          ))}
+        </Radio.Group>
+      </Form.Item>
+
+      <Form.Item name="remark" label="备注">
+        <Input.TextArea placeholder="补充设备用途、投运时间等信息(选填)" rows={3} maxLength={200} showCount />
+      </Form.Item>
+    </Form>
+  );
+}
+  Object.assign(__export, { BasicInfoForm });
+})();
+
+/* ===== src/views/steps/NetworkForm.jsx ===== */
+(function () {
+  const { Form, Input, InputNumber, Switch } = antd;
+// Layer 4: 步骤二 — 网络配置表单
+function NetworkForm({ form, initialValues }) {
+  return (
+    <Form form={form} layout="vertical" initialValues={initialValues} className="step-form">
+      <div className="step-form-row">
+        <Form.Item
+          name="host"
+          label="通信地址"
+          rules={[
+            { required: true, message: "请输入通信地址" },
+            { pattern: /^(?=.{1,255}$)[a-zA-Z0-9.-]+$/, message: "仅支持域名或 IP 格式" },
+          ]}
+        >
+          <Input placeholder="如:192.168.10.21" allowClear />
+        </Form.Item>
+        <Form.Item
+          name="port"
+          label="端口"
+          rules={[{ required: true, message: "请输入端口" }]}
+        >
+          <InputNumber min={1} max={65535} placeholder="502" style={{ width: "100%" }} />
+        </Form.Item>
+      </div>
+
+      <Form.Item
+        name="collectInterval"
+        label="采集周期(秒)"
+        rules={[{ required: true, message: "请输入采集周期" }]}
+        extra="数据点位的轮询间隔,范围 5 ~ 3600 秒"
+      >
+        <InputNumber min={5} max={3600} placeholder="15" style={{ width: "100%" }} />
+      </Form.Item>
+
+      <Form.Item name="encrypted" label="链路加密" valuePropName="checked">
+        <Switch />
+      </Form.Item>
+    </Form>
+  );
+}
+  Object.assign(__export, { NetworkForm });
+})();
+
+/* ===== src/views/steps/ConfirmForm.jsx ===== */
+(function () {
+  const { Descriptions, Alert } = antd;
+  const { confirmGroups, labelMaps } = __export;
+// Layer 4: 步骤三 — 确认提交(只读回显,不做输入)
+function displayValue(key, value) {
+  if (value === undefined || value === null || value === "") return "—";
+  const map = labelMaps[key];
+  return map ? map[String(value)] : String(value);
+}
+
+function ConfirmForm({ values }) {
+  return (
+    <div className="step-form">
+      <Alert
+        type="info"
+        showIcon
+        message="请核对以下配置信息,提交后设备将进入接入调试队列"
+        className="confirm-alert"
+      />
+      {confirmGroups.map((group) => (
+        <Descriptions
+          key={group.key}
+          title={group.title}
+          bordered
+          size="small"
+          column={2}
+          className="confirm-group"
+        >
+          {group.fields.map(([key, label]) => (
+            <Descriptions.Item key={key} label={label}>
+              {displayValue(key, values[key])}
+            </Descriptions.Item>
+          ))}
+        </Descriptions>
+      ))}
+    </div>
+  );
+}
+  Object.assign(__export, { ConfirmForm });
+})();
+
+/* ===== src/views/StepFlow.jsx ===== */
+(function () {
+  const { useState } = React;
+  const { Form, Steps, Button, Space, Result } = antd;
+  const { Icon, stepItems } = __export;
+  const BasicInfoForm = __export.BasicInfoForm;
+  const NetworkForm = __export.NetworkForm;
+  const ConfirmForm = __export.ConfirmForm;
+const { useForm } = Form;
+
+// Layer 4: 步骤流编排 — 步骤条 + 当前步骤表单 + 底部操作按钮
+function StepFlow() {
+  const [current, setCurrent] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+  const [allValues, setAllValues] = useState({});
+  const [basicForm] = useForm();
+  const [networkForm] = useForm();
+
+  const isLast = current === stepItems.length - 1;
+
+  // 表单实例与已收集数据按步骤分派(确认页只读回显)
+  const forms = [basicForm, networkForm, null];
+  const stepInitialValues = [allValues.basic, allValues.network, undefined];
+
+  async function goNext() {
+    const form = forms[current];
+    if (form) {
+      try {
+        const values = await form.validateFields();
+        setAllValues((prev) => ({
+          ...prev,
+          [stepItems[current].key]: values,
+        }));
+      } catch {
+        return; // 校验失败停留在当前步
+      }
+    }
+    if (isLast) {
+      setSubmitted(true);
+    } else {
+      setCurrent((c) => c + 1);
+    }
+  }
+
+  function goPrev() {
+    setCurrent((c) => Math.max(0, c - 1));
+  }
+
+  function restart() {
+    setSubmitted(false);
+    setCurrent(0);
+    setAllValues({});
+    basicForm.resetFields();
+    networkForm.resetFields();
+  }
+
+  if (submitted) {
+    return (
+      <section className="panel step-panel">
+        <Result
+          status="success"
+          title="设备接入任务已提交"
+          subTitle={`设备「${allValues.basic?.deviceName || "未命名"}」已进入接入调试队列,预计 2 分钟内完成首轮采集`}
+          extra={
+            <Button type="primary" onClick={restart} icon={<Icon name="rotate-ccw" size={14} />}>
+              再配置一台
+            </Button>
+          }
+        />
+      </section>
+    );
+  }
+
+  return (
+    <section className="panel step-panel">
+      <Steps current={current} items={stepItems} />
+
+      <div className="step-content">
+        {current === 0 && (
+          <BasicInfoForm form={basicForm} initialValues={stepInitialValues[0]} />
+        )}
+        {current === 1 && (
+          <NetworkForm form={networkForm} initialValues={stepInitialValues[1]} />
+        )}
+        {current === 2 && <ConfirmForm values={{ ...allValues.basic, ...allValues.network }} />}
+      </div>
+
+      <div className="step-footer">
+        <Space>
+          <Button onClick={goPrev} disabled={current === 0} icon={<Icon name="arrow-left" size={14} />}>
+            上一步
+          </Button>
+          <Button type="primary" onClick={goNext}>
+            {isLast ? (
+              "提交配置"
+            ) : (
+              <>
+                下一步 <Icon name="arrow-right" size={14} />
+              </>
+            )}
+          </Button>
+        </Space>
+      </div>
+    </section>
+  );
+}
+  Object.assign(__export, { StepFlow });
+})();
+
+/* ===== src/views/AppShell.jsx ===== */
+(function () {
+  const { Layout, Menu, Breadcrumb, Input, Button, Avatar } = antd;
+  const { Icon, useApp, menuItems, breadcrumbs } = __export;
+  const StepFlow = __export.StepFlow;
+const { Header, Sider, Content } = Layout;
+
+// Layer 4/5: 布局骨架 — 顶导航 + 侧菜单 + 主体(面包屑 → 步骤流)
+function AppShell() {
+  const { isDark, toggleDark } = useApp();
+
+  return (
+    <Layout className="shell">
+      <Header className="shell-header">
+        <div className="shell-brand">
+          <Icon name="zap" size={22} className="shell-brand-icon" />
+          <span className="shell-brand-text">电力接入平台</span>
+        </div>
+        <div className="shell-tools">
+          <Input
+            prefix={<Icon name="search" size={14} />}
+            placeholder="搜索设备 / 站点"
+            className="shell-search"
+            allowClear
+          />
+          <Button
+            onClick={toggleDark}
+            icon={<Icon name={isDark ? "sun" : "moon"} size={14} />}
+            title={isDark ? "切换浅色" : "切换深色"}
+          />
+          <Avatar size={32} className="shell-avatar">
+            王
+          </Avatar>
+        </div>
+      </Header>
+
+      <Layout>
+        <Sider width={248} theme="light" className="shell-sider">
+          <Menu
+            mode="inline"
+            theme="light"
+            defaultSelectedKeys={["devices"]}
+            items={menuItems.map((m) => ({
+              key: m.key,
+              icon: <Icon name={m.icon} size={14} />,
+              label: m.label,
+            }))}
+          />
+        </Sider>
+
+        <Content className="shell-content">
+          <Breadcrumb
+            items={breadcrumbs.map((b) => ({ title: b }))}
+            className="shell-breadcrumb"
+          />
+          <StepFlow />
+        </Content>
+      </Layout>
+    </Layout>
+  );
+}
+  Object.assign(__export, { AppShell });
+})();
+
+/* ===== app.jsx ===== */
+(function () {
+  const { ConfigProvider } = antd;
+  const { AppProvider } = __export;
+  const zhCN = __export.zhCN;
+  const AppShell = __export.AppShell;
+// 应用入口 — ICT React 页面
+// Layer 5 布局骨架:组装 Provider + AppShell;视图组件见 src/views/
+
+
+
+
+
+
+
+const APP_TITLE = "设备接入配置向导";
+
+function App() {
+  return (
+    <AppProvider>
+      <ConfigProvider locale={zhCN}>
+        <AppShell />
+      </ConfigProvider>
+    </AppProvider>
+  );
+}
+  Object.assign(__export, { App, APP_TITLE });
+})();
+/* ===== render ===== */
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(React.createElement(__export.App));
+</script>
+</body>
+</html>

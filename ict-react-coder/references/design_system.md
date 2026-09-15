@@ -98,17 +98,22 @@
 /* 完整刻度另有 base 层 --spacing-0-5 … --spacing-96（2px 起步的 4px 网格） */
 ```
 
-### 1.3 阴影 Token（引用 elevation 尺阶，暗色自动加深）
+### 1.3 阴影 Token（尺阶 `--shadow-*` 由 light/dark 层定义，暗色自动加深；主题层只提供语义别名）
 
 ```css
+/* 尺阶(直接消费) */
 --shadow-sm       /* 0 1px 6px rgba(0,0,0,0.08)   基础值设定 - 初级阴影 */
 --shadow-base     /* 0 4px 12px rgba(0,0,0,0.16)  基础值设定 - 按钮或卡片的悬浮（Hover）状态，使其看起来被"拿起来"了 */
 --shadow-md       /* 0 8px 24px rgba(0,0,0,0.08)  基础值设定 - 中等阴影 */
 --shadow-lg       /* 0 8px 24px rgba(0,0,0,0.16)  基础值设定 - 生成下拉菜单（Dropdown）或相对定位的浮动面板 */
 --shadow-xl       /* 0 16px 48px rgba(0,0,0,0.16) 基础值设定 - 生成屏幕居中的超大模态弹窗（Modal Dialog） */
---shadow-card     /* 语义化调用，当用户明确要求"生成一个卡片"时，AI 直接使用此阴影（= elevation-sm） */
---shadow-popover  /* 语义化调用，当用户要求"生成一个 Popover 气泡/工具提示"时，AI 直接使用此阴影（= elevation-lg） */
---shadow-modal    /* 语义化调用，当用户要求"生成一个确认弹窗"时，AI 直接使用此阴影（= elevation-xl） */
+--shadow-none     /* none */
+--shadow-r-sm / --shadow-t-sm / --shadow-l-base / --shadow-l-md  /* 方向性阴影(右/上/左) */
+
+/* 语义别名(theme 层) */
+--shadow-card     /* 当用户明确要求"生成一个卡片"时直接使用（= shadow-sm） */
+--shadow-popover  /* 当用户要求"生成一个 Popover 气泡/工具提示"时直接使用（= shadow-lg） */
+--shadow-modal    /* 当用户要求"生成一个确认弹窗"时直接使用（= shadow-xl） */
 ```
 
 ### 1.4 圆角 Token
@@ -134,25 +139,41 @@
 --outline-offset-gap   /* 2px 无障碍场景下，让外圈不要紧贴组件边缘，留出2px的呼吸感空间 */
 ```
 
-### 1.6 字号 Token（`var(--text-*)`，配套 `--text-*--line-height`）
+### 1.6 排印 Token（角色化 font 简写，共 11 档）
 
 ```css
---text-sm  /* 12px / 1.6  生成时间戳、底部免责声明、表格附加信息 */
---text-md  /* 14px / 1.5  生成文章正文、表格里的普通数据文字 */
---text-lg  /* 16px / 1.5  生成表单字段标题（Label）、按钮文字 */
---text-xl  /* 18px / 1.5  生成常规卡片的标题（Card Title） */
---text-2xl /* 20px / 1.4  生成侧边栏模块标题、次级内容块标题（H3） */
---text-3xl /* 24px / 1.4  生成模态弹窗主标题、页面内部区块主标题（H2） */
---text-4xl /* 28px / 1.4 */
-/* 以下通常用于生成落地页（Landing Page）头部的巨大英雄标语（Hero Text / H1） */
---text-5xl /* 36px / 1.4 */
---text-6xl /* 48px / 1.3 */
---text-7xl /* 60px / 1.3 */
---text-8xl /* 72px / 1.2 */
---text-9xl /* 96px / 1.2 */
+/* Display 展示文本 — 英雄标语、数据看板大数字 */
+--font-display-l /* 48px/1.3  落地页 Hero 主标语（H1） */
+--font-display-m /* 36px/1.4  Hero 副标语、看板核心大数字 */
+--font-display-s /* 28px/1.4  区块超大标题 */
+
+/* Headline 标题 */
+--font-headline-l /* 24px/1.4 模态弹窗主标题、页面区块主标题（H2） */
+--font-headline-m /* 20px/1.4 侧边栏模块标题、次级内容块标题（H3） */
+--font-headline-s /* 18px/1.5 常规卡片的标题（Card Title） */
+
+/* Body 正文 */
+--font-body-l     /* 16px/1.5 表单字段标题（Label）、按钮文字 */
+--font-body-m     /* 14px/1.5 文章正文、表格里的普通数据文字（页面默认） */
+--font-body-s     /* 12px/1.6 辅助说明、次要信息 */
+
+/* Caption 注释 */
+--font-caption-m  /* 12px/1.6 时间戳、表格附加信息 */
+--font-caption-s  /* 10px/1.5 底部免责声明、角标微注 */
 ```
 
-用法：`font-size: var(--text-lg); line-height: var(--text-lg--line-height);`；全局字体族 `font-family: var(--font-family)`（HarmonyOS Sans）。
+用法（font 简写一行搞定字号/行高/字族）：
+
+```css
+.panel-title { font: var(--font-headline-s); }
+.meta { font: var(--font-caption-m); color: var(--on-surface-variant); }
+```
+
+字重独立组合（不绑定在 font token 内），用 base 层 `--font-weight-light(300) / --font-weight-normal(400) / --font-weight-medium(500) / --font-weight-semibold(600) / --font-weight-bold(700)`：
+
+```css
+.panel-title { font: var(--font-headline-s); font-weight: var(--font-weight-semibold); }
+```
 
 ### 使用原则
 
@@ -221,9 +242,9 @@ To indicate semantic states (error, warning, success, info), apply the respectiv
 ## 6. Text
   - *Color:*
     - Table 内部统一使用 `var(--on-surface)`.
-  - *Size:*
-    - Card Title: Must use `var(--text-xl)` (18px).
-    - Table Content: Must use `var(--text-md)` (14px).
+  - *Typography:*
+    - Card Title: Must use `--font-headline-s` (18px).
+    - Table Content: Must use `--font-body-m` (14px).
 
 ## 7. Brand & Visual Quality
 

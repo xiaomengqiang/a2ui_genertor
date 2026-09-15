@@ -89,7 +89,7 @@ import zhCN from "./assets/shared/antd-zh-cn.js";
 
 1. **Read `references/design_system.md`** (once per session) for tokens and visual rules.
 2. **antd 承载布局与组件**：用 antd `Layout`/`Flex`/`Grid`(Row/Col)/`Space` 组织布局，交互组件一律 antd（语义色走 props：`type="primary"`、`status="error"`…）。
-3. **自定义样式写在 CSS 文件**（视图组件配套同名 `.css`，如 `src/views/overview.jsx` + `overview.css`）：布局用 flex/grid + px 值；**颜色/阴影/圆角/文字规格一律用 token** — `var(--primary)`、`var(--surface-container-highest)`、`var(--shadow-card)`、`var(--radius-container)`、`var(--text-lg)`… NEVER 硬编码 hex（build.mjs CSS lint FAIL/WARN 兜底）。
+3. **自定义样式写在 CSS 文件**（视图组件配套同名 `.css`，如 `src/views/overview.jsx` + `overview.css`）：布局用 flex/grid + px 值；**颜色/阴影/圆角/文字规格一律用 token** — `var(--primary)`、`var(--surface-container-highest)`、`var(--shadow-card)`、`var(--radius-container)`… 文字用角色化 font token：`font: var(--font-body-m)`（display/headline/body/caption × l/m/s 共 11 档），字重独立设 `font-weight: var(--font-weight-medium)`。NEVER 硬编码 hex（build.mjs CSS lint FAIL/WARN 兜底）。
 4. Dark mode is dual-track: antd via `ConfigProvider theme.darkAlgorithm`, CSS tokens via the `.dark` class — `src/context.jsx` 的 AppProvider 负责同步（`document.documentElement.classList.toggle('dark', isDarkMode)`）。token 底层按 `:root`/`.dark` 自动切换，无需写两套。
 5. Component CSS must not define `:root`/`.dark` blocks and must use defined tokens; build.mjs CSS lint FAILs otherwise.
 
