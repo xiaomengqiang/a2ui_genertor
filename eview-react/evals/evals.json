@@ -1,0 +1,320 @@
+{
+  "skill_name": "eview-react",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "用 eview-react 写一个登录页：用户名、密码输入框，一个\"我已阅读并同意协议\"复选框，一个登录按钮",
+      "expected_output": "从 @nce/eview-react 路径导入 TextField / Checkbox / Button；用户名密码 useState + value + onChange(value) 受控；密码框 type=\"password\"；协议 Checkbox 的 onChange 第二个参数 checked 驱动登录按钮 disabled；登录按钮 status=\"primary\"、有 submitting 防重复、失败有错误提示",
+      "assertions": [
+        { "text": "组件从 @nce/eview-react/<组件> 或 @nce/eview-react 导入，没有 antd", "type": "eview_compliance" },
+        { "text": "TextField 使用 value + onChange 受控，且 onChange 第一个参数直接作为新值使用（不是 e.target.value）", "type": "contains_pattern" },
+        { "text": "密码框设置 type=\"password\"", "type": "contains_pattern" },
+        { "text": "Checkbox 的 onChange 使用第二个参数 checked 更新协议勾选状态", "type": "contains_pattern" },
+        { "text": "登录按钮使用 status=\"primary\" 而不是 type=\"primary\"", "type": "eview_compliance" },
+        { "text": "未勾选协议或字段不满足时登录按钮 disabled", "type": "behavioral" },
+        { "text": "提交过程有 submitting 状态防止重复点击，请求结束后复位", "type": "behavioral" },
+        { "text": "登录失败有错误文案展示", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "用 eview-react 做一个列表页顶部的筛选条：区域下拉、站点下拉（随区域联动加载）、名称输入框、查询和重置按钮",
+      "expected_output": "两个 Select 用 options=[{text,value}] + defaultLabel；区域 onChange 里清空站点值并异步加载站点 options；名称 TextField 受控；查询按钮 status=\"primary\" 防重复；重置调 ref.clear() 或置空 state",
+      "assertions": [
+        { "text": "Select 使用 options 数组且每项字段为 text / value，没有 Select.Option 子组件", "type": "eview_compliance" },
+        { "text": "Select 占位文案使用 defaultLabel 而不是 placeholder", "type": "eview_compliance" },
+        { "text": "区域 Select 的 onChange 中先清空站点选中值，再加载站点 options", "type": "behavioral" },
+        { "text": "站点 Select 在未选区域或加载中时 disabled", "type": "behavioral" },
+        { "text": "异步加载站点有取消/版本标记，防止快速切换时旧结果覆盖新结果", "type": "behavioral" },
+        { "text": "查询按钮 onClick 触发请求且有 loading 防重复", "type": "behavioral" },
+        { "text": "重置按钮把所有筛选状态恢复为初始值", "type": "behavioral" },
+        { "text": "没有从 antd 导入任何组件", "type": "eview_compliance" }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "用 eview-react 实现一个待办事项页面，支持每行勾选、表头全选/半选，以及批量删除按钮",
+      "expected_output": "每行一个 Checkbox，checked 来自选中 id 集合；表头 Checkbox 的 checked / halfChecked 由集合大小派生；批量删除按钮 status=\"risk\"，无选中时 disabled，文案带计数；删除后同步移除 items 并清空集合",
+      "assertions": [
+        { "text": "定义了待办项的 interface 且列表数据用 useState 管理", "type": "contains_pattern" },
+        { "text": "Checkbox 的 onChange 使用第二个参数 checked，而不是 e.target.checked 或第一个参数", "type": "eview_compliance" },
+        { "text": "表头全选框使用 halfChecked 表达部分选中，且 checked / halfChecked 由子项派生而非独立 state", "type": "behavioral" },
+        { "text": "选中集合更新时创建新 Set / 数组，不直接 mutate", "type": "behavioral" },
+        { "text": "批量删除按钮在无选中项时 disabled，文案包含选中数量", "type": "behavioral" },
+        { "text": "删除成功后从列表移除已选项并清空选中集合", "type": "behavioral" },
+        { "text": "列表为空时有空状态提示", "type": "behavioral" },
+        { "text": "危险操作按钮使用 status=\"risk\"", "type": "eview_compliance" }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "用 eview-react 写一个创建向导的第一步：单选\"快速创建 / 自定义创建\"，选自定义时显示模板名称输入框；下面还有一个竖排的统计范围单选组，以及提交、重置按钮",
+      "expected_output": "RadioGroup 用 data=[{text,value}] 传选项并传 isControlled；onChange 采用与当前 state 比较的兼容写法取新值；mode==='custom' 时条件渲染 TextField，切走时清空模板值；第二个 RadioGroup type=\"vertical\"；重置恢复默认",
+      "assertions": [
+        { "text": "RadioGroup 通过 data 属性传选项，没有嵌套 <Radio> children", "type": "eview_compliance" },
+        { "text": "RadioGroup 传了 isControlled，使 state 能驱动显示（重置生效）", "type": "contains_pattern" },
+        { "text": "RadioGroup.onChange 没有盲信单一参数位置，而是与当前 state 比较取出新值（或通过 Form.Item 托管）", "type": "eview_compliance" },
+        { "text": "选择自定义创建时条件渲染模板名称 TextField", "type": "behavioral" },
+        { "text": "切换回快速创建时清空模板名称，避免脏数据提交", "type": "behavioral" },
+        { "text": "统计范围 RadioGroup 设置 type=\"vertical\"", "type": "contains_pattern" },
+        { "text": "提交时自定义模式下模板名称为空要拦截并提示", "type": "behavioral" },
+        { "text": "重置按钮把两个单选组和输入框恢复初始值", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "帮我在一个新的 Vite + React 项目里接入 eview-react，给出需要的配置和入口文件",
+      "expected_output": ".npmrc 配置 @nce 源；安装 lodash / react-intl、锁 vite@^5.4 与 plugin-react@^4.3、安装 @nce/eview-react 与全部 peer 依赖；main.tsx 里 ConfigProvider + IntlProvider(messages=componentsLocales[locale]) 包裹 App，引入 @nce/eview-react/styles/aui3_1.css",
+      "assertions": [
+        { "text": ".npmrc 中配置了 @nce:registry 源", "type": "contains_pattern" },
+        { "text": "安装了 @cloudsop/horizon、@cloudsop/horizon-intl、@cloudsop/htimezone、@baize/wdk、@hui/design-token 等 peer 依赖", "type": "contains_pattern" },
+        { "text": "锁定 vite@^5.4.0 与 @vitejs/plugin-react@^4.3.0", "type": "contains_pattern" },
+        { "text": "入口引入 @nce/eview-react/styles/aui3_1.css", "type": "contains_pattern" },
+        { "text": "根节点用 ConfigProvider 和 IntlProvider 包裹，messages 使用 @nce/eview-react/locales 的语言包", "type": "contains_pattern" },
+        { "text": "组件导入使用 @nce/eview-react/<组件> 路径", "type": "eview_compliance" }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "用 eview-react 写一个新建用户表单：账号（必填，字母开头 3-20 位）、邮箱（必填）、端口（1-65535 的数字）、级别下拉（必填），点击创建时统一校验并聚焦第一个错误项",
+      "expected_output": "TextField 用 required + validator（自定义返回 {result,message}，内置用 TextField.defaultValidator.email() / range(1,65535)）；端口 format=\"number\"；Select 必填 + options；每个控件 useRef，提交时依次 ref.current.validate()，首个失败 focus()；提交按钮 disabled 防重复",
+      "assertions": [
+        { "text": "自定义 validator 返回 { result, message } 且 result 为 true 表示通过", "type": "eview_compliance" },
+        { "text": "邮箱使用 TextField.defaultValidator.email()，端口使用 defaultValidator.range 或 min/max", "type": "contains_pattern" },
+        { "text": "端口输入框设置 format=\"number\"", "type": "contains_pattern" },
+        { "text": "必填字段设置 required", "type": "contains_pattern" },
+        { "text": "提交前通过 ref.current.validate() 逐个校验，首个失败项调用 focus()", "type": "behavioral" },
+        { "text": "级别 Select 使用 options=[{text,value}] 并设置 required", "type": "eview_compliance" },
+        { "text": "提交按钮有 submitting 防重复且请求后复位", "type": "behavioral" },
+        { "text": "没有使用 antd 的 rules 属性在 TextField 上", "type": "eview_compliance" },
+        { "text": "提示词未指定目标端，生成结果按 PC 页面交付：在 1440×900 的桌面视口中标签与控件对齐、操作区可达且内容不相互遮挡", "type": "behavioral" },
+        { "text": "默认交付包含 PC 预览；没有自行增加手机专用布局、手机截图或移动端验收要求", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "用 eview-react 做一个三步创建向导：顶部步骤条（基本信息 / 网络配置 / 确认），每步一个小表单，底部上一步 / 下一步按钮，最后一步提交；服务端拒绝时要把出错的步骤标红并跳回",
+      "expected_output": "从 @nce/eview-react/Steps 导入（不是 Wizards）；data=[{text,value,description}]，currentStep={data[stepIndex].value}；下一步前调用当前步控件 ref.validate()；onClick(index) 只允许回跳；提交失败把该步 status 置 'error' 并 setStepIndex 回去；提交按钮防重复",
+      "assertions": [
+        { "text": "Steps 从 @nce/eview-react/Steps 导入，没有使用 Wizards 或 antd Steps", "type": "eview_compliance" },
+        { "text": "Steps 通过 data 数组传步骤，每项字段为 text / value，没有 <Step> 子组件", "type": "eview_compliance" },
+        { "text": "currentStep 传的是 data[i].value 而不是下标", "type": "eview_compliance" },
+        { "text": "点击下一步前校验当前步的控件，未通过不前进", "type": "behavioral" },
+        { "text": "Steps.onClick 的参数按下标处理，且只允许跳回已到达的步骤", "type": "behavioral" },
+        { "text": "提交失败时对应步骤 status 置为 'error' 并跳回该步", "type": "behavioral" },
+        { "text": "最后一步按钮文案为完成/提交且有防重复提交", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "用 eview-react 写一个工作区页签：固定一个\"概览\"页，点按钮可以打开新的任务页签（可关闭），切换到任务页签时首次进入才加载数据",
+      "expected_output": "Tab + TabItem children 驱动，TabItem 用业务 id 做 key；selectedIndex 受控；切换回调用 onClick(index, title, event)；onClose(index, event, title) 从数组移除并修正 selectedIndex；draggable={false}；用 Set 记录已加载的页签",
+      "assertions": [
+        { "text": "使用 <Tab><TabItem title=...> children 写法，没有 antd 的 items / TabPane / activeKey", "type": "eview_compliance" },
+        { "text": "切换回调使用 onClick 而不是 onChange", "type": "eview_compliance" },
+        { "text": "设置了 draggable={false}", "type": "contains_pattern" },
+        { "text": "动态页签用业务 id 作为 key，而不是数组下标", "type": "behavioral" },
+        { "text": "onClose 后从页签数组移除，并在关闭当前或前面页签时把 selectedIndex 减一", "type": "behavioral" },
+        { "text": "记录已加载页签集合，只在首次切换到某页签时请求数据", "type": "behavioral" },
+        { "text": "可关闭页签使用 type=\"sub\" 与 TabItem closable", "type": "contains_pattern" }
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "用 eview-react 实现一个附件批量上传：最多 5 个文件，只允许 png/svg/xlsx，单个不超过 10MB，要显示每个文件的上传进度，失败可以重传，全部成功后才能点提交",
+      "expected_output": "FileUpload type=\"multi\" maxFileCount={5} accept + isAcceptValidate maxSize=\"10MB\" enableProgress；handleSubmit({event,data}) 中业务自己发请求（FormData append data[i].data），并按文件名回写 updateProgressStatus / fileUploadStatus；onReload 只重传 event.title 对应文件；提交按钮在全部 success 前 disabled",
+      "assertions": [
+        { "text": "FileUpload 从 @nce/eview-react/FileUpload 导入，没有使用 antd Upload 的 action / beforeUpload / customRequest", "type": "eview_compliance" },
+        { "text": "在 handleSubmit 回调里由业务代码发起上传请求，而不是期待组件自动上传", "type": "eview_compliance" },
+        { "text": "updateProgressStatus 与 fileUploadStatus 以文件名为 key 回写进度与状态", "type": "contains_pattern" },
+        { "text": "设置 accept 的同时设置 isAcceptValidate，并设置 maxSize 与 maxFileCount", "type": "contains_pattern" },
+        { "text": "onReload 中仅重传 event.title 对应的文件", "type": "behavioral" },
+        { "text": "禁用属性使用 disable 而不是 disabled（若有）", "type": "eview_compliance" },
+        { "text": "提交按钮在存在 loading 或未全部 success 时 disabled", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "用 eview-react 写一个设备搜索框：输入名称或 IP 搜索，下面展示结果列表，输入时显示前 10 条名称建议，点建议项直接搜索，清空后恢复全部",
+      "expected_output": "SearchInput 受控 value + onChange(value)；onSearch(value) 内做防抖和版本号防串；onSuggest 返回 [{text,value}]（不与 popItems 同时设置）；onItemClick 用兼容两种参数顺序的写法取 item；onClear 恢复全量；isLoading 绑定搜索中；空结果有空态",
+      "assertions": [
+        { "text": "使用 SearchInput 而不是 TextField 拼图标或 antd Input.Search", "type": "eview_compliance" },
+        { "text": "onSearch 内有防抖（setTimeout/clearTimeout）与版本号或取消标记，防止值变化时每次都直接请求", "type": "behavioral" },
+        { "text": "onSuggest 返回 text / value 结构的数组，且没有同时设置 popItems", "type": "eview_compliance" },
+        { "text": "onItemClick 没有盲信单一参数位置，而是取带 text 字段的对象", "type": "eview_compliance" },
+        { "text": "onClear 清空关键字并重新加载全量数据", "type": "behavioral" },
+        { "text": "搜索中通过 isLoading 展示加载态，结果为空时有空态提示", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "用 eview-react 写一个工单提交表单：标题单行输入，描述多行输入（10-500 字，显示字数），提交按钮在满足条件前不可点",
+      "expected_output": "标题用 TextField，描述用 TextArea rows + maxLength={500}（自带字数统计）+ required + validator 返回 {result,message}；TextArea.onChange 第一个参数 targetValue 作为新值；提交按钮 disabled 由 trim 后长度派生；有 submitting 防重复",
+      "assertions": [
+        { "text": "多行描述使用 TextArea，字数统计依赖 maxLength 而不是 showCount", "type": "eview_compliance" },
+        { "text": "TextArea.onChange 使用第一个参数作为新值，没有 e.target.value", "type": "eview_compliance" },
+        { "text": "TextArea 设置 required 与 validator，validator 返回 { result, message } 且 result 为 true 表示通过", "type": "contains_pattern" },
+        { "text": "没有在 TextArea 上调用 ref.validate()（官方无此 ref 方法），而是用 state 派生判断", "type": "eview_compliance" },
+        { "text": "提交按钮 disabled 由标题非空与描述 trim 后长度 10-500 派生", "type": "behavioral" },
+        { "text": "提交有 submitting 防重复并在完成后复位", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "用 eview-react 写一个报表查询条：统计粒度（日/月/年）分段选项卡，一个起止时间范围选择，一个区域下拉，查询按钮；切换粒度时日期选择器类型跟着变",
+      "expected_output": "粒度用 SelectCard（导入 @nce/eview-react/SelectCard，data=[{text,value}]）；时间范围用同一个 DatePicker 传 range={[]}，type/format 随粒度切换并清空已选；起止在 onOkClick 的 obj.fromDateObj/toDateObj 里取且 setTimeout 后 setState；不把 onChange 字符串回写 value；区域 Select options=[{text,value}]；查询合并参数 page=1 并防重复",
+      "assertions": [
+        { "text": "分段选项卡从 @nce/eview-react/SelectCard 导入并用 data 传选项，没有导入 Segmented 或使用 antd Segmented/Radio.Button", "type": "eview_compliance" },
+        { "text": "时间范围使用 DatePicker 的 range 属性，没有使用 RangePicker", "type": "eview_compliance" },
+        { "text": "起止时间在 onOkClick 回调中从 obj.fromDateObj / obj.toDateObj 取，并在 setTimeout 后再更新 state", "type": "contains_pattern" },
+        { "text": "DatePicker 的 onChange 没有把第一个参数（字符串）无条件回写到 value", "type": "eview_compliance" },
+        { "text": "切换统计粒度时同步切换 DatePicker 的 type 与 format 且成对（month↔yyyy-MM、year↔yyyy），并清空已选范围", "type": "behavioral" },
+        { "text": "区域 Select 使用 options=[{text,value}] 与 defaultLabel", "type": "eview_compliance" },
+        { "text": "查询时合并粒度 / 范围 / 区域参数、页码归 1，且有 loading 防重复", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "用 eview-react 写一个 QoS 参数配置表单：启用开关，重试次数（0-10）和间隔秒数（5-300）两个数字输入，带宽滑块（0-1000 Mbps）旁边有一个可手输的框，CPU 阈值区间滑块，保存和重置按钮",
+      "expected_output": "数字输入用 Spinner（不是 InputNumber）min/max/step，onChange 只在有效值触发、onInputError 记录错误并锁保存，程序化改值传 doNotFocusWhenValueUpdate；滑块用 DragInput（不是 Slider）value 永远是数组，区间 type=\"range\" value=[low,high]；带宽滑块 displayInput={false} 与 TextField 联动并钳制到 min/max；开关 Checkbox 控制 disabled；重置恢复默认",
+      "assertions": [
+        { "text": "数字输入使用 Spinner 并从 @nce/eview-react/Spinner 导入，没有使用 InputNumber", "type": "eview_compliance" },
+        { "text": "Spinner 同时接了 onChange（有效值）和 onInputError（无效值），无效值时保存按钮 disabled", "type": "behavioral" },
+        { "text": "Spinner 传了 doNotFocusWhenValueUpdate，重置时不抢焦点", "type": "contains_pattern" },
+        { "text": "滑块使用 DragInput 并从 @nce/eview-react/DragInput 导入，没有导入 Slider", "type": "eview_compliance" },
+        { "text": "DragInput 的 value 与 onChange 第一个参数都按数组处理，单滑块取 value[0]，区间用 type=\"range\" 与 [low, high]", "type": "eview_compliance" },
+        { "text": "带宽滑块与旁边 TextField 双向联动，输入越界时钳制到 min/max", "type": "behavioral" },
+        { "text": "启用开关取消勾选后数值控件 disabled 且保留原值", "type": "behavioral" },
+        { "text": "重置按钮把所有值恢复为默认并清空错误", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "用 eview-react 做一个服务评价面板：可打半星的五星评分，鼠标划过时预览分数，2 分及以下必须填写至少 5 字的评价，提交后变为只读",
+      "expected_output": "Rating 用 onClick(value) 取值（没有 onChange），onMouseOver/onMouseLeave 维护独立的 hover 预览 state，half 允许半星；评价用 TextArea required 随分数联动；未评分或低分评论不足时提交 disabled；提交后 Rating disabled",
+      "assertions": [
+        { "text": "评分使用 Rating 并从 @nce/eview-react/Rating 导入，没有使用 antd Rate", "type": "eview_compliance" },
+        { "text": "取值使用 Rating.onClick 而不是 onChange", "type": "eview_compliance" },
+        { "text": "悬浮预览用独立的 hover state（onMouseOver 写入、onMouseLeave 清空），没有直接修改正式分值", "type": "behavioral" },
+        { "text": "Rating 设置 half 允许半星", "type": "contains_pattern" },
+        { "text": "分数 ≤ 2 时评价 TextArea 变为 required 且提交要求至少 5 字", "type": "behavioral" },
+        { "text": "未评分（0 分）时提交按钮 disabled", "type": "behavioral" },
+        { "text": "提交成功后 Rating 传 disabled 变为只读", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "用 eview-react 写一个告警列表：顶部\"全部告警\"按钮右上角显示未读总数（超过 999 显示 999+），一排可点击的等级筛选标签，每行左侧状态点 + 名称、右侧等级标签，分组之间用带标题的分割线",
+      "expected_output": "未读数用 Badge content + max={999} 包裹 Button；状态点用 Badge dot status text 独立使用；等级标签用 Tag color（danger/warning/caution/success），可点击筛选标签用 fill solid/outline 表达选中并用 Set 存选中集合；分组用 Divider orientation=\"left\" 带标题；状态码到 Badge.status / Tag.color 用同一映射表",
+      "assertions": [
+        { "text": "未读数使用 Badge 的 content 与 max 属性，没有使用 antd 的 count / overflowCount", "type": "eview_compliance" },
+        { "text": "状态点使用 Badge dot + status + text 独立使用，status 只取 default/success/error/warning/off", "type": "eview_compliance" },
+        { "text": "等级标签使用 Tag color 且只取 default/primary/success/warning/caution/danger，没有 antd 色名", "type": "eview_compliance" },
+        { "text": "筛选 Tag 通过 onClick 切换 Set 中的选中项，并用 fill=\"solid\"/\"outline\" 表达选中态；没有使用 closable/CheckableTag", "type": "eview_compliance" },
+        { "text": "业务状态码到 Badge.status 与 Tag.color 的映射集中在一个映射表中", "type": "behavioral" },
+        { "text": "分组之间使用 Divider 并通过 orientation 与 children 显示分组标题", "type": "contains_pattern" },
+        { "text": "筛选后无匹配项时显示空态文案", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "用 eview-react 写一个任务执行详情页：顶部面包屑，左侧任务树，右侧显示当前任务的执行进度条和执行时间轴；这个工程是新建的，src 里还没有任何 eview-react 用法",
+      "expected_output": "面包屑用 Crumbs、任务树用 Tree（enableMultiSelect={false} + selectedKeys/onSelect）、都是已覆盖组件；进度条与时间轴在本 Skill 无 Reference、工程里也无现成用法 → 第三层：进度条手写 role=\"progressbar\" 的 div（--colorCommonSelected / --colorFillingHover），时间轴手写有序列表，样式只用 CSS 变量，类名业务前缀；两处都带 // TODO(eview-react): 建议替换为 ProgressBar / TimeLine 注释并在回复末尾列出补位清单；不导入 @nce/eview-react/ProgressBar 或 TimeLine，不去 node_modules 猜 props，不用 antd",
+      "assertions": [
+        { "text": "面包屑使用 Crumbs（data + onClick），任务树使用 Tree（data / nodeKey / enableMultiSelect={false} / selectedKeys / onSelect），没有手写这两个已覆盖组件", "type": "eview_compliance" },
+        { "text": "没有 import @nce/eview-react/ProgressBar 或 TimeLine，也没有从 antd 导入任何组件", "type": "eview_compliance" },
+        { "text": "进度条为手写 div 并带 role=\"progressbar\"，颜色使用 --colorCommonSelected / --colorFillingHover 等 CSS 变量，没有写死色值", "type": "eview_compliance" },
+        { "text": "时间轴为手写列表，节点颜色使用 --colorAlarmSuccess / --colorAlarmUrgent 等变量", "type": "eview_compliance" },
+        { "text": "手写的进度条与时间轴都带有 // TODO(eview-react): 建议替换为 <组件名> 注释", "type": "contains_pattern" },
+        { "text": "回复末尾列出了补位清单：位置、替代方式、建议后续换用的真实组件", "type": "behavioral" },
+        { "text": "手写元素的类名使用业务前缀（如 app-），没有使用 ev_ 前缀", "type": "eview_compliance" },
+        { "text": "点击树节点 → 右侧按任务重新加载进度与时间轴，加载中用 Loading type=\"local\"", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "用 eview-react 写一个设备管理页：设备表格（后台分页、后台排序、可跨页勾选），新建 / 编辑用弹窗表单（名称必填、区域下拉必填、启用开关），删除和批量删除要二次确认，批量删除是高危操作要勾选确认",
+      "expected_output": "Table dataset/columns/keyIndex + enablePagination + pagingProps + onPageChange + disableEviewSort + onColumnSort + enableCheckBox + preserveCheckedRows + onRowCheck/onHeaderCheck；Dialog isOpen 受控 + buttons 数组，内嵌 Form（Form.Item name + rules，Toggle 配 valuePropName=\"toggled\" updateTrigger=\"onToggle\"），确定调 formRef.current.submit()，onSuccess 请求成功才关窗刷新，编辑用 setFieldsValue 回填；单删 MessageDialog type=\"confirm\"，批量 type=\"highRisk\" + hasChecked，ok.onClick 里判断勾选并成功后关窗",
+      "assertions": [
+        { "text": "Table 使用 dataset / columns / keyIndex，后台分页通过 enablePagination + pagingProps + onPageChange，后台排序通过 disableEviewSort + onColumnSort", "type": "eview_compliance" },
+        { "text": "跨页勾选使用 enableCheckBox + preserveCheckedRows + checkedRows，onRowCheck / onHeaderCheck 存主键数组", "type": "eview_compliance" },
+        { "text": "弹窗使用 Dialog isOpen + buttons 数组，确定按钮调用 formRef.current.submit()，没有 antd Modal / onOk", "type": "eview_compliance" },
+        { "text": "Form 使用 Form.Item name + rules，Toggle 配 valuePropName=\"toggled\" updateTrigger=\"onToggle\"，没有 useForm / onFinish", "type": "eview_compliance" },
+        { "text": "onSuccess 中请求成功才 setOpen(false) 并刷新列表，失败保持弹窗打开并提示", "type": "behavioral" },
+        { "text": "编辑回填使用 formRef.current.setFieldsValue 而不是 initialValues", "type": "behavioral" },
+        { "text": "单条删除用 MessageDialog type=\"confirm\"，批量删除用 type=\"highRisk\" + hasChecked，ok.onClick 里未勾选不执行", "type": "eview_compliance" },
+        { "text": "MessageDialog 的 buttons 为 { ok, cancel } 对象，Dialog 的 buttons 为数组，两者没有混用", "type": "eview_compliance" },
+        { "text": "删光当前页且 page > 1 时页码减一再请求；批量删除成功后清空勾选", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "用 eview-react 写一个告警规则设置：一个\"启用告警\"总开关，开启后显示检测间隔数字输入；下面是规则列表，每行一个开关，切换后立刻保存，保存失败要回退；其中\"关闭防护\"这类危险切换要先弹确认",
+      "expected_output": "Toggle toggled + onToggle(value) + data=[false,true]（不是 Switch checked/onChange）；总开关联动 Spinner 显隐；行内开关乐观更新 + 请求失败回滚 + 切换中 disabled；危险方向切换用 Switch isControlToggled + MessageDialog 确认后再 setState",
+      "assertions": [
+        { "text": "开关使用 Toggle（或 Switch）并从 @nce/eview-react/Toggle 导入，属性为 toggled / onToggle / data，没有 checked / onChange", "type": "eview_compliance" },
+        { "text": "onToggle 使用回传的 value（来自 data）更新 state，而不是无参翻转", "type": "eview_compliance" },
+        { "text": "总开关关闭时隐藏或禁用检测间隔 Spinner", "type": "behavioral" },
+        { "text": "行内开关切换：先乐观更新，请求失败回滚到原值并提示，切换中该行 disabled", "type": "behavioral" },
+        { "text": "危险切换使用 Switch isControlToggled，先弹 MessageDialog 确认，确认后才更新 toggled", "type": "eview_compliance" },
+        { "text": "开关内文案使用 taggledChildren / unTaggledChildren（官方拼写），没有 checkedChildren", "type": "contains_pattern" }
+      ]
+    },
+    {
+      "id": 19,
+      "prompt": "用 eview-react 做一个站点卡片页：顶部\"数据中心\"单选下拉和\"站点\"多选下拉（随数据中心联动，可全选、可在输入框里点 × 移除），下面是卡片网格，底部独立分页器，每页 12 张",
+      "expected_output": "Select 单选 + MultipleSelect（options 必填、value 数组、placeholder、selectAll、enableCloseIcon、onChange(value[], changeValue[])），数据中心变化先清空多选再换 options；卡片网格手写或用已覆盖组件；底部 Paging recordCount/pageSize/currentPage/pageSizeOptions，onPageSizeChange 后页码归 1，loading 时 disabled",
+      "assertions": [
+        { "text": "多选下拉使用 MultipleSelect 并传 options / value 数组 / placeholder，没有 Select mode=\"multiple\" 或 defaultLabel", "type": "eview_compliance" },
+        { "text": "MultipleSelect.onChange 使用第一个参数（全部选中值）更新 state", "type": "eview_compliance" },
+        { "text": "数据中心变化时先清空站点多选值再替换 options", "type": "behavioral" },
+        { "text": "开启 selectAll 与 enableCloseIcon", "type": "contains_pattern" },
+        { "text": "分页使用 Paging 并传 recordCount / pageSize / currentPage / pageSizeOptions，没有 antd Pagination total/current", "type": "eview_compliance" },
+        { "text": "onPageSizeChange 后页码归 1；筛选变化后页码归 1；请求中 Paging disabled 或有版本号防串", "type": "behavioral" },
+        { "text": "多选为空时提交 / 查询被拦截（required + ref.validate 或 state 判断）", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 20,
+      "prompt": "用 eview-react 写一个组织与成员管理页：顶部面包屑，左侧组织架构树（可搜索定位、默认展开首层），右侧成员表格按选中组织过滤并后台分页，表格上方有\"新建成员\"按钮打开右侧抽屉表单，保存后提示条反馈",
+      "expected_output": "Crumbs data 随选中组织路径派生；Tree data=[{text,id,children}] nodeKey enableMultiSelect={false} selectedKeys/expandedKeys 各配 onSelect/onExpand，搜索用 ref.findLevelNodes 写回 expandedKeys；Table 后台分页 + enableLoading，选中组织变化 page=1；Drawer visible/onClose 自己关、destroyOnClose、内嵌 Form 底部自写按钮 submit()；成功后 DivMessage 换 key 显示",
+      "assertions": [
+        { "text": "Tree 使用 data / nodeKey / enableMultiSelect={false}，selectedKeys 与 expandedKeys 都配了对应回调写回", "type": "eview_compliance" },
+        { "text": "树搜索使用 ref.findLevelNodes 并把结果 id 写回 expandedKeys", "type": "contains_pattern" },
+        { "text": "回调里取节点主键用 keys 数组或 node.props.eventKey，没有用 node.id", "type": "eview_compliance" },
+        { "text": "面包屑使用 Crumbs data，最后一项不传 url，且随选中组织派生", "type": "eview_compliance" },
+        { "text": "选中组织变化后表格 page 归 1 并重新请求，请求中 enableLoading", "type": "behavioral" },
+        { "text": "新建抽屉使用 Drawer visible + onClose 自行置 false，底部按钮自写并调用 formRef.current.submit()，没有 antd Drawer footer", "type": "eview_compliance" },
+        { "text": "保存成功后关抽屉、刷新表格，并用 DivMessage（换 key 或先置 null）显示成功提示", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 21,
+      "prompt": "用 eview-react 写一个网元接入表单：所属区域用省/市/区级联选择，归属分组用树形下拉单选，设备型号用可输入过滤的下拉（只能选列表里的），管理 IP 用 IPv4 分段输入，表单按\"基本信息 / 网络配置\"两块可折叠分组，提交后成功或失败要有提示",
+      "expected_output": "Cascader options=[{label,value,children}] selectedValue 路径数组 onChange；TreeSelect treeData enableMultiSelect={false} onChange(selectNode[]) 取 .value；InputSelect options onlySelect placeholder；IPInput type=\"v4\" value 完整字符串 onChange(value)；Panel selectedIndex 数组 + PanelItem closable={false}，校验失败展开出错面板；提交结果用 DivMessage 或 MessageDialog",
+      "assertions": [
+        { "text": "级联使用 Cascader，options 字段为 label / value / children（Cascader 是唯一用 label 的组件），选中值属性为 selectedValue 且为路径数组", "type": "eview_compliance" },
+        { "text": "树形下拉使用 TreeSelect treeData，单选传 enableMultiSelect={false}，onChange 参数按节点对象数组处理并取 .value", "type": "eview_compliance" },
+        { "text": "设备型号使用 InputSelect 并传 onlySelect，占位用 placeholder", "type": "eview_compliance" },
+        { "text": "管理 IP 使用 IPInput type=\"v4\"，onChange 第一个参数作为完整 IP 字符串使用", "type": "eview_compliance" },
+        { "text": "分组使用 Panel + PanelItem，selectedIndex 为数组，PanelItem 传 closable={false}", "type": "eview_compliance" },
+        { "text": "校验失败时把出错字段所在面板下标加入 selectedIndex 展开", "type": "behavioral" },
+        { "text": "提交成功 / 失败通过 DivMessage 或 MessageDialog 反馈，且提交按钮防重复", "type": "behavioral" }
+      ]
+    },
+    {
+      "id": 22,
+      "prompt": "用 eview-react 写一个概览卡片区：三张统计卡片各自可刷新，刷新中只盖住自己；接口失败显示失败空态并可重试，数据为 0 显示成功空态；卡片右上角是带气泡提示的图标按钮；页面首屏整体加载",
+      "expected_output": "首屏 Loading type=\"global\"；每张卡片父容器 position: relative + Loading type=\"local\" 各自 isOpen；失败 Empty type=\"fail\" + 重试按钮，为 0 Empty type=\"success\"；卡片右上角 IconButton iconName tipText tipData.direction 或 TipBox 包裹 Icon；请求在 finally 关闭 loading；图标颜色用 CSS 变量",
+      "assertions": [
+        { "text": "首屏使用 Loading type=\"global\" isOpen，卡片局部使用 Loading type=\"local\" 且父容器 position: relative", "type": "eview_compliance" },
+        { "text": "Loading 的关闭写在 finally 中，失败时不会一直转", "type": "behavioral" },
+        { "text": "接口失败使用 Empty type=\"fail\" 并在 description 中放重试按钮；数据为 0 使用 Empty type=\"success\"", "type": "eview_compliance" },
+        { "text": "卡片右上角使用 IconButton（iconName + tipText + tipData.direction）或 TipBox 包裹 Icon，没有给 Icon 直接挂 onClick 当按钮", "type": "eview_compliance" },
+        { "text": "没有使用 antd 的 Spin / Empty image / Tooltip，也没有把 Spinner 当 loading", "type": "eview_compliance" },
+        { "text": "各卡片的 loading 状态相互独立，刷新一张不影响其他卡片", "type": "behavioral" },
+        { "text": "自定义颜色的图标使用 isStandard={false} 且颜色为 CSS 变量", "type": "eview_compliance" }
+      ]
+    }
+  ]
+}
