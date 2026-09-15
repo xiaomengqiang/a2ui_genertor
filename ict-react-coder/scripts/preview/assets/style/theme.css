@@ -109,7 +109,4 @@
   /* Caption 注释 — 时间戳/表格附加信息→底部免责声明 */
   --font-caption-m: var(--font-size-base)/var(--line-height-md) var(--font-family);   /* 12px/1.625 */
   --font-caption-s: var(--font-size-sm)/var(--line-height-lg) var(--font-family);    /* 10px/1.8 */
-
-  /* ── fontFamily ── */
-  --font-family: 'HarmonyOS Sans', 'Microsoft YaHei', Arial, 'PingFang SC', 'San Francisco', sans-serif;
 }
