@@ -161,9 +161,8 @@
   --pink-90: #2E0728;
 
   /* ==========================================================================
-    3. 尺寸与形状变量 (Sizes & Shapes)
+    2. 尺寸与形状 (Sizes & Shapes)
     ========================================================================== */
-  /* Radius */
   --radius-none: 0;
   --radius-xs: 2px;
   --radius-base: 4px;
@@ -173,43 +172,31 @@
   --radius-full: 9999px;
 
   /* ==========================================================================
-     4. 文本排版 (Typography)
-     ========================================================================== */
+    3. 文本排版 (Typography)
+    ========================================================================== */
   /* Font Family */
   --font-family: 'HarmonyOS Sans', 'Microsoft YaHei', Arial, 'PingFang SC', 'San Francisco', sans-serif;
 
-  /* Font Size */
-  --font-size-sm: 0.625rem;
-  --font-size-base: 0.75rem;
-  --font-size-md: 0.875rem;
-  --font-size-lg: 1rem;
-  --font-size-xl: 1.125rem;
-  --font-size-2xl: 1.25rem;
-  --font-size-3xl: 1.5rem;
-  --font-size-4xl: 1.75rem;
-  --font-size-5xl: 1.875rem;
-  --font-size-6xl: 2rem;
-  --font-size-7xl: 2.25rem;
-  --font-size-8xl: 2.5rem;
-  --font-size-12xl: 3rem;
-  --font-size-16xl: 3.5rem;
-  --font-size-18xl: 3.75rem;
-  --font-size-24xl: 4.5rem;
+  /* Font Size (10px → 72px) */
+  --font-size-sm: 0.625rem;    /* 10px */
+  --font-size-base: 0.75rem;   /* 12px */
+  --font-size-md: 0.875rem;    /* 14px */
+  --font-size-lg: 1rem;        /* 16px */
+  --font-size-xl: 1.125rem;    /* 18px */
+  --font-size-2xl: 1.25rem;    /* 20px */
+  --font-size-3xl: 1.5rem;     /* 24px */
+  --font-size-4xl: 1.75rem;    /* 28px */
+  --font-size-5xl: 2.25rem;    /* 36px */
+  --font-size-6xl: 3rem;       /* 48px */
+  --font-size-7xl: 3.75rem;    /* 60px */
+  --font-size-8xl: 4.5rem;     /* 72px */
 
-  /* Line Height */
-  --line-height-xs: 2;
-  --line-height-sm: 1.625;
-  --line-height-md: 1.5;
-  --line-height-lg: 1.5;
-  --line-height-xl: 1.5;
-  --line-height-2xl: 1.375;
-  --line-height-3xl: 1.375;
-  --line-height-4xl: 1.375;
-  --line-height-5xl: 1.375;
-  --line-height-6xl: 1.375;
-  --line-height-7xl: 1.25;
-  --line-height-8xl: 1.25;
-  --line-height-9xl: 1.25;
+  /* Line Height (刻度,1.25 → 1.8) */
+  --line-height-xs: 1.25;
+  --line-height-sm: 1.375;
+  --line-height-base: 1.5;
+  --line-height-md: 1.625;
+  --line-height-lg: 1.8;
 
   /* Font Weight */
   --font-weight-light: 300;
@@ -219,8 +206,9 @@
   --font-weight-bold: 700;
 
   /* ==========================================================================
-     5. 间距 (Spacing)
-     ========================================================================== */
+    4. 间距 (Spacing)
+    ========================================================================== */
+  /* 4px 网格 + 半步档,0 → 80px 封顶(更大留白用 px 字面量按需写) */
   --spacing-0: 0px;
   --spacing-0-5: 2px;
   --spacing-1: 4px;
@@ -246,37 +234,27 @@
   --spacing-18: 72px;
   --spacing-19: 76px;
   --spacing-20: 80px;
-  --spacing-24: 96px;
-  --spacing-28: 112px;
-  --spacing-32: 128px;
-  --spacing-36: 144px;
-  --spacing-40: 160px;
-  --spacing-44: 176px;
-  --spacing-48: 192px;
-  --spacing-52: 208px;
-  --spacing-56: 224px;
-  --spacing-60: 240px;
-  --spacing-64: 256px;
-  --spacing-72: 288px;
-  --spacing-80: 320px;
-  --spacing-96: 384px;
 }
 
-/* rem scale — html font-size by viewport width */
-@media (max-width: 1366px) { 
-  html { font-size: 12px; } 
+/* ==========================================================================
+  5. 响应式 rem 基准 (Responsive rem base) — html font-size 随视口宽度变化
+  ========================================================================== */
+@media (max-width: 1366px) {
+  html { font-size: 12px; }
 }
-@media (min-width: 1367px) and (max-width: 1680px) { 
-  html { font-size: 14px; } 
+@media (min-width: 1367px) and (max-width: 1680px) {
+  html { font-size: 14px; }
 }
 @media (min-width: 1681px) and (max-width: 1920px) {
-   html { font-size: 16px; } 
-  }
-@media (min-width: 1921px) { 
-  html { font-size: 20px; } 
+  html { font-size: 16px; }
+}
+@media (min-width: 1921px) {
+  html { font-size: 20px; }
 }
 
-
+/* ==========================================================================
+  6. 字体注册 (Font Face)
+  ========================================================================== */
 /* Light */
 @font-face {
   font-family: 'HarmonyOS Sans';
@@ -314,7 +292,7 @@
 body {
   margin: 0;
   font-family: var(--font-family);
-  line-height: 1.5;
+  line-height: var(--line-height-base);
   background-color: var(--surface);
   color: var(--on-surface);
 }
@@ -323,7 +301,9 @@ body {
   min-height: 100vh;
 }
 
-/* Standard scrollbar styling */
+/* ==========================================================================
+  7. 基础滚动条样式 (Scrollbar)
+  ========================================================================== */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

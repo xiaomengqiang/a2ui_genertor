@@ -95,20 +95,20 @@
 
   /* ── typography → --font-*（角色化 font 简写：字号/行高 字族；字重另行用 --font-weight-* 组合）── */
   /* Display 展示文本 — 英雄标语、数据看板大数字 */
-  --font-display-l: var(--font-size-12xl)/1.3 var(--font-family); /* 48px */
-  --font-display-m: var(--font-size-7xl)/1.4 var(--font-family);  /* 36px */
-  --font-display-s: var(--font-size-4xl)/1.4 var(--font-family);  /* 28px */
-  /* Headline 标题 — 弹窗主标题(H2)→区块标题(H3)→卡片标题 */
-  --font-headline-l: var(--font-size-3xl)/1.4 var(--font-family); /* 24px */
-  --font-headline-m: var(--font-size-2xl)/1.4 var(--font-family); /* 20px */
-  --font-headline-s: var(--font-size-xl)/1.5 var(--font-family);  /* 18px */
+  --font-display-l: var(--font-size-7xl)/var(--line-height-xs) var(--font-family);    /* 60px/1.25 */
+  --font-display-m: var(--font-size-6xl)/var(--line-height-sm) var(--font-family);    /* 48px/1.375 */
+  --font-display-s: var(--font-size-5xl)/var(--line-height-sm) var(--font-family);    /* 36px/1.375 */
+  /* Headline 标题 — 页面区块标题(H3)→卡片标题→表单区标题 */
+  --font-headline-l: var(--font-size-2xl)/var(--line-height-sm) var(--font-family);   /* 20px/1.375 */
+  --font-headline-m: var(--font-size-xl)/var(--line-height-sm) var(--font-family);    /* 18px/1.375 */
+  --font-headline-s: var(--font-size-lg)/var(--line-height-base) var(--font-family);  /* 16px/1.5 */
   /* Body 正文 — 表单标签/按钮文字→表格正文→辅助说明 */
-  --font-body-l: var(--font-size-lg)/1.5 var(--font-family);      /* 16px */
-  --font-body-m: var(--font-size-md)/1.5 var(--font-family);      /* 14px */
-  --font-body-s: var(--font-size-base)/1.6 var(--font-family);    /* 12px */
+  --font-body-l: var(--font-size-lg)/var(--line-height-base) var(--font-family);      /* 16px/1.5 */
+  --font-body-m: var(--font-size-md)/var(--line-height-base) var(--font-family);      /* 14px/1.5 */
+  --font-body-s: var(--font-size-base)/var(--line-height-md) var(--font-family);      /* 12px/1.625 */
   /* Caption 注释 — 时间戳/表格附加信息→底部免责声明 */
-  --font-caption-m: var(--font-size-base)/1.6 var(--font-family); /* 12px */
-  --font-caption-s: var(--font-size-sm)/1.5 var(--font-family);   /* 10px */
+  --font-caption-m: var(--font-size-base)/var(--line-height-md) var(--font-family);   /* 12px/1.625 */
+  --font-caption-s: var(--font-size-sm)/var(--line-height-lg) var(--font-family);    /* 10px/1.8 */
 
   /* ── fontFamily ── */
   --font-family: 'HarmonyOS Sans', 'Microsoft YaHei', Arial, 'PingFang SC', 'San Francisco', sans-serif;

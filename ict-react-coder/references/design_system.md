@@ -95,7 +95,7 @@
 --spacing-inset   /* 24px 生成一个卡片（Card）或面板时，内部内容距离边框的默认内边距（Padding） */
 --spacing-section /* 16px 页面大区块之间的垂直间距 */
 --spacing-page    /* 32px 页面最外层容器距离屏幕左右边缘的安全留白 */
-/* 完整刻度另有 base 层 --spacing-0-5 … --spacing-96（2px 起步的 4px 网格） */
+/* 完整刻度另有 base 层 --spacing-0-5 … --spacing-20（0~80px 封顶,4px 网格+半步;更大留白用 px 按需写） */
 ```
 
 ### 1.3 阴影 Token（尺阶 `--shadow-*` 由 light/dark 层定义，暗色自动加深；主题层只提供语义别名）
@@ -141,25 +141,27 @@
 
 ### 1.6 排印 Token（角色化 font 简写，共 11 档）
 
+> 行高刻度（base 层，1.25 → 1.8）：`--line-height-xs 1.25 / sm 1.375 / base 1.5 / md 1.625 / lg 1.8`；字号刻度（base 层）：`--font-size-sm(10) … 8xl(72)` 共 12 档。角色 token 均引用刻度,页面 CSS 直接用角色 token。
+
 ```css
 /* Display 展示文本 — 英雄标语、数据看板大数字 */
---font-display-l /* 48px/1.3  落地页 Hero 主标语（H1） */
---font-display-m /* 36px/1.4  Hero 副标语、看板核心大数字 */
---font-display-s /* 28px/1.4  区块超大标题 */
+--font-display-l /* 60px/1.25 落地页 Hero 主标语、看板核心大数字 */
+--font-display-m /* 48px/1.375 Hero 副标语、区块超大标题 */
+--font-display-s /* 36px/1.375 数据看板大数字、区块大标题 */
 
 /* Headline 标题 */
---font-headline-l /* 24px/1.4 模态弹窗主标题、页面区块主标题（H2） */
---font-headline-m /* 20px/1.4 侧边栏模块标题、次级内容块标题（H3） */
---font-headline-s /* 18px/1.5 常规卡片的标题（Card Title） */
+--font-headline-l /* 20px/1.375 页面区块主标题（H3）、侧边栏模块标题 */
+--font-headline-m /* 18px/1.375 常规卡片的标题（Card Title） */
+--font-headline-s /* 16px/1.5 表单区标题、小卡片标题 */
 
 /* Body 正文 */
 --font-body-l     /* 16px/1.5 表单字段标题（Label）、按钮文字 */
 --font-body-m     /* 14px/1.5 文章正文、表格里的普通数据文字（页面默认） */
---font-body-s     /* 12px/1.6 辅助说明、次要信息 */
+--font-body-s     /* 12px/1.625 辅助说明、次要信息 */
 
 /* Caption 注释 */
---font-caption-m  /* 12px/1.6 时间戳、表格附加信息 */
---font-caption-s  /* 10px/1.5 底部免责声明、角标微注 */
+--font-caption-m  /* 12px/1.625 时间戳、表格附加信息 */
+--font-caption-s  /* 10px/1.8 底部免责声明、角标微注 */
 ```
 
 用法（font 简写一行搞定字号/行高/字族）：
