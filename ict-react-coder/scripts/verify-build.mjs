@@ -162,6 +162,7 @@ function loadUmd(code, sandboxRequire, globalTarget) {
 }
 
 const React = loadUmd(await readFile(LIB("react.production.min.js"), "utf8"));
+globalThis.React = React; // react-intl 离线包的 require shim 消费全局 React
 const ReactDOM = loadUmd(await readFile(LIB("react-dom.production.min.js"), "utf8"), (name) => {
   if (name === "react") return React;
   throw new Error(`unexpected require: ${name}`);
@@ -191,6 +192,13 @@ if (!antdLoadedOk(antd)) {
   process.exit(1);
 }
 console.log(`PASS  antd ${antd.version} loaded (Button/ConfigProvider present)`);
+
+// react-intl offline bundle — 自挂 globalThis.ReactIntl(页面 import 时使用)
+new Function(await readFile(LIB("react-intl.umd.js"), "utf8"))();
+if (!globalThis.ReactIntl || typeof globalThis.ReactIntl.IntlProvider !== "function") {
+  throw new Error("react-intl.umd.js did not expose ReactIntl");
+}
+console.log(`PASS  react-intl loaded (ReactIntl global present)`);
 
 const Babel = loadUmd(await readFile(LIB("babel.min.js"), "utf8"));
 if (typeof Babel.transform !== "function") {

@@ -1,1 +1,277 @@
-/* = Ant Design 组件换肤，先占位 = */
+/* Button 组件样式（token 映射） */
+.ant-btn {
+  font-size: var(--font-size-md);
+  border-radius: var(--radius-base);
+  font-weight: var(--font-weight-normal);
+  min-width: calc(var(--spacing-4) * 5.5);
+  box-shadow: none;
+  gap: 4px;
+}
+.ant-btn.ant-btn-color-default {
+  color: var(--color-text-primary);
+}
+.ant-btn.ant-btn-color-default:not(:disabled):hover {
+  color: var(--color-text-primary);
+  border-color: var(--gray-90);
+  background-color: var(--color-bg-2);
+}
+.ant-btn.ant-btn-color-default:not(:disabled):active {
+  color: var(--color-text-primary);
+  border-color: var(--border-primary);
+  background-color: var(--color-bg-2);
+}
+.ant-btn.ant-btn-color-default:disabled {
+  color: var(--color-text-disabled);
+  background-color: var(--gray-10);
+}
+.ant-btn.ant-btn-color-primary {
+  color: var(--gray-0);
+  background-color: var(--color-brand);
+}
+.ant-btn.ant-btn-color-primary:not(:disabled):hover {
+  color: var(--gray-0);
+  background-color: var(--brand-40);
+}
+.ant-btn.ant-btn-color-primary:not(:disabled):active {
+  color: var(--gray-0);
+  background-color: var(--brand-60);
+}
+.ant-btn.ant-btn-color-primary:disabled {
+  color: var(--gray-0);
+  background-color: var(--brand-20);
+  border-color: var(--brand-20);
+}
+.ant-btn.ant-btn-dangerous {
+  color: var(--gray-0);
+  background-color: var(--red-50);
+}
+.ant-btn.ant-btn-dangerous:not(:disabled):hover {
+  color: var(--gray-0);
+  background-color: var(--red-40);
+}
+.ant-btn.ant-btn-dangerous:not(:disabled):active {
+  color: var(--gray-0);
+  background-color: var(--red-60);
+}
+.ant-btn.ant-btn-dangerous:disabled {
+  color: var(--gray-0);
+  background-color: var(--red-10);
+  border-color: var(--red-10);
+}
+.ant-btn.ant-btn-sm {
+  height: 28px;
+}
+.ant-btn.ant-btn-lg {
+  height: 36px;
+  padding: var(--spacing-0) var(--spacing-5);
+  min-width: 96px;
+  font-size: var(--font-size-md);
+}
+.ant-btn.ant-btn-icon-only {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: auto !important;
+  border: none !important;
+  background-color: transparent !important;
+  padding: var(--spacing-0);
+}
+.ant-btn.ant-btn-icon-only .anticon {
+  font-size: var(--font-size-2xl);
+}
+.ant-btn.ant-btn-icon-only.ant-btn-sm {
+  width: 24px !important;
+  height: 24px !important;
+}
+.ant-btn.ant-btn-icon-only.ant-btn-sm .anticon {
+  font-size: var(--font-size-md);
+}
+.ant-btn.ant-btn-icon-only:hover,
+.ant-btn.ant-btn-icon-only:focus {
+  background-color: transparent !important;
+}
+.ant-btn.ant-btn-icon-only.ant-btn-color-default:hover {
+  color: var(--brand-40);
+}
+.ant-btn.ant-btn-icon-only.ant-btn-color-default:active {
+  color: var(--brand-50);
+}
+.ant-btn.ant-btn-variant-link {
+  min-width: unset;
+  line-height: 22px;
+  padding: var(--spacing-0);
+  border: none;
+  background-color: transparent;
+  color: var(--color-brand);
+}
+.ant-btn.ant-btn-variant-link:not(:disabled):hover {
+  color: var(--brand-40);
+}
+.ant-btn.ant-btn-variant-link:not(:disabled):active {
+  color: var(--brand-60);
+}
+.dark .ant-btn.ant-btn-color-default {
+  border-color: var(--gray-50);
+  background-color: rgb(from var(--gray-100) r g b / 0);
+}
+.dark .ant-btn.ant-btn-color-default:not(:disabled):hover {
+  background-color: rgb(from var(--gray-100) r g b / 0);
+  border-color: var(--gray-05);
+}
+.dark .ant-btn.ant-btn-color-default:not(:disabled):active {
+  color: var(--color-text-primary);
+  border-color: var(--brand-40);
+  background-color: rgb(from var(--gray-100) r g b / 0);
+}
+.dark .ant-btn.ant-btn-color-default:disabled {
+  background-color: rgb(from var(--gray-05) r g b / 0.2);
+  border-color: var(--gray-60);
+}
+.dark .ant-btn.ant-btn-color-primary:not(:disabled):hover {
+  background-color: var(--brand-40);
+}
+.dark .ant-btn.ant-btn-color-primary:not(:disabled):active {
+  background-color: var(--brand-60);
+}
+.dark .ant-btn.ant-btn-color-primary:disabled {
+  color: rgb(from var(--gray-05) r g b / 0.3);
+  background-color: var(--brand-70);
+  border-color: var(--brand-70);
+}
+.dark .ant-btn.ant-btn-color-dangerous {
+  background-color: var(--red-40);
+}
+.dark .ant-btn.ant-btn-color-dangerous:not(:disabled):hover {
+  background-color: var(--red-30);
+}
+.dark .ant-btn.ant-btn-color-dangerous:not(:disabled):active {
+  background-color: var(--red-50);
+}
+.dark .ant-btn.ant-btn-color-dangerous:disabled {
+  color: var(--gray-0);
+  background-color: var(--red-80);
+  border-color: var(--red-80);
+}
+.dark .ant-btn.ant-btn-variant-link {
+  color: var(--brand-30);
+}
+.dark .ant-btn.ant-btn-variant-link:not(:disabled):hover {
+  color: var(--brand-20);
+}
+.dark .ant-btn.ant-btn-variant-link:not(:disabled):active {
+  color: var(--brand-40);
+}
+.dark .ant-btn.ant-btn-icon-only {
+  color: var(--gray-10);
+}
+.dark .ant-btn.ant-btn-icon-only:hover .anticon {
+  color: var(--brand-20);
+}
+.dark .ant-btn.ant-btn-icon-only:active .anticon {
+  color: var(--brand-40);
+}
+
+/* Checkbox 组件样式（token 映射，转换自根目录 checkbox.css） */
+.ant-checkbox-wrapper {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+}
+.ant-checkbox-wrapper:not(.ant-checkbox-wrapper-checked):hover .ant-checkbox {
+  border-color: var(--brand-40);
+}
+.ant-checkbox-wrapper:not(.ant-checkbox-wrapper-checked) .ant-checkbox-disabled.ant-checkbox {
+  background-color: rgb(from var(--gray-100) r g b / 0.05);
+  border-color: var(--gray-20);
+}
+.ant-checkbox-wrapper:not(.ant-checkbox-wrapper-checked) .ant-checkbox {
+  border-color: var(--gray-40);
+  background-color: var(--gray-0);
+}
+.ant-checkbox-wrapper.ant-checkbox-wrapper-checked:hover .ant-checkbox {
+  background-color: var(--brand-40);
+}
+.ant-checkbox-wrapper.ant-checkbox-wrapper-checked .ant-checkbox {
+  background-color: var(--brand-50);
+  border-color: none;
+}
+.dark .ant-checkbox-wrapper:not(.ant-checkbox-wrapper-checked) .ant-checkbox {
+  border-color: var(--gray-50);
+  background-color: var(--gray-100);
+}
+
+/* Tag 组件样式（占位，待填充 token 映射） */
+.ant-tag {
+  border-color: transparent;
+  padding: 0 8px;
+  line-height: 24px;
+  background-color: var(--color-tag-bg-none);
+  color: var(--color-text-primary);
+}
+.ant-tag.ant-tag-processing {
+  border-color: transparent;
+  background-color: var(--color-tag-bg-info);
+  color: var(--color-tag-text-info);
+}
+.ant-tag.ant-tag-error {
+  border-color: transparent;
+  background-color: var(--color-tag-bg-error);
+  color: var(--color-tag-text-error);
+}
+.ant-tag.ant-tag-warning {
+  border-color: transparent;
+  background-color: var(--color-tag-bg-warning);
+  color: var(--color-tag-text-warning);
+}
+.ant-tag.ant-tag-gold {
+  border-color: transparent;
+  background-color: var(--color-tag-bg-alert);
+  color: var(--color-tag-text-alert);
+}
+.ant-tag.ant-tag-success {
+  border-color: transparent;
+  background-color: var(--color-tag-bg-success);
+  color: var(--color-tag-text-success);
+}
+.ant-tag.ant-tag-green {
+  border-color: transparent;
+  background-color: var(--color-tag-bg-green);
+  color: var(--color-tag-text-green);
+}
+.ant-tag.ant-tag-has-color {
+  border-color: transparent;
+  background-color: var(--color-tag-bg-rose);
+  color: var(--color-tag-text-rose);
+}
+.ant-tag.ant-tag-pink {
+  border-color: transparent;
+  background-color: var(--color-tag-bg-pink);
+  color: var(--color-tag-text-pink);
+}
+.ant-tag.ant-tag-purple {
+  border-color: transparent;
+  background-color: var(--color-tag-bg-purple);
+  color: var(--color-tag-text-purple);
+}
+.ant-tag.ant-tag-geekblue {
+  border-color: transparent;
+  background-color: var(--color-tag-bg-indigo);
+  color: var(--color-tag-text-indigo);
+}
+.ant-tag.ant-tag-cyan {
+  border-color: transparent;
+  background-color: var(--color-tag-bg-cyan);
+  color: var(--color-tag-text-cyan);
+}
+.ant-tag.ant-tag-disabled {
+  background-color: var(--color-tag-bg-none);
+  color: var(--color-tag-text-none);
+}
+.ant-tag.ant-tag-disabled .anticon {
+  color: var(--color-tag-text-none);
+}
+.ant-tag > .anticon + span,
+.ant-tag > span + .anticon {
+  margin-left: 4px;
+}
+.ant-tag .anticon {
+  color: var(--color-text-primary);
+}

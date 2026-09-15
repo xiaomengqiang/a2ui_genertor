@@ -58,6 +58,7 @@ Supported — write **standard ES Module imports**, the bundler maps them to run
 import { useState, useEffect } from "react";          // → React globals
 import { Layout, Menu, Button, Table, ConfigProvider, theme } from "antd"; // → antd globals
 import dayjs from "dayjs";                            // → dayjs global
+import { IntlProvider, FormattedMessage, useIntl } from "react-intl"; // → ReactIntl global(可选,多语言页面)
 import zhCN from "./assets/shared/antd-zh-cn.js";     // 中文 locale(dayjs zh-cn + antd zhCN)
 import { Icon } from "./assets/shared/icons.js";      // Lucide 图标组件
 import { AppProvider, useApp } from "./src/context.jsx"; // 相对路径引用自己的模块
@@ -85,12 +86,22 @@ import zhCN from "./assets/shared/antd-zh-cn.js";
 ```
 （该文件同时注册 dayjs zh-cn locale，DatePicker/Pagination 等均为中文。）
 
+### i18n（可选 — 多语言页面才启用）
+
+默认页面单语言（zh-CN），**不要**为单语言页面引入 IntlProvider。用户明确要求多语言/中英切换时使用 react-intl（离线包已内置，`import ... from "react-intl"` 自动映射到 `ReactIntl` 全局）：
+
+1. **字典**：`src/i18n.js` 集中维护 `{ zh: {...}, en: {...} }`，语义化 key（`menu.devices`）。
+2. **Provider**：`<IntlProvider locale={lang} messages={dict[lang]}>` 包在 ConfigProvider 内层。
+3. **消费**：`<FormattedMessage id="menu.devices" defaultMessage="设备管理" />` 或 `useIntl().formatMessage(...)`；ICU 语法可用（`{count, plural, one {# alarm} other {# alarms}}`）。
+4. **defaultMessage 必写** — 字典漏 key 时的兜底显示，防止裸 key/空白。
+5. **切语言三件套同步**：IntlProvider 的 `locale/messages` + ConfigProvider 的 `locale`（zhCN/enUS）+ `dayjs.locale()`。antd enUS locale 需内联精简对象（同 zh-cn 补丁思路，仅必要组件）。
+
 ### Styling — token-first (CRITICAL)
 
 1. **Read `references/design_system.md`** (once per session) for tokens and visual rules.
 2. **antd 承载布局与组件**：用 antd `Layout`/`Flex`/`Grid`(Row/Col)/`Space` 组织布局，交互组件一律 antd（语义色走 props：`type="primary"`、`status="error"`…）。
 3. **自定义样式写在 CSS 文件**（视图组件配套同名 `.css`，如 `src/views/overview.jsx` + `overview.css`）：布局用 flex/grid + px 值；**颜色/阴影/圆角/文字规格一律用 token** — `var(--primary)`、`var(--surface-container-highest)`、`var(--shadow-card)`、`var(--radius-container)`… 文字用角色化 font token：`font: var(--font-body-m)`（display/headline/body/caption × l/m/s 共 11 档），字重独立设 `font-weight: var(--font-weight-medium)`。NEVER 硬编码 hex（build.mjs CSS lint FAIL/WARN 兜底）。
-4. Dark mode is dual-track: antd via `ConfigProvider theme.darkAlgorithm`, CSS tokens via the `.dark` class — `src/context.jsx` 的 AppProvider 负责同步（`document.documentElement.classList.toggle('dark', isDarkMode)`）。token 底层按 `:root`/`.dark` 自动切换，无需写两套。
+4. Dark mode 单轨驱动（CRITICAL）：**不使用 antd 的 darkAlgorithm / React 态主题切换**。`src/context.jsx`（init 自带）的 AppProvider 只切换 `<html>` 的 `.dark` class —— 普通 H5 元素由四层 token 自动翻转；antd 组件的暗色由 `assets/style/ant.css` 重置层的 `.dark` 规则承载。Menu/Sider 等 antd 组件的 `theme` prop 一律静态 `"light"`，不用 React 态切主题。
 5. Component CSS must not define `:root`/`.dark` blocks and must use defined tokens; build.mjs CSS lint FAILs otherwise.
 
 ## Step 3 — Build (MANDATORY)

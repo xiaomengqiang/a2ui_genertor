@@ -12,7 +12,7 @@
 //   4. 提取使用到的 Lucide 图标(扫描 name="x" / icon: "x" 等模式),
 //      在 lucide-icon-nodes.json(1777 icons)中校验,非 Lucide 名 → WARN,
 //      将图标 nodes 注入 shared/icons.js 模块(const LUCIDE = {...})
-//   5. 内联全部产物 — base/light/theme/dark 四层 token CSS 进 <style>
+//   5. 内联全部产物 — base/light/theme/dark/ant 五层 CSS 进 <style>
 //      (font url() 重写为 HTML 根相对路径),
 //      React/ReactDOM/dayjs/antd/Babel 保持本地 assets/library 引用
 //   6. CSS lint: 组件 CSS 禁止 :root/.dark 块、禁止未知 token、hex 硬编码 → WARN
@@ -35,8 +35,9 @@ const ROOT = resolve(args[dirIdx + 1]);
 const ENTRY = resolve(ROOT, "app.jsx");
 const OUT = resolve(ROOT, "index.page.html");
 const STYLE_DIR = resolve(ROOT, "assets/style");
-// 四层加载序: base(基础色阶) → light(:root 语义) → theme(终极语义别名) → dark(.dark 覆盖)
-const STYLE_FILES = ["base.css", "light.css", "theme.css", "dark.css"].map((f) => resolve(STYLE_DIR, f));
+// 五层样式加载序: base(基础色阶) → light(:root 语义) → theme(终极语义别名) → dark(.dark 覆盖)
+// → ant(antd 组件视觉重置层,token 映射,选择器特异性压过 antd cssinjs 默认样式)
+const STYLE_FILES = ["base.css", "light.css", "theme.css", "dark.css", "ant.css"].map((f) => resolve(STYLE_DIR, f));
 const LUCIDE_JSON = resolve(ROOT, "assets/library/lucide-icon-nodes.json");
 const ICONS_MODULE = "assets/shared/icons.js";
 
@@ -102,6 +103,7 @@ async function loadModule(filePath) {
   const deps = [];
   const reactNames = new Set();
   const antdNames = new Set();
+  const intlNames = new Set();
   const bundleNames = [];
   const defImports = []; // { local, dep } — default import 的本地名与依赖路径
   let code = raw;
@@ -124,6 +126,10 @@ async function loadModule(filePath) {
     if (source === "antd") {
       splitNames(named).forEach((n) => antdNames.add(n));
       if (def) antdNames.add(def); // import antd from "antd" — 极少用,兼容
+      return "";
+    }
+    if (source === "react-intl") {
+      splitNames(named).forEach((n) => intlNames.add(n));
       return "";
     }
     if (source === "dayjs") {
@@ -198,6 +204,7 @@ async function loadModule(filePath) {
     label,
     reactNames: [...reactNames],
     antdNames: [...antdNames],
+    intlNames: [...intlNames],
     bundleNames: [...new Set(bundleNames)],
     defImports,
     code: code.trim(),
@@ -214,6 +221,7 @@ function wrapModule(mod) {
   if (mod.prelude) lines.push(mod.prelude);
   if (mod.reactNames.length) lines.push(`  const { ${mod.reactNames.join(", ")} } = React;`);
   if (mod.antdNames.length) lines.push(`  const { ${mod.antdNames.join(", ")} } = antd;`);
+  if (mod.intlNames.length) lines.push(`  const { ${mod.intlNames.join(", ")} } = ReactIntl;`);
   if (mod.bundleNames.length) lines.push(`  const { ${mod.bundleNames.join(", ")} } = __export;`);
   for (const di of mod.defImports) {
     lines.push(`  const ${di.local} = __export.${di.key};`);
@@ -335,9 +343,11 @@ const html = `<!DOCTYPE html>
 <script src="./assets/library/dayjs.min.js"></script>
 <!-- 2. UI Components (local UMD, antd 内置图标随包携带) -->
 <script src="./assets/library/antd.min.js"></script>
+<!-- 3. react-intl (offline bundle, exposes ReactIntl; 可选,页面未用时零消耗) -->
+<script src="./assets/library/react-intl.umd.js"></script>
 <!-- 3. Babel Transpiler (local) -->
 <script src="./assets/library/babel.min.js"></script>
-<!-- 4. 四层 token CSS(base → light → theme → dark)内联 -->
+<!-- 4. 五层 CSS(base → light → theme → dark → ant 组件重置层)内联 -->
 <style>
 ${cssParts.join("\n\n")}
 </style>
@@ -367,6 +377,6 @@ await writeFile(OUT, html, "utf8");
 console.log(`OK  ${OUT}`);
 console.log(`    title   : ${title}`);
 console.log(`    modules (${modules.length}): ${modules.map((m) => m.label).join(", ")}`);
-console.log(`    css     (${cssFiles.length + STYLE_FILES.length}): style/(base,light,theme,dark) + ${cssFiles.map((c) => c.slice(ROOT.length + 1).replace(/\\/g, "/")).join(", ")}`);
+console.log(`    css     (${cssFiles.length + STYLE_FILES.length}): style/(base,light,theme,dark,ant) + ${cssFiles.map((c) => c.slice(ROOT.length + 1).replace(/\\/g, "/")).join(", ")}`);
 console.log(`    icons   (${iconTableEntries.length}): ${[...iconRefs.keys()].sort().join(", ") || "none"}`);
 console.log(`    entry   : __export.${entryDefault}`);

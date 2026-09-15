@@ -69,11 +69,13 @@ const REQUIRED = [
   "library/antd.min.js",
   "library/dayjs.min.js",
   "library/babel.min.js",
+  "library/react-intl.umd.js",
   "library/lucide-icon-nodes.json",
   "style/base.css",
   "style/light.css",
   "style/theme.css",
   "style/dark.css",
+  "style/ant.css",
   "shared/icons.js",
   "shared/antd-zh-cn.js",
 ];
@@ -85,7 +87,7 @@ const dest = join(base, slug);
 
 const STARTER_APP = `// 应用入口 — ICT React 页面
 // 分层约定:
-//   Layer 1 全局状态   → src/context.jsx  (AppProvider: 全局状态 + dark 模式同步)
+//   Layer 1 全局状态   → src/context.jsx  (AppProvider: 全局状态 + dark 模式切换)
 //   Layer 2 数据与逻辑 → src/data.js      (mock 数据、派生统计)
 //   Layer 3 通用小组件 → src/components/  (StatusTag / StatCard ...)
 //   Layer 4 视图组件   → src/views/       (每个页签/功能区一个,配套同名 .css)
@@ -96,6 +98,7 @@ const STARTER_APP = `// 应用入口 — ICT React 页面
 
 import { ConfigProvider } from "antd";
 import zhCN from "./assets/shared/antd-zh-cn.js";
+import { AppProvider } from "./src/context.jsx";
 import "./app.css";
 
 // 页面标题 — 构建时写入产物 <title>
@@ -103,12 +106,41 @@ export const APP_TITLE = "页面标题";
 
 export default function App() {
   return (
-    <ConfigProvider locale={zhCN}>
-      <div className="app-root">
-        {/* 视图组件挂载点 */}
-      </div>
-    </ConfigProvider>
+    <AppProvider>
+      <ConfigProvider locale={zhCN}>
+        <div className="app-root">
+          {/* 视图组件挂载点 */}
+        </div>
+      </ConfigProvider>
+    </AppProvider>
   );
+}
+`;
+
+const STARTER_CONTEXT = `import { useState, useEffect, createContext, useContext } from "react";
+
+// Layer 1: 全局状态 — 主题模式与业务状态
+// 换肤单轨驱动:isDark 只切换 <html> 的 .dark class;
+// 普通 H5 元素(token 四层)与 antd 组件(ant.css 重置层)同源跟随,无需 React 参与换肤。
+const AppContext = createContext(null);
+
+export function AppProvider({ children }) {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [isDark]);
+
+  const value = {
+    isDark,
+    toggleDark: () => setIsDark((d) => !d),
+  };
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+}
+
+export function useApp() {
+  return useContext(AppContext);
 }
 `;
 
@@ -169,6 +201,7 @@ try {
   if (!runtimeOk) fail(`assets/library runtime js not reachable at: ${libraryDir}`);
 
   writeFileSync(join(dest, "app.jsx"), STARTER_APP, "utf8");
+  writeFileSync(join(dest, "src", "context.jsx"), STARTER_CONTEXT, "utf8");
   writeFileSync(join(dest, "app.css"), STARTER_CSS, "utf8");
 
   console.log("RESULT: OK");
