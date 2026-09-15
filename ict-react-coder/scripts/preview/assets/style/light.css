@@ -198,14 +198,14 @@
      尺寸与形状变量 (Sizes & Shapes)
      ========================================================================== */
    /* Shadow */
-   --shadow-none: none;
-   --shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.08);
-   --shadow-base: 0 4px 12px rgba(0, 0, 0, 0.16);
-   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
-   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
-   --shadow-r-sm: 1px 0 6px 0 rgba(0, 0, 0, 0.08);
-   --shadow-t-sm: 0 -1px 6px rgba(0, 0, 0, 0.08);
-   --shadow-l-base: -2px 0 12px 0 rgba(0, 0, 0, 0.08);
-   --shadow-l-md: -2px 0 24px 0 rgba(0, 0, 0, 0.08);
+   --elevation-none: none;
+   --elevation-sm: 0 1px 6px rgba(0, 0, 0, 0.08);
+   --elevation-base: 0 4px 12px rgba(0, 0, 0, 0.16);
+   --elevation-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+   --elevation-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+   --elevation-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+   --elevation-r-sm: 1px 0 6px 0 rgba(0, 0, 0, 0.08);
+   --elevation-t-sm: 0 -1px 6px rgba(0, 0, 0, 0.08);
+   --elevation-l-base: -2px 0 12px 0 rgba(0, 0, 0, 0.08);
+   --elevation-l-md: -2px 0 24px 0 rgba(0, 0, 0, 0.08);
 }
