@@ -36,7 +36,7 @@ const ENTRY = resolve(ROOT, "app.jsx");
 const OUT = resolve(ROOT, "index.page.html");
 const STYLE_DIR = resolve(ROOT, "assets/style");
 // 五层样式加载序: base(基础色阶) → light(:root 语义) → theme(终极语义别名) → dark(.dark 覆盖)
-// → ant(antd 组件视觉重置层,token 映射,选择器特异性压过 antd cssinjs 默认样式)
+// → ant(antd 组件换肤层,.dark 规则随暗色生效)
 const STYLE_FILES = ["base.css", "light.css", "theme.css", "dark.css", "ant.css"].map((f) => resolve(STYLE_DIR, f));
 const LUCIDE_JSON = resolve(ROOT, "assets/library/lucide-icon-nodes.json");
 const ICONS_MODULE = "assets/shared/icons.js";
@@ -343,11 +343,11 @@ const html = `<!DOCTYPE html>
 <script src="./assets/library/dayjs.min.js"></script>
 <!-- 2. UI Components (local UMD, antd 内置图标随包携带) -->
 <script src="./assets/library/antd.min.js"></script>
-<!-- 3. react-intl (offline bundle, exposes ReactIntl; 可选,页面未用时零消耗) -->
+<!-- 3. react-intl (offline, exposes ReactIntl) -->
 <script src="./assets/library/react-intl.umd.js"></script>
 <!-- 3. Babel Transpiler (local) -->
 <script src="./assets/library/babel.min.js"></script>
-<!-- 4. 五层 CSS(base → light → theme → dark → ant 组件重置层)内联 -->
+<!-- 4. 五层 CSS(base → light → theme → dark → ant 组件换肤层)内联 -->
 <style>
 ${cssParts.join("\n\n")}
 </style>
