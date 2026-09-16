@@ -38,14 +38,14 @@ const [deleting, setDeleting] = useState<Set<string>>(new Set());
 ```tsx
 import { IconPlusIcPublicSearch, IconPlusIcPublicTrash } from '@hui/icon-plus';
 <IconPlusIcPublicSearch />
-<IconPlusIcPublicTrash type="filled" iconColor={['var(--colorAlarmUrgent)']} iconSize={20} />   // 颜色可用 CSS 变量
+<IconPlusIcPublicTrash type="filled" iconColor={['currentColor']} iconSize={20} />   // 示例继承业务容器的文字颜色
 ```
 
 ### 内置 Icon
 
 ```tsx
 <Icon name="ict_chevronDown" />                                   // 标准图标：浅色主题线性、深色主题面性，自带 hover
-<Icon name="ict_trash" color="var(--colorAlarmUrgent)" hoverColor="var(--colorAlarmUrgent)" isStandard={false} size={[20, 20]} />   // 自定颜色必须 isStandard={false}
+<Icon name="ict_trash" color="currentColor" hoverColor="currentColor" isStandard={false} size={[20, 20]} />   // 自定颜色必须 isStandard={false}
 <Icon iconUrl="./image/custom.svg" size={[24, 24]} title="自定义" />
 ```
 
@@ -74,8 +74,8 @@ interface RowAction<T> {
 
 - 操作列 IconButton → 编辑打开 Dialog / Drawer，删除打开 MessageDialog；处理中 `disabled`
 - 权限 → `visible(row)` 决定是否渲染该 IconButton（隐藏时相邻 `Divider type="vertical"` 一起隐藏）
-- 状态图标颜色 → 与 Badge / Tag 的语义色一致（success / warning / error），用 CSS 变量
-- 深色主题 → 标准图标自动切面性；自定义颜色图标需自己用变量
+- 业务状态决定图标名称；自定义颜色通过组件已支持的属性传入，取值由业务项目提供
+- 标准图标自带主题与悬浮效果；自定义颜色时设置 `isStandard={false}`
 
 ## 7. 完整代码示例
 
@@ -104,9 +104,9 @@ export default function DeviceRows() {
   return (
     <div style={{ width: 520, padding: 24 }}>
       {rows.map((row) => (
-        <div key={row.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--colorDivider)' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Icon name={row.state === 'ok' ? 'ict_checkmask' : 'ict_about'} color={row.state === 'ok' ? 'var(--colorAlarmSuccess)' : 'var(--colorAlarmUrgent)'} isStandard={false} />
+        <div key={row.id} className="app-device-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
+          <span className={`app-device-state app-device-state-${row.state}`} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name={row.state === 'ok' ? 'ict_checkmask' : 'ict_about'} color="currentColor" isStandard={false} />
             {row.name}
           </span>
           <span style={{ display: 'flex', alignItems: 'center' }}>
@@ -142,9 +142,6 @@ import { EditOutlined } from '@ant-design/icons';
 // ❌ icon+ 尺寸随意写（只能 12/14/16/20/24/32/36/40/48/60）
 <IconPlusIcPublicTrash iconSize={18} />
 
-// ❌ 写死色值而不用主题变量，深色主题下不跟随
-<Icon name="ict_about" color="#f43146" isStandard={false} />
-
 // ❌ IconButton 的提示同时传 tipText 和 tipContent（二选一）
 <IconButton tipText="删除" tipContent={<div>删除</div>} />
 ```
@@ -171,4 +168,4 @@ import { EditOutlined } from '@ant-design/icons';
 | `IconButton.enableClickHideTip` | `boolean`，默认 `false` | 点击后隐藏气泡 |
 | `IconButton.disabled` / `size` | `boolean` / `any` | 禁用 / 尺寸（数字、rem、px） |
 | `IconButton.onClick` / `onKeyDown` / `onMouseEnter` / `onMouseLeave` / `onFocus` / `onBlur` | `(event) => void` | 事件 |
-| icon+ 组件 `type` / `iconColor` / `iconSize` | `'filled' …` / `string[]` / `12…60` | 风格 / 颜色（支持 CSS 变量）/ 尺寸 |
+| icon+ 组件 `type` / `iconColor` / `iconSize` | `'filled' …` / `string[]` / `12…60` | 风格 / 颜色数组 / 尺寸 |

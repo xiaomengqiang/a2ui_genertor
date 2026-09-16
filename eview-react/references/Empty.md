@@ -103,7 +103,7 @@ export default function DeviceCards() {
             description={keyword ? <span>未找到与「{keyword}」相关的设备 <Button status="text" text="清空筛选" onClick={() => setKeyword('')} /></span> : <span>尚未创建设备 <Button status="text" text="去新建" onClick={() => {}} /></span>}
           />
         ) : null}
-        {view === 'ready' ? rows.map((d) => <div key={d} style={{ padding: '8px 0', borderBottom: '1px solid var(--colorDivider)' }}>{d}</div>) : null}
+        {view === 'ready' ? rows.map((d) => <div key={d} className="app-result-row" style={{ padding: '8px 0' }}>{d}</div>) : null}
       </div>
     </div>
   );

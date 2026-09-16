@@ -219,12 +219,12 @@
     {
       "id": 16,
       "prompt": "用 eview-react 写一个任务执行详情页：顶部面包屑，左侧任务树，右侧显示当前任务的执行进度条和执行时间轴；这个工程是新建的，src 里还没有任何 eview-react 用法",
-      "expected_output": "面包屑用 Crumbs、任务树用 Tree（enableMultiSelect={false} + selectedKeys/onSelect）、都是已覆盖组件；进度条与时间轴在本 Skill 无 Reference、工程里也无现成用法 → 第三层：进度条手写 role=\"progressbar\" 的 div（--colorCommonSelected / --colorFillingHover），时间轴手写有序列表，样式只用 CSS 变量，类名业务前缀；两处都带 // TODO(eview-react): 建议替换为 ProgressBar / TimeLine 注释并在回复末尾列出补位清单；不导入 @nce/eview-react/ProgressBar 或 TimeLine，不去 node_modules 猜 props，不用 antd",
+      "expected_output": "面包屑用 Crumbs、任务树用 Tree（enableMultiSelect={false} + selectedKeys/onSelect）、都是已覆盖组件；进度条与时间轴在本 Skill 无 Reference、工程里也无现成用法 → 第三层：进度条手写 role=\"progressbar\" 的 div，时间轴手写有序列表，样式接入目标项目，类名业务前缀；两处都带 // TODO(eview-react): 建议替换为 ProgressBar / TimeLine 注释并在回复末尾列出补位清单；不导入 @nce/eview-react/ProgressBar 或 TimeLine，不去 node_modules 猜 props，不用 antd",
       "assertions": [
         { "text": "面包屑使用 Crumbs（data + onClick），任务树使用 Tree（data / nodeKey / enableMultiSelect={false} / selectedKeys / onSelect），没有手写这两个已覆盖组件", "type": "eview_compliance" },
         { "text": "没有 import @nce/eview-react/ProgressBar 或 TimeLine，也没有从 antd 导入任何组件", "type": "eview_compliance" },
-        { "text": "进度条为手写 div 并带 role=\"progressbar\"，颜色使用 --colorCommonSelected / --colorFillingHover 等 CSS 变量，没有写死色值", "type": "eview_compliance" },
-        { "text": "时间轴为手写列表，节点颜色使用 --colorAlarmSuccess / --colorAlarmUrgent 等变量", "type": "eview_compliance" },
+        { "text": "进度条为手写 div 并带 role=\"progressbar\"，aria-valuenow 随当前任务的进度更新", "type": "eview_compliance" },
+        { "text": "时间轴为手写列表，显示当前任务节点的名称、时间和执行状态", "type": "eview_compliance" },
         { "text": "手写的进度条与时间轴都带有 // TODO(eview-react): 建议替换为 <组件名> 注释", "type": "contains_pattern" },
         { "text": "回复末尾列出了补位清单：位置、替代方式、建议后续换用的真实组件", "type": "behavioral" },
         { "text": "手写元素的类名使用业务前缀（如 app-），没有使用 ev_ 前缀", "type": "eview_compliance" },
@@ -305,7 +305,7 @@
     {
       "id": 22,
       "prompt": "用 eview-react 写一个概览卡片区：三张统计卡片各自可刷新，刷新中只盖住自己；接口失败显示失败空态并可重试，数据为 0 显示成功空态；卡片右上角是带气泡提示的图标按钮；页面首屏整体加载",
-      "expected_output": "首屏 Loading type=\"global\"；每张卡片父容器 position: relative + Loading type=\"local\" 各自 isOpen；失败 Empty type=\"fail\" + 重试按钮，为 0 Empty type=\"success\"；卡片右上角 IconButton iconName tipText tipData.direction 或 TipBox 包裹 Icon；请求在 finally 关闭 loading；图标颜色用 CSS 变量",
+      "expected_output": "首屏 Loading type=\"global\"；每张卡片父容器 position: relative + Loading type=\"local\" 各自 isOpen；失败 Empty type=\"fail\" + 重试按钮，为 0 Empty type=\"success\"；卡片右上角 IconButton iconName tipText tipData.direction 或 TipBox 包裹 Icon；请求在 finally 关闭 loading",
       "assertions": [
         { "text": "首屏使用 Loading type=\"global\" isOpen，卡片局部使用 Loading type=\"local\" 且父容器 position: relative", "type": "eview_compliance" },
         { "text": "Loading 的关闭写在 finally 中，失败时不会一直转", "type": "behavioral" },
@@ -313,7 +313,7 @@
         { "text": "卡片右上角使用 IconButton（iconName + tipText + tipData.direction）或 TipBox 包裹 Icon，没有给 Icon 直接挂 onClick 当按钮", "type": "eview_compliance" },
         { "text": "没有使用 antd 的 Spin / Empty image / Tooltip，也没有把 Spinner 当 loading", "type": "eview_compliance" },
         { "text": "各卡片的 loading 状态相互独立，刷新一张不影响其他卡片", "type": "behavioral" },
-        { "text": "自定义颜色的图标使用 isStandard={false} 且颜色为 CSS 变量", "type": "eview_compliance" }
+        { "text": "如果通过 Icon 的颜色属性自定义颜色，使用 isStandard={false}", "type": "eview_compliance" }
       ]
     }
   ]

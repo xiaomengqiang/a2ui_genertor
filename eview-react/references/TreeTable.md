@@ -138,7 +138,7 @@ export default function DeviceConfigTree() {
       <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
         <Button text="全部展开" onClick={() => ref.current.expandAll()} />
         <Button text="全部收起" onClick={() => ref.current.collapseAll()} />
-        <span style={{ alignSelf: 'center', color: 'var(--colorTextSecondary)' }}>已展开 {expandedKeys.length} 组</span>
+        <span className="app-tree-summary" style={{ alignSelf: 'center' }}>已展开 {expandedKeys.length} 组</span>
       </div>
       <TreeTable
         ref={ref}
