@@ -123,7 +123,7 @@ export default function GroupedForm() {
 // ❌ antd 习惯：eview Divider 没有 orientationMargin / plain / variant，标题位置只有 orientation
 <Divider orientationMargin={0} plain variant="dotted">标题</Divider>
 
-// ❌ 用 <hr> 或手写 border 代替，主题切换（aui3_1 / dark）时颜色不跟随
+// ❌ 已有 Divider 却手写替代，无法直接使用组件的 orientation / dashed / children 等能力
 <hr style={{ borderColor: '#ddd' }} />
 
 // ❌ 标题不放 children，另写一个 div，间距和字号与规范不一致

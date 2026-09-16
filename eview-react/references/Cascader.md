@@ -115,7 +115,7 @@ export default function AddressPicker() {
     <div style={{ width: 520, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Cascader options={AREA} placeholder="请选择省 / 市 / 区" selectedValue={region} onChange={(value: string[]) => { setRegion(value); setMessage(''); }} />
       <Cascader options={AREA} multiple multiLimit={2} placeholder="可多选" selectedValue={tags} onChange={(value: string[][]) => setTags(value)} selectStyle={{ width: '28rem' }} />
-      <div style={{ color: 'var(--colorTextSecondary)' }}>{message || (region.length ? labelsOf(AREA, region).join(' / ') : '未选择')}</div>
+      <div className="app-field-message">{message || (region.length ? labelsOf(AREA, region).join(' / ') : '未选择')}</div>
       <div><Button status="primary" text="提交" onClick={handleSubmit} /></div>
     </div>
   );

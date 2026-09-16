@@ -164,10 +164,10 @@ export default function AlarmRuleSettings() {
         <Spinner label="检测间隔(秒)" min={5} max={300} step={5} doNotFocusWhenValueUpdate value={checkInterval} onChange={(v: number) => setCheckInterval(v)} />
       ) : null}
 
-      <div style={{ borderTop: '1px solid var(--colorDivider)', paddingTop: 12 }}>
+      <div className="app-toggle-list" style={{ paddingTop: 12 }}>
         {rows.map((row) => (
           <div key={row.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }}>
-            <span style={{ color: master ? 'var(--colorTextPrimary)' : 'var(--colorTextDisabled)' }}>{row.name}</span>
+            <span className={master ? "app-toggle-label" : "app-toggle-label-disabled"}>{row.name}</span>
             <Toggle
               data={[false, true]}
               toggled={row.enabled}
@@ -177,7 +177,7 @@ export default function AlarmRuleSettings() {
           </div>
         ))}
       </div>
-      {message ? <div style={{ color: 'var(--colorAlarmUrgent)' }}>{message}</div> : null}
+      {message ? <div className="app-error">{message}</div> : null}
     </div>
   );
 }

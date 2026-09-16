@@ -5,9 +5,9 @@
 | 维度 | 数量 | 明细 |
 |------|------|------|
 | 组件 Reference | 39 个 | 首批：Button（含 ButtonGroup）/ TextField / Select / Checkbox（含 CheckboxGroup）/ Radio（含 RadioGroup）；第二批：TextArea / SearchInput / Steps / Tab（含 TabItem）/ FileUpload；第三批：DatePicker / Spinner / DragInput / SelectCard / Rating / Tag / Badge / Divider；第四批：Form（含 Form.Item）/ Table / Paging / Dialog / MessageDialog / Toggle（含 Switch）/ MultipleSelect；第五批：Drawer / Tree / TreeSelect / TreeTable / InputSelect / IPInput / Cascader / DivMessage / Loading（Loader 同）/ Empty / Crumbs / Panel（含 PanelItem）/ Icon（含 IconButton）/ TipBox |
-| Pattern 文档 | 2 份 | `project-setup.md`（.npmrc、依赖版本、main.tsx 骨架、报错对照、编码风格）+ `fallback-handwrite.md`（未覆盖组件三层判定、CSS 变量速查、手写模板、必标 TODO 清单） |
-| eview-react 硬约束 | 6 组 | 导入与接入 / 禁止他库猜 API（42 行对照表）/ 回调签名表（40 行）/ validator 语义 / 受控与单向数据流 / 编码风格 |
-| 页面调用链模板 | 16 种 | 登录注册 / 筛选列表 / 列表 CRUD / 多选批量 / 向导模式切换 / 级联下拉 / 表单提交 / 多步创建向导 / 多页签工作区 / 附件上传表单 / 时间范围查询条 / 参数配置表单 / 状态列表卡片 / 树 + 列表主从页 / 侧边详情编辑 / 四态内容区 |
+| Pattern 文档 | 3 份 | `project-setup.md`（工程接入）+ `page-flows.md`（页面调用链）+ `fallback-handwrite.md`（三层判定、87 项导出核对、业务样式与手写模板、TODO 边界） |
+| 通用约束与组件细则 | 分层维护 | SKILL.md 保留导入、API 溯源、校验、受控、表单托管、异步边界与编码要求；具体 props、回调签名、ref 方法及反例按组件 Reference 读取 |
+| 页面调用链模板 | 16 种 | 位于 `references/patterns/page-flows.md`：登录注册 / 筛选列表 / 列表 CRUD / 多选批量 / 向导模式切换 / 级联下拉 / 表单提交 / 多步创建向导 / 多页签工作区 / 附件上传表单 / 时间范围查询条 / 参数配置表单 / 状态列表卡片 / 树 + 列表主从页 / 侧边详情编辑 / 四态内容区 |
 | 评测用例 | 22 个 / 161 条断言 | 1 登录页 / 2 联动筛选条 / 3 待办批量删除 / 4 向导单选切换 / 5 新工程接入 / 6 新建用户表单统一校验与 PC 默认交付 / 7 三步创建向导 / 8 工作区页签 / 9 附件批量上传 / 10 设备搜索框 / 11 工单多行表单 / 12 报表时间范围查询条 / 13 QoS 参数配置 / 14 服务评价 / 15 告警列表状态展示 / 16 未覆盖组件手写补位（进度条 + 时间轴）/ 17 设备管理 CRUD（Table + Dialog(Form) + MessageDialog）/ 18 告警规则开关 / 19 多选筛选 + 卡片分页 / 20 组织树 + 成员表 + 抽屉 / 21 网元接入表单（Cascader + TreeSelect + InputSelect + IPInput + Panel）/ 22 概览卡片四态（Loading + Empty + IconButton） |
 | 原始资料 | 856 + 2 文件 | 仓库根 `hui参考文档/`（**不随 skill 打包**，仅供写作与复核）：api 93 份 TypeDoc 表、demos 71 README + 91 API.md + 426 示例、rules 2 份、site-doc 15 份 |
 
@@ -25,7 +25,7 @@
 6. **ref 命令式方法只列 demo 出现过的**（本仓库新增）：`getValue / validate / focus / clear` 目前只在 TextField、Select 的官方 demo 出现，FileUpload 出现过 `handleSubmit / getValue / getValueEx`；TextArea / SearchInput / Tab / Steps 的 demo 没有 ref 方法，即使"看起来也应该有"，不写。
 7. **反例以他库习惯为主**（本仓库新增）：第 8 节至少一半的 ❌ 应是 antd / Material 写法对照（`type="primary"`、`<Option>`、`e.target.value`……），这是 eview-react 生成错误的主要来源。
 8. **不写 React 运行时版本要求**（本仓库新增）：业务侧使用的是兼容 React 的运行时，版本由目标工程决定。原始资料里的"React 18 / 不是 19 / 降级命令"一律不搬进 Skill；只保留组件库自身及构建工具（Vite、plugin-react、react-intl）的版本约束。
-9. **skill 目录必须自包含**（本仓库新增）：`skills/eview-react/` 会被单独打包发布，目录内任何文件都不得出现指向目录之外的链接或路径（validator 会拦 `hui参考文档` 字样和越界链接）。"资料来源"只写纯文本的 TypeDoc 表名 + 示例文件名；未覆盖组件不带资料，按 SKILL.md「未覆盖组件的处理」三层判定：组合已覆盖组件 → 照抄工程 `src/` 现有用法 → 手写 HTML/JSX（只用 CSS 变量、标 TODO）；**不读 `node_modules`、不用他库顶替**。
+9. **skill 目录必须自包含**（本仓库新增）：`skills/eview-react/` 会被单独打包发布，目录内任何文件都不得出现指向目录之外的链接或路径（validator 会拦 `hui参考文档` 字样和越界链接）。"资料来源"只写纯文本的 TypeDoc 表名 + 示例文件名；未覆盖组件不带资料，按 SKILL.md「未覆盖组件的处理」三层判定：组合已覆盖组件 → 照抄工程 `src/` 现有用法 → 手写 HTML/JSX（接入项目样式、标 TODO）；**不读 `node_modules`、不用他库顶替**。
 
 ---
 
@@ -116,7 +116,7 @@
 
 - [ ] `form-validation.md`：Form `rules` 体系 vs 控件自带 `validator` 的选型；`onSuccess` / `onFailed` 收口；异步查重（防抖 + 版本号）；`validateErrorType="tip"` 与 `hintType` 关系
 - [ ] `table-crud.md`（NCE-Fabric 标杆）：筛选条 + Table + Paging + Dialog 表单的完整 CRUD 调用链；`recordCount` 服务端分页；行操作列 `render`；批量勾选与 Checkbox.md 的 `Set` 模式衔接
-- [ ] `theme-and-intl.md`：`aui3_1` / `aui3_1_dark` 切换、`ev_direction_rtl`、`componentsLocales` 与业务语言包合并、css var 覆盖（`custom_theme.md`）
+- [ ] `theme-and-intl.md`：`aui3_1` / `aui3_1_dark` 切换、`ev_direction_rtl`、`componentsLocales` 与业务语言包合并
 - [ ] `data-fetching.md`：loading / empty / error 三态、取消标记防串数据（可直接移植 ArkUI 版的四态模型）
 
 ---

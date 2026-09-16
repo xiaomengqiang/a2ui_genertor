@@ -117,7 +117,7 @@ export default function NetAddressForm() {
     <div style={{ width: 480, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <RadioGroup label="地址类型" isControlled data={[{ value: 'v4', text: 'IPv4' }, { value: 'v6', text: 'IPv6' }]} value={ipType} onChange={handleTypeChange} />
       <IPInput ref={ipRef} label="管理 IP" type={ipType} required hintType="tip" value={ip} onChange={(value: string) => { setIp(value); setDupMsg(''); }} onBlur={(value: string) => handleBlur(value)} />
-      {dupMsg ? <div style={{ color: 'var(--colorAlarmUrgent)' }}>{dupMsg}</div> : null}
+      {dupMsg ? <div className="app-error">{dupMsg}</div> : null}
       <IPInput label="MAC" type="mac" value={mac} onChange={(value: string) => setMac(value)} />
       {result ? <div>{result}</div> : null}
       <div><Button status="primary" text="保存" onClick={handleSubmit} /></div>

@@ -49,7 +49,7 @@ const formRef = useRef<any>(null);
 ```tsx
 <Drawer title="编辑设备" visible={visible} width={520} destroyOnClose onClose={() => setVisible(false)}>
   <Form ref={formRef} initialValues={EMPTY} validateErrorType="tip" component={false} onSuccess={handleSave}>…</Form>
-  <div style={{ position: 'absolute', right: 0, bottom: 0, width: '100%', padding: '0.75rem 1rem', borderTop: 'var(--borderSize) solid var(--colorDivider)', textAlign: 'right', background: 'var(--colorBasic)' }}>
+  <div className="app-drawer-footer" style={{ position: 'absolute', right: 0, bottom: 0, width: '100%', padding: '0.75rem 1rem', textAlign: 'right' }}>
     <Button text="取消" disabled={saving} onClick={() => setVisible(false)} />
     <Button status="primary" text={saving ? '保存中...' : '保存'} disabled={saving} onClick={() => formRef.current.submit()} style={{ marginLeft: 12 }} />
   </div>
@@ -134,8 +134,8 @@ export default function DeviceDrawerPage() {
           <Form.Item label="名称" name="name" rules={[{ required: true }]}><TextField maxLength={32} /></Form.Item>
           <Form.Item label="IP" name="ip" rules={[{ required: true }, { ipv4: true }]}><TextField /></Form.Item>
         </Form>
-        {error ? <div style={{ color: 'var(--colorAlarmUrgent)' }}>{error}</div> : null}
-        <div style={{ position: 'absolute', right: 0, bottom: 0, width: '100%', padding: '0.75rem 1rem', borderTop: 'var(--borderSize) solid var(--colorDivider)', textAlign: 'right', background: 'var(--colorBasic)' }}>
+        {error ? <div className="app-error">{error}</div> : null}
+        <div className="app-drawer-footer" style={{ position: 'absolute', right: 0, bottom: 0, width: '100%', padding: '0.75rem 1rem', textAlign: 'right' }}>
           <Button text="取消" disabled={saving} onClick={() => setVisible(false)} />
           <Button status="primary" text={saving ? '保存中...' : '保存'} disabled={saving} onClick={() => formRef.current.submit()} style={{ marginLeft: 12 }} />
         </div>

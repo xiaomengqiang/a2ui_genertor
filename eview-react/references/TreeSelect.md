@@ -126,7 +126,7 @@ export default function UserScopeForm() {
     <div style={{ width: 480, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <TreeSelect label="所属部门" treeData={ORG} nodeKey="id" enableCheckbox={false} enableMultiSelect={false} required onChange={(nodes: SelectedNode[]) => setDept(nodes)} />
       <TreeSelect label="访问范围" treeData={ORG} nodeKey="id" enableCheckbox required onChange={(nodes: SelectedNode[]) => setScopes(nodes)} />
-      <div style={{ color: 'var(--colorTextSecondary)' }}>{message}</div>
+      <div className="app-field-message">{message}</div>
       <div><Button status="primary" text="提交" disabled={!canSubmit} onClick={handleSubmit} /></div>
     </div>
   );
