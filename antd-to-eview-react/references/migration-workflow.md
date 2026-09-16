@@ -105,7 +105,7 @@ export default defineConfig({ plugins: [react()] });
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>标题</title></head>
-<body><div id="root"></div><script type="module" src="/main.jsx"></script></body>
+<body class="aui3_1 ev_no_wcag"><div id="root"></div><script type="module" src="/main.jsx"></script></body>
 </html>
 ```
 

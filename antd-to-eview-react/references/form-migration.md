@@ -290,13 +290,13 @@ eview-react 的 Form 内置 24 栅格系统，通过 `itemCol` 控制每项宽�
 | 属性 | 位置 | 作用 | 取值 |
 |------|------|------|------|
 | `itemCol` | `<Form>` | 所有 Form.Item 的栅格数（**统一设置，不支持单项覆盖**） | `24`(全宽) / `12`(半宽) / `8`(三分之一) / `6`(四分之一)，默认 `24` |
-| `labelCol` | `<Form>` | `layout="horizontal"` 时控制 label 占多少栅格 | `number`，剩余给输入框 |
+| `labelCol` | `<Form>` | **仅在 `layout="horizontal"` 时生效**；将该项宽度分为 24 份，label 占其中的份数，剩余给输入框 | `number`，如 `labelCol={4}` → label 占 4/24（1/6），输入框占 20/24（5/6） |
 
 **关键限制**：`itemCol` 是 Form 级属性，设置后**所有 Form.Item 统一占同样的栅格数**，不支持单项单独定义宽度。
 
 **layout 与栅格的关系**：
-- `layout="vertical"`：label 和输入框共享 `itemCol` 宽度（label 在上方，输入框占满 itemCol 区域）
-- `layout="horizontal"`：`labelCol` 控制 label 宽度，剩余栅格给输入框（`labelCol + wrapperCol <= 24`）
+- `layout="vertical"`：label 在输入框上方，label 和输入框都占满 `itemCol` 的宽度；`labelCol` 不生效
+- `layout="horizontal"`：`labelCol` 将该项宽度（由 `itemCol` 决定）均分为 24 份，label 占 `labelCol` 份，输入框占 `24 - labelCol` 份。例如 `itemCol={12} labelCol={4}`：该项占 12/24 行宽（半宽），其中 label 占 4/24（1/6），输入框占 20/24（5/6）
 
 **硬约束**：
 - `<Form>` 标签内不允许使用 `<div>` 进行栅格布局
@@ -389,12 +389,12 @@ eview-react 不支持同一 Form 内混用不同宽度。如果所有字段都�
 ### 水平布局的 labelCol
 
 ```jsx
-// layout="horizontal" 时，labelCol 控制 label 宽度
-<Form layout="horizontal" itemCol={12} labelCol={6}>
-  <Form.Item name="name" label="名称">               {/* 半宽，label 占 6/24，输入框 18/24 */}
+// layout="horizontal" 时，labelCol 将该项宽度均分 24 份
+<Form layout="horizontal" itemCol={12} labelCol={4}>
+  <Form.Item name="name" label="名称">               {/* 项占 12/24 行宽(半宽)，其中 label 占 4/24(1/6)，输入框 20/24(5/6) */}
     <TextField />
   </Form.Item>
-  <Form.Item name="type" label="类型">               {/* 半宽，同上 */}
+  <Form.Item name="type" label="类型">               {/* 同上 */}
     <Select options={typeOptions} defaultLabel="-请选择-" />
   </Form.Item>
 </Form>
