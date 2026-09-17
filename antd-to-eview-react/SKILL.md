@@ -31,10 +31,30 @@ description: >-
 | 步骤 | 做什么 | 产出 |
 |------|--------|------|
 | **0. 评估** | 扫描 antd 项目用到的组件，对照组件映射总表标注"有对应/无对应需手写" | 组件迁移清单 |
-| **1. 建工程骨架** | 若源项目非 Vite + npm 工程，创建 `package.json` / `.npmrc` / `vite.config.js` / `main.tsx`（ConfigProvider + IntlProvider + `aui3_1.css`） | 可运行的空壳工程 |
+| **1. 建工程骨架** | 若源项目非 Vite + npm 工程：把 `scaffold/` 整目录拷到目标工程根（改 `package.json` 的 `name`、`index.html` 的 `<title>`），`npm install` + `npm run dev` 即空壳可跑。详见 [migration-workflow.md](references/migration-workflow.md) 步骤 1 | 可运行的空壳工程 |
 | **2. 换 Provider 与入口** | 移除 antd `ConfigProvider` + `theme.darkAlgorithm`；eview-react 用 `ConfigProvider` + `IntlProvider` + 根 DOM 加 `class="aui3_1"`，暗色切 `aui3_1_dark` | Provider 就绪 |
 | **3. 逐组件替换** | 按映射总表替换每个 antd 组件；Form 模式单独按 [form-migration.md](references/form-migration.md) 转换；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写 | 组件代码全部替换 |
-| **4. 提取 CSS token** | 将源项目内联 token 提取到独立 CSS 文件，与 `aui3_1.css` 并存引入（见 [css-token-mapping.md](references/css-token-mapping.md)），布局 CSS 不改 | 样式跟随主题 |
+| **4. 提取 CSS token** | 将源项目内联 token 填入骨架的 `src/styles/tokens.css`、`.dark` 覆盖填入 `src/styles/theme-dark.css`（见 [css-token-mapping.md](references/css-token-mapping.md)），布局 CSS 不改 | 样式跟随主题 |
+
+### scaffold/ 预制骨架（步骤 1 可直接拷贝）
+
+`scaffold/` 是预制的可运行空壳工程，步骤 1 不必逐文件手写，整目录拷贝即可：
+
+```
+scaffold/
+├── package.json        # 依赖已含 @nce/eview-react / react-intl / horizon peer / lodash 等
+├── .npmrc              # 华为内网源（@nce scope）
+├── vite.config.js      # Vite + @vitejs/plugin-react
+├── index.html          # <body class="aui3_1 ev_no_wcag"> + /src/main.jsx
+└── src/
+    ├── main.jsx        # ConfigProvider + IntlProvider + 三处 css import（aui3_1 / tokens / theme-dark）
+    ├── app.jsx         # 空壳 App（根 div class="app-root aui3_1"），步骤 3 往里填 AppShell
+    └── styles/
+        ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量
+        └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
+```
+
+用法：`cp -r scaffold/ <目标工程根>`，改 `package.json` 的 `name` 与 `index.html` 的 `<title>`，`npm install` 后 `npm run dev`。空壳能直接渲染（显示 "app root"），步骤 3/4 再往里填内容，`main.jsx` 不用再改。
 
 > 若源项目是 UMD 单 HTML 工程 / 内联 token CSS / 运行时 fetch 图标，迁移前先读 [source-project-guidelines.md](references/source-project-guidelines.md) 了解这些结构如何影响迁移成本，以及在源项目侧可以做什么来降低成本。
 

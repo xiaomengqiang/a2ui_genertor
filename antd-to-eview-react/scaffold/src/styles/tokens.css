@@ -1,0 +1,10 @@
+/* tokens.css - 原始 token 定义占位 */
+/* 步骤4: 从源项目的内联 <style> / index.page.html 提取 :root 变量定义到这里 */
+/* 只放变量定义，不放任何选择器规则；布局/手写 CSS 引用 var(--xxx) 但不在此定义 */
+/*
+:root {
+    --brand-50: #...;
+    --surface: var(--colorBackground);
+    ...
+}
+*/

@@ -1,0 +1,10 @@
+/* theme-dark.css - 原始暗色覆盖占位 */
+/* 步骤4: 从源项目提取 .dark 暗色覆盖到这里 */
+/* 暗色模式同时切 aui3_1_dark（eview-react 组件）和 .dark（原始 token）两个类名 */
+/*
+.dark {
+    --primary: #...;
+    --surface: #...;
+    ...
+}
+*/

@@ -45,91 +45,55 @@ grep -rn "from \"antd\"" src/ --include="*.jsx" --include="*.tsx"
 ### 1.1 判断是否需要新建
 
 - 源项目已有 `package.json` + Vite → 跳到步骤 2
-- 源项目是 UMD/单 HTML/无构建 → 执行 1.2-1.5
+- 源项目是 UMD/单 HTML/无构建 → 执行 1.2（拷贝 `scaffold/` 预制骨架）
 
-### 1.2 创建 package.json
+### 1.2 拷贝预制骨架
 
-```json
-{
-    "name": "project-name",
-    "private": true,
-    "version": "0.0.0",
-    "type": "module",
-    "scripts": {
-        "dev": "vite",
-        "build": "vite build",
-        "preview": "vite preview"
-    },
-    "dependencies": {
-        "react": "^18.3.0",
-        "react-dom": "^18.3.0",
-        "react-intl": "^7.1.14",
-        "@nce/eview-react": "latest",
-        "@nce/icon-plus": "latest",
-        "@cloudsop/horizon": "latest",
-        "@cloudsop/horizon-intl": "latest",
-        "@cloudsop/htimezone": "latest",
-        "@baize/wdk": "latest",
-        "@hui/design-token": "latest",
-        "lodash": "^4.17.21"
-    },
-    "devDependencies": {
-        "@types/lodash": "^4.17.0",
-        "@types/react": "^18.3.0",
-        "@types/react-dom": "^18.3.0",
-        "@vitejs/plugin-react": "^4.3.0",
-        "vite": "^5.4.0"
-    }
-}
+`scaffold/`（skill 根目录，与 `references/` 并列）是预制好的可运行空壳工程，已含步骤 1 所需全部文件，不必逐个手写。整目录拷贝到目标工程根：
+
+```bash
+cp -r scaffold/ <目标工程根>
 ```
 
-### 1.3 创建 .npmrc
+布局：
 
-```ini
-registry=https://cmc.centralrepo.rnd.huawei.com/npm
-@nce:registry=https://cmc.centralrepo.rnd.huawei.com/artifactory/api/npm/product_npm
+```
+scaffold/
+├── package.json        # 依赖已含 @nce/eview-react / react-intl / horizon peer / lodash 等
+├── .npmrc              # @nce scope 指向华为 product_npm 源
+├── vite.config.js      # Vite + @vitejs/plugin-react
+├── index.html          # <body class="aui3_1 ev_no_wcag"> + /src/main.jsx
+└── src/
+    ├── main.jsx        # ConfigProvider + IntlProvider + aui3_1.css + tokens.css + theme-dark.css
+    ├── app.jsx         # 空壳 App（<div className="app-root aui3_1">），步骤 3 替换为 AppShell
+    └── styles/
+        ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量
+        └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
 ```
 
-### 1.4 创建 vite.config.js
+拷贝后各文件何时改：
 
-```js
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-export default defineConfig({ plugins: [react()] });
+| 文件 | 作用 | 何时改 |
+|------|------|--------|
+| `package.json` | 依赖锁定（@nce/eview-react latest / react ^18.3 / react-intl ^7 / horizon peer / lodash） | 改 `name` |
+| `.npmrc` | `@nce` scope 指向 product_npm 源 | 一般不改 |
+| `vite.config.js` | Vite + plugin-react，最小配置 | 一般不改 |
+| `index.html` | 薄入口，`<body class="aui3_1 ev_no_wcag">` + `/src/main.jsx` | 改 `<title>` |
+| `src/main.jsx` | Provider 组装 + 三处 css import | import 不用改；步骤 2 切暗色时加类名切换逻辑 |
+| `src/app.jsx` | 空壳 App | 步骤 3 替换为源项目 AppShell |
+| `src/styles/tokens.css` | 空壳占位 | 步骤 4 填 |
+| `src/styles/theme-dark.css` | 空壳占位 | 步骤 4 填 |
+
+> `main.jsx` 已把 `aui3_1.css` + `tokens.css` + `theme-dark.css` 三处 import 都写好，步骤 4 填充 token 后无需再改入口。
+
+### 1.3 安装与启动
+
+```bash
+npm install
+npm run dev
 ```
 
-### 1.5 创建 index.html + 入口文件
-
-```html
-<!-- index.html -->
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>标题</title></head>
-<body class="aui3_1 ev_no_wcag"><div id="root"></div><script type="module" src="/main.jsx"></script></body>
-</html>
-```
-
-```jsx
-// main.jsx
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { IntlProvider } from 'react-intl';
-import componentsLocales from '@nce/eview-react/locales';
-import ConfigProvider from '@nce/eview-react/ConfigProvider';
-import '@nce/eview-react/styles/aui3_1.css';
-import App from './app.jsx';
-
-const locale = 'zh';
-createRoot(document.getElementById('root')).render(
-    <StrictMode>
-        <ConfigProvider>
-            <IntlProvider locale={locale} messages={componentsLocales[locale]}>
-                <App />
-            </IntlProvider>
-        </ConfigProvider>
-    </StrictMode>
-);
-```
+预期：页面能渲染（显示 "app root"），无样式报错。若报 `Element type is invalid` → horizon 等 peer 依赖未装上，常见报错对照见步骤 5.3。
 
 ## 步骤 2：换 Provider 与入口
 
