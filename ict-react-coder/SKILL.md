@@ -32,7 +32,7 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
   preview/
   ├── assets/   → linked to the skill's shared assets (library/style/font/shared/uploads)
   ├── app.jsx   → entry starter (build entry + root container)
-  └── src/      → context.jsx + empty components/ + empty views/
+  └── src/      → context.jsx + mock/ + components/ + views/ (empty)
   ```
 - **Output:** `RESULT: OK` + `SCAFFOLD_DIR: <abs path>` → proceed. `RESULT: FAIL | <reason>` → fix and re-run.
 - **Init runs ONCE per page.** In modification sessions, do NOT re-run init.
@@ -42,7 +42,7 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 > 分层约定（Layer 1–5 见 app.jsx 头部注释）：
 > ```
 > src/context.jsx        Layer 1 全局状态 (AppProvider + useApp hook; dark 模式切换)
-> src/data.js            Layer 2 数据与业务逻辑 (mock data, derived stats)
+> src/mock/             Layer 2 mock 数据 (按域分文件,如 device.js / alarm.js)
 > src/components/{name}/ Layer 3 通用小组件 (跨视图复用,如 status-tag / section-card)
 > src/views/{name}/      Layer 4 视图组件 (每个页签/功能区一个,如 device-table / header-bar)
 > app.jsx                Layer 5 布局骨架 (Provider + root container assembly)
@@ -50,7 +50,7 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 >
 > **目录与命名规则（强制）：**
 > - views/ 与 components/ 下**一个组件一个文件夹**：kebab-case 文件夹名，内部 `index.jsx` + `index.css`
-> - 根级文件（context.jsx / data.js / i18n.js）与入口（app.jsx / app.css）不进文件夹
+> - 根级文件（context.jsx / i18n.js）与入口（app.jsx / app.css）不进文件夹
 > - 文件夹名即组件名 — 不出现 PascalCase 文件、不出现 jsx/css 不同名配对
 > - **组件文件夹内相对路径深度**：引用共享资产 `../../../assets/shared/...`、引用 src 模块 `../../context.jsx`（比平铺深一层，写错会 build FAIL）
 
