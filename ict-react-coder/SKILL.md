@@ -86,17 +86,17 @@ Read **[references/component/Icon.md](references/component/Icon.md)** — Lucide
 
 ### Internationalization
 
-**Default: single-language (zh-CN), already configured in the starter** — `app.jsx` imports `antd-zh.js` (registers dayjs zh-cn locale + antd zh-cn) and wraps `<ConfigProvider locale={zhCN}>`. No extra work needed for Chinese pages.
+**Default: single-language (zh-CN), already configured in the starter** — `app.jsx` imports `antd-zh.js` (dayjs + antd zh-CN locale) and wraps `<ConfigProvider locale={zhCN}>`. No extra work needed for Chinese pages.
 
-**Gate: do NOT create `src/i18n.js`, `IntlProvider`, or language-switch UI unless the user explicitly requests multilingual support.** Adding language switching to a single-language page is over-engineering.
+**Gate: do NOT create `src/i18n.js`, `IntlProvider`, or language-switch UI unless the user explicitly requests multilingual support.**
 
 When multilingual is required, use react-intl (bundled offline, `import ... from "react-intl"` auto-maps to `ReactIntl` global):
 
 1. **Dictionary**: `src/i18n.js` — central `{ zh: {...}, en: {...} }` with semantic keys (`menu.devices`).
-2. **Provider**: `<IntlProvider locale={lang} messages={dict[lang]}>` inside ConfigProvider.
+2. **Provider**: `<IntlProvider locale={lang} messages={dict[lang]}>` inside app.jsx's ConfigProvider.
 3. **Usage**: `<FormattedMessage id="menu.devices" defaultMessage="设备管理" />` or `useIntl().formatMessage(...)`; ICU syntax supported (`{count, plural, one {# alarm} other {# alarms}}`).
 4. **defaultMessage is required** — fallback display when a key is missing from the dictionary.
-5. **Language switch sync**: IntlProvider `locale/messages` + ConfigProvider `locale` (zhCN/enUS) + `dayjs.locale()`. antd enUS locale needs an inline minimal object (same approach as antd-zh.js, essential components only).
+5. **Language switch sync**: IntlProvider `locale/messages` + ConfigProvider `locale` (zhCN/enUS) + `dayjs.locale()`. Chinese locale is pre-installed (`antd-zh.js`); English is the default for both antd and dayjs — no extra setup needed.
 
 ### Styling — token-first (CRITICAL)
 
