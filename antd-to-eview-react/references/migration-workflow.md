@@ -86,6 +86,35 @@ scaffold/
 
 > `main.jsx` 已把 `aui3_1.css` + `tokens.css` + `theme-dark.css` 三处 import 都写好，步骤 4 填充 token 后无需再改入口。
 
+### 1.4 文件位置变化与相对路径
+
+UMD/单 HTML 源项目经常同时有根目录 `app.jsx` 和 `src/` 目录。根目录 `app.jsx` 中的导入通常长这样：
+
+```jsx
+import { AppProvider } from './src/context.jsx';
+import AppShell from './src/views/AppShell.jsx';
+```
+
+拷贝 scaffold 后，目标工程入口组件是 `src/app.jsx`。如果把根目录 `app.jsx` 的 import 原样搬进 `src/app.jsx`，Vite 会把 `./src/context.jsx` 解析成 `src/src/context.jsx` 并报错：
+
+```text
+[plugin:vite:import-analysis] Failed to resolve import "./src/context.jsx" from "src/app.jsx"
+```
+
+正确写法：
+
+```jsx
+// src/app.jsx
+import { AppProvider } from './context.jsx';
+import AppShell from './views/AppShell.jsx';
+```
+
+规则：
+- `src/app.jsx` 导入同级模块用 `./context.jsx`、`./data.js`
+- `src/app.jsx` 导入视图用 `./views/X.jsx`
+- `src/views/X.jsx` 导入上层数据用 `../data.js`、`../context.jsx`
+- `src/` 内文件禁止残留 `./src/...` 导入
+
 ### 1.2.1 依赖说明
 
 `scaffold/package.json` 预置的依赖用途：
@@ -199,14 +228,41 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 
 ## 步骤 5：验证
 
-### 5.1 编译检查
+### 5.1 相对导入解析检查（必跑）
+
+语法检查只能发现 JSX/JS 写法错误，发现不了 `src/app.jsx` 中 `./src/context.jsx` 这类路径错误。迁移后、`npm run dev` 前必须跑：
+
+```bash
+node .opencode/skills/antd-to-eview-react/scripts/check-relative-imports.cjs <目标工程根>
+```
+
+如果脚本随迁移产物一起拷贝，也可以在目标工程根执行：
+
+```bash
+node scripts/check-relative-imports.cjs .
+```
+
+检查项：
+- 所有 `from './...'` / `from '../...'` / `require('./...')` 是否能解析到真实文件
+- `src/**/*.js(x)` / `src/**/*.ts(x)` 中是否残留 `./src/...`
+- 允许自动补全 `.js` / `.jsx` / `.ts` / `.tsx` / `.json` / `.css` 与 `index.*`
+
+常见修复：
+
+| 错误导入 | 位置 | 正确导入 |
+|---------|------|---------|
+| `./src/context.jsx` | `src/app.jsx` | `./context.jsx` |
+| `./src/views/AppShell.jsx` | `src/app.jsx` | `./views/AppShell.jsx` |
+| `./src/data.js` | `src/app.jsx` | `./data.js` |
+
+### 5.2 编译检查
 
 ```bash
 npm install
 npm run dev
 ```
 
-### 5.2 功能验证清单
+### 5.3 功能验证清单
 
 - [ ] 页面能渲染（无 `Element type is invalid` → 检查 peer 依赖）
 - [ ] 组件有 ICT 3.1 样式（无样式 → 检查 `aui3_1.css` 导入和 `aui3_1` 类名）
@@ -218,10 +274,11 @@ npm run dev
 - [ ] 暗色模式切换（`aui3_1_dark` + `.dark` 两个类名都切）
 - [ ] 手写补位组件样式跟随主题（用了 CSS 变量，不写死色值）
 
-### 5.3 常见报错对照
+### 5.4 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
+| `Failed to resolve import "./src/context.jsx" from "src/app.jsx"` | 源项目根目录 `app.jsx` 的 import 被原样搬到 scaffold 的 `src/app.jsx` | `./src/context.jsx`→`./context.jsx`，`./src/views/...`→`./views/...`，并跑 `check-relative-imports.cjs` |
 | `Element type is invalid` | 缺 peer 依赖 | 补装 `@cloudsop/horizon` 等 |
 | `Form.Item is undefined` | Form 导入方式错 | `import Form from '@nce/eview-react/Form'` |
 | 组件无样式 | 未引 css 或缺类名 | 引 `aui3_1.css` + 根加 `class="aui3_1"` |

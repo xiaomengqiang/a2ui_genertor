@@ -47,6 +47,7 @@ index.page.html (2058 行)
 | 创建 `index.html` | 原来的 `index.page.html` 是 UMD runner，Vite 用不了 |
 | 创建 `main.jsx` | ConfigProvider + IntlProvider + aui3_1.css 原来在 HTML 的 script 标签和内联 JS 里 |
 | 判断"以哪份代码为准" | `src/` 独立文件 vs `index.page.html` 内联版，需确认一致性 |
+| 修正相对 import 路径 | 源项目根目录 `app.jsx` 常写 `./src/context.jsx`，迁移到 scaffold 的 `src/app.jsx` 后会变成错误的 `src/src/context.jsx` |
 
 ### 1.3 建议结构
 
@@ -71,6 +72,34 @@ project/
 - **入口是 Vite 的 `index.html`，不是 UMD runner**：`<script type="module" src="/main.jsx">`，不用 Babel-standalone
 - **每个源文件独立存在，不内联到 HTML**：改一个文件就改完，不用同步两份
 - **`package.json` 有 antd 依赖**：迁移时把 `"antd"` 换成 `"@nce/eview-react"`，`npm install` 就能装新依赖
+- **入口文件位置固定**：如果 `app.jsx` 放在 `src/app.jsx`，就不要写 `./src/...` 导入；同级导入写 `./context.jsx`，视图导入写 `./views/...`
+
+### 1.3.1 相对路径约定
+
+推荐源项目也采用与 scaffold 一致的入口位置，减少迁移时的路径重写：
+
+```jsx
+// src/app.jsx
+import { AppProvider } from './context.jsx';
+import AppShell from './views/AppShell.jsx';
+
+// src/views/AppShell.jsx
+import { useApp } from '../context.jsx';
+import { menuItems } from '../data.js';
+```
+
+应避免：
+
+```jsx
+// ❌ src/app.jsx 内不要写；这会解析成 src/src/context.jsx
+import { AppProvider } from './src/context.jsx';
+```
+
+迁移后必须跑相对导入解析检查，避免 Vite import-analysis 阶段才暴露问题：
+
+```bash
+node .opencode/skills/antd-to-eview-react/scripts/check-relative-imports.cjs <目标工程根>
+```
 
 ### 1.4 成本对比
 
@@ -80,6 +109,7 @@ project/
 | 装依赖 | 需要配 .npmrc + npm install | 只改 package.json 的依赖名 |
 | 入口改造 | 重新写 main.jsx + index.html | main.jsx 只改 Provider 组件 |
 | 代码一致性 | 需判断 HTML 内联版 vs src/ 版 | 只有一份代码 |
+| import 路径 | 根目录文件搬进 src 后需批量修正 `./src/...` | 入口位置稳定，路径不变 |
 
 ---
 

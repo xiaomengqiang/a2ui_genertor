@@ -23,6 +23,7 @@ description: >-
 - **组件无对应**：Layout、Menu、Avatar、Descriptions、Result、Space 在 eview-react 中无直接对应或无 Reference，需要手写补位
 - **CSS token 丢失**：源项目 token 内联在 HTML 里，迁移到 Vite 后 HTML 不能用，token 定义跟着丢。解决方法：提取 token 到独立 CSS 文件，与 eview-react 的 `aui3_1.css` 并存，布局 CSS 一行不改（见 [css-token-mapping.md](references/css-token-mapping.md)）
 - **命名拼写异常**：`seprator`（不是 separator）、`taggledChildren`（不是 toggledChildren）、`disable`（SelectCard 用，不是 disabled）
+- **文件位置变化导致 import 路径失效**：UMD/旧工程常见 `app.jsx` 在工程根目录并导入 `./src/context.jsx`；拷贝 scaffold 后 `app.jsx` 位于 `src/app.jsx`，必须改为 `./context.jsx`。迁移后必须跑 `scripts/check-relative-imports.cjs <目标工程根>`，语法检查不能发现这类错误。
 
 ## 迁移工作流（5 步）
 
@@ -35,6 +36,7 @@ description: >-
 | **2. 换 Provider 与入口** | 移除 antd `ConfigProvider` + `theme.darkAlgorithm`；eview-react 用 `ConfigProvider` + `IntlProvider` + 根 DOM 加 `class="aui3_1"`，暗色切 `aui3_1_dark` | Provider 就绪 |
 | **3. 逐组件替换** | 按映射总表替换每个 antd 组件；Form 模式单独按 [form-migration.md](references/form-migration.md) 转换；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写 | 组件代码全部替换 |
 | **4. 提取 CSS token** | 将源项目内联 token 填入骨架的 `src/styles/tokens.css`、`.dark` 覆盖填入 `src/styles/theme-dark.css`（见 [css-token-mapping.md](references/css-token-mapping.md)），布局 CSS 不改 | 样式跟随主题 |
+| **5. 验证** | `npm install` / `npm run dev` 前先跑相对导入解析检查：`node scripts/check-relative-imports.cjs <目标工程根>`；再做构建与功能验证 | import/构建/功能通过 |
 
 ### scaffold/ 预制骨架（步骤 1 可直接拷贝）
 
@@ -55,6 +57,8 @@ scaffold/
 ```
 
 用法：`cp -r scaffold/ <目标工程根>`，改 `package.json` 的 `name` 与 `index.html` 的 `<title>`，`npm install` 后 `npm run dev`。空壳能直接渲染（显示 "app root"），步骤 3/4 再往里填内容，`main.jsx` 不用再改。
+
+> 注意：scaffold 的 `app.jsx` 在 `src/app.jsx`。如果源项目根目录也有 `app.jsx` 且导入 `./src/context.jsx`、`./src/views/...`，迁移到 scaffold 后必须改成 `./context.jsx`、`./views/...`。`src/` 内文件一律不应残留 `./src/...` 导入。
 
 > 若源项目是 UMD 单 HTML 工程 / 内联 token CSS / 运行时 fetch 图标，迁移前先读 [source-project-guidelines.md](references/source-project-guidelines.md) 了解这些结构如何影响迁移成本，以及在源项目侧可以做什么来降低成本。
 
@@ -182,6 +186,7 @@ const handleSuccess = (values) => {
 7. **API 表里查不到的 props 一律不写**
 8. **CSS 不写死色值**：用源项目的 CSS 变量（原始 token）；类名用业务前缀 `app-` 不用 `ev_`
 9. **Form 内不允许用 `<div>` 做栅格**：多列布局用 `itemCol`（Form 级统一设置，所有项同等宽度，不支持单项覆盖）；24 栅格制；删掉 antd 的 Row/Col 或 div+CSS grid 包裹
+10. **迁移后必须验证相对导入解析**：尤其检查 `src/**/*.jsx` 中是否残留 `./src/...`。这是 Vite import-analysis 阶段才会报的错误，不能只做 Babel/TypeScript 语法检查。
 
 ## 命名异常速查
 
