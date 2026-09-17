@@ -213,7 +213,7 @@ To indicate semantic states (error, warning, success, info), apply the respectiv
 
 ### Content Container / Card
 
-- Card 是布局容器，不是开发组件；使用 `div` 或 `section`（antd Card 用于交互卡片场景）。
+- Card 是布局容器，不是开发组件；一律使用 `div` 或 `section`（antd Card 已禁用）。
 - 使用 `background: var(--surface-container-highest); border-radius: var(--radius-container); box-shadow: var(--shadow-card);`；有阴影时不加结构性边框。
 - 避免无意义嵌套；同类 Card 保持一致结构。主操作放在页面或区域操作区，Footer 只放次要操作。
 

@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 // init.mjs — 初始化页面脚手架
 //
-// 在 {artifact-folder}/{slug}/ 下创建页面工程:
+// 在 {artifact-folder}/preview/ 下创建页面工程:
 //   ├── assets/   → 链接(junction/symlink, 失败则拷贝)到 skill 的 scripts/preview/assets
 //   ├── app.jsx   → 入口 starter(构建入口 + 布局骨架)
-//   └── src/      → 页面源码(components/ views/ 已建空目录)
+//   └── src/      → 页面源码(context.jsx + components/ views/ 空目录)
 //
-// 幂等: 若 {slug}/app.jsx 已存在 → 复用脚手架,不覆盖任何文件(修改会话场景)。
+// 幂等: 若 preview/app.jsx 已存在 → 复用现有脚手架,不覆盖任何文件(修改会话场景)。
 //
 // Usage:
-//   node init.mjs --artifact-folder "<abs path>" --slug "<kebab-case>"
-//   short: -a  -s      (artifact-folder 缺省时使用当前工作目录)
+//   node init.mjs --artifact-folder "<abs path>"
+//   short: -a      (artifact-folder 缺省时使用当前工作目录)
 //
 // Output (agent-parseable):
 //   RESULT: OK
@@ -50,12 +50,6 @@ function getOpt(long, short) {
 }
 
 const artifactFolder = getOpt("--artifact-folder", "-a");
-const slug = getOpt("--slug", "-s");
-
-if (!slug) fail('Missing --slug <kebab-case>. e.g. --slug "data-dashboard"');
-if (!/^[a-z0-9]+(-[a-z0-9]+){1,5}$/.test(slug)) {
-  fail(`Slug must be kebab-case ascii, 2-6 hyphen-separated segments: '${slug}'`);
-}
 
 const base = resolve(artifactFolder ? artifactFolder : process.cwd());
 if (!existsSync(base) || !statSync(base).isDirectory()) {
@@ -77,32 +71,29 @@ const REQUIRED = [
   "style/dark.css",
   "style/ant.css",
   "shared/icons.js",
-  "shared/antd-zh-cn.js",
+  "shared/antd-zh.js",
 ];
 for (const p of REQUIRED) {
   if (!existsSync(join(ASSETS_SRC, p))) fail(`skill assets incomplete, missing: ${p}`);
 }
 
-const dest = join(base, slug);
+const dest = join(base, "preview");
 
 const STARTER_APP = `// 应用入口 — ICT React 页面
-// 分层约定:
-//   Layer 1 全局状态   → src/context.jsx  (AppProvider: 全局状态 + dark 模式切换)
-//   Layer 2 数据与逻辑 → src/data.js      (mock 数据、派生统计)
-//   Layer 3 通用小组件 → src/components/  (StatusTag / StatCard ...)
-//   Layer 4 视图组件   → src/views/       (每个页签/功能区一个,配套同名 .css)
-//   Layer 5 布局骨架   → app.jsx          (本文件: 组装 Provider + antd Layout)
+// 分层约定(目录与命名: views/components 下一组件一文件夹,kebab-case + index.jsx/index.css):
+//   Layer 1 全局状态   → src/context.jsx            (AppProvider: 全局状态 + dark 模式切换)
+//   Layer 2 数据与逻辑 → src/data.js                (mock 数据、派生统计)
+//   Layer 3 通用小组件 → src/components/{name}/     (跨视图复用,如 status-tag)
+//   Layer 4 视图组件   → src/views/{name}/          (每个页签/功能区一个,如 device-table)
+//   Layer 5 布局骨架   → app.jsx                    (本文件: 组装 Provider + H5 布局骨架 header/aside/main)
 //
-// 样式约定: antd 组件承载布局与交互;自定义样式写在 CSS 文件中,颜色/阴影/圆角
+// 样式约定: antd 组件承载布局与交互;自定义样式写在组件文件夹 index.css,颜色/阴影/圆角
 // 一律使用 token(var(--primary) / var(--shadow-card) / var(--radius-*))。
 
 import { ConfigProvider } from "antd";
-import zhCN from "./assets/shared/antd-zh-cn.js";
+import zhCN from "./assets/shared/antd-zh.js";
 import { AppProvider } from "./src/context.jsx";
 import "./app.css";
-
-// 页面标题 — 构建时写入产物 <title>
-export const APP_TITLE = "页面标题";
 
 export default function App() {
   return (

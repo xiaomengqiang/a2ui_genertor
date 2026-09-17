@@ -21,7 +21,7 @@
 // Usage:  node build.mjs --dir "<scaffold path>"
 
 import { readFile, writeFile } from "node:fs/promises";
-import { extname, resolve, dirname, basename } from "node:path";
+import { extname, resolve, dirname } from "node:path";
 
 // --- parse --dir argument (the scaffold path to build) ---
 const args = process.argv.slice(2);
@@ -69,7 +69,6 @@ const moduleByPath = new Map(); // resolved path -> module record
 const loaded = new Set();
 const cssFiles = [];  // in dependency order
 let entryDefault = null;
-let appTitle = null;
 const iconRefs = new Map(); // kebab-name -> Set of "file (usage)" for error reporting
 
 function recordIconRef(rawName, label) {
@@ -107,12 +106,6 @@ async function loadModule(filePath) {
   const bundleNames = [];
   const defImports = []; // { local, dep } — default import 的本地名与依赖路径
   let code = raw;
-
-  // entry-only: extract APP_TITLE before stripping exports
-  if (filePath === ENTRY) {
-    const tm = raw.match(/^[ \t]*export\s+const\s+APP_TITLE\s*=\s*["']([^"']+)["']/m);
-    if (tm) appTitle = tm[1];
-  }
 
   code = code.replace(IMPORT_RE, (_match, def1, def2, named, source) => {
     const def = def1 || def2;
@@ -238,6 +231,26 @@ if (!entryDefault) {
   throw new Error("app.jsx must have: export default function App()");
 }
 
+// --- Banned antd components (布局/装饰类 — 须用 H5 + CSS 或组件组合实现) ---
+const ANTD_BANNED = ["Layout", "Grid", "Row", "Col", "Flex", "Space", "Card", "Skeleton", "Masonry", "Popconfirm", "Watermark"];
+const bannedHits = [];
+for (const mod of modules) {
+  for (const n of mod.antdNames) {
+    if (ANTD_BANNED.includes(n)) bannedHits.push(`${mod.label}: import { ${n} } from "antd"`);
+  }
+  const tagRe = new RegExp(`<(?:${ANTD_BANNED.join("|")})[\\s/>.]|antd\\.(?:${ANTD_BANNED.join("|")})\\b`, "g");
+  let bm;
+  while ((bm = tagRe.exec(mod.code)) !== null) {
+    const name = bm[0].replace(/[<\s/>.]|\bantd\./g, "").replace(/^antd\./, "");
+    bannedHits.push(`${mod.label}: ${bm[0].startsWith("<") ? `<${name}…` : `antd.${name}`}`);
+  }
+}
+if (bannedHits.length) {
+  console.error("FAIL  禁用的 antd 组件(布局/装饰类) — 用纯 H5 或已有组件组合实现:");
+  for (const h of [...new Set(bannedHits)]) console.error(`  ${h}`);
+  process.exit(1);
+}
+
 // --- Lucide icon extraction & validation ---
 const lucideRaw = JSON.parse(await readFile(LUCIDE_JSON, "utf8"));
 const iconTableEntries = [];
@@ -330,13 +343,12 @@ if (script.includes("</script>")) {
   throw new Error("Module code contains </script>, cannot inline into HTML");
 }
 
-const title = appTitle || basename(ROOT);
 const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${title}</title>
+<title>ICT页面</title>
 <!-- 1. Core Libraries (local UMD) -->
 <script src="./assets/library/react.production.min.js"></script>
 <script src="./assets/library/react-dom.production.min.js"></script>
@@ -375,7 +387,6 @@ ${script}
 
 await writeFile(OUT, html, "utf8");
 console.log(`OK  ${OUT}`);
-console.log(`    title   : ${title}`);
 console.log(`    modules (${modules.length}): ${modules.map((m) => m.label).join(", ")}`);
 console.log(`    css     (${cssFiles.length + STYLE_FILES.length}): style/(base,light,theme,dark,ant) + ${cssFiles.map((c) => c.slice(ROOT.length + 1).replace(/\\/g, "/")).join(", ")}`);
 console.log(`    icons   (${iconTableEntries.length}): ${[...iconRefs.keys()].sort().join(", ") || "none"}`);

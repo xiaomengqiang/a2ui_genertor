@@ -1,14 +1,12 @@
-// antd-zh-cn.js — 中文 locale 补丁包
+// antd-zh.js — 中文 locale 补丁包
 // antd.min.js / dayjs.min.js UMD 均不含 locale 包,本文件补齐:
 //   1. 注册 dayjs zh-cn locale(星期/月份/相对时间中文化)
 //   2. 导出 antd ConfigProvider 可用的 zhCN locale 对象
 //
 // 用法(页面入口):
-//   import zhCN from "./assets/shared/antd-zh-cn.js";
+//   import zhCN from "./assets/shared/antd-zh.js";
 //   <ConfigProvider locale={zhCN}> ... </ConfigProvider>
-
 import dayjs from "dayjs";
-
 // ---- 1. 注册 dayjs zh-cn locale(dayjs.min.js 核心包不带任何 locale) ----
 dayjs.locale(
   "zh-cn",
@@ -67,14 +65,11 @@ dayjs.locale(
   },
   true
 );
-
 // ---- 2. antd zh_CN locale(对齐 antd 5 官方 zh_CN,常用组件全量) ----
 const typeTemplate = "${label}不是一个有效的${type}";
-
 const zhCN = {
   locale: "zh-cn",
   dayjsLocale: "zh-cn",
-
   Pagination: {
     items_per_page: "条/页",
     jump_to: "跳至",
@@ -87,7 +82,6 @@ const zhCN = {
     prev_3: "向前 3 页",
     next_3: "向后 3 页",
   },
-
   DatePicker: {
     lang: {
       placeholder: "请选择日期",
@@ -129,9 +123,7 @@ const zhCN = {
     },
     timePickerLocale: { placeholder: "请选择时间" },
   },
-
   TimePicker: { placeholder: "请选择时间" },
-
   Calendar: {
     lang: {
       placeholder: "请选择日期",
@@ -170,9 +162,7 @@ const zhCN = {
     },
     timePickerLocale: { placeholder: "请选择时间" },
   },
-
   global: { placeholder: "请选择" },
-
   Table: {
     filterTitle: "筛选",
     filterConfirm: "确定",
@@ -192,13 +182,9 @@ const zhCN = {
     triggerAsc: "点击升序",
     cancelSort: "取消排序",
   },
-
   Modal: { okText: "确定", cancelText: "取消", justOkText: "知道了" },
-
   Tour: { Next: "下一步", Previous: "上一步", Finish: "结束" },
-
   Popconfirm: { okText: "确定", cancelText: "取消" },
-
   Transfer: {
     titles: ["", ""],
     searchPlaceholder: "请输入搜索内容",
@@ -211,7 +197,6 @@ const zhCN = {
     removeAll: "删除全部",
     selectInvert: "反选当页",
   },
-
   Upload: {
     uploading: "文件上传中",
     removeFile: "删除文件",
@@ -219,11 +204,8 @@ const zhCN = {
     previewFile: "预览文件",
     downloadFile: "下载文件",
   },
-
   Empty: { description: "暂无数据" },
-
   Icon: { icon: "图标" },
-
   Text: {
     edit: "编辑",
     copy: "复制",
@@ -231,7 +213,6 @@ const zhCN = {
     expand: "展开",
     collapse: "收起",
   },
-
   Form: {
     optional: "（可选）",
     defaultValidateMessages: {
@@ -280,11 +261,8 @@ const zhCN = {
       pattern: { mismatch: "${label}与模式不匹配（${pattern}）" },
     },
   },
-
   Image: { preview: "预览" },
-
   QRCode: { expired: "二维码已过期", refresh: "点击刷新", scanned: "已扫描" },
-
   ColorPicker: {
     presetEmpty: "暂无",
     transparent: "无色",
@@ -292,5 +270,4 @@ const zhCN = {
     gradientColor: "渐变色",
   },
 };
-
 export default zhCN;
