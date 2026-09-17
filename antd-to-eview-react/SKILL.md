@@ -48,7 +48,7 @@ scaffold/
 ├── index.html          # <body class="ev_no_wcag"> + /src/main.jsx
 └── src/
     ├── main.jsx        # ConfigProvider + IntlProvider + 三处 css import（aui3_1 / tokens / theme-dark）
-    ├── app.jsx         # 空壳 App（根 div class="app-root aui3_1"），步骤 3 往里填 AppShell
+    ├── app.jsx         # 空壳 App（根 div class="root aui3_1"），步骤 3 往里填 AppShell
     └── styles/
         ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量
         └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
@@ -176,7 +176,7 @@ const handleSuccess = (values) => {
 1. **导入路径**：`import Button from '@nce/eview-react/Button'`，不是 `import { Button } from 'antd'`
 2. **样式**：入口引一次 `import '@nce/eview-react/styles/aui3_1.css'`；原始 token 提取到独立 CSS 并存引入（见下方"CSS 样式"）
 3. **Provider**：`ConfigProvider` + `IntlProvider`（`messages={componentsLocales[locale]}`）；antd 的 `ConfigProvider locale={zhCN}` 整套删掉——详见 [i18n-migration.md](references/i18n-migration.md)
-4. **根 DOM 类名**：加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `.app-root`）和 `.dark`（挂 `<html>`）
+4. **根 DOM 类名**：加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `.root`）和 `.dark`（挂 `<html>`）
 5. **回调签名**：第一个参数通常是值不是 event（TextField `onChange(value, ...)`、Select `onChange(value, oldValue, text, oldText, event)`）
 6. **validator**：返回 `{ result: true, message }`，`result: true` = 通过
 7. **API 表里查不到的 props 一律不写**
@@ -215,7 +215,7 @@ const handleSuccess = (values) => {
 
 入口的三处 CSS import（`aui3_1.css` + `tokens.css` + `theme-dark.css`）已在 `scaffold/src/main.jsx` 写好，拷贝骨架后不用改；步骤 4 只往 `tokens.css` / `theme-dark.css` 填内容。
 
-暗色模式切两个类名：`aui3_1_dark`（挂 `.app-root`，eview-react 组件暗色）+ `.dark`（挂 `<html>`，原始 token 暗色覆盖）。完整切换代码见 [css-token-mapping.md](references/css-token-mapping.md) §4。
+暗色模式切两个类名：`aui3_1_dark`（挂 `.root`，eview-react 组件暗色）+ `.dark`（挂 `<html>`，原始 token 暗色覆盖）。完整切换代码见 [css-token-mapping.md](references/css-token-mapping.md) §4。
 
 通用规则：
 - 不写死色值（如 `#191919`），用 CSS 变量（源项目的原始 token）

@@ -65,7 +65,7 @@ scaffold/
 ├── index.html          # <body class="ev_no_wcag"> + /src/main.jsx
 └── src/
     ├── main.jsx        # ConfigProvider + IntlProvider + aui3_1.css + tokens.css + theme-dark.css
-    ├── app.jsx         # 空壳 App（<div className="app-root aui3_1">），步骤 3 替换为 AppShell
+    ├── app.jsx         # 空壳 App（<div className="root aui3_1">），步骤 3 替换为 AppShell
     └── styles/
         ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量
         └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
@@ -129,13 +129,13 @@ import zhCN from './assets/shared/antd-zh-cn.js';
 
 ### 2.2 暗色模式改类名切换
 
-eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark` 挂 `.app-root`（eview-react 组件暗色）、`.dark` 挂 `<html>`（原始 token 暗色覆盖）。完整 `useEffect` 代码见 [css-token-mapping.md](css-token-mapping.md) §4。
+eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark` 挂 `.root`（eview-react 组件暗色）、`.dark` 挂 `<html>`（原始 token 暗色覆盖）。完整 `useEffect` 代码见 [css-token-mapping.md](css-token-mapping.md) §4。
 
 ### 2.3 根 DOM 加 aui3_1 类名
 
 ```tsx
 // app.jsx
-<div className="app-root aui3_1">
+<div className="root aui3_1">
     <AppShell />
 </div>
 ```

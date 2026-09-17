@@ -54,15 +54,15 @@ src/styles/
 ```jsx
 // 放在持有 isDark 的根组件里（如 scaffold/src/app.jsx）
 useEffect(() => {
-    const appRoot = document.querySelector('.app-root');
-    if (appRoot) appRoot.classList.toggle('aui3_1_dark', isDark);   // 挂 .app-root
+    const root = document.querySelector('.root');
+    if (root) root.classList.toggle('aui3_1_dark', isDark);   // 挂 .root
     document.documentElement.classList.toggle('dark', isDark);      // 挂 <html>
 }, [isDark]);
 ```
 
-- `aui3_1_dark` 挂 `.app-root` → eview-react 的 `aui3_1.css` 内置暗色变量生效（影响 eview-react 组件）
+- `aui3_1_dark` 挂 `.root` → eview-react 的 `aui3_1.css` 内置暗色变量生效（影响 eview-react 组件）
 - `.dark` 挂 `<html>`（document.documentElement）→ `theme-dark.css` 里的暗色覆盖全局生效（影响布局/手写 CSS）
-- `aui3_1`（浅色基础）常驻 `.app-root`，`aui3_1_dark`（暗色）随 `isDark` 叠加在 `.app-root` 上；`<body>` 不挂 `aui3_1`，只保留 `ev_no_wcag`（关闭 eview-react 的 WCAG 无障碍样式覆盖，骨架默认，按需保留）
+- `aui3_1`（浅色基础）常驻 `.root`，`aui3_1_dark`（暗色）随 `isDark` 叠加在 `.root` 上；`<body>` 不挂 `aui3_1`，只保留 `ev_no_wcag`（关闭 eview-react 的 WCAG 无障碍样式覆盖，骨架默认，按需保留）
 
 ## 为什么两套 token 不冲突
 

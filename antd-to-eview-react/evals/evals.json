@@ -109,7 +109,7 @@
         "间距保留源项目 px 体系，NOT 统一到 rem",
         "不写死色值，用 CSS 变量（原始 token）",
         "类名用业务前缀 app- 不用 ev_",
-        "暗色模式同时切 aui3_1_dark（挂 .app-root）和 .dark（挂 <html>）"
+        "暗色模式同时切 aui3_1_dark（挂 .root）和 .dark（挂 <html>）"
       ]
     },
     {

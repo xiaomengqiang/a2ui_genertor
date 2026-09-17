@@ -1,6 +1,6 @@
 /* theme-dark.css - 原始暗色覆盖占位 */
 /* 步骤4: 从源项目提取 .dark 暗色覆盖到这里 */
-/* 暗色模式切 aui3_1_dark（挂 .app-root）和 .dark（挂 <html>，本文件）两个类名 */
+/* 暗色模式切 aui3_1_dark（挂 .root）和 .dark（挂 <html>，本文件）两个类名 */
 /*
 .dark {
     --primary: #...;
