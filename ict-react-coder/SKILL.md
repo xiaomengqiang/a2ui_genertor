@@ -39,68 +39,64 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 
 ## Step 2 — Author the Page
 
-> 分层约定（Layer 1–5 见 app.jsx 头部注释）：
+> Layering convention (see app.jsx header for Layer 1–5):
 > ```
-> src/context.jsx        Layer 1 全局状态 (AppProvider + useApp hook; dark 模式切换)
-> src/mock/             Layer 2 mock 数据 (按域分文件,如 device.js / alarm.js)
-> src/components/{name}/ Layer 3 通用小组件 (跨视图复用,如 status-tag / section-card)
-> src/views/{name}/      Layer 4 视图组件 (每个页签/功能区一个,如 device-table / header-bar)
-> app.jsx                Layer 5 布局骨架 (Provider + root container assembly)
+> src/context.jsx        Layer 1 global state (AppProvider + useApp hook; dark mode toggle)
+> src/mock/              Layer 2 mock data (per-domain files, e.g. device.js / alarm.js)
+> src/components/{name}/ Layer 3 reusable components (cross-view, e.g. status-tag / section-card)
+> src/views/{name}/      Layer 4 view components (one per tab/section, e.g. device-table / header-bar)
+> app.jsx                Layer 5 layout skeleton (Provider + root container assembly)
 > ```
 >
-> **目录与命名规则（强制）：**
-> - views/ 与 components/ 下**一个组件一个文件夹**：kebab-case 文件夹名，内部 `index.jsx` + `index.css`
-> - 根级文件（context.jsx / i18n.js）与入口（app.jsx / app.css）不进文件夹
-> - 文件夹名即组件名 — 不出现 PascalCase 文件、不出现 jsx/css 不同名配对
-> - **组件文件夹内相对路径深度**：引用共享资产 `../../../assets/shared/...`、引用 src 模块 `../../context.jsx`（比平铺深一层，写错会 build FAIL）
+> **Directory & naming rules:**
+> - One folder per component under views/ and components/: kebab-case folder name, containing `index.jsx` + `index.css` + other helper `.js` files as needed
+> - Folder name = component name — no PascalCase, no mismatched jsx/css names
+> - Root-level files (context.jsx / i18n.js) and entry (app.jsx / app.css) stay flat, no folders
+> - Use relative import paths within component folders
 
 ### Import contract (ES Modules, build-time bundled)
 
-Supported — write **standard ES Module imports**, the bundler maps them to runtime globals:
+Supported - **standard ES Module imports**, the bundler maps them to runtime globals:
 
 ```jsx
-import { useState, useEffect } from "react";          // → React globals
-import { Menu, Button, Table, ConfigProvider, theme } from "antd"; // → antd globals(禁布局类,见下)
 import dayjs from "dayjs";                            // → dayjs global
-import { IntlProvider, FormattedMessage, useIntl } from "react-intl"; // → ReactIntl global(可选,多语言页面)
-import zhCN from "./assets/shared/antd-zh.js";     // 中文 locale(dayjs zh-cn + antd zhCN)
-import { Icon } from "./assets/shared/icons.js";      // Lucide 图标组件
-import { AppProvider, useApp } from "./src/context.jsx"; // 相对路径引用自己的模块
-import DeviceTable from "./src/views/device-table/index.jsx";
-import "./src/views/device-table/index.css";          // 组件级 CSS(可选)
+import { useState, useEffect } from "react";          // → React globals
+import { Menu, Button, Table, ConfigProvider } from "antd"; // → antd globals (layout components banned, see below)
+import { IntlProvider, FormattedMessage, useIntl } from "react-intl"; // → ReactIntl global (optional, multilingual pages)
+import zhCN from "./assets/shared/antd-zh.js";        // Antd chinese locale (dayjs zh-cn + antd zhCN)
+import { Icon } from "./assets/shared/icons.js";      // Lucide icon component
+import { AppProvider, useApp } from "./src/context.jsx"; // relative imports for own modules
+import DeviceTable from "./src/views/device-table/index.jsx"; // component import (optional)
+import "./src/views/device-table/index.css";          // component CSS (optional)
 ```
 
 NOT supported:
 - `import * as`
 - aliased imports (`{ a as b }`)
-- npm packages beyond react/react-dom/antd/dayjs
-- `import ... from "@ant-design/icons"` — **build FAILs**; page icons are Lucide-only via `<Icon name="..." />`（antd 组件内置图标无需处理，随 antd.min.js 携带）
-- **禁用 antd 布局/装饰组件（build 直接 FAIL）**：`Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark`。真遇到对应需求，**用纯 H5 或已有组件组合实现**
-- `export default` 必须是具名函数声明（`export default function App()`）；入口必须是 `app.jsx`
-- 相对 import 必须带扩展名（`./src/views/device-table/index.jsx`，不能省略 `.jsx`/`.js`/`.css`）
+- npm packages beyond react/react-dom/antd/dayjs/react-intl
+- `import ... from "@ant-design/icons"` is **banned**; page icons are Lucide-only via `<Icon name="..." />`
+- `export default` must be a named function declaration (`export default function App()`)
+- Page entry file must be `app.jsx`
+- Relative imports must include file extensions (`./src/views/device-table/index.jsx`, no omitting `.jsx`/`.js`/`.css`)
+- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark`. If needed, use pure H5 or existing component combinations instead.
 
 ### Icon usage
 
-Read **[references/component/Icon.md](references/component/Icon.md)** — Lucide names only (`<Icon name="search" size={14} />`), never hand-write SVG paths, never use @ant-design/icons. build.mjs validates every name at build time and injects only the used icon nodes.
+Read **[references/component/Icon.md](references/component/Icon.md)** — Lucide names only (`<Icon name="search" size={14} />`), **never hand-write SVG paths**, **never use @ant-design/icons**. Build validates and injects icons on demand.
 
-### zh-CN locale
+### Internationalization
 
-`antd.min.js` UMD 不带 locale 包 — 用共享补丁文件：
-```jsx
-import zhCN from "./assets/shared/antd-zh.js";
-<ConfigProvider locale={zhCN}>…</ConfigProvider>
-```
-（该文件同时注册 dayjs zh-cn locale，DatePicker/Pagination 等均为中文。）
+**Default: single-language (zh-CN), already configured in the starter** — `app.jsx` imports `antd-zh.js` (registers dayjs zh-cn locale + antd zh-cn) and wraps `<ConfigProvider locale={zhCN}>`. No extra work needed for Chinese pages.
 
-### i18n（可选 — 多语言页面才启用）
+**Gate: do NOT create `src/i18n.js`, `IntlProvider`, or language-switch UI unless the user explicitly requests multilingual support.** Adding language switching to a single-language page is over-engineering.
 
-默认页面单语言（zh-CN）。**准入门槛（强制）：用户未明确要求多语言/中英切换时，禁止创建 `src/i18n.js`、禁止引入 IntlProvider、禁止生成语言切换 UI** — 单语言页面带语言切换属于过度设计。用户明确要求后，按以下模式使用 react-intl（离线包已内置，`import ... from "react-intl"` 自动映射到 `ReactIntl` 全局）：
+When multilingual is required, use react-intl (bundled offline, `import ... from "react-intl"` auto-maps to `ReactIntl` global):
 
-1. **字典**：`src/i18n.js` 集中维护 `{ zh: {...}, en: {...} }`，语义化 key（`menu.devices`）。
-2. **Provider**：`<IntlProvider locale={lang} messages={dict[lang]}>` 包在 ConfigProvider 内层。
-3. **消费**：`<FormattedMessage id="menu.devices" defaultMessage="设备管理" />` 或 `useIntl().formatMessage(...)`；ICU 语法可用（`{count, plural, one {# alarm} other {# alarms}}`）。
-4. **defaultMessage 必写** — 字典漏 key 时的兜底显示，防止裸 key/空白。
-5. **切语言三件套同步**：IntlProvider 的 `locale/messages` + ConfigProvider 的 `locale`（zhCN/enUS）+ `dayjs.locale()`。antd enUS locale 需内联精简对象（同 zh-cn 补丁思路，仅必要组件）。
+1. **Dictionary**: `src/i18n.js` — central `{ zh: {...}, en: {...} }` with semantic keys (`menu.devices`).
+2. **Provider**: `<IntlProvider locale={lang} messages={dict[lang]}>` inside ConfigProvider.
+3. **Usage**: `<FormattedMessage id="menu.devices" defaultMessage="设备管理" />` or `useIntl().formatMessage(...)`; ICU syntax supported (`{count, plural, one {# alarm} other {# alarms}}`).
+4. **defaultMessage is required** — fallback display when a key is missing from the dictionary.
+5. **Language switch sync**: IntlProvider `locale/messages` + ConfigProvider `locale` (zhCN/enUS) + `dayjs.locale()`. antd enUS locale needs an inline minimal object (same approach as antd-zh.js, essential components only).
 
 ### Styling — token-first (CRITICAL)
 
