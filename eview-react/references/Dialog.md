@@ -193,7 +193,7 @@ export default function DeviceDialogPage() {
             <Select options={REGIONS} defaultLabel="-请选择-" />
           </Form.Item>
         </Form>
-        {error ? <div style={{ color: 'var(--colorAlarmUrgent)', marginTop: 8 }}>{error}</div> : null}
+        {error ? <div className="app-error" style={{ marginTop: 8 }}>{error}</div> : null}
       </Dialog>
     </div>
   );

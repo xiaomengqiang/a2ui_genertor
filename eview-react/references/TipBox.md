@@ -63,7 +63,6 @@ type Direction = 'top' | 'topLeft' | 'topRight' | 'bottom' | 'bottomLeft' | 'bot
 - 字段帮助气泡内容与 `TextField.ruleText` 二选一，避免同一信息出现两次
 - 复制成功"已复制"气泡用 `disposeTimeOut` 自动消失，不要另起 DivMessage
 - 表格里大量单元格用列级 `tipFormatter`，不要逐格包 TipBox（性能）
-- 深色主题下自定义 `TipBoxColor` 样式要用 CSS 变量
 
 ## 7. 完整代码示例
 

@@ -128,7 +128,7 @@ export default function CardGridPage() {
     <div style={{ padding: 24 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, minHeight: 240 }}>
         {loading ? <div>加载中...</div> : cards.map((c) => (
-          <div key={c.id} style={{ border: '1px solid var(--colorBorder)', borderRadius: 'var(--borderRadius)', padding: 12 }}>
+          <div key={c.id} className="app-card" style={{ padding: 12 }}>
             <Checkbox label={c.title} value={c.id} checked={checked.has(c.id)} onChange={(v, on: boolean) => toggle(c.id, on)} />
           </div>
         ))}

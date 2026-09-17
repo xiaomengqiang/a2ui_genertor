@@ -110,7 +110,6 @@ import { Button, TextField, Select } from '@nce/eview-react';
 - 函数组件 + hooks（官方 demo 有 class 写法，属于历史遗留；新代码统一函数组件）
 - 事件处理函数用 `handleXxx` 命名；派生布尔用 `is/has/can` 前缀
 - 提交代码不留 `console.log`
-- 页面级间距用 4px 的整数倍；`rem` 与 `px` 不混用（`aui_to_ict.md` FAQ 4/5）
 - React 单向数据流：父传子只走 props，子回父只走回调；不要自造"双向绑定"（`f_&_q.md`）
 
 ## 6. 最小可运行 App（配合 §2 使用）

@@ -1,0 +1,153 @@
+{
+  "description": "antd → eview-react 迁移 Skill 评测用例",
+  "cases": [
+    {
+      "id": 1,
+      "name": "简单表单迁移",
+      "description": "将 antd Form + Input + Switch + Button 迁移为 eview-react 等价实现",
+      "input": "antd Form with useForm, Input, Switch, Button type=primary htmlType=submit loading",
+      "assertions": [
+        "import Form from '@nce/eview-react/Form'",
+        "import TextField from '@nce/eview-react/TextField'",
+        "import Toggle from '@nce/eview-react/Toggle'",
+        "import Button from '@nce/eview-react/Button'",
+        "NOT import from 'antd'",
+        "useRef(null) 替代 Form.useForm()",
+        "ref={formRef} 替代 form={form}",
+        "onSuccess 替代 onFinish",
+        "rules 中无 message 字段",
+        "Toggle 配 valuePropName='toggled' 和 updateTrigger='onToggle'",
+        "Button 用 status='primary' 不是 type='primary'",
+        "Button 用 disabled + 文案切换 不是 loading",
+        "onClick={() => formRef.current.submit()} 不是 htmlType='submit'",
+        "Form.Item 内控件不传 value/onChange"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "组件 props 迁移",
+      "description": "将 antd Select/Radio.Button/Tag/Badge 的 props 迁移为 eview-react 等价写法",
+      "input": "antd Select with Option children, Radio.Button, Tag closable, Badge count",
+      "assertions": [
+        "Select options 字段用 text 不是 label",
+        "Select 用 defaultLabel 不是 placeholder",
+        "NOT 使用 Select.Option children 写法",
+        "Radio.Button 替换为 SelectCard",
+        "SelectCard data 用 text 不是 label",
+        "SelectCard 禁用用 disable 不是 disabled",
+        "Tag 无 closable 属性",
+        "Tag color 用语义色不是自定义颜色名",
+        "Badge 用 content 不是 count"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "布局迁移",
+      "description": "将 antd Layout/Menu/Breadcrumb/Avatar 迁移为 eview-react + 手写补位",
+      "input": "antd Layout with Header/Sider/Content, Menu, Breadcrumb, Avatar",
+      "assertions": [
+        "NOT import Layout from antd",
+        "NOT import Menu from antd",
+        "Crumbs 替代 Breadcrumb",
+        "Crumbs data 用 title 不是 items",
+        "Crumbs seprator 拼写（不是 separator）",
+        "Crumbs 最后一项无 url",
+        "Layout 手写（有 TODO 注释）",
+        "Menu 手写（有 TODO 注释）",
+        "Avatar 手写（有 TODO 注释）",
+        "手写元素只用 CSS 变量不写死色值",
+        "类名用业务前缀不用 ev_"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "多步向导迁移",
+      "description": "将 antd Steps + Form.useForm + validateFields 向导迁移为 eview-react 回调链模式",
+      "input": "antd Steps current={i} items, Form.useForm, form.validateFields() Promise, Steps.Step children",
+      "assertions": [
+        "Steps 用 data 不是 items",
+        "Steps data 用 text 不是 title",
+        "Steps data 有 value 字段",
+        "currentStep 对应 data[].value 不是下标",
+        "NOT 使用 Steps.Step children",
+        "useRef 替代 useForm",
+        "ref.submit() 替代 validateFields()",
+        "onSuccess 回调替代 Promise.then",
+        "推进逻辑在 onSuccess 回调内",
+        "NOT 使用 await form.validateFields()"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "CRUD 弹窗迁移",
+      "description": "将 antd Modal + Form + Modal.confirm 迁移为 eview-react Dialog + Form + MessageDialog",
+      "input": "antd Modal open/onOk/onCancel/footer, Modal.confirm(), form.validateFields()",
+      "assertions": [
+        "Dialog 用 isOpen 不是 open",
+        "Dialog buttons 是数组格式 [{text,status,onClick}]",
+        "Dialog onClose 里自己 setIsOpen(false)",
+        "NOT 使用 Modal.footer",
+        "MessageDialog 替代 Modal.confirm()",
+        "MessageDialog buttons 是对象格式 {ok,cancel}",
+        "Form ref.submit 替代 validateFields",
+        "onSuccess 成功后才关弹窗",
+        "失败保持弹窗打开"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "CSS token 保留并存",
+      "description": "保留源项目原始 token 体系，提取到独立 CSS 文件与 eview-react 的 aui3_1.css 并存，布局 CSS 不做变量名替换",
+      "input": "源项目内联 token（:root 变量 + .dark 覆盖），src/ 下 CSS 引用 var(--surface) 等",
+      "assertions": [
+        "提取 :root 变量定义到独立 tokens.css",
+        "提取 .dark 暗色覆盖到独立 theme-dark.css",
+        "入口同时 import aui3_1.css + tokens.css + theme-dark.css",
+        "保留源项目原始 token 变量名（如 --surface-container-lowest），NOT 替换为 eview-react 变量名（如 --colorBackground）",
+        "布局/手写 CSS 引用原始 token 名，一行不改",
+        "两套变量名并存不冲突（--surface ≠ --colorBackground）",
+        "间距保留源项目 px 体系，NOT 统一到 rem",
+        "不写死色值，用 CSS 变量（原始 token）",
+        "类名用业务前缀 app- 不用 ev_",
+        "暗色模式同时切 aui3_1_dark（挂 .root）和 .dark（挂 <html>）"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "命名异常检测",
+      "description": "在 eview-react 代码中识别并修正从 antd 带来的错误命名",
+      "input": "eview-react code with wrong naming from antd habits",
+      "assertions": [
+        "Crumbs 用 seprator 不是 separator",
+        "Toggle 用 taggledChildren 不是 toggledChildren",
+        "Toggle 用 toggled 不是 checked",
+        "Toggle 用 onToggle 不是 onChange",
+        "SelectCard 用 disable 不是 disabled",
+        "Button 用 status 不是 type",
+        "Select 用 defaultLabel 不是 placeholder",
+        "Badge 用 content 不是 count",
+        "Dialog 用 isOpen 不是 open",
+        "Drawer 用 visible 不是 open",
+        "Loading 用 isOpen 不是 spinning",
+        "Steps 用 currentStep 不是 current"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "回调签名迁移",
+      "description": "将 antd 的 event-based 回调签名迁移为 eview-react 的 value-based 签名",
+      "input": "antd onChange={(e) => e.target.value}, onClick={(e)}",
+      "assertions": [
+        "TextField.onChange 首参是 value 不是 event",
+        "NOT 使用 e.target.value",
+        "Select.onChange 五参 (value, oldValue, text, oldText, event)",
+        "Checkbox.onChange 是 (value, checked, event) 不是 (e)",
+        "TextArea.onChange 是 (targetValue, value, event)",
+        "TextArea.onBlur 只有 event 无 value",
+        "Button.onClick 是 (event, additionalData)",
+        "Rating 用 onClick 不是 onChange",
+        "Steps.onClick 参数是 index"
+      ]
+    }
+  ]
+}

@@ -126,14 +126,14 @@ export default function OverviewPage() {
   return (
     <div style={{ padding: 24 }}>
       <Loading type="global" isOpen={pageLoading} />
-      {error ? <div style={{ color: 'var(--colorAlarmUrgent)', marginBottom: 12 }}>{error}<Button status="text" text="重试" onClick={() => window.location.reload()} /></div> : null}
+      {error ? <div className="app-error" style={{ marginBottom: 12 }}>{error}<Button status="text" text="重试" onClick={() => window.location.reload()} /></div> : null}
 
       <div style={{ display: 'flex', gap: 16 }}>
-        <section style={{ flex: 1, padding: 16, border: '1px solid var(--colorBorder)', borderRadius: 'var(--borderRadius)' }}>
+        <section className="app-stat-card" style={{ flex: 1, padding: 16 }}>
           <div>设备总数：{summary?.devices ?? '-'}</div>
         </section>
 
-        <section style={{ flex: 1, position: 'relative', minHeight: 120, padding: 16, border: '1px solid var(--colorBorder)', borderRadius: 'var(--borderRadius)' }}>
+        <section className="app-stat-card" style={{ flex: 1, position: 'relative', minHeight: 120, padding: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>活动告警 {summary?.alarms ?? '-'}</span>
             <Button size="small" text="刷新" disabled={alarmLoading} onClick={refreshAlarms} />
