@@ -114,13 +114,11 @@ src/styles/
 └── theme-dark.css      # .dark { --primary: ...; --surface: ...; } 暗色覆盖
 ```
 
-在 `main.jsx`（或 `App.jsx`）里 import：
+迁移后的 `main.jsx` 会同时 import 这两套 CSS（已写在 `scaffold/src/main.jsx`，拷贝骨架即有）：
 
-```jsx
-import '@nce/eview-react/styles/aui3_1.css';   // eview-react 组件的样式和变量
-import './styles/tokens.css';                    // 原始 token 定义
-import './styles/theme-dark.css';                // 原始暗色覆盖
-```
+- `aui3_1.css` — eview-react 组件的样式和变量
+- `tokens.css` — 原始 token 定义（源项目预先外置的那份）
+- `theme-dark.css` — 原始暗色覆盖
 
 **核心原则：token 定义和应用样式不要混在一起，更不要内联在 HTML 里。**
 

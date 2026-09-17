@@ -3,8 +3,8 @@
 /* 只放变量定义，不放任何选择器规则；布局/手写 CSS 引用 var(--xxx) 但不在此定义 */
 /*
 :root {
-    --brand-50: #...;
-    --surface: var(--colorBackground);
+    --brand-50: #0067D1;
+    --surface: #f3f3f3;
     ...
 }
 */

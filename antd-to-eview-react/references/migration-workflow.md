@@ -62,7 +62,7 @@ scaffold/
 ├── package.json        # 依赖已含 @nce/eview-react / react-intl / horizon peer / lodash 等
 ├── .npmrc              # @nce scope 指向华为 product_npm 源
 ├── vite.config.js      # Vite + @vitejs/plugin-react
-├── index.html          # <body class="aui3_1 ev_no_wcag"> + /src/main.jsx
+├── index.html          # <body class="ev_no_wcag"> + /src/main.jsx
 └── src/
     ├── main.jsx        # ConfigProvider + IntlProvider + aui3_1.css + tokens.css + theme-dark.css
     ├── app.jsx         # 空壳 App（<div className="app-root aui3_1">），步骤 3 替换为 AppShell
@@ -78,13 +78,29 @@ scaffold/
 | `package.json` | 依赖锁定（@nce/eview-react latest / react ^18.3 / react-intl ^7 / horizon peer / lodash） | 改 `name` |
 | `.npmrc` | `@nce` scope 指向 product_npm 源 | 一般不改 |
 | `vite.config.js` | Vite + plugin-react，最小配置 | 一般不改 |
-| `index.html` | 薄入口，`<body class="aui3_1 ev_no_wcag">` + `/src/main.jsx` | 改 `<title>` |
+| `index.html` | 薄入口，`<body class="ev_no_wcag">` + `/src/main.jsx` | 改 `<title>` |
 | `src/main.jsx` | Provider 组装 + 三处 css import | import 不用改；步骤 2 切暗色时加类名切换逻辑 |
 | `src/app.jsx` | 空壳 App | 步骤 3 替换为源项目 AppShell |
 | `src/styles/tokens.css` | 空壳占位 | 步骤 4 填 |
 | `src/styles/theme-dark.css` | 空壳占位 | 步骤 4 填 |
 
 > `main.jsx` 已把 `aui3_1.css` + `tokens.css` + `theme-dark.css` 三处 import 都写好，步骤 4 填充 token 后无需再改入口。
+
+### 1.2.1 依赖说明
+
+`scaffold/package.json` 预置的依赖用途：
+
+| 依赖 | 用途 | 是否必需 |
+|------|------|---------|
+| `react` / `react-dom` | React 运行时 | 必需 |
+| `react-intl` | eview-react 组件内置文案的 i18n（`IntlProvider`） | 必需 |
+| `@nce/eview-react` | 组件库本体 | 必需 |
+| `@hui/icon-plus` | 图标库（`IconPlusIc*` 按需引入） | 用图标时必需 |
+| `@cloudsop/horizon` | eview-react 的 peer 依赖；缺失报 `Element type is invalid` | 必需（peer） |
+| `@cloudsop/horizon-intl` / `@cloudsop/htimezone` / `@baize/wdk` / `@hui/design-token` | eview-react 生态关联依赖（i18n 适配 / 时区 / 工具 / 设计 token） | 骨架预置；未用到可在 package.json 删除 |
+| `lodash` | 工具库 | 源项目用到则保留 |
+
+> 上述用途为基于包名与已有报错信息的推断，具体以实际工程的 `npm install` 与运行结果为准。
 
 ### 1.3 安装与启动
 
@@ -113,13 +129,7 @@ import zhCN from './assets/shared/antd-zh-cn.js';
 
 ### 2.2 暗色模式改类名切换
 
-```tsx
-// ✅ eview-react：根 DOM 切换 aui3_1_dark 类名
-useEffect(() => {
-    const root = document.querySelector('.app-root');
-    if (root) root.classList.toggle('aui3_1_dark', isDark);
-}, [isDark]);
-```
+eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark` 挂 `.app-root`（eview-react 组件暗色）、`.dark` 挂 `<html>`（原始 token 暗色覆盖）。完整 `useEffect` 代码见 [css-token-mapping.md](css-token-mapping.md) §4。
 
 ### 2.3 根 DOM 加 aui3_1 类名
 

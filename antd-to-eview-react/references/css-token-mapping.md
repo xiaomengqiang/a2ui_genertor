@@ -24,12 +24,11 @@ src/styles/
 
 ### 2. 在入口同时引入两套 CSS
 
-```jsx
-// main.jsx
-import '@nce/eview-react/styles/aui3_1.css';   // eview-react 组件的样式和变量
-import './styles/tokens.css';                    // 原始 token 定义（布局/手写 CSS 引用这套）
-import './styles/theme-dark.css';                // 原始暗色覆盖
-```
+入口的这三处 import 已在 `scaffold/src/main.jsx` 写好（拷贝骨架即有），无需手写：
+
+- `import '@nce/eview-react/styles/aui3_1.css'` — eview-react 组件的样式和变量
+- `import './styles/tokens.css'` — 原始 token 定义（布局/手写 CSS 引用这套）
+- `import './styles/theme-dark.css'` — 原始暗色覆盖
 
 引入顺序：先 `aui3_1.css` 再 `tokens.css`——如果两边有同名变量（实际不会），后者覆盖前者。
 
@@ -53,18 +52,17 @@ import './styles/theme-dark.css';                // 原始暗色覆盖
 ### 4. 暗色模式同时切两个类名
 
 ```jsx
-// context.jsx
+// 放在持有 isDark 的根组件里（如 scaffold/src/app.jsx）
 useEffect(() => {
-    const root = document.querySelector('.app-root');
-    if (root) {
-        root.classList.toggle('aui3_1_dark', isDark);   // eview-react 组件暗色
-        root.classList.toggle('dark', isDark);          // 原始 token 暗色覆盖
-    }
+    const appRoot = document.querySelector('.app-root');
+    if (appRoot) appRoot.classList.toggle('aui3_1_dark', isDark);   // 挂 .app-root
+    document.documentElement.classList.toggle('dark', isDark);      // 挂 <html>
 }, [isDark]);
 ```
 
-- `aui3_1_dark` → eview-react 的 `aui3_1.css` 内置暗色变量生效（影响 eview-react 组件）
-- `.dark` → `theme-dark.css` 里的暗色覆盖生效（影响布局/手写 CSS）
+- `aui3_1_dark` 挂 `.app-root` → eview-react 的 `aui3_1.css` 内置暗色变量生效（影响 eview-react 组件）
+- `.dark` 挂 `<html>`（document.documentElement）→ `theme-dark.css` 里的暗色覆盖全局生效（影响布局/手写 CSS）
+- `aui3_1`（浅色基础）常驻 `.app-root`，`aui3_1_dark`（暗色）随 `isDark` 叠加在 `.app-root` 上；`<body>` 不挂 `aui3_1`，只保留 `ev_no_wcag`（关闭 eview-react 的 WCAG 无障碍样式覆盖，骨架默认，按需保留）
 
 ## 为什么两套 token 不冲突
 
