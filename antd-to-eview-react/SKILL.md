@@ -23,9 +23,9 @@ description: >-
 - **组件无对应**：Layout、Menu、Avatar、Descriptions、Result、Space 在 eview-react 中无直接对应或无 Reference，需要手写补位
 - **CSS token 丢失**：源项目 token 内联在 HTML 里，迁移到 Vite 后 HTML 不能用，token 定义跟着丢。解决方法：提取 token 到独立 CSS 文件，与 eview-react 的 `aui3_1.css` 并存，布局 CSS 一行不改（见 [css-token-mapping.md](references/css-token-mapping.md)）
 - **命名拼写异常**：`seprator`（不是 separator）、`taggledChildren`（不是 toggledChildren）、`disable`（SelectCard 用，不是 disabled）
-- **文件位置变化导致 import 路径失效**：UMD/旧工程常见 `app.jsx` 在工程根目录并导入 `./src/context.jsx`；拷贝 scaffold 后 `app.jsx` 位于 `src/app.jsx`，必须改为 `./context.jsx`。迁移后必须跑 `scripts/check-relative-imports.cjs <目标工程根>`，语法检查不能发现这类错误。
+- **文件位置变化导致 import 路径失效**：UMD/旧工程常见 `app.jsx` 在工程根目录并导入 `./src/context.jsx`；拷贝 scaffold 后 `app.jsx` 位于 `src/app.jsx`，必须改为 `./context.jsx`。迁移后必须跑相对导入解析检查（脚本位于本 skill 的 `scripts/check-relative-imports.cjs`，调用方式见步骤 5），语法检查不能发现这类错误。
 
-## 迁移工作流（5 步）
+## 迁移工作流（评估 + 5 步）
 
 > 详细步骤见 [references/migration-workflow.md](references/migration-workflow.md)
 
@@ -33,10 +33,10 @@ description: >-
 |------|--------|------|
 | **0. 评估** | 扫描 antd 项目用到的组件，对照组件映射总表标注"有对应/无对应需手写" | 组件迁移清单 |
 | **1. 建工程骨架** | 若源项目非 Vite + npm 工程：把 `scaffold/` 整目录拷到目标工程根（改 `package.json` 的 `name`、`index.html` 的 `<title>`），`npm install` + `npm run dev` 即空壳可跑。详见 [migration-workflow.md](references/migration-workflow.md) 步骤 1 | 可运行的空壳工程 |
-| **2. 换 Provider 与入口** | 移除 antd `ConfigProvider` + `theme.darkAlgorithm`；eview-react 用 `ConfigProvider` + `IntlProvider` + 根 DOM 加 `class="aui3_1"`，暗色切 `aui3_1_dark` | Provider 就绪 |
+| **2. 换 Provider 与入口** | 移除 antd `ConfigProvider` + `theme.darkAlgorithm`；eview-react 用 `ConfigProvider` + `IntlProvider` + `<body>` 加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `<body>`） | Provider 就绪 |
 | **3. 逐组件替换** | 按映射总表替换每个 antd 组件；Form 模式单独按 [form-migration.md](references/form-migration.md) 转换；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写 | 组件代码全部替换 |
 | **4. 提取 CSS token** | 将源项目内联 token 填入骨架的 `src/styles/tokens.css`、`.dark` 覆盖填入 `src/styles/theme-dark.css`（见 [css-token-mapping.md](references/css-token-mapping.md)），布局 CSS 不改 | 样式跟随主题 |
-| **5. 验证** | `npm install` / `npm run dev` 前先跑相对导入解析检查：`node scripts/check-relative-imports.cjs <目标工程根>`；再做构建与功能验证 | import/构建/功能通过 |
+| **5. 验证** | `npm install` / `npm run dev` 前先跑相对导入解析检查（脚本位于本 skill 的 `scripts/check-relative-imports.cjs`，两种调用方式见 [migration-workflow.md](references/migration-workflow.md) §5.1）；再做构建与功能验证 | import/构建/功能通过 |
 
 ### scaffold/ 预制骨架（步骤 1 可直接拷贝）
 
@@ -49,9 +49,10 @@ scaffold/
 ├── vite.config.js      # Vite + @vitejs/plugin-react
 ├── index.html          # <body class="ev_no_wcag"> + /src/main.jsx
 └── src/
-    ├── main.jsx        # ConfigProvider + IntlProvider + 三处 css import（aui3_1 / tokens / theme-dark）
-    ├── app.jsx         # 空壳 App（根 div class="root aui3_1"），步骤 3 往里填 AppShell
+    ├── main.jsx        # ConfigProvider + IntlProvider + 四处 css import（aui3_1 / base / tokens / theme-dark）
+    ├── app.jsx         # 空壳 App（根 div class="root"；aui3_1 挂 <body>，见 index.html），步骤 3 往里填 AppShell
     └── styles/
+        ├── base.css          # 骨架自带全局重置（ev_no_wcag 焦点轮廓），开箱即用不用改
         ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量
         └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
 ```
@@ -59,6 +60,8 @@ scaffold/
 用法：`cp -r scaffold/ <目标工程根>`，改 `package.json` 的 `name` 与 `index.html` 的 `<title>`，`npm install` 后 `npm run dev`。空壳能直接渲染（显示 "app root"），步骤 3/4 再往里填内容，`main.jsx` 不用再改。
 
 > 注意：scaffold 的 `app.jsx` 在 `src/app.jsx`。如果源项目根目录也有 `app.jsx` 且导入 `./src/context.jsx`、`./src/views/...`，迁移到 scaffold 后必须改成 `./context.jsx`、`./views/...`。`src/` 内文件一律不应残留 `./src/...` 导入。
+
+> 注意：scaffold 的 `src/app.jsx` 内置了一段暗色切换 `useEffect`（演示用，切换 `aui3_1_dark` + `.dark` 两个类名）。步骤 3 用源项目 AppShell 替换 `app.jsx` 时，务必把这段暗色切换逻辑迁移到新 AppShell 或 `main.jsx`，否则暗色模式切换会失效。完整切换代码见 [css-token-mapping.md](references/css-token-mapping.md) §4。
 
 > 若源项目是 UMD 单 HTML 工程 / 内联 token CSS / 运行时 fetch 图标，迁移前先读 [source-project-guidelines.md](references/source-project-guidelines.md) 了解这些结构如何影响迁移成本，以及在源项目侧可以做什么来降低成本。
 
@@ -180,7 +183,7 @@ const handleSuccess = (values) => {
 1. **导入路径**：`import Button from '@nce/eview-react/Button'`，不是 `import { Button } from 'antd'`
 2. **样式**：入口引一次 `import '@nce/eview-react/styles/aui3_1.css'`；原始 token 提取到独立 CSS 并存引入（见下方"CSS 样式"）
 3. **Provider**：`ConfigProvider` + `IntlProvider`（`messages={componentsLocales[locale]}`）；antd 的 `ConfigProvider locale={zhCN}` 整套删掉——详见 [i18n-migration.md](references/i18n-migration.md)
-4. **根 DOM 类名**：加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `.root`）和 `.dark`（挂 `<html>`）
+4. **`<body>` 类名**：加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `<body>`）和 `.dark`（挂 `<html>`）
 5. **回调签名**：第一个参数通常是值不是 event（TextField `onChange(value, ...)`、Select `onChange(value, oldValue, text, oldText, event)`）
 6. **validator**：返回 `{ result: true, message }`，`result: true` = 通过
 7. **API 表里查不到的 props 一律不写**
@@ -218,9 +221,9 @@ const handleSuccess = (values) => {
 
 > 完整操作步骤见 [references/css-token-mapping.md](references/css-token-mapping.md)
 
-入口的三处 CSS import（`aui3_1.css` + `tokens.css` + `theme-dark.css`）已在 `scaffold/src/main.jsx` 写好，拷贝骨架后不用改；步骤 4 只往 `tokens.css` / `theme-dark.css` 填内容。
+入口的四条 CSS import（`aui3_1.css` + `base.css` + `tokens.css` + `theme-dark.css`）已在 `scaffold/src/main.jsx` 写好，拷贝骨架后不用改；步骤 4 只往 `tokens.css` / `theme-dark.css` 填内容。
 
-暗色模式切两个类名：`aui3_1_dark`（挂 `.root`，eview-react 组件暗色）+ `.dark`（挂 `<html>`，原始 token 暗色覆盖）。完整切换代码见 [css-token-mapping.md](references/css-token-mapping.md) §4。
+暗色模式切两个类名：`aui3_1_dark`（挂 `<body>`，eview-react 组件暗色）+ `.dark`（挂 `<html>`，原始 token 暗色覆盖）。完整切换代码见 [css-token-mapping.md](references/css-token-mapping.md) §4。
 
 通用规则：
 - 不写死色值（如 `#191919`），用 CSS 变量（源项目的原始 token）

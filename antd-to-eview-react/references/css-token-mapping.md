@@ -24,9 +24,10 @@ src/styles/
 
 ### 2. 在入口同时引入两套 CSS
 
-入口的这三处 import 已在 `scaffold/src/main.jsx` 写好（拷贝骨架即有），无需手写：
+入口的以下 import 已在 `scaffold/src/main.jsx` 写好（拷贝骨架即有），无需手写：
 
 - `import '@nce/eview-react/styles/aui3_1.css'` — eview-react 组件的样式和变量
+- `import './styles/base.css'` — 骨架自带全局重置（ev_no_wcag 焦点轮廓）
 - `import './styles/tokens.css'` — 原始 token 定义（布局/手写 CSS 引用这套）
 - `import './styles/theme-dark.css'` — 原始暗色覆盖
 
@@ -51,18 +52,21 @@ src/styles/
 
 ### 4. 暗色模式同时切两个类名
 
+`aui3_1`（浅色基础）常驻 `<body>`（已在 `index.html` 写死：`<body class="ev_no_wcag aui3_1">`），暗色时叠 `aui3_1_dark`；`.dark` 挂 `<html>`：
+
 ```jsx
 // 放在持有 isDark 的根组件里（如 scaffold/src/app.jsx）
 useEffect(() => {
-    const root = document.querySelector('.root');
-    if (root) root.classList.toggle('aui3_1_dark', isDark);   // 挂 .root
+    document.body.classList.toggle('aui3_1_dark', isDark);          // 挂 <body>，叠加在常驻的 aui3_1 上
     document.documentElement.classList.toggle('dark', isDark);      // 挂 <html>
 }, [isDark]);
 ```
 
-- `aui3_1_dark` 挂 `.root` → eview-react 的 `aui3_1.css` 内置暗色变量生效（影响 eview-react 组件）
+- `aui3_1` 常驻 `<body>`（`index.html` 里写死）→ eview-react 组件浅色基础生效
+- `aui3_1_dark` 挂 `<body>`，随 `isDark` 叠加在 `aui3_1` 上 → eview-react 的 `aui3_1.css` 内置暗色变量生效（影响 eview-react 组件）
 - `.dark` 挂 `<html>`（document.documentElement）→ `theme-dark.css` 里的暗色覆盖全局生效（影响布局/手写 CSS）
-- `aui3_1`（浅色基础）常驻 `.root`，`aui3_1_dark`（暗色）随 `isDark` 叠加在 `.root` 上；`<body>` 不挂 `aui3_1`，只保留 `ev_no_wcag`（关闭 eview-react 的 WCAG 无障碍样式覆盖，骨架默认，按需保留）
+- `<body>` 还保留 `ev_no_wcag`（关闭 eview-react 的 WCAG 无障碍样式覆盖，骨架默认，按需保留）
+- `.root` div（app.jsx 的根容器）只作业务根容器，不挂 `aui3_1` 类名
 
 ## 为什么两套 token 不冲突
 

@@ -1,0 +1,5 @@
+/* base.css - 骨架自带的全局基础样式（开箱即用，不用改） */
+/* 配合 index.html 的 <body class="ev_no_wcag">：关闭非 eview-react 元素的焦点轮廓 */
+body.ev_no_wcag *:not([class ^= "eui*"]):focus{
+   outline: none !important;
+}
