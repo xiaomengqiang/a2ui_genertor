@@ -32,6 +32,7 @@ description: >-
 - 受控方式逐组件核对：尤其是 Radio 的 `isControlled`、密码回填、DatePicker 回写及 Spinner 程序化更新；具体规则在各 Reference。
 - `Form.Item` 按 `name + rules` 托管，内部控件不另传 `value/onChange`；特殊取值回调按 Form 文档配置 `valuePropName/updateTrigger`，不提取 `Form.Item` 别名。
 - 弹层显隐由业务状态更新；保存成功才关闭，失败保留输入。筛选变化重置分页；父级切换清空子级；异步结果防串数据，处理 loading / error / empty，并防重复提交。
+- `Dialog` 尺寸：宽按场景设（表单 480–560、详情 640–800，勿过窄/过宽），高用 `size={[宽, 'auto']}` 自适应 + `style={{ maxHeight: '80vh' }}` 限高、超出内部滚动；勿定死高度。
 - 新代码用函数组件 + hooks、ES module、`const/let`、`===`、分号及 `handleXxx` 事件命名；不留调试 `console.log`。
 
 ## 组件索引
