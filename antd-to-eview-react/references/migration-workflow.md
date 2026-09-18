@@ -64,11 +64,12 @@ scaffold/
 ├── vite.config.js      # Vite + @vitejs/plugin-react
 ├── index.html          # <body class="ev_no_wcag"> + /src/main.jsx
 └── src/
-    ├── main.jsx        # ConfigProvider + IntlProvider + aui3_1.css + aui3_1_dark.css + tokens.css + theme-dark.css
-    ├── app.jsx         # 空壳 App（<body> 挂 aui3_1 / aui3_1_dark，<html> 挂 .dark），步骤 3 替换为 AppShell
-    └── styles/
-        ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量
-        └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
+    ├── main.jsx        # ConfigProvider + IntlProvider + aui3_1.css + base.css + tokens.css + theme-dark.css
+    ├── app.jsx         # 空壳 App（<div className="root">；aui3_1 挂 <body>），步骤 3 替换为 AppShell
+    └── styles/
+        ├── base.css          # 骨架自带全局重置（ev_no_wcag 焦点轮廓），开箱即用不用改
+        ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量
+        └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
 ```
 
 拷贝后各文件何时改：
@@ -79,14 +80,14 @@ scaffold/
 | `.npmrc` | `@nce` scope 指向 product_npm 源 | 一般不改 |
 | `vite.config.js` | Vite + plugin-react，最小配置 | 一般不改 |
 | `index.html` | 薄入口，`<body class="ev_no_wcag">` + `/src/main.jsx` | 改 `<title>` |
-| `src/main.jsx` | Provider 组装 + 四处 css import | import 不用改；步骤 2 切暗色时在 app.jsx 加类名切换逻辑 |
+| `src/main.jsx` | Provider 组装 + 四处 css import | import 不用改；步骤 2 切暗色时加类名切换逻辑 |
 | `src/app.jsx` | 空壳 App | 步骤 3 替换为源项目 AppShell |
 | `src/styles/tokens.css` | 空壳占位 | 步骤 4 填 |
 | `src/styles/theme-dark.css` | 空壳占位 | 步骤 4 填 |
 
-> `main.jsx` 已把 `aui3_1.css` + `aui3_1_dark.css` + `tokens.css` + `theme-dark.css` 四处 import 都写好，步骤 4 填充 token 后无需再改入口。
+> `main.jsx` 已把 `aui3_1.css` + `aui3_1_dark.css` + `base.css` + `tokens.css` + `theme-dark.css` 四处 import 都写好，步骤 4 填充 token 后无需再改入口。
 
-### 1.4 文件位置变化与相对路径
+### 1.3 文件位置变化与相对路径
 
 UMD/单 HTML 源项目经常同时有根目录 `app.jsx` 和 `src/` 目录。根目录 `app.jsx` 中的导入通常长这样：
 
@@ -115,7 +116,7 @@ import AppShell from './views/AppShell.jsx';
 - `src/views/X.jsx` 导入上层数据用 `../data.js`、`../context.jsx`
 - `src/` 内文件禁止残留 `./src/...` 导入
 
-### 1.2.1 依赖说明
+### 1.4 依赖说明
 
 `scaffold/package.json` 预置的依赖用途：
 
@@ -131,7 +132,7 @@ import AppShell from './views/AppShell.jsx';
 
 > 上述用途为基于包名与已有报错信息的推断，具体以实际工程的 `npm install` 与运行结果为准。
 
-### 1.3 安装与启动
+### 1.5 安装与启动
 
 ```bash
 npm install
@@ -158,22 +159,16 @@ import zhCN from './assets/shared/antd-zh-cn.js';
 
 ### 2.2 暗色模式改类名切换
 
-eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1` 常驻 `<body>`，`aui3_1_dark` 追加在 `<body>` 上（eview-react 组件暗色，**必须挂 `<body>` 而非 `.root`**——弹层通过 Portal 挂到 `<body>` 下，不继承 `.root` 上的类名），`.dark` 挂 `<html>`（原始 token 暗色覆盖）。完整 `useEffect` 代码见 [css-token-mapping.md](css-token-mapping.md) §4。
+eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark` 挂 `<body>`（eview-react 组件暗色）、`.dark` 挂 `<html>`（原始 token 暗色覆盖）。完整 `useEffect` 代码见 [css-token-mapping.md](css-token-mapping.md) §4。
 
-### 2.3 根 DOM 和 <body> 加 aui3_1 类名
+### 2.3 `<body>` 加 aui3_1 类名
+
+`aui3_1` 挂在 `<body>` 上（在 `index.html` 里写死：`<body class="ev_no_wcag aui3_1">`），不挂在 `.root` div：
 
 ```tsx
-// app.jsx — <body> 必须挂 aui3_1（弹层 Portal 需要）
-useEffect(() => {
-    document.body.className = isDark
-        ? 'ev_no_wcag aui3_1 aui3_1_dark'
-        : 'ev_no_wcag aui3_1';
-    document.documentElement.classList.toggle('dark', isDark);
-}, [isDark]);
-
-// 渲染
-<div className="root aui3_1">
-    <AppShell />
+// app.jsx
+<div className="root">
+    <AppShell />
 </div>
 ```
 
@@ -240,15 +235,18 @@ useEffect(() => {
 
 语法检查只能发现 JSX/JS 写法错误，发现不了 `src/app.jsx` 中 `./src/context.jsx` 这类路径错误。迁移后、`npm run dev` 前必须跑：
 
-```bash
-node .opencode/skills/antd-to-eview-react/scripts/check-relative-imports.cjs <目标工程根>
-```
-
-如果脚本随迁移产物一起拷贝，也可以在目标工程根执行：
+脚本位于本 skill 的 `scripts/check-relative-imports.cjs`，两种调用方式任选其一：
 
 ```bash
+# 方式 A：直接用 skill 目录的脚本（<skill目录> 是本 skill 的安装路径，
+#         例如 ~/.opencode/skills/antd-to-eview-react）
+node <skill目录>/scripts/check-relative-imports.cjs <目标工程根>
+
+# 方式 B：把脚本拷到目标工程的 scripts/ 后在工程根执行
 node scripts/check-relative-imports.cjs .
 ```
+
+> 脚本只递归扫描 `<目标工程根>/src/`，不覆盖根目录的 `vite.config.js`、`vitest.setup.js` 等可能也用相对导入的配置文件。如需检查根目录配置，单独 `grep` 即可。
 
 检查项：
 - 所有 `from './...'` / `from '../...'` / `require('./...')` 是否能解析到真实文件
@@ -273,7 +271,7 @@ npm run dev
 ### 5.3 功能验证清单
 
 - [ ] 页面能渲染（无 `Element type is invalid` → 检查 peer 依赖）
-- [ ] 组件有 ICT 3.1 样式（无样式 → 检查 `aui3_1.css` 导入和 `aui3_1` 类名）
+- [ ] 组件有 ICT 3.1 样式（无样式 → 检查 `aui3_1.css` 导入和 `<body>` 上的 `aui3_1` 类名）
 - [ ] 弹层文案是中文（显示 key → 检查 `IntlProvider` + `messages`）
 - [ ] 表单能输入（`TextField` value+onChange 成对）
 - [ ] 表单校验触发（`ref.submit()` → `onSuccess`）
@@ -289,6 +287,6 @@ npm run dev
 | `Failed to resolve import "./src/context.jsx" from "src/app.jsx"` | 源项目根目录 `app.jsx` 的 import 被原样搬到 scaffold 的 `src/app.jsx` | `./src/context.jsx`→`./context.jsx`，`./src/views/...`→`./views/...`，并跑 `check-relative-imports.cjs` |
 | `Element type is invalid` | 缺 peer 依赖 | 补装 `@cloudsop/horizon` 等 |
 | `Form.Item is undefined` | Form 导入方式错 | `import Form from '@nce/eview-react/Form'` |
-| 组件无样式 | 未引 css 或缺类名 | 引 `aui3_1.css` + 根加 `class="aui3_1"` |
+| 组件无样式 | 未引 css 或缺类名 | 引 `aui3_1.css` + `<body>` 加 `class="aui3_1"` |
 | 弹层文案是 key | 缺 IntlProvider | 加 `IntlProvider` + `messages` |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |

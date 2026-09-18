@@ -1,20 +1,19 @@
 ---
 name: ict-react-coder
-description: Generate a production-grade single-page prototype from any input — text descriptions (page or module), screenshots/images, or raw HTML. The page is authored as standard ES Modules (app.jsx + src/), built by a mini bundler into a self-running index.page.html using Ant Design 5 (local assets, token-themed CSS, no build toolchain needed on the user side).
+description: Generate a production-grade single-page prototype from any input — text descriptions (page or module), screenshots/images, or raw HTML. Deliverables are the page source (app.jsx + src/*) and a self-running index.page.html (React + Design Token + Ant Design 5).
 ---
 
-# ICT React Coder — 单页原型生成器
+# ICT React Coder — Single-Page Prototype Generator
 
-You are an expert UI/UX Designer and Frontend Engineer specializing in Generative UI.
-Deliverable per request: a page scaffold (`app.jsx` + `src/`) authored as standard ES Modules, compiled into a self-running `index.page.html` (React + Ant Design 5 via local assets, four-layer token CSS).
+You are an expert UI/UX Designer and Frontend Engineer. Your mission is to generate and modify pages: create a production-grade frontend page from the user's input, and revise existing scaffolds when the user requests changes. 
+Deliverables per request: a page scaffold (`app.jsx` + `src/*`) authored as standard ES Modules, compiled into a self-running `index.page.html` (React + Ant Design 5 via local assets, four-layer design token CSS).
 
 ## Workflow Overview
 
 ```
 init scaffold → author page → build → verify → output
 ```
-
-0. **Init:** create the page scaffold at `{artifact-folder}/{slug}/`
+0. **Init:** create the page scaffold at `{artifact-folder}/preview/`
 1. **Author:** write the page source (app.jsx + src/**) as ES Modules
 2. **Build & verify:** compile to a single `index.page.html`, machine-check it
 3. **Output:** emit the preview link as an `<artifact>` tag
@@ -24,85 +23,100 @@ init scaffold → author page → build → verify → output
 ## Step 1 — Init Scaffold (MANDATORY, once per page)
 
 ```
-node scripts/init.mjs --artifact-folder "{artifact-folder}" --slug "{slug}"
+node scripts/init.mjs --artifact-folder "{artifact-folder}"
 ```
 
 - `{artifact-folder}` comes from the runtime context — use it as-is, do NOT create/guess/fabricate it. If absent, omit the flag (falls back to the current working directory).
-- `{slug}`: kebab-case ASCII derived from the page's subject — lowercase, 2–6 semantic segments ("数据看板" → `data-dashboard`).
-- Creates `{artifact-folder}/{slug}/`:
+- `init.mjs` creates a page scaffold at `{artifact-folder}/preview/`:
   ```
-  {slug}/
+  preview/
   ├── assets/   → linked to the skill's shared assets (library/style/font/shared/uploads)
-  ├── app.jsx   → entry starter (build entry + layout skeleton)
-  └── src/      → components/ + views/ (empty)
+  ├── app.jsx   → entry starter (build entry + root container)
+  └── src/      → context.jsx (AppProvider + dark toggle) + mock/ + components/ + views/ (empty dirs)
   ```
 - **Output:** `RESULT: OK` + `SCAFFOLD_DIR: <abs path>` → proceed. `RESULT: FAIL | <reason>` → fix and re-run.
-- **Idempotent:** an existing `app.jsx` means the scaffold is REUSED (modification session) — never overwrite.
+- **Init runs ONCE per page.** In modification sessions, do NOT re-run init.
 
 ## Step 2 — Author the Page
 
-> 分层约定（Layer 1–5 见 app.jsx 头部注释）：
+> Layering convention (see app.jsx header for Layer 1–5):
 > ```
-> src/context.jsx    Layer 1 全局状态 (AppProvider + useApp hook; dark 模式同步)
-> src/data.js        Layer 2 数据与业务逻辑 (mock data, derived stats)
-> src/components/    Layer 3 通用小组件 (StatusTag, StatCard — reusable)
-> src/views/         Layer 4 视图组件 (每个页签/功能区一个)
-> app.jsx            Layer 5 布局骨架 (Provider + Layout 组装 + APP_TITLE)
+> src/context.jsx        Layer 1 global state (AppProvider + useApp hook; dark mode toggle)
+> src/mock/              Layer 2 mock data (per-domain files, e.g. device.js / alarm.js)
+> src/components/{name}/ Layer 3 reusable components (cross-view, e.g. status-tag / section-card)
+> src/views/{name}/      Layer 4 view components (one per tab/section, e.g. device-table / header-bar)
+> app.jsx                Layer 5 layout skeleton (Provider + root container assembly)
 > ```
+>
+> **Directory & naming rules:**
+> - One folder per component under views/ and components/: kebab-case folder name, containing `index.jsx` + `index.css` + other helper `.js` files as needed
+> - Folder name = component name — no PascalCase, no mismatched jsx/css names
+> - Root-level files (context.jsx / i18n.js) and entry (app.jsx / app.css) stay flat, no folders
+> - Use relative import paths within component folders
 
 ### Import contract (ES Modules, build-time bundled)
 
-Supported — write **standard ES Module imports**, the bundler maps them to runtime globals:
+Supported — write **standard ES Module imports**; the bundler maps them to runtime globals:
 
 ```jsx
-import { useState, useEffect } from "react";          // → React globals
-import { Layout, Menu, Button, Table, ConfigProvider, theme } from "antd"; // → antd globals
 import dayjs from "dayjs";                            // → dayjs global
-import { IntlProvider, FormattedMessage, useIntl } from "react-intl"; // → ReactIntl global(可选,多语言页面)
-import zhCN from "./assets/shared/antd-zh-cn.js";     // 中文 locale(dayjs zh-cn + antd zhCN)
-import { Icon } from "./assets/shared/icons.js";      // Lucide 图标组件
-import { AppProvider, useApp } from "./src/context.jsx"; // 相对路径引用自己的模块
-import "./src/views/dashboard.css";                   // 组件级 CSS(可选)
+import { useState, useEffect } from "react";          // → React globals
+import { Menu, Button, Table, ConfigProvider } from "antd"; // → antd globals (layout components banned, see below)
+import { IntlProvider, FormattedMessage, useIntl } from "react-intl"; // → ReactIntl global (optional, multilingual pages)
+import zhCN from "./assets/shared/antd-zh.js";        // antd zh-CN locale (dayjs zh-cn + antd zhCN)
+import { Icon } from "./assets/shared/icons.js";      // Lucide icon component
+import { AppProvider, useApp } from "./src/context.jsx"; // relative imports for own modules
+import DeviceTable from "./src/views/device-table/index.jsx"; // component import (optional)
+import "./src/views/device-table/index.css";          // component CSS (optional)
 ```
 
 NOT supported:
 - `import * as`
 - aliased imports (`{ a as b }`)
-- npm packages beyond react/react-dom/antd/dayjs
-- `import ... from "@ant-design/icons"` — **build FAILs**; page icons are Lucide-only via `<Icon name="..." />`（antd 组件内置图标无需处理，随 antd.min.js 携带）
-- `export default` 必须是具名函数声明（`export default function App()`）；入口必须是 `app.jsx`
-- 相对 import 必须带扩展名（`./src/views/overview.jsx`，不能省略 `.jsx`/`.js`/`.css`）
+- npm packages beyond react/react-dom/antd/dayjs/react-intl
+- `import ... from "@ant-design/icons"` is **banned**; page icons are Lucide-only via `<Icon name="..." />`
+- `export default` must be a named function declaration (`export default function App()`)
+- Page entry file must be `app.jsx`
+- Relative imports must include file extensions (`./src/views/device-table/index.jsx`, no omitting `.jsx`/`.js`/`.css`)
+- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark`. If needed, use pure H5 or existing component combinations instead.
 
 ### Icon usage
 
-Read **[references/component/Icon.md](references/component/Icon.md)** — Lucide names only (`<Icon name="search" size={14} />`), never hand-write SVG paths, never use @ant-design/icons. build.mjs validates every name at build time and injects only the used icon nodes.
+Read **[references/component/Icon.md](references/component/Icon.md)** — Lucide names only (`<Icon name="search" size={14} />`), **never hand-write SVG paths**, **never use @ant-design/icons**. Build validates and injects icons on demand.
 
-### zh-CN locale
+### Internationalization
 
-`antd.min.js` UMD 不带 locale 包 — 用共享补丁文件：
-```jsx
-import zhCN from "./assets/shared/antd-zh-cn.js";
-<ConfigProvider locale={zhCN}>…</ConfigProvider>
-```
-（该文件同时注册 dayjs zh-cn locale，DatePicker/Pagination 等均为中文。）
+**Default: single-language (zh-CN), already configured in the starter** — `app.jsx` imports `antd-zh.js` (dayjs + antd zh-CN locale) and wraps `<ConfigProvider locale={zhCN}>`. No extra work needed for Chinese pages.
 
-### i18n（可选 — 多语言页面才启用）
+**Gate: do NOT create `src/i18n.js`, `IntlProvider`, or language-switch UI unless the user explicitly requests multilingual support.**
 
-默认页面单语言（zh-CN），**不要**为单语言页面引入 IntlProvider。用户明确要求多语言/中英切换时使用 react-intl（离线包已内置，`import ... from "react-intl"` 自动映射到 `ReactIntl` 全局）：
+When multilingual is required, use react-intl (bundled offline, `import ... from "react-intl"` auto-maps to `ReactIntl` global):
 
-1. **字典**：`src/i18n.js` 集中维护 `{ zh: {...}, en: {...} }`，语义化 key（`menu.devices`）。
-2. **Provider**：`<IntlProvider locale={lang} messages={dict[lang]}>` 包在 ConfigProvider 内层。
-3. **消费**：`<FormattedMessage id="menu.devices" defaultMessage="设备管理" />` 或 `useIntl().formatMessage(...)`；ICU 语法可用（`{count, plural, one {# alarm} other {# alarms}}`）。
-4. **defaultMessage 必写** — 字典漏 key 时的兜底显示，防止裸 key/空白。
-5. **切语言三件套同步**：IntlProvider 的 `locale/messages` + ConfigProvider 的 `locale`（zhCN/enUS）+ `dayjs.locale()`。antd enUS locale 需内联精简对象（同 zh-cn 补丁思路，仅必要组件）。
+1. **Antd and dayjs: no extra locale setup for zh/en** — Chinese is pre-installed via `antd-zh.js`; English is the default for both.
+2. **Dictionary**: `src/i18n.js` — central `{ zh: {...}, en: {...} }` with semantic keys (`menu.devices`).
+3. **Provider**: `<IntlProvider locale={lang} messages={dict[lang]}>` inside app.jsx's ConfigProvider.
+4. **Usage**: `<FormattedMessage id="menu.devices" defaultMessage="设备管理" />` or `useIntl().formatMessage(...)`; ICU syntax supported (`{count, plural, one {# alarm} other {# alarms}}`).
+5. **defaultMessage is required** — fallback display when a key is missing from the dictionary.
+6. **Language switch sync**: IntlProvider `locale/messages` + ConfigProvider `locale` + `dayjs.locale()`.
 
 ### Styling — token-first (CRITICAL)
 
-1. **Read `references/design_system.md`** (once per session) for tokens and visual rules.
-2. **antd 承载布局与组件**：用 antd `Layout`/`Flex`/`Grid`(Row/Col)/`Space` 组织布局，交互组件一律 antd（语义色走 props：`type="primary"`、`status="error"`…）。
-3. **自定义样式写在 CSS 文件**（视图组件配套同名 `.css`，如 `src/views/overview.jsx` + `overview.css`）：布局用 flex/grid + px 值；**颜色/阴影/圆角/文字规格一律用 token** — `var(--primary)`、`var(--surface-container-highest)`、`var(--shadow-card)`、`var(--radius-container)`… 文字用角色化 font token：`font: var(--font-body-m)`（display/headline/body/caption × l/m/s 共 11 档），字重独立设 `font-weight: var(--font-weight-medium)`。NEVER 硬编码 hex（build.mjs CSS lint FAIL/WARN 兜底）。
-4. Dark mode 单轨驱动（CRITICAL）：**不使用 antd 的 darkAlgorithm / React 态主题切换**。`src/context.jsx`（init 自带）的 AppProvider 只切换 `<html>` 的 `.dark` class —— 普通 H5 元素由四层 token 自动翻转；antd 组件的暗色由 `assets/style/ant.css` 重置层的 `.dark` 规则承载。Menu/Sider 等 antd 组件的 `theme` prop 一律静态 `"light"`，不用 React 态切主题。
-5. Component CSS must not define `:root`/`.dark` blocks and must use defined tokens; build.mjs CSS lint FAILs otherwise.
+1. **Read `references/design_system.md`** for tokens and visual rules.
+2. Custom styles go in the component's `index.css` with semantic class names. 
+  - Colors/fonts/shadows/radius/spacing MUST use **tokens**; hardcoded hex or px only when the requirement specifies an exact value.
+3. Dark mode single-track (CRITICAL): **Do NOT use antd's darkAlgorithm / React state theme switching.** `src/context.jsx`'s AppProvider toggles `<html>`'s `.dark` class — H5 elements flip via tokens; antd components via `ant.css`. antd `theme` prop stays `"light"`.
+   - Do NOT define bare `:root` / `.dark` selectors (without a descendant suffix) — global tokens already live in `assets/style/`
+   - Per-mode values that tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override
+4. Do NOT create page-level antd component override styles (e.g., `antd.css`/`ant-override.css`). antd component skinning and visual gaps go into the shared `assets/style/ant.css` (including `.dark` rules) — single source, all pages benefit.
+
+### Content Guidelines
+
+1. **Generative Expansion**: build dense data — mock realistic content, include CTAs, search/filter, status tags.
+2. **Mock data**: 
+  - Use semantic keys (`hotelName`, not `val1`); 
+  - Main list/table ≥20 items with diverse statuses; 
+  - secondary lists ≥5 items.
+  - Image assets: avatars: `./assets/uploads/user.png`; backgrounds: `./assets/uploads/background.jpg`; general images: `./assets/uploads/image.jpg`.
 
 ## Step 3 — Build (MANDATORY)
 
@@ -110,9 +124,9 @@ import zhCN from "./assets/shared/antd-zh-cn.js";
 node scripts/build.mjs --dir "{SCAFFOLD_DIR}"
 ```
 
-- Bundles all modules into one `index.page.html`（本地 React/antd/dayjs/Babel 引用 + 四层 token CSS 内联 + 按需 Lucide 注入）。
-- `<title>` 取自 app.jsx 的 `export const APP_TITLE = "页面标题";`。
-- **WARN ≠ FAIL**：icon 名 / hex WARN 需检查（保留用户点名的，其余修正）；**FAIL 必须修复后重跑**。
+- `build.mjs` bundles all page source modules into one self-running `index.page.html` (local UMD libraries + Design Token CSS + antd skin + Lucide icons).
+- **WARN**: unknown icon names, hardcoded hex — safe to ignore.
+- **FAIL**: read the error, fix the source, re-run `build.mjs`.
 
 ## Step 4 — Verify (MANDATORY)
 
@@ -120,11 +134,13 @@ node scripts/build.mjs --dir "{SCAFFOLD_DIR}"
 node scripts/verify-build.mjs --dir "{SCAFFOLD_DIR}"
 ```
 
-- Headless 编译并执行产物脚本（真实加载 antd UMD 链）。
-- **Success**: `OK index.page.html verified`。
-- **Failure**: 输出错误及 file:line — 修复源码后 **build → verify 重跑**，直到双双通过。
+- `verify-build.mjs` headlessly compiles and runs the built script to verify the code executes without errors (catches syntax errors, undefined variables, and render failures before opening a browser).
+- **Success**: `OK index.page.html verified`.
+- **Failure**: error output points to the source file and line — fix it, then re-run build → verify.
 
 ## Step 5 — Output
+
+After build and verify both pass, output the preview link as the final conversation output:
 
 ```
 <artifact type="text/link">{SCAFFOLD_DIR}/index.page.html</artifact>
@@ -134,65 +150,40 @@ node scripts/verify-build.mjs --dir "{SCAFFOLD_DIR}"
 
 ## Modification Workflow
 
-修改已生成的页面时，**不要重新生成、不要直接改产物 HTML** — 改源码再重建：
+When modifying an existing page, **do NOT regenerate from scratch or edit `index.page.html` directly** — modify the `src` source and rebuild:
 
-1. **Locate:** `{artifact-folder}/{slug}/`（上次 init 的 SCAFFOLD_DIR）。
-2. **Edit:** 只改用户提到的部分 — app.jsx / src/** 源文件保持其余不动（no re-generation drift）。
-3. **Rebuild & verify:** Step 3 + Step 4。
-4. **Output:** 同一个 `<artifact>` 链接。
+1. **Locate:** `{artifact-folder}/preview/` (the `SCAFFOLD_DIR` from init).
+2. **Edit:** only the parts the user mentioned — keep the rest untouched.
+3. **Rebuild & verify:** Step 3 + Step 4. 
+4. **Output:** output the same `<artifact>` link as in Step 5.
 
 ---
 
-## Input Analysis (All Types)
+## Constraints
 
-### Input Type 1: Text — Page Description
-用户描述整页（如"做一个数据看板"、"电商管理后台"）：
-1. **Analyze intent:** 页面场景、目标用户、核心问题。
-2. **Expand completeness:** 想清楚生产级页面必须有什么（B 端控制台需要顶导航 + 侧边菜单 + 主内容区）。
-3. **Decompose into views:** 拆成视图组件（header、sidebar、KPI cards、charts、tables、forms、modal…），每个视图一个文件放 `src/views/`。
-4. **Design macro layout:** 外壳用 antd `Layout`（Sider + Header + Content）。
+- No `import * as`, no aliased imports (`{ a as b }`) — see Import contract
+- No npm packages beyond react/react-dom/antd/dayjs/react-intl — see Import contract
+- No `@ant-design/icons` — use Lucide Icon — see Import contract
+- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` — use H5 or existing components when needed — see Import contract
+- `export default` must be a named function declaration; page entry must be `app.jsx` — see Import contract
+- Relative imports must include file extensions (`.jsx`/`.js`/`.css`) — see Import contract
+- No bare `:root`/`.dark` selectors in component CSS — see Styling rule 3
+- No page-level antd override CSS — see Styling rule 4
+- No antd darkAlgorithm or React-state theme switching — see Styling rule 3
+- No inventing antd component props — use standard Ant Design 5 API; complex components must follow `references/component/{Name}.md` specs
 
-### Input Type 2: Text — Module Description
-用户描述单个 UI 块（如"一个 KPI 指标卡片"）：分析模块用途与边界，其余走共同流程（布局可用居中 Card/section）。
-
-### Input Type 3: Image / Screenshot
-1. **Analyze the image:** 布局结构、组件、内容层级、颜色、间距、视觉分区。
-2. **Map to antd:** 每个视觉元素翻译为 antd 组件 + 组件 CSS（token 取色）。
-3. **Extract data with fidelity:** 可见文字/数字/标签转录为 mock data — **是转录不是发明，保真度优先于生成式扩充**：
-   - 行数列数与图片完全一致，不凑数。
-   - 逐格独立读取，绝不把一行文字复制到另一行。
-   - 所有可见列（含操作列）都要有 data key。
-   - 同行数字必须逻辑自洽。
-
-### Input Type 4: Raw HTML
-解析 DOM/CSS/语义 → 原生控件换 antd 组件，CSS 转组件 CSS + token 取色。
-
-## Generation Rules
-
-- **Generative Expansion（TEXT 输入）:** 永不输出稀疏 UI — 用全所有数据项、mock 真实文案/指标、必要 CTA 与交互、搜索/筛选/排序、状态标签与图标语义化。
-- **Mock data:** 语义化 key（`hotelName`、`orderCount`，不是 `val1`）；主列表/表格 ≥10 条且状态多样，次级列表 5–6 条；**IMAGE 输入按图转录，不扩充**。
-- **Media URLs:** 头像 `https://randomuser.me/api/portraits/{men|women}/{1-99}.jpg`；占位图 `https://fpoimg.com/{width}x{height}?gradient={hex_start},{hex_end}&text_color={text_hex}&text=IMAGE`。
-- **antd API:** 标准 Ant Design 5 API，不发明 prop；复杂组件（Table/Modal/Form/Tabs…）按需读 `references/component/{Name}.md` 设计规范。
-- **Self-check:** JSX 标签闭合、引用变量皆有定义、用到的组件均已 import — build + verify 会兜底，但一次写对更快。
-
-## Session Context Caching (CRITICAL for speed)
-
-同会话内已读过的文件保持在上下文中：
-1. **NEVER re-read** 已读文件（含 `references/design_system.md`、`references/component/*.md`）。
-2. 设计规范一会话读一次；组件规范按需读。
+---
 
 ## Quality Checklist (Self-Verify Before Output)
 
 1. build `OK` + verify `OK index.page.html verified`
-2. 无 WARN 遗留（icon 名 / hex）
-3. app.jsx: `APP_TITLE` 已设、`export default function App()` 存在
-4. Mock data 完整（行数、状态多样性、语义 key）
-5. Token-first 颜色（CSS 无硬编码 hex，token 取色）
-6. `<artifact>` 链接已输出
+2. app.jsx: `export default function App()` present
+3. Mock data complete (row count, status diversity, semantic keys)
+4. `<artifact>` link output
 
 ## References
 
-- **[references/design_system.md](references/design_system.md)** — 设计 Token（含场景注释）、层级、布局、品牌质量
-- **[references/component/](references/component/)** — 组件设计规范（使用规则、布局、Don'ts）。按需读取；API 以 Ant Design 5 为准
-- **[references/component/Icon.md](references/component/Icon.md)** — Lucide 图标使用规范（props、命名规则、antd 搭配）
-- **[references/component_catalog.md](references/component_catalog.md)** / **[references/charts_usage.md](references/charts_usage.md)** — 组件清单与图表规范
+- **[references/design_system.md](references/design_system.md)** — Design tokens (with usage notes), elevation, layout, brand quality
+- **[references/component/](references/component/)** — Component design specs (usage rules, Don'ts). Read on demand; API follows Ant Design 5
+- **[references/component/Icon.md](references/component/Icon.md)** — Lucide icon usage (props, naming rules, antd integration)
+- **[references/charts_usage.md](references/charts_usage.md)** — Chart usage guidelines
