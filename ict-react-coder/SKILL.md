@@ -103,7 +103,7 @@ When multilingual is required, use react-intl (bundled offline, `import ... from
 
 1. **Read `references/design_system.md`** for tokens and visual rules.
 2. Custom styles go in the component's `index.css` with semantic class names. 
-  - Colors/fonts/shadows/radius/spacing MUST use **tokens**; hardcoded hex or px only when the requirement specifies an exact value.
+  - Colors/fonts/shadows/radius/spacing prefer **tokens**; hardcoded hex or px only when the requirement specifies an exact value.
 3. Dark mode single-track (CRITICAL): **Do NOT use antd's darkAlgorithm / React state theme switching.** `src/context.jsx`'s AppProvider toggles `<html>`'s `.dark` class — H5 elements flip via tokens; antd components via `ant.css`. antd `theme` prop stays `"light"`.
    - Do NOT define bare `:root` / `.dark` selectors (without a descendant suffix) — global tokens already live in `assets/style/`
    - Per-mode values that tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override

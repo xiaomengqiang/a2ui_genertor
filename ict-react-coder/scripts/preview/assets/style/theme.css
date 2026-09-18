@@ -53,9 +53,9 @@
   --info-container: var(--color-message-bg-info);
   --on-info-container: var(--color-text-primary);
 
-  --content-placeholder: var(--color-text-placeholder);
-  --content-disabled: var(--color-text-disabled);
-  --content-inverse-disabled: var(--color-text-inverse-disabled);
+  --text-placeholder: var(--color-text-placeholder);
+  --text-disabled: var(--color-text-disabled);
+  --text-inverse-disabled: var(--color-text-inverse-disabled);
 
   --interactive-link: var(--color-link);
   --interactive-link-hover: var(--color-link-hover);
@@ -89,7 +89,9 @@
   --radius-container: var(--radius-lg); /* 8px */
   --radius-overlay: var(--radius-lg);  /* 8px */
 
-  /* ── outlineWidth / outlineOffset ── */
+  /* ── border & outline width ── */
+  --border-width-thin: 1px;    
+  --border-width-thick: 2px;  
   --outline-width-focus: 1px;
   --outline-offset-gap: 2px;
 
