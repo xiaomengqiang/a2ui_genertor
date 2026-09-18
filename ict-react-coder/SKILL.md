@@ -32,7 +32,7 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
   preview/
   ├── assets/   → linked to the skill's shared assets (library/style/font/shared/uploads)
   ├── app.jsx   → entry starter (build entry + root container)
-  └── src/      → context.jsx + mock/ + components/ + views/ (empty)
+  └── src/      → context.jsx (AppProvider + dark toggle) + mock/ + components/ + views/ (empty dirs)
   ```
 - **Output:** `RESULT: OK` + `SCAFFOLD_DIR: <abs path>` → proceed. `RESULT: FAIL | <reason>` → fix and re-run.
 - **Init runs ONCE per page.** In modification sessions, do NOT re-run init.
@@ -56,14 +56,14 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 
 ### Import contract (ES Modules, build-time bundled)
 
-Supported - **standard ES Module imports**, the bundler maps them to runtime globals:
+Supported — write **standard ES Module imports**; the bundler maps them to runtime globals:
 
 ```jsx
 import dayjs from "dayjs";                            // → dayjs global
 import { useState, useEffect } from "react";          // → React globals
 import { Menu, Button, Table, ConfigProvider } from "antd"; // → antd globals (layout components banned, see below)
 import { IntlProvider, FormattedMessage, useIntl } from "react-intl"; // → ReactIntl global (optional, multilingual pages)
-import zhCN from "./assets/shared/antd-zh.js";        // Antd chinese locale (dayjs zh-cn + antd zhCN)
+import zhCN from "./assets/shared/antd-zh.js";        // antd zh-CN locale (dayjs zh-cn + antd zhCN)
 import { Icon } from "./assets/shared/icons.js";      // Lucide icon component
 import { AppProvider, useApp } from "./src/context.jsx"; // relative imports for own modules
 import DeviceTable from "./src/views/device-table/index.jsx"; // component import (optional)
@@ -168,7 +168,7 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 - `export default` must be a named function declaration; page entry must be `app.jsx` — see Import contract
 - Relative imports must include file extensions (`.jsx`/`.js`/`.css`) — see Import contract
 - No bare `:root`/`.dark` selectors in component CSS — see Styling rule 3
-- No antd override CSS — see Styling rule 4
+- No page-level antd override CSS — see Styling rule 4
 - No antd darkAlgorithm or React-state theme switching — see Styling rule 3
 - No inventing antd component props — use standard Ant Design 5 API; complex components must follow `references/component/{Name}.md` specs
 
