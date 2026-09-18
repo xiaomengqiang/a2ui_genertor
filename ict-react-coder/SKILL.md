@@ -109,6 +109,15 @@ When multilingual is required, use react-intl (bundled offline, `import ... from
    - Per-mode values that tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override
 4. Do NOT create page-level antd component override styles (e.g., `antd.css`/`ant-override.css`). antd component skinning and visual gaps go into the shared `assets/style/ant.css` (including `.dark` rules) — single source, all pages benefit.
 
+### Content Guidelines
+
+1. **Generative Expansion**: build dense data — mock realistic content, include CTAs, search/filter, status tags.
+2. **Mock data**: 
+  - Use semantic keys (`hotelName`, not `val1`); 
+  - Main list/table ≥20 items with diverse statuses; 
+  - secondary lists ≥5 items.
+  - Image assets: avatars: `./assets/uploads/user.png`; backgrounds: `./assets/uploads/background.jpg`; general images: `./assets/uploads/image.jpg`.
+
 ## Step 3 — Build (MANDATORY)
 
 ```
@@ -162,16 +171,9 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 - No page-level antd override CSS — see Styling rule 4
 - No antd darkAlgorithm or React-state theme switching — see Styling rule 3
 - No `src/i18n.js`/IntlProvider/language-switch UI unless explicitly requested — see Internationalization
+- No inventing antd component props — use standard Ant Design 5 API; complex components must follow `references/component/{Name}.md` specs
 
 ---
-
-## Generation Rules
-
-- **Generative Expansion:** 永不输出稀疏 UI — 用全所有数据项、mock 真实文案/指标、必要 CTA 与交互、搜索/筛选/排序、状态标签与图标语义化。
-- **Mock data:** 语义化 key（`hotelName`、`orderCount`，不是 `val1`）；主列表/表格 ≥10 条且状态多样，次级列表 5–6 条。**若输入为截图/图片：按图逐格转录，不扩充不发明**（行数列数与图一致、逐格独立读取、可见列都有 data key、同行数字逻辑自洽）。
-- **Media URLs:** 头像 `https://randomuser.me/api/portraits/{men|women}/{1-99}.jpg`；占位图 `https://fpoimg.com/{width}x{height}?gradient={hex_start},{hex_end}&text_color={text_hex}&text=IMAGE`。
-- **antd API:** 标准 Ant Design 5 API，不发明 prop；复杂组件（Table/Modal/Form/Tabs…）按需读 `references/component/{Name}.md` 设计规范。
-- **Self-check:** JSX 标签闭合、引用变量皆有定义、用到的组件均已 import — build + verify 会兜底，但一次写对更快。
 
 ## Quality Checklist (Self-Verify Before Output)
 
