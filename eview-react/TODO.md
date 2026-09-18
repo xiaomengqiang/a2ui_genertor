@@ -31,6 +31,9 @@
 
 ## 待实测（需在真实 `@nce/eview-react` 工程里跑一次确认，本地无内网 npm 源）
 
+> ✅ **2026-09 内网真机已确认（Form 托管）**：`Form.Item name` + 控件不传 `value`/`onChange` + `ref.submit()` → `onSuccess(values)` **能收到 `values`**；`setFieldsValue` / `resetFields` / `submit` / `getFieldsValue` 均可用；Form rules `required` / `email` / `range` 在 `submit()` 时正常拦截。已写入 `Form.md` 头部与 `antd-to-eview-react/references/form-migration.md`。
+> ⚠️ **同批发现的硬坑**：`initialValues` **必须传对象**，传 `undefined` 会让 `onSuccess(values)` 收到空对象（"托管没生效"的根因）；控件自带 `validator` 默认不在 `submit()` 时跑，需 `validateAllChildComponent={true}`（此项仍待实测确认）；`onFailed` 真机示例只取第一参 `errors`。
+
 | 项 | 现状 | 确认后动作 |
 |----|------|-----------|
 | `RadioGroup.onChange` 参数顺序 | 类型 `(oldValue, value, event)` vs 文档 `(value, oldValue, event)`，无 demo | 确认后把 `Radio.md` §4 的兼容写法简化为直接取值，删掉 ⚠️ |

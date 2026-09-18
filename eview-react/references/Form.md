@@ -5,6 +5,10 @@
 > ⚠️ 官网 README 明确："表单 2.0 能力发布，推荐使用；传统用法 1.0 不推荐"。**2.0 = `Form.Item name + rules` 托管值与校验**；`FormDemo.jsx` 是 1.0 写法（控件自己带 `name` / `value`），不要参考。
 > ⚠️ 提交按钮不是 `type="submit"`（Button 没有 type），而是 `onClick={() => formRef.current.submit()}`；校验通过走 `onSuccess(values)`，失败走 `onFailed(errorFields, values)`。
 > ⚠️ 官方 demo 原话："尽量不要使用 TextField 等组件自己的赋值方法，请使用 Form 的 `setFieldsValue` 等方法"。
+>
+> ✅ **运行时已验证（内网真机，2026-09）**：2.0 托管模式（`Form.Item name` + 控件不传 `value`/`onChange` + `ref.submit()` → `onSuccess(values)`）在真实工程里**能收到 `values`**（含所有 `name` 字段）；`setFieldsValue` / `resetFields` / `submit` / `getFieldsValue` 均可用。先前 `TODO.md`「待实测」对应项 hereby 关闭。
+> ⚠️ **硬坑**：`initialValues` **必须传对象，不能是 `undefined`**。真机观察到传 `undefined` 时 `submit()` 仍触发 `onSuccess` 但 `values` 是空对象（"托管没生效"的表现；机制未深究但可复现，传具体对象则 `values` 正常）。动态/异步场景务必 `initialValues={x || {}}`。
+> ⚠️ 控件自带 `validator`（如 TextField/TextArea 的 `validator`）默认**不在 `submit()` 时执行**，需 Form 上加 `validateAllChildComponent={true}`；Form rules（`required`/`email`/`range` 等）则在 `submit()` 时正常跑（已验证）。`onFailed` 真机示例只取第一参 `errors`，第二参 `values` 是否提供待实测。
 
 ## 1. 功能定位
 
@@ -265,9 +269,9 @@ rules={[{ required: true, message: '必填' }, { type: 'email' }]}
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
-| `initialValues` | `object` | 按 `name` 初始化，仅初始化与 `resetFields` 时生效 |
+| `initialValues` | `object` | 按 `name` 初始化，仅初始化与 `resetFields` 时生效；**必须传对象，`undefined` 会让 `onSuccess(values)` 收到空对象（已真机确认）** |
 | `onSuccess` | `(values) => void` | 提交且校验全部通过 |
-| `onFailed` | `(errorFields, values) => void` | 提交且校验失败 |
+| `onFailed` | `(errors, values?) => void` | 提交且校验失败；真机示例只取第一参 `errors`，第二参 `values` 待实测 |
 | `onValuesChange` | `(changedFields, allNewValues, allPrevValues) => void` | 字段更新 |
 | `layout` | `'horizontal' \| 'vertical'`，默认 `horizontal` | 不支持 inline |
 | `itemCol` | `24 \| 12 \| 8 \| 6`，默认 `24` | 多列表单，每项占栅格 |
@@ -275,7 +279,7 @@ rules={[{ required: true, message: '必填' }, { type: 'email' }]}
 | `labelAlign` / `colon` | `'left' \| 'right'`（默认 right）/ `boolean`（默认 true） | 标签对齐 / 冒号 |
 | `validateTrigger` / `updateTrigger` | `string`，默认 `onChange` | 校验 / 取值的回调名 |
 | `validateErrorType` | `'div' \| 'tip' \| 'none'` | 错误提示形式 |
-| `validateAllChildComponent` | `boolean`，默认 `false` | 是否同时执行子控件自带校验 |
+| `validateAllChildComponent` | `boolean`，默认 `false` | 是否同时执行子控件自带校验；**控件 `validator` 要在 `submit()` 时跑必须设 `true`**（待实测确认，但官方 API 表语义如此） |
 | `component` | `any`，默认 `form` | 渲染的 HTML 元素；`false` 不创建 DOM |
 | `itemFillUp` / `padding` / `title` / `fields` | — | 垂直布局占满 / 内边距 / 标题 / 外部状态管理（不推荐） |
 | `Form.Item.name` | `string`，**必填** | 字段名 |
