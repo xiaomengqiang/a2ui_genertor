@@ -357,13 +357,13 @@ const html = `<!DOCTYPE html>
 <script src="./assets/library/antd.min.js"></script>
 <!-- 3. react-intl (offline, exposes ReactIntl) -->
 <script src="./assets/library/react-intl.umd.js"></script>
-<!-- 3. Babel Transpiler (local) -->
+<!-- 4. Babel Transpiler (local) -->
 <script src="./assets/library/babel.min.js"></script>
-<!-- 4. 五层 CSS(base → light → theme → dark → ant 组件换肤层)内联 -->
+<!-- 5. 五层 CSS(base → light → theme → dark → ant 组件换肤层)内联 -->
 <style>
 ${cssParts.join("\n\n")}
 </style>
-<!-- 5. Base styles -->
+<!-- 6. Base styles -->
 <style>
 body, html { margin: 0; padding: 0; height: 100%; font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif); }
 #root { height: 100%; }
