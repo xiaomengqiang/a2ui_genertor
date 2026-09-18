@@ -92,20 +92,22 @@ Read **[references/component/Icon.md](references/component/Icon.md)** — Lucide
 
 When multilingual is required, use react-intl (bundled offline, `import ... from "react-intl"` auto-maps to `ReactIntl` global):
 
-1. **Dictionary**: `src/i18n.js` — central `{ zh: {...}, en: {...} }` with semantic keys (`menu.devices`).
-2. **Provider**: `<IntlProvider locale={lang} messages={dict[lang]}>` inside app.jsx's ConfigProvider.
-3. **Usage**: `<FormattedMessage id="menu.devices" defaultMessage="设备管理" />` or `useIntl().formatMessage(...)`; ICU syntax supported (`{count, plural, one {# alarm} other {# alarms}}`).
-4. **defaultMessage is required** — fallback display when a key is missing from the dictionary.
-5. **Language switch sync**: IntlProvider `locale/messages` + ConfigProvider `locale` (zhCN/enUS) + `dayjs.locale()`. Chinese locale is pre-installed (`antd-zh.js`); English is the default for both antd and dayjs — no extra setup needed.
+1. **Antd and dayjs: no extra locale setup for zh/en** — Chinese is pre-installed via `antd-zh.js`; English is the default for both.
+2. **Dictionary**: `src/i18n.js` — central `{ zh: {...}, en: {...} }` with semantic keys (`menu.devices`).
+3. **Provider**: `<IntlProvider locale={lang} messages={dict[lang]}>` inside app.jsx's ConfigProvider.
+4. **Usage**: `<FormattedMessage id="menu.devices" defaultMessage="设备管理" />` or `useIntl().formatMessage(...)`; ICU syntax supported (`{count, plural, one {# alarm} other {# alarms}}`).
+5. **defaultMessage is required** — fallback display when a key is missing from the dictionary.
+6. **Language switch sync**: IntlProvider `locale/messages` + ConfigProvider `locale` + `dayjs.locale()`.
 
 ### Styling — token-first (CRITICAL)
 
-1. **Read `references/design_system.md`** (once per session) for tokens and visual rules.
-2. **布局一律 H5 结构 + CSS**：`<header>/<aside>/<main>/<footer>/<section>` + flex/grid + token 间距（`gap: var(--spacing-gutter)`）。antd 布局/装饰组件已禁用（Layout/Grid/Flex/Space/Card/Skeleton/Masonry/Popconfirm/Watermark，build FAIL）。交互组件一律 antd（语义色走 props：`type="primary"`、`status="error"`…）。真遇到对应需求，**用纯 H5 或已有组件组合实现**。
-3. **自定义样式写在组件文件夹的 `index.css`**（如 `src/views/device-table/index.jsx` + `index.css`）：布局用 flex/grid + px 值；**颜色/阴影/圆角/文字规格一律用 token** — `var(--primary)`、`var(--surface-container-highest)`、`var(--shadow-card)`、`var(--radius-container)`… 文字用角色化 font token：`font: var(--font-body-m)`（display/headline/body/caption × l/m/s 共 11 档），字重独立设 `font-weight: var(--font-weight-medium)`。NEVER 硬编码 hex（build.mjs CSS lint FAIL/WARN 兜底）。
-4. Dark mode 单轨驱动（CRITICAL）：**不使用 antd 的 darkAlgorithm / React 态主题切换**。`src/context.jsx`（init 自带）的 AppProvider 只切换 `<html>` 的 `.dark` class —— 普通 H5 元素由四层 token 自动翻转；antd 组件的暗色由 `assets/style/ant.css` 重置层的 `.dark` 规则承载。antd 组件的 `theme` prop 一律静态 `"light"`，不用 React 态切主题。
-5. Component CSS must not define `:root`/`.dark` blocks and must use defined tokens; build.mjs CSS lint FAILs otherwise.
-6. **禁止页面级 antd 组件覆盖样式**（如自建 `antd.css`/`ant-override.css`）：antd 组件的换肤与视觉缺口统一补充到共享的 `assets/style/ant.css`（含 `.dark` 规则）— 换肤层单源，所有页面一致受益。
+1. **Read `references/design_system.md`** for tokens and visual rules.
+2. Custom styles go in the component's `index.css` with semantic class names. 
+  - Colors/fonts/shadows/radius/spacing MUST use **tokens**; hardcoded hex or px only when the requirement specifies an exact value.
+3. Dark mode single-track (CRITICAL): **Do NOT use antd's darkAlgorithm / React state theme switching.** `src/context.jsx`'s AppProvider toggles `<html>`'s `.dark` class — H5 elements flip via tokens; antd components via `ant.css`. antd `theme` prop stays `"light"`.
+   - Do NOT define bare `:root` / `.dark` selectors (without a descendant suffix) — global tokens already live in `assets/style/`
+   - Per-mode values that tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override
+4. Do NOT create page-level antd component override styles (e.g., `antd.css`/`ant-override.css`). antd component skinning and visual gaps go into the shared `assets/style/ant.css` (including `.dark` rules) — single source, all pages benefit.
 
 ## Step 3 — Build (MANDATORY)
 
@@ -148,6 +150,21 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 
 ---
 
+## Constraints
+
+- No `import * as`, no aliased imports (`{ a as b }`) — see Import contract
+- No npm packages beyond react/react-dom/antd/dayjs/react-intl — see Import contract
+- No `@ant-design/icons` — use Lucide Icon component — see Import contract
+- No antd layout/decorative components (Layout/Grid/Flex/Space/Card/Skeleton/Masonry/Popconfirm/Watermark) — build FAILs — see Import contract
+- `export default` must be a named function declaration; page entry must be `app.jsx` — see Import contract
+- Relative imports must include file extensions (`.jsx`/`.js`/`.css`) — see Import contract
+- No bare `:root`/`.dark` selectors in component CSS — see Styling rule 3
+- No page-level antd override CSS — see Styling rule 4
+- No antd darkAlgorithm or React-state theme switching — see Styling rule 3
+- No `src/i18n.js`/IntlProvider/language-switch UI unless explicitly requested — see Internationalization
+
+---
+
 ## Generation Rules
 
 - **Generative Expansion:** 永不输出稀疏 UI — 用全所有数据项、mock 真实文案/指标、必要 CTA 与交互、搜索/筛选/排序、状态标签与图标语义化。
@@ -156,20 +173,12 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 - **antd API:** 标准 Ant Design 5 API，不发明 prop；复杂组件（Table/Modal/Form/Tabs…）按需读 `references/component/{Name}.md` 设计规范。
 - **Self-check:** JSX 标签闭合、引用变量皆有定义、用到的组件均已 import — build + verify 会兜底，但一次写对更快。
 
-## Session Context Caching (CRITICAL for speed)
-
-同会话内已读过的文件保持在上下文中：
-1. **NEVER re-read** 已读文件（含 `references/design_system.md`、`references/component/*.md`）。
-2. 设计规范一会话读一次；组件规范按需读。
-
 ## Quality Checklist (Self-Verify Before Output)
 
 1. build `OK` + verify `OK index.page.html verified`
-2. 无 WARN 遗留（icon 名 / hex）
-3. app.jsx: `export default function App()` present
-4. Mock data 完整（行数、状态多样性、语义 key）
-5. Token-first 颜色（CSS 无硬编码 hex，token 取色）
-6. `<artifact>` 链接已输出
+2. app.jsx: `export default function App()` present
+3. Mock data 完整（行数、状态多样性、语义 key）
+4. `<artifact>` 链接已输出
 
 ## References
 
