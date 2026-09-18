@@ -2,9 +2,24 @@
 /* 步骤4: 从源项目的内联 <style> / index.page.html 提取 :root 变量定义到这里 */
 /* 只放变量定义，不放任何选择器规则；布局/手写 CSS 引用 var(--xxx) 但不在此定义 */
 /*
+⚠️ 加载顺序约束：
+  main.jsx 的 import 顺序为 aui3_1.css → aui3_1_dark.css → tokens.css → theme-dark.css
+  tokens.css 的 :root 与 theme-dark.css 的 .dark 特异性相同(0,1,0)，
+  级联中后声明者胜。因此：
+  - tokens.css 中 :root 定义的语义变量（如 --color-bg-1）如果在 theme-dark.css
+    的 .dark 中也有覆盖，则 .dark 级联后生效——确保 theme-dark.css 中覆盖了
+    tokens.css :root 中所有暗色值不同的变量
+  - 角色变量（如 --surface: var(--color-bg-1)）是惰性引用，自动跟随语义变量翻转，
+    不需要在 .dark 中重复定义（除非角色变量在 :root 中直接写了色值而非 var() 引用）
+
+最佳实践：tokens.css 只放基础色阶 + 排版 + 间距 + @font-face + @media + :root 角色层变量；
+语义层变量（--color-bg-1 等）如果源项目原样写在 :root 中，拷贝过来后确保 theme-dark.css
+在 .dark 中全部覆盖。
+*/
+/*
 :root {
-    --brand-50: #0067D1;
-    --surface: #f3f3f3;
-    ...
+    --brand-50: #0067D1;
+    --surface: #f3f3f3;
+    ...
 }
 */

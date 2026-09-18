@@ -59,16 +59,16 @@ cp -r scaffold/ <目标工程根>
 
 ```
 scaffold/
-├── package.json        # 依赖已含 @nce/eview-react / react-intl / horizon peer / lodash 等
-├── .npmrc              # @nce scope 指向华为 product_npm 源
-├── vite.config.js      # Vite + @vitejs/plugin-react
-├── index.html          # <body class="ev_no_wcag"> + /src/main.jsx
+├── package.json        # 依赖已含 @nce/eview-react / react-intl / horizon peer / lodash 等
+├── .npmrc              # @nce scope 指向华为 product_npm 源
+├── vite.config.js      # Vite + @vitejs/plugin-react
+├── index.html          # <body class="ev_no_wcag"> + /src/main.jsx
 └── src/
-    ├── main.jsx        # ConfigProvider + IntlProvider + aui3_1.css + tokens.css + theme-dark.css
-    ├── app.jsx         # 空壳 App（<div className="root aui3_1">），步骤 3 替换为 AppShell
-    └── styles/
-        ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量
-        └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
+    ├── main.jsx        # ConfigProvider + IntlProvider + aui3_1.css + aui3_1_dark.css + tokens.css + theme-dark.css
+    ├── app.jsx         # 空壳 App（<body> 挂 aui3_1 / aui3_1_dark，<html> 挂 .dark），步骤 3 替换为 AppShell
+    └── styles/
+        ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量
+        └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
 ```
 
 拷贝后各文件何时改：
@@ -79,12 +79,12 @@ scaffold/
 | `.npmrc` | `@nce` scope 指向 product_npm 源 | 一般不改 |
 | `vite.config.js` | Vite + plugin-react，最小配置 | 一般不改 |
 | `index.html` | 薄入口，`<body class="ev_no_wcag">` + `/src/main.jsx` | 改 `<title>` |
-| `src/main.jsx` | Provider 组装 + 三处 css import | import 不用改；步骤 2 切暗色时加类名切换逻辑 |
+| `src/main.jsx` | Provider 组装 + 四处 css import | import 不用改；步骤 2 切暗色时在 app.jsx 加类名切换逻辑 |
 | `src/app.jsx` | 空壳 App | 步骤 3 替换为源项目 AppShell |
 | `src/styles/tokens.css` | 空壳占位 | 步骤 4 填 |
 | `src/styles/theme-dark.css` | 空壳占位 | 步骤 4 填 |
 
-> `main.jsx` 已把 `aui3_1.css` + `tokens.css` + `theme-dark.css` 三处 import 都写好，步骤 4 填充 token 后无需再改入口。
+> `main.jsx` 已把 `aui3_1.css` + `aui3_1_dark.css` + `tokens.css` + `theme-dark.css` 四处 import 都写好，步骤 4 填充 token 后无需再改入口。
 
 ### 1.4 文件位置变化与相对路径
 
@@ -150,22 +150,30 @@ import { ConfigProvider, theme } from 'antd';
 import zhCN from './assets/shared/antd-zh-cn.js';
 
 <ConfigProvider locale={zhCN}>
-    <ConfigProvider theme={{ algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
-        {children}
-    </ConfigProvider>
+    <ConfigProvider theme={{ algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
+        {children}
+    </ConfigProvider>
 </ConfigProvider>
 ```
 
 ### 2.2 暗色模式改类名切换
 
-eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark` 挂 `.root`（eview-react 组件暗色）、`.dark` 挂 `<html>`（原始 token 暗色覆盖）。完整 `useEffect` 代码见 [css-token-mapping.md](css-token-mapping.md) §4。
+eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1` 常驻 `<body>`，`aui3_1_dark` 追加在 `<body>` 上（eview-react 组件暗色，**必须挂 `<body>` 而非 `.root`**——弹层通过 Portal 挂到 `<body>` 下，不继承 `.root` 上的类名），`.dark` 挂 `<html>`（原始 token 暗色覆盖）。完整 `useEffect` 代码见 [css-token-mapping.md](css-token-mapping.md) §4。
 
-### 2.3 根 DOM 加 aui3_1 类名
+### 2.3 根 DOM 和 <body> 加 aui3_1 类名
 
 ```tsx
-// app.jsx
+// app.jsx — <body> 必须挂 aui3_1（弹层 Portal 需要）
+useEffect(() => {
+    document.body.className = isDark
+        ? 'ev_no_wcag aui3_1 aui3_1_dark'
+        : 'ev_no_wcag aui3_1';
+    document.documentElement.classList.toggle('dark', isDark);
+}, [isDark]);
+
+// 渲染
 <div className="root aui3_1">
-    <AppShell />
+    <AppShell />
 </div>
 ```
 
@@ -217,9 +225,9 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 
 1. 从源项目的 `index.page.html`（或内联 `<style>`）提取 `:root` 变量定义到 `src/styles/tokens.css`
 2. 提取 `.dark` 暗色覆盖到 `src/styles/theme-dark.css`（有的话）
-3. 在入口同时引入：`import '@nce/eview-react/styles/aui3_1.css'` + `import './styles/tokens.css'` + `import './styles/theme-dark.css'`
+3. 在入口同时引入：`import '@nce/eview-react/styles/aui3_1.css'` + `import '@nce/eview-react/styles/aui3_1_dark.css'` + `import './styles/tokens.css'` + `import './styles/theme-dark.css'`
 4. 布局/手写 CSS 不改（继续引用 `var(--surface)` 等原始变量名）
-5. 暗色模式同时切 `aui3_1_dark` 和 `.dark` 两个类名
+5. 暗色模式同时切 `<body>` 上的 `aui3_1` / `aui3_1_dark` 和 `<html>` 上的 `.dark`
 
 通用规则：
 - 不写死色值，用 CSS 变量（源项目的原始 token）
@@ -271,7 +279,7 @@ npm run dev
 - [ ] 表单校验触发（`ref.submit()` → `onSuccess`）
 - [ ] 下拉选项渲染（`options=[{text,value}]` 字段名正确）
 - [ ] 弹窗能打开和关闭（`isOpen`/`visible` 受控 + `onClose` 里置 false）
-- [ ] 暗色模式切换（`aui3_1_dark` + `.dark` 两个类名都切）
+- [ ] 暗色模式切换（`<body>` 上 `aui3_1` / `aui3_1_dark` + `<html>` 上 `.dark` 都切）
 - [ ] 手写补位组件样式跟随主题（用了 CSS 变量，不写死色值）
 
 ### 5.4 常见报错对照

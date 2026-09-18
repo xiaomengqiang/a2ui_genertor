@@ -4,8 +4,7 @@ export default function App() {
     const [isDark, setIsDark] = useState(false);
     // 暗色切换见 references/css-token-mapping.md §4
     useEffect(() => {
-        const root = document.querySelector('.root');
-        if (root) root.classList.toggle('aui3_1_dark', isDark);
+        document.body.className = isDark ? 'ev_no_wcag aui3_1 aui3_1_dark' : 'ev_no_wcag aui3_1';
         document.documentElement.classList.toggle('dark', isDark);
     }, [isDark]);
     return (
