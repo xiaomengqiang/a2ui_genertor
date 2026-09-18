@@ -98,7 +98,12 @@ import { AppProvider } from './src/context.jsx';
 迁移后必须跑相对导入解析检查，避免 Vite import-analysis 阶段才暴露问题：
 
 ```bash
-node .opencode/skills/antd-to-eview-react/scripts/check-relative-imports.cjs <目标工程根>
+# 脚本位于本 skill 的 scripts/check-relative-imports.cjs，两种调用方式任选其一：
+# 方式 A：直接用 skill 目录的脚本（<skill目录> 是本 skill 的安装路径）
+node <skill目录>/scripts/check-relative-imports.cjs <目标工程根>
+
+# 方式 B：把脚本拷到目标工程的 scripts/ 后在工程根执行
+node scripts/check-relative-imports.cjs .
 ```
 
 ### 1.4 成本对比
@@ -161,7 +166,7 @@ src/styles/
 |------|-------------------|----------------------|
 | 迁移到 Vite | 666 个变量定义跟着 HTML 一起丢 | 文件还在，import 正常工作 |
 | 保留原始 token | 不可能（HTML 丢了） | 直接 import，与 `aui3_1.css` 并存，布局 CSS 不改 |
-| 暗色模式 | `.dark` 类也在 HTML 里 | `theme-dark.css` 独立，迁移后暗色同时切 `aui3_1_dark` 和 `.dark` |
+| 暗色模式 | `.dark` 类也在 HTML 里 | `theme-dark.css` 独立，迁移后暗色同时切 `aui3_1_dark`（挂 `<body>`）和 `.dark`（挂 `<html>`） |
 
 ---
 

@@ -1,5 +1,15 @@
 #!/usr/bin/env node
 
+// 检查迁移后工程内 src/ 目录下所有相对导入（./ ../ require/import）能否解析到真实文件，
+// 并标记 src/ 内文件残留 `./src/...` 的导入（scaffold 迁移常见错误）。
+//
+// 范围说明：本脚本只递归扫描 <目标工程根>/src/，不覆盖根目录的 vite.config.js、
+// vitest.setup.js 等可能也使用相对导入的文件。如需检查根目录配置文件，请单独 grep。
+//
+// 用法：
+//   node check-relative-imports.cjs <目标工程根>      # 默认当前工作目录
+//   node check-relative-imports.cjs .                  # 在目标工程根执行
+
 const fs = require('fs');
 const path = require('path');
 
