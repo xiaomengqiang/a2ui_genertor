@@ -260,3 +260,11 @@ ICT 产品应呈现清晰、有用、可信、克制、自然、专业且统一�
 ## 8. Responsive & Adaptive
 - 默认设计画布为 1920 x 1080；桌面端以 1920px 为基础设计宽度，默认 `1rem = 16px`。
 - Mobile `<768px`；Tablet `768–1024px`；Desktop `>1024px`。
+
+## 全局选择规则
+
+- 顶部导航和侧边导航必须使用 `Menu`，不得使用 `Tabs`，也不得在导航项中放置 `Checkbox`、`RadioGroup` 或 `Tag`。
+- 卡片右上角的少量互斥视图切换使用 `Segmented`；同级内容分区才使用 `Tabs`。
+- 表格行选择使用 Table 的 `rowSelection`，不得手动画 Checkbox 列。
+- 关键词搜索使用 `Input` 并设置搜索图标，不创建不存在的 Search 组件。
+- 只调用当前运行环境真实提供的组件；没有独立规范文件的组件不得臆造 props。

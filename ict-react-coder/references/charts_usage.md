@@ -13,6 +13,12 @@
 - PatStackedBar 必须提供 `normal / warning / danger / error`；Progress 必须提供 `percent`，状态使用 `normal | active | success | exception`。
 - 沿用组件默认图表色；除非用户明确要求且符合 Token 规范，不设置 `option.color` 或 `strokeColor`。
 
+## TopN 图表
+
+- 多系列比较优先使用 `BarChart`。
+- 百分比或比率排名在运行环境提供时使用 `ProcessChart`，否则使用横向 `BarChart`。数据格式：`[{"name": "A", "value": 45}, {"name": "B", "value": 80}]`
+- 绝对值排名在运行环境提供时使用 `HillChart`，否则使用横向 `BarChart`。数据格式：`[{"name": "A", "value": 1250}, {"name": "B", "value": 840}]`
+
 ## 布局
 
 - 图表填满父容器，并提供标题、时间范围或数据口径。

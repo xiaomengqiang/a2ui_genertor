@@ -163,14 +163,13 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 
 - No `import * as`, no aliased imports (`{ a as b }`) — see Import contract
 - No npm packages beyond react/react-dom/antd/dayjs/react-intl — see Import contract
-- No `@ant-design/icons` — use Lucide Icon component — see Import contract
-- No antd layout/decorative components (Layout/Grid/Flex/Space/Card/Skeleton/Masonry/Popconfirm/Watermark) — build FAILs — see Import contract
+- No `@ant-design/icons` — use Lucide Icon — see Import contract
+- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` — use H5 or existing components when needed — see Import contract
 - `export default` must be a named function declaration; page entry must be `app.jsx` — see Import contract
 - Relative imports must include file extensions (`.jsx`/`.js`/`.css`) — see Import contract
 - No bare `:root`/`.dark` selectors in component CSS — see Styling rule 3
-- No page-level antd override CSS — see Styling rule 4
+- No antd override CSS — see Styling rule 4
 - No antd darkAlgorithm or React-state theme switching — see Styling rule 3
-- No `src/i18n.js`/IntlProvider/language-switch UI unless explicitly requested — see Internationalization
 - No inventing antd component props — use standard Ant Design 5 API; complex components must follow `references/component/{Name}.md` specs
 
 ---
@@ -179,12 +178,12 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 
 1. build `OK` + verify `OK index.page.html verified`
 2. app.jsx: `export default function App()` present
-3. Mock data 完整（行数、状态多样性、语义 key）
-4. `<artifact>` 链接已输出
+3. Mock data complete (row count, status diversity, semantic keys)
+4. `<artifact>` link output
 
 ## References
 
-- **[references/design_system.md](references/design_system.md)** — 设计 Token（含场景注释）、层级、布局、品牌质量
-- **[references/component/](references/component/)** — 组件设计规范（使用规则、布局、Don'ts）。按需读取；API 以 Ant Design 5 为准
-- **[references/component/Icon.md](references/component/Icon.md)** — Lucide 图标使用规范（props、命名规则、antd 搭配）
-- **[references/component_catalog.md](references/component_catalog.md)** / **[references/charts_usage.md](references/charts_usage.md)** — 组件清单与图表规范
+- **[references/design_system.md](references/design_system.md)** — Design tokens (with usage notes), elevation, layout, brand quality
+- **[references/component/](references/component/)** — Component design specs (usage rules, Don'ts). Read on demand; API follows Ant Design 5
+- **[references/component/Icon.md](references/component/Icon.md)** — Lucide icon usage (props, naming rules, antd integration)
+- **[references/charts_usage.md](references/charts_usage.md)** — Chart usage guidelines
