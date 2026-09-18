@@ -32,84 +32,82 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
   preview/
   ├── assets/   → linked to the skill's shared assets (library/style/font/shared/uploads)
   ├── app.jsx   → entry starter (build entry + root container)
-  └── src/      → context.jsx + empty components/ + empty views/
+  └── src/      → context.jsx + mock/ + components/ + views/ (empty)
   ```
 - **Output:** `RESULT: OK` + `SCAFFOLD_DIR: <abs path>` → proceed. `RESULT: FAIL | <reason>` → fix and re-run.
 - **Init runs ONCE per page.** In modification sessions, do NOT re-run init.
 
 ## Step 2 — Author the Page
 
-> 分层约定（Layer 1–5 见 app.jsx 头部注释）：
+> Layering convention (see app.jsx header for Layer 1–5):
 > ```
-> src/context.jsx        Layer 1 全局状态 (AppProvider + useApp hook; dark 模式切换)
-> src/data.js            Layer 2 数据与业务逻辑 (mock data, derived stats)
-> src/components/{name}/ Layer 3 通用小组件 (跨视图复用,如 status-tag / section-card)
-> src/views/{name}/      Layer 4 视图组件 (每个页签/功能区一个,如 device-table / header-bar)
-> app.jsx                Layer 5 布局骨架 (Provider + root container assembly)
+> src/context.jsx        Layer 1 global state (AppProvider + useApp hook; dark mode toggle)
+> src/mock/              Layer 2 mock data (per-domain files, e.g. device.js / alarm.js)
+> src/components/{name}/ Layer 3 reusable components (cross-view, e.g. status-tag / section-card)
+> src/views/{name}/      Layer 4 view components (one per tab/section, e.g. device-table / header-bar)
+> app.jsx                Layer 5 layout skeleton (Provider + root container assembly)
 > ```
 >
-> **目录与命名规则（强制）：**
-> - views/ 与 components/ 下**一个组件一个文件夹**：kebab-case 文件夹名，内部 `index.jsx` + `index.css`
-> - 根级文件（context.jsx / data.js / i18n.js）与入口（app.jsx / app.css）不进文件夹
-> - 文件夹名即组件名 — 不出现 PascalCase 文件、不出现 jsx/css 不同名配对
-> - **组件文件夹内相对路径深度**：引用共享资产 `../../../assets/shared/...`、引用 src 模块 `../../context.jsx`（比平铺深一层，写错会 build FAIL）
+> **Directory & naming rules:**
+> - One folder per component under views/ and components/: kebab-case folder name, containing `index.jsx` + `index.css` + other helper `.js` files as needed
+> - Folder name = component name — no PascalCase, no mismatched jsx/css names
+> - Root-level files (context.jsx / i18n.js) and entry (app.jsx / app.css) stay flat, no folders
+> - Use relative import paths within component folders
 
 ### Import contract (ES Modules, build-time bundled)
 
-Supported — write **standard ES Module imports**, the bundler maps them to runtime globals:
+Supported - **standard ES Module imports**, the bundler maps them to runtime globals:
 
 ```jsx
-import { useState, useEffect } from "react";          // → React globals
-import { Menu, Button, Table, ConfigProvider, theme } from "antd"; // → antd globals(禁布局类,见下)
 import dayjs from "dayjs";                            // → dayjs global
-import { IntlProvider, FormattedMessage, useIntl } from "react-intl"; // → ReactIntl global(可选,多语言页面)
-import zhCN from "./assets/shared/antd-zh.js";     // 中文 locale(dayjs zh-cn + antd zhCN)
-import { Icon } from "./assets/shared/icons.js";      // Lucide 图标组件
-import { AppProvider, useApp } from "./src/context.jsx"; // 相对路径引用自己的模块
-import DeviceTable from "./src/views/device-table/index.jsx";
-import "./src/views/device-table/index.css";          // 组件级 CSS(可选)
+import { useState, useEffect } from "react";          // → React globals
+import { Menu, Button, Table, ConfigProvider } from "antd"; // → antd globals (layout components banned, see below)
+import { IntlProvider, FormattedMessage, useIntl } from "react-intl"; // → ReactIntl global (optional, multilingual pages)
+import zhCN from "./assets/shared/antd-zh.js";        // Antd chinese locale (dayjs zh-cn + antd zhCN)
+import { Icon } from "./assets/shared/icons.js";      // Lucide icon component
+import { AppProvider, useApp } from "./src/context.jsx"; // relative imports for own modules
+import DeviceTable from "./src/views/device-table/index.jsx"; // component import (optional)
+import "./src/views/device-table/index.css";          // component CSS (optional)
 ```
 
 NOT supported:
 - `import * as`
 - aliased imports (`{ a as b }`)
-- npm packages beyond react/react-dom/antd/dayjs
-- `import ... from "@ant-design/icons"` — **build FAILs**; page icons are Lucide-only via `<Icon name="..." />`（antd 组件内置图标无需处理，随 antd.min.js 携带）
-- **禁用 antd 布局/装饰组件（build 直接 FAIL）**：`Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark`。真遇到对应需求，**用纯 H5 或已有组件组合实现**
-- `export default` 必须是具名函数声明（`export default function App()`）；入口必须是 `app.jsx`
-- 相对 import 必须带扩展名（`./src/views/device-table/index.jsx`，不能省略 `.jsx`/`.js`/`.css`）
+- npm packages beyond react/react-dom/antd/dayjs/react-intl
+- `import ... from "@ant-design/icons"` is **banned**; page icons are Lucide-only via `<Icon name="..." />`
+- `export default` must be a named function declaration (`export default function App()`)
+- Page entry file must be `app.jsx`
+- Relative imports must include file extensions (`./src/views/device-table/index.jsx`, no omitting `.jsx`/`.js`/`.css`)
+- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark`. If needed, use pure H5 or existing component combinations instead.
 
 ### Icon usage
 
-Read **[references/component/Icon.md](references/component/Icon.md)** — Lucide names only (`<Icon name="search" size={14} />`), never hand-write SVG paths, never use @ant-design/icons. build.mjs validates every name at build time and injects only the used icon nodes.
+Read **[references/component/Icon.md](references/component/Icon.md)** — Lucide names only (`<Icon name="search" size={14} />`), **never hand-write SVG paths**, **never use @ant-design/icons**. Build validates and injects icons on demand.
 
-### zh-CN locale
+### Internationalization
 
-`antd.min.js` UMD 不带 locale 包 — 用共享补丁文件：
-```jsx
-import zhCN from "./assets/shared/antd-zh.js";
-<ConfigProvider locale={zhCN}>…</ConfigProvider>
-```
-（该文件同时注册 dayjs zh-cn locale，DatePicker/Pagination 等均为中文。）
+**Default: single-language (zh-CN), already configured in the starter** — `app.jsx` imports `antd-zh.js` (dayjs + antd zh-CN locale) and wraps `<ConfigProvider locale={zhCN}>`. No extra work needed for Chinese pages.
 
-### i18n（可选 — 多语言页面才启用）
+**Gate: do NOT create `src/i18n.js`, `IntlProvider`, or language-switch UI unless the user explicitly requests multilingual support.**
 
-默认页面单语言（zh-CN）。**准入门槛（强制）：用户未明确要求多语言/中英切换时，禁止创建 `src/i18n.js`、禁止引入 IntlProvider、禁止生成语言切换 UI** — 单语言页面带语言切换属于过度设计。用户明确要求后，按以下模式使用 react-intl（离线包已内置，`import ... from "react-intl"` 自动映射到 `ReactIntl` 全局）：
+When multilingual is required, use react-intl (bundled offline, `import ... from "react-intl"` auto-maps to `ReactIntl` global):
 
-1. **字典**：`src/i18n.js` 集中维护 `{ zh: {...}, en: {...} }`，语义化 key（`menu.devices`）。
-2. **Provider**：`<IntlProvider locale={lang} messages={dict[lang]}>` 包在 ConfigProvider 内层。
-3. **消费**：`<FormattedMessage id="menu.devices" defaultMessage="设备管理" />` 或 `useIntl().formatMessage(...)`；ICU 语法可用（`{count, plural, one {# alarm} other {# alarms}}`）。
-4. **defaultMessage 必写** — 字典漏 key 时的兜底显示，防止裸 key/空白。
-5. **切语言三件套同步**：IntlProvider 的 `locale/messages` + ConfigProvider 的 `locale`（zhCN/enUS）+ `dayjs.locale()`。antd enUS locale 需内联精简对象（同 zh-cn 补丁思路，仅必要组件）。
+1. **Antd and dayjs: no extra locale setup for zh/en** — Chinese is pre-installed via `antd-zh.js`; English is the default for both.
+2. **Dictionary**: `src/i18n.js` — central `{ zh: {...}, en: {...} }` with semantic keys (`menu.devices`).
+3. **Provider**: `<IntlProvider locale={lang} messages={dict[lang]}>` inside app.jsx's ConfigProvider.
+4. **Usage**: `<FormattedMessage id="menu.devices" defaultMessage="设备管理" />` or `useIntl().formatMessage(...)`; ICU syntax supported (`{count, plural, one {# alarm} other {# alarms}}`).
+5. **defaultMessage is required** — fallback display when a key is missing from the dictionary.
+6. **Language switch sync**: IntlProvider `locale/messages` + ConfigProvider `locale` + `dayjs.locale()`.
 
 ### Styling — token-first (CRITICAL)
 
-1. **Read `references/design_system.md`** (once per session) for tokens and visual rules.
-2. **布局一律 H5 结构 + CSS**：`<header>/<aside>/<main>/<footer>/<section>` + flex/grid + token 间距（`gap: var(--spacing-gutter)`）。antd 布局/装饰组件已禁用（Layout/Grid/Flex/Space/Card/Skeleton/Masonry/Popconfirm/Watermark，build FAIL）。交互组件一律 antd（语义色走 props：`type="primary"`、`status="error"`…）。真遇到对应需求，**用纯 H5 或已有组件组合实现**。
-3. **自定义样式写在组件文件夹的 `index.css`**（如 `src/views/device-table/index.jsx` + `index.css`）：布局用 flex/grid + px 值；**颜色/阴影/圆角/文字规格一律用 token** — `var(--primary)`、`var(--surface-container-highest)`、`var(--shadow-card)`、`var(--radius-container)`… 文字用角色化 font token：`font: var(--font-body-m)`（display/headline/body/caption × l/m/s 共 11 档），字重独立设 `font-weight: var(--font-weight-medium)`。NEVER 硬编码 hex（build.mjs CSS lint FAIL/WARN 兜底）。
-4. Dark mode 单轨驱动（CRITICAL）：**不使用 antd 的 darkAlgorithm / React 态主题切换**。`src/context.jsx`（init 自带）的 AppProvider 只切换 `<html>` 的 `.dark` class —— 普通 H5 元素由四层 token 自动翻转；antd 组件的暗色由 `assets/style/ant.css` 重置层的 `.dark` 规则承载。antd 组件的 `theme` prop 一律静态 `"light"`，不用 React 态切主题。
-5. Component CSS must not define `:root`/`.dark` blocks and must use defined tokens; build.mjs CSS lint FAILs otherwise.
-6. **禁止页面级 antd 组件覆盖样式**（如自建 `antd.css`/`ant-override.css`）：antd 组件的换肤与视觉缺口统一补充到共享的 `assets/style/ant.css`（含 `.dark` 规则）— 换肤层单源，所有页面一致受益。
+1. **Read `references/design_system.md`** for tokens and visual rules.
+2. Custom styles go in the component's `index.css` with semantic class names. 
+  - Colors/fonts/shadows/radius/spacing MUST use **tokens**; hardcoded hex or px only when the requirement specifies an exact value.
+3. Dark mode single-track (CRITICAL): **Do NOT use antd's darkAlgorithm / React state theme switching.** `src/context.jsx`'s AppProvider toggles `<html>`'s `.dark` class — H5 elements flip via tokens; antd components via `ant.css`. antd `theme` prop stays `"light"`.
+   - Do NOT define bare `:root` / `.dark` selectors (without a descendant suffix) — global tokens already live in `assets/style/`
+   - Per-mode values that tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override
+4. Do NOT create page-level antd component override styles (e.g., `antd.css`/`ant-override.css`). antd component skinning and visual gaps go into the shared `assets/style/ant.css` (including `.dark` rules) — single source, all pages benefit.
 
 ## Step 3 — Build (MANDATORY)
 
@@ -152,6 +150,21 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 
 ---
 
+## Constraints
+
+- No `import * as`, no aliased imports (`{ a as b }`) — see Import contract
+- No npm packages beyond react/react-dom/antd/dayjs/react-intl — see Import contract
+- No `@ant-design/icons` — use Lucide Icon component — see Import contract
+- No antd layout/decorative components (Layout/Grid/Flex/Space/Card/Skeleton/Masonry/Popconfirm/Watermark) — build FAILs — see Import contract
+- `export default` must be a named function declaration; page entry must be `app.jsx` — see Import contract
+- Relative imports must include file extensions (`.jsx`/`.js`/`.css`) — see Import contract
+- No bare `:root`/`.dark` selectors in component CSS — see Styling rule 3
+- No page-level antd override CSS — see Styling rule 4
+- No antd darkAlgorithm or React-state theme switching — see Styling rule 3
+- No `src/i18n.js`/IntlProvider/language-switch UI unless explicitly requested — see Internationalization
+
+---
+
 ## Generation Rules
 
 - **Generative Expansion:** 永不输出稀疏 UI — 用全所有数据项、mock 真实文案/指标、必要 CTA 与交互、搜索/筛选/排序、状态标签与图标语义化。
@@ -160,20 +173,12 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 - **antd API:** 标准 Ant Design 5 API，不发明 prop；复杂组件（Table/Modal/Form/Tabs…）按需读 `references/component/{Name}.md` 设计规范。
 - **Self-check:** JSX 标签闭合、引用变量皆有定义、用到的组件均已 import — build + verify 会兜底，但一次写对更快。
 
-## Session Context Caching (CRITICAL for speed)
-
-同会话内已读过的文件保持在上下文中：
-1. **NEVER re-read** 已读文件（含 `references/design_system.md`、`references/component/*.md`）。
-2. 设计规范一会话读一次；组件规范按需读。
-
 ## Quality Checklist (Self-Verify Before Output)
 
 1. build `OK` + verify `OK index.page.html verified`
-2. 无 WARN 遗留（icon 名 / hex）
-3. app.jsx: `export default function App()` present
-4. Mock data 完整（行数、状态多样性、语义 key）
-5. Token-first 颜色（CSS 无硬编码 hex，token 取色）
-6. `<artifact>` 链接已输出
+2. app.jsx: `export default function App()` present
+3. Mock data 完整（行数、状态多样性、语义 key）
+4. `<artifact>` 链接已输出
 
 ## References
 

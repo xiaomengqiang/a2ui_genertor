@@ -82,7 +82,7 @@ const dest = join(base, "preview");
 const STARTER_APP = `// 应用入口 — ICT React 页面
 // 分层约定(目录与命名: views/components 下一组件一文件夹,kebab-case + index.jsx/index.css):
 //   Layer 1 全局状态   → src/context.jsx            (AppProvider: 全局状态 + dark 模式切换)
-//   Layer 2 数据与逻辑 → src/data.js                (mock 数据、派生统计)
+//   Layer 2 数据与逻辑 → src/mock/                  (mock 数据,按域分文件)
 //   Layer 3 通用小组件 → src/components/{name}/     (跨视图复用,如 status-tag)
 //   Layer 4 视图组件   → src/views/{name}/          (每个页签/功能区一个,如 device-table)
 //   Layer 5 布局骨架   → app.jsx                    (本文件: 组装 Provider + H5 布局骨架 header/aside/main)
@@ -154,6 +154,7 @@ try {
   }
 
   mkdirSync(dest, { recursive: true });
+  mkdirSync(join(dest, "src", "mock"), { recursive: true });
   mkdirSync(join(dest, "src", "components"), { recursive: true });
   mkdirSync(join(dest, "src", "views"), { recursive: true });
 
