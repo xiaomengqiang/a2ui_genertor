@@ -59,10 +59,10 @@ cp -r scaffold/ <目标工程根>
 
 ```
 scaffold/
-├── package.json        # 依赖已含 @nce/eview-react / react-intl / horizon peer / lodash 等
-├── .npmrc              # @nce scope 指向华为 product_npm 源
-├── vite.config.js      # Vite + @vitejs/plugin-react
-├── index.html          # <body class="ev_no_wcag"> + /src/main.jsx
+├── package.json        # 依赖已含 @nce/eview-react / react-intl / horizon peer / lodash 等
+├── .npmrc              # @nce scope 指向华为 product_npm 源
+├── vite.config.js      # Vite + @vitejs/plugin-react
+├── index.html          # <body class="ev_no_wcag"> + /src/main.jsx
 └── src/
     ├── main.jsx        # ConfigProvider + IntlProvider + aui3_1.css + base.css + tokens.css + theme-dark.css
     ├── app.jsx         # 空壳 App（<div className="root">；aui3_1 挂 <body>），步骤 3 替换为 AppShell
@@ -85,7 +85,7 @@ scaffold/
 | `src/styles/tokens.css` | 空壳占位 | 步骤 4 填 |
 | `src/styles/theme-dark.css` | 空壳占位 | 步骤 4 填 |
 
-> `main.jsx` 已把 `aui3_1.css` + `base.css` + `tokens.css` + `theme-dark.css` 四处 import 都写好，步骤 4 填充 token 后无需再改入口。
+> `main.jsx` 已把 `aui3_1.css` + `aui3_1_dark.css` + `base.css` + `tokens.css` + `theme-dark.css` 四处 import 都写好，步骤 4 填充 token 后无需再改入口。
 
 ### 1.3 文件位置变化与相对路径
 
@@ -151,9 +151,9 @@ import { ConfigProvider, theme } from 'antd';
 import zhCN from './assets/shared/antd-zh-cn.js';
 
 <ConfigProvider locale={zhCN}>
-    <ConfigProvider theme={{ algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
-        {children}
-    </ConfigProvider>
+    <ConfigProvider theme={{ algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
+        {children}
+    </ConfigProvider>
 </ConfigProvider>
 ```
 
@@ -220,9 +220,9 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 
 1. 从源项目的 `index.page.html`（或内联 `<style>`）提取 `:root` 变量定义到 `src/styles/tokens.css`
 2. 提取 `.dark` 暗色覆盖到 `src/styles/theme-dark.css`（有的话）
-3. 在入口同时引入：`import '@nce/eview-react/styles/aui3_1.css'` + `import './styles/tokens.css'` + `import './styles/theme-dark.css'`
+3. 在入口同时引入：`import '@nce/eview-react/styles/aui3_1.css'` + `import '@nce/eview-react/styles/aui3_1_dark.css'` + `import './styles/tokens.css'` + `import './styles/theme-dark.css'`
 4. 布局/手写 CSS 不改（继续引用 `var(--surface)` 等原始变量名）
-5. 暗色模式同时切 `aui3_1_dark` 和 `.dark` 两个类名
+5. 暗色模式同时切 `<body>` 上的 `aui3_1` / `aui3_1_dark` 和 `<html>` 上的 `.dark`
 
 通用规则：
 - 不写死色值，用 CSS 变量（源项目的原始 token）
@@ -277,7 +277,7 @@ npm run dev
 - [ ] 表单校验触发（`ref.submit()` → `onSuccess`）
 - [ ] 下拉选项渲染（`options=[{text,value}]` 字段名正确）
 - [ ] 弹窗能打开和关闭（`isOpen`/`visible` 受控 + `onClose` 里置 false）
-- [ ] 暗色模式切换（`aui3_1_dark` + `.dark` 两个类名都切）
+- [ ] 暗色模式切换（`<body>` 上 `aui3_1` / `aui3_1_dark` + `<html>` 上 `.dark` 都切）
 - [ ] 手写补位组件样式跟随主题（用了 CSS 变量，不写死色值）
 
 ### 5.4 常见报错对照

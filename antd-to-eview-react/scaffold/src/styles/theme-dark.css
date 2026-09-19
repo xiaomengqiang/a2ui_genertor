@@ -1,10 +1,22 @@
 /* theme-dark.css - 原始暗色覆盖占位 */
 /* 步骤4: 从源项目提取 .dark 暗色覆盖到这里 */
-/* 暗色模式切 aui3_1_dark（挂 <body>）和 .dark（挂 <html>，本文件）两个类名 */
+/* 暗色模式：aui3_1_dark 挂 <body>（eview-react 组件暗色）+ .dark 挂 <html>（本文件，原始 token 暗色覆盖） */
+/*
+⚠️ 确保 .dark 中覆盖了 tokens.css :root 中所有暗色值不同的变量！
+  tokens.css 的 :root 和本文件的 .dark 特异性相同(0,1,0)，
+  本文件在 tokens.css 之后加载，级联中 .dark 的声明会覆盖 :root 的同名变量。
+  但如果某个变量在 tokens.css :root 中有定义而 .dark 中没有，暗色模式下该变量不会翻转。
+
+  必须覆盖的变量包括：
+  - 语义层（--color-bg-1 / --color-text-primary / --color-border 等）
+  - 角色层（--surface / --primary / --on-surface 等，如果它们在 tokens.css :root 中
+    直接写了色值而非 var() 引用；如果是 var() 引用则不需要）
+  - 边框/阴影/功能色/标签色等
+*/
 /*
 .dark {
-    --primary: #...;
-    --surface: #...;
-    ...
+    --color-text-primary: #FFFFFF;
+    --surface: #000000;
+    ...
 }
 */

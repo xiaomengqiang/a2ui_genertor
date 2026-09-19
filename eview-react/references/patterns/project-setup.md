@@ -68,7 +68,7 @@ createRoot(document.getElementById('root')!).render(
 三条硬纪律：
 
 1. **`IntlProvider` 必须包在最外层**，`messages` 用 `componentsLocales[locale]`；有业务语言包时按 `intl.md` 用 `Object.assign(componentsLocales.en, projectLocales.en)` 合并
-2. **样式只在入口引一次** `@nce/eview-react/styles/aui3_1.css`；深色主题换 `aui3_1_dark.css`
+2. **样式在入口引入** `@nce/eview-react/styles/aui3_1.css`（浅色）与 `aui3_1_dark.css`（深色）。**运行时双主题切换的工程两套都要引**，再靠根 DOM 的 `aui3_1` ↔ `aui3_1 aui3_1_dark` class 切换；单一深色主题工程可只引 `aui3_1_dark.css`。"只引一次"指别在每个组件重复引组件 CSS，不是只引一个主题文件。
 3. 3.7.5 ~ 3.9.x 版本按 `aui_to_ict.md` 需在期望生效的根 DOM 上加 `class="aui3_1"`（深色 `aui3_1 aui3_1_dark`）；4.x 起默认 ICT 3.1（`f_&_q.md`）—— **不确定版本时加上类名不会有副作用**
 
 ## 3. 组件导入方式
@@ -101,7 +101,7 @@ import { Button, TextField, Select } from '@nce/eview-react';
 | `Form.Item is undefined` | Form 导入方式错 | `import Form from '@nce/eview-react/Form'` 后用 `Form.Item` |
 | 组件无样式 / 样式错乱 | 未引 css 或根 DOM 缺 `aui3_1` 类名 | 见 §2 第 2、3 条 |
 | 弹层文案是 key / 英文 | 缺 `IntlProvider` 或 `messages` 未传 | 见 §2 第 1 条 |
-| 弹窗过高留大空隙 | 用 `height` 定死 | 改 `max-height`（`aui_to_ict.md` FAQ 1） |
+| 弹窗过高留大空隙 | 用 `size={[w, 固定高]}` 定死 | `size={[w, 'auto']}` 让高自适应 + `style={{ maxHeight: '80vh' }}` 限高；宽按场景设（`aui_to_ict.md` FAQ 1；详见 Dialog.md §4） |
 | 自定义样式被组件覆盖 | 3.x 增加 `aui3` 前缀权重更高 | 提高自定义选择器权重（`aui_to_ict.md` FAQ 2） |
 
 ## 5. 编码风格（来自 `site-doc/rules.md`，生成业务代码时一并遵守）

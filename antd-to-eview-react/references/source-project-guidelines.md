@@ -17,21 +17,21 @@
 
 ```
 index.page.html (2058 行)
-├── UMD script 标签     (1-15 行)      react/react-dom/dayjs/antd/babel 的 UMD 构建
-├── 内联 CSS token      (16-1045 行)   1030 行、666 个 CSS 变量定义
-├── base 样式           (1046-1051)
-├── Babel preset 注册   (1054-1061)
-├── antd-zh-cn.js       (1063-1360)    295 行 antd 中文 locale，内联
-├── context.jsx         (1361-1394)    内联
-├── icons.js            (1395-1641)    230 行自定义图标组件，内联
-├── data.js             (1642-1715)    内联
-├── BasicInfoForm.jsx   (1716-1767)    内联
-├── NetworkForm.jsx     (1768-1812)    内联
-├── ConfirmForm.jsx     (1813-1854)    内联
-├── StepFlow.jsx        (1855-1961)    内联
-├── AppShell.jsx        (1962-2024)    内联
-├── app.jsx             (2025-2052)    内联
-└── render              (2053-2058)
+├── UMD script 标签     (1-15 行)      react/react-dom/dayjs/antd/babel 的 UMD 构建
+├── 内联 CSS token      (16-1045 行)   1030 行、666 个 CSS 变量定义
+├── base 样式           (1046-1051)
+├── Babel preset 注册   (1054-1061)
+├── antd-zh-cn.js       (1063-1360)    295 行 antd 中文 locale，内联
+├── context.jsx         (1361-1394)    内联
+├── icons.js            (1395-1641)    230 行自定义图标组件，内联
+├── data.js             (1642-1715)    内联
+├── BasicInfoForm.jsx   (1716-1767)    内联
+├── NetworkForm.jsx     (1768-1812)    内联
+├── ConfirmForm.jsx     (1813-1854)    内联
+├── StepFlow.jsx        (1855-1961)    内联
+├── AppShell.jsx        (1962-2024)    内联
+├── app.jsx             (2025-2052)    内联
+└── render              (2053-2058)
 ```
 
 同时 `src/` 目录下也有独立源文件，代码存在两份：HTML 内联版用于即时预览，`src/` 版用于工程化。两份之间靠人工同步。
@@ -55,17 +55,17 @@ index.page.html (2058 行)
 
 ```
 project/
-├── package.json           # antd 作为 dependency
-├── vite.config.js         # Vite + @vitejs/plugin-react
-├── index.html             # 薄入口：<div id="root"> + <script src="/main.jsx">
-├── main.jsx               # ReactDOM.render(<App />)
+├── package.json           # antd 作为 dependency
+├── vite.config.js         # Vite + @vitejs/plugin-react
+├── index.html             # 薄入口：<div id="root"> + <script src="/main.jsx">
+├── main.jsx               # ReactDOM.render(<App />)
 └── src/
-    ├── App.jsx
-    ├── context.jsx
-    ├── data.js
-    └── views/
-        ├── AppShell.jsx
-        └── steps/
+    ├── App.jsx
+    ├── context.jsx
+    ├── data.js
+    └── views/
+        ├── AppShell.jsx
+        └── steps/
 ```
 
 关键区别：
@@ -129,7 +129,7 @@ node scripts/check-relative-imports.cjs .
 | 第 1 层 `:root` | ~260 | 原始色阶（`--brand-05`~`--brand-90`、`--gray-0`~`--gray-100`、红/橙/黄/绿/青/蓝/靛/紫/粉各 10 级） |
 | 第 2 层 `:root` | ~200 | 语义化 token（`--color-text-primary`、`--color-brand`、`--color-border`、告警色、图表色、标签色、阴影） |
 | 第 3 层 `:root` | ~100 | 角色化 token（`--primary`、`--surface`、`--on-surface`、`--divider`、间距、字号简写） |
-| `.dark` | ~200 | 暗色覆盖（覆盖第 2 层的语义值） |
+| `.dark` | ~200 | 暗色覆盖（覆盖第 2 层的语义值，也需覆盖第 3 层中直接写色值的角色变量） |
 
 这些变量全部内联在 HTML 的 `<style>` 标签里。`src/` 下的 CSS 文件（`app-shell.css`、`step-flow.css`）引用这些变量（如 `var(--surface-container-highest)`），但变量定义不在这些文件里——在 HTML 内联的 `<style>` 里。
 
@@ -145,13 +145,14 @@ node scripts/check-relative-imports.cjs .
 
 ```
 src/styles/
-├── tokens.css          # :root { --brand-50: ...; --gray-90: ...; } 原始色阶 + 语义层 + 角色层
-└── theme-dark.css      # .dark { --primary: ...; --surface: ...; } 暗色覆盖
+├── tokens.css          # :root { --brand-50: ...; --gray-90: ...; } 原始色阶 + 语义层 + 角色层
+└── theme-dark.css      # .dark { --primary: ...; --surface: ...; } 暗色覆盖
 ```
 
-迁移后的 `main.jsx` 会同时 import 这两套 CSS（已写在 `scaffold/src/main.jsx`，拷贝骨架即有）：
+迁移后的 `main.jsx` 会同时 import 这些 CSS（已写在 `scaffold/src/main.jsx`，拷贝骨架即有）：
 
-- `aui3_1.css` — eview-react 组件的样式和变量
+- `aui3_1.css` — eview-react 亮色组件样式和变量
+- `aui3_1_dark.css` — eview-react 暗色组件变量（**必须导入**）
 - `tokens.css` — 原始 token 定义（源项目预先外置的那份）
 - `theme-dark.css` — 原始暗色覆盖
 
@@ -180,10 +181,10 @@ src/styles/
 
 ```js
 const LUCIDE = {
-    "arrow-left": [["path", {"d": "m12 19-7-7 7-7"}], ...],
-    "search": [["path", {"d": "m21 21-4.34-4.34"}], ["circle", {"cx":"11",...}]],
-    "sun": [["circle", {"cx":"12",...}], ...],
-    // ... 共 10 个图标
+    "arrow-left": [["path", {"d": "m12 19-7-7 7-7"}], ...],
+    "search": [["path", {"d": "m21 21-4.34-4.34"}], ["circle", {"cx":"11",...}]],
+    "sun": [["circle", {"cx":"12",...}], ...],
+    // ... 共 10 个图标
 };
 ```
 
@@ -208,9 +209,9 @@ const GET_ICON = `${ICON_API_BASE}/assetRepository/iconPlus/getIcon`;
 **第三层：缓存 + 状态管理**
 
 ```js
-let plusState = null;      // null = 探测中, true = icon-plus 可用, false = 回退 Lucide
-let plusPromise = null;    // 单例 getConfig 探测 Promise
-const iconInfoMap = {};    // name -> { name, url } 缓存
+let plusState = null;      // null = 探测中, true = icon-plus 可用, false = 回退 Lucide
+let plusPromise = null;    // 单例 getConfig 探测 Promise
+const iconInfoMap = {};    // name -> { name, url } 缓存
 const svgCache = new Map(); // "name&variant&color" -> svg text 缓存
 ```
 
@@ -265,7 +266,7 @@ eview-react：构建时 import → 静态 React 组件 → 离线可用
 
 ```jsx
 import { SearchOutlined, SunOutlined, MoonOutlined,
-         ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
+         ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
 
 <Button icon={<SunOutlined />} onClick={toggleDark} />
 ```
@@ -285,13 +286,13 @@ import { SearchOutlined, SunOutlined, MoonOutlined,
 
 ```jsx
 function SearchIcon({ size = 14 }) {
-    return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" strokeWidth={2}>
-            <path d="m21 21-4.34-4.34" />
-            <circle cx="11" cy="11" r="8" />
-        </svg>
-    );
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" strokeWidth={2}>
+            <path d="m21 21-4.34-4.34" />
+            <circle cx="11" cy="11" r="8" />
+        </svg>
+    );
 }
 ```
 

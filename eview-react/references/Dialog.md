@@ -44,7 +44,7 @@ const formRef = useRef<any>(null);
   title={editing ? '编辑设备' : '新建设备'}
   isOpen={open}
   onClose={() => setOpen(false)}                          // 右上角 × / ESC
-  size={[560, null]}                                      // 宽 560，高自适应
+  size={[560, 'auto']}                                  // 宽 560，高自适应
   buttons={[
     { text: '取消', disabled: saving, onClick: () => setOpen(false) },
     { text: saving ? '保存中...' : '确定', status: 'primary', disabled: saving, onClick: () => formRef.current.submit() },
@@ -52,6 +52,37 @@ const formRef = useRef<any>(null);
 >
   <Form ref={formRef} initialValues={EMPTY} onSuccess={handleSave}>…</Form>
 </Dialog>
+```
+
+### 表单弹窗完整链路
+
+### 弹窗尺寸：宽按场景设、高自适应 + 最大 80% 视口
+
+- **宽度**：按内容信息密度给固定值（表单 480–560、详情 640–800、内嵌表格 800–1200），或用百分比 `'60%'` 做响应式；窄弹窗别低于 360，超宽别超过 1200，避免内容拥挤或两侧大留白。
+- **高度**：`size` 第二项传 `'auto'` 让弹窗随内容自适应，再用 `style={{ maxHeight: '80vh' }}` 限整体上限，内容超出时内部滚动。**不要用 `size={[w, 固定高]}` 定死高度**——内容少时留大空隙，内容多时又被截断。
+
+```tsx
+<Dialog
+  title={editing ? '编辑设备' : '新建设备'}
+  isOpen={open}
+  onClose={() => setOpen(false)}
+  size={[560, 'auto']}                       // 宽 560，高随内容
+  style={{ maxHeight: '80vh' }}              // 整体最高 80% 视口，超出内部滚动
+  buttons={[…]}
+>
+  <Form ref={formRef} onSuccess={handleSave}>…</Form>
+</Dialog>
+```
+
+```tsx
+// ❌ 定死高度：内容少留大空隙，内容多被截断
+<Dialog size={[560, 480]} />
+
+// ❌ 只给 size 不限 maxHeight：长表单撑出屏幕底部，按钮区被推到视口外
+<Dialog size={[560, 'auto']} />
+
+// ❌ 宽度过窄/过宽：360 以下表单挤成一团，1200 以上两侧大留白
+<Dialog size={[300, 'auto']} />
 ```
 
 ### 表单弹窗完整链路
@@ -235,7 +266,7 @@ buttons={[{ text: '确定', onClick: () => { setOpen(false); save(); } }]}
 | `children` | `any` | 内容（React 或原生标签） |
 | `buttons` | `Array<ButtonProps>` | 按钮区，如 `[{ text, status: 'primary', onClick }]` |
 | `buttonStyle` / `contentStyle` / `maskStyle` / `style` | `CSSProperties` | 按钮区 / 内容区 / 蒙层 / 整体样式 |
-| `size` | `[w, h]`，可 `null` / 百分比 | 大小 |
+| `size` | `[w, h]`，可 `null` / `'auto'` / 百分比 | 大小；**高传 `'auto'` 自适应内容 + `style={{ maxHeight: '80vh' }}` 限高**，宽按场景设（见 §4），勿定死 |
 | `position` | `[x, y]`，可 `null` | 位置（左边距 / 上边距） |
 | `modal` | `boolean`，默认 `true` | 模态 |
 | `closable` | `boolean`，默认 `true` | 显示关闭按钮 |

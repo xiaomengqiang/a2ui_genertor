@@ -12,8 +12,8 @@
 
 ```
 src/styles/
-├── tokens.css          # :root { --brand-50: #0067D1; --gray-90: #191919; ... } 全部原始色阶 + 语义层 + 角色层
-└── theme-dark.css      # .dark { --color-text-primary: #FFFFFF; ... } 暗色覆盖
+├── tokens.css          # :root { --brand-50: #0067D1; --gray-90: #191919; ... } 全部原始色阶 + 语义层 + 角色层
+└── theme-dark.css      # .dark { --color-text-primary: #FFFFFF; ... } 暗色覆盖
 ```
 
 提取原则：
@@ -27,11 +27,12 @@ src/styles/
 入口的以下 import 已在 `scaffold/src/main.jsx` 写好（拷贝骨架即有），无需手写：
 
 - `import '@nce/eview-react/styles/aui3_1.css'` — eview-react 组件的样式和变量
+- `import '@nce/eview-react/styles/aui3_1_dark.css'` — eview-react 暗色组件变量（**必须导入**，否则暗色切换时 eview-react 组件变量不生效）
 - `import './styles/base.css'` — 骨架自带全局重置（ev_no_wcag 焦点轮廓）
 - `import './styles/tokens.css'` — 原始 token 定义（布局/手写 CSS 引用这套）
 - `import './styles/theme-dark.css'` — 原始暗色覆盖
 
-引入顺序：先 `aui3_1.css` 再 `tokens.css`——如果两边有同名变量（实际不会），后者覆盖前者。
+引入顺序：先 `aui3_1.css` 再 `aui3_1_dark.css` 再 `tokens.css` 再 `theme-dark.css`——如果两边有同名变量（实际不会），后者覆盖前者。`.dark` 选择器在 `theme-dark.css` 中、位于 `tokens.css` 的 `:root` 之后，确保暗色覆盖生效。
 
 ### 3. 布局/手写 CSS 保持原样
 
@@ -40,17 +41,17 @@ src/styles/
 ```css
 /* 不用改——原始 token 仍在 tokens.css 里定义着 */
 .shell-header {
-    background: var(--surface-container-highest);
-    color: var(--on-surface);
-    border-bottom: 1px solid var(--divider);
+    background: var(--surface-container-highest);
+    color: var(--on-surface);
+    border-bottom: 1px solid var(--divider);
 }
 .step-panel {
-    box-shadow: var(--shadow-card);
-    padding: var(--spacing-inset);
+    box-shadow: var(--shadow-card);
+    padding: var(--spacing-inset);
 }
 ```
 
-### 4. 暗色模式同时切两个类名
+### 4. 暗色模式同时切 `<body>` 和 `<html>` 类名
 
 `aui3_1`（浅色基础）常驻 `<body>`（已在 `index.html` 写死：`<body class="ev_no_wcag aui3_1">`），暗色时叠 `aui3_1_dark`；`.dark` 挂 `<html>`：
 
@@ -75,6 +76,29 @@ useEffect(() => {
 - eview-react 组件内部只引用自己的变量（`--color*` 系列），不会读到原始 token
 - 手写元素（Layout/Menu/Avatar 等）只引用原始 token，不会读到 eview-react 变量
 - 两套变量各自独立工作，不会报错
+
+## tokens.css 与 theme-dark.css 的加载顺序
+
+入口 CSS 按以下顺序加载（已在 scaffold 中写好）：
+
+```
+aui3_1.css → aui3_1_dark.css → tokens.css → theme-dark.css
+```
+
+**关键**：`tokens.css` 中的 `:root` 定义（语义变量、角色变量）会覆盖 `dark.css` / `aui3_1_dark.css` 中同名的 `.dark` 变量吗？
+
+**不会**，因为：
+- `tokens.css` 的 `:root` 和 `theme-dark.css` 的 `.dark` 特异性相同（0,1,0），但 `theme-dark.css` 在 `tokens.css` 之后加载，级联中后声明者胜出
+- `tokens.css` **只应放 `:root` 定义**，`.dark` 覆盖只放在 `theme-dark.css` 中
+- 确保 `.dark` 覆盖中出现所有在 `tokens.css` 的 `:root` 中也被定义的语义/角色变量，否则那些变量在暗色模式下不会翻转
+
+**如果源项目的 `:root` 包含角色变量（如 `--primary`、`--surface`、`--on-surface`）**，这些变量在 `:root` 中定义为对语义变量的惰性引用（如 `--surface: var(--color-bg-1)`）。由于 CSS 变量是惰性求值，当 `.dark` 切换 `--color-bg-1` 的值时，`--surface` 会自动跟随。但如果 `tokens.css` 中也在 `:root` 直接定义了语义变量（如 `--color-bg-1`），则 `theme-dark.css` 的 `.dark` 中**必须**重复覆盖这些语义变量，否则 `tokens.css` 的 `:root` 会在级联中覆盖 `.dark`（两者特异性相同，后加载者胜——`tokens.css` 在 `dark.css` 之后加载）。
+
+最佳实践：
+- `tokens.css` 放：基础色阶 + 排版 + 间距 + `@font-face` + `@media` 响应式 + `:root` **角色层**变量（`--primary`、`--surface` 等，这些引用语义变量、惰性求值，不依赖 CSS 加载顺序）
+- `tokens.css` **不放**：语义层变量（`--color-bg-1`、`--color-text-primary` 等），这些由 `aui3_1.css` 在 `.aui3_1` 下定义，`aui3_1_dark.css` 在 `.aui3_1_dark` 下覆盖
+- `theme-dark.css` 放：`.dark` 下的语义层覆盖 + `.dark` 下的角色层覆盖（如果角色变量在 `:root` 中直接写了色值而非 `var()` 引用，则 `.dark` 中必须显式覆盖）
+- 如果源项目的原始 token 用 `:root` 同时定义了语义变量和角色变量，拷贝到 `tokens.css` 后，`theme-dark.css` 必须在 `.dark` 中覆盖**所有**在 `tokens.css` 的 `:root` 中有定义且暗色值不同的变量
 
 ## 间距规则
 

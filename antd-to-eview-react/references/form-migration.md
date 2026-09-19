@@ -3,6 +3,24 @@
 > antd Form 和 eview-react Form 都用 `Form.Item name` 托管值，但**校验触发与回调机制完全不同**。
 > 这是迁移中最大的模式差异，本文给出三种常见场景的完整转换示例。
 
+> ✅ **运行时已验证（内网真机示例）**：`Form.Item name` + 控件不传 `value`/`onChange` + `ref.submit()` → `onSuccess(values)` 这套托管模式在真实 `@nce/eview-react` 工程里**确实能收到 `values`**（含所有 `name` 字段）。先前 `eview-react/TODO.md` 把它列为「待实测」，现已确认成立。
+>
+> ⚠️ **但有硬坑**：`initialValues` **必须是对象，不能传 `undefined`**。真机观察到：传 `undefined` 时 `submit()` 仍触发 `onSuccess`，但 `values` 是空对象——表现就是"托管没生效、确认页没数据"（机制未深究，但可复现；而传具体对象的案例 `values` 正常）。向导多步场景里 `allValues.basic` 首次必然是 `undefined`，**必须写 `initialValues={allValues.basic || {}}`**。
+>
+> 真机示例（Form 一直挂载、`initialValues` 传具体对象）：
+> ```jsx
+> const initialValues = { username: 'default_username', password: '1234', email: '12@' };
+> const form = React.createRef();                       // 官方示例用 createRef；useRef(null) 等价且更规范
+> <Form ref={form} initialValues={initialValues} onSuccess={v => setValues(v)} onFailed={errors => setErrors(errors)} validateErrorType="tip">
+>   <Form.Item label="User Name" name="username" rules={[{ required: true }]}><TextField /></Form.Item>
+>   <Form.Item name="address" label="The Internet"><Checkbox label="The Internet" /></Form.Item>
+>   {/* 提交：<Button onClick={() => form.current.submit()} />；setFieldsValue / resetFields 均可用 */}
+> </Form>
+> ```
+> 注意：真机示例里 Checkbox 的 Form.Item **没加** `valuePropName="checked" updateTriggerIndex={1}` 也能 `submit`，但这样 `values.address` 收到的是 Checkbox 的 `value` 不是 `checked` 布尔；要拿干净布尔值仍按下方表加这两项。
+>
+> 排查提示：真机示例**未用** `itemCol` / `layout`（默认单列）。若你的 Form 出现"托管没生效"且已确认 `initialValues` 是对象，下一步排查 `itemCol`（多列模式对值收集的影响未实测）——先去掉 `itemCol` 看是否恢复，再决定是否保留多列。
+
 ## 核心差异
 
 | 维度 | antd | eview-react |
@@ -11,7 +29,7 @@
 | 传给 Form | `<Form form={form}>` | `<Form ref={formRef}>` |
 | 触发校验 | `await form.validateFields()` → Promise | `formRef.current.submit()` → `onSuccess(values)` 回调 |
 | 校验通过 | `.then(values => ...)` | `onSuccess={(values) => ...}` |
-| 校验失败 | `.catch()` / reject | `onFailed={(errorFields, values) => ...}` |
+| 校验失败 | `.catch()` / reject | `onFailed(errors)` 回调（真机示例只取一参 `errors`；如需 values 取第二参待实测） |
 | 重置 | `form.resetFields()` | `formRef.current.resetFields()` |
 | 回填 | `form.setFieldsValue(record)` | `formRef.current.setFieldsValue(record)` |
 | 取全部值 | `form.getFieldsValue()` | `formRef.current.getFieldsValue()` |
@@ -21,7 +39,7 @@
 | Checkbox in Form.Item | `valuePropName="checked"` | `valuePropName="checked" updateTriggerIndex={1}` |
 | 错误提示 | Form.Item `extra` / `help` | `validateErrorType="tip"` 或 `"div"`（默认）；无 `extra` |
 | 控件不传 value/onChange | 相同 | 相同（Form 按 name 托管） |
-| `initialValues` 异步 | 配合 `preserve={false}` | 只在初始化生效；异步数据用 `setFieldsValue` |
+| `initialValues` 异步 | 配合 `preserve={false}` | 只在初始化生效；异步数据用 `setFieldsValue`；**必须传对象，`undefined` 会让 `onSuccess(values)` 收到空对象** |
 
 ## 内置规则对照
 
@@ -31,9 +49,9 @@
 | `{ min: 3 }` / `{ max: 32 }` | `{ min: true, args: [3] }` / `{ max: true, args: [32] }` | 写法不同 |
 | `{ range: [1, 65535] }` (InputNumber) | `{ range: true, args: [1, 65535] }` | eview-react Form rules |
 | `{ type: 'email' }` | `{ email: true }` | |
-| `{ pattern: /regex/ }` | 用控件自带 `validator` | Form rules 无 pattern；TextField `validator` 返回 `{result,message}` |
+| `{ pattern: /regex/ }` | 用控件自带 `validator` + Form 上加 `validateAllChildComponent={true}` | Form rules 无 pattern；控件 `validator` 默认不在 `submit()` 时跑，需开 `validateAllChildComponent` 才生效（待实测）；或提交前用 `ref.validate()` 先校验 |
 | `{ type: 'url' }` | `{ url: true }` | |
-| 自定义 `validator: (rule, value) => ...` | 控件 `validator: (value) => ({result, message})` | 返回结构不同 |
+| 自定义 `validator: (rule, value) => ...` | 控件 `validator: (value) => ({result, message})` + `validateAllChildComponent={true}` | 返回结构不同；同样需开 `validateAllChildComponent` 才在 `submit()` 时跑 |
 
 ## 场景一：表单提交页
 
@@ -139,6 +157,11 @@ const basicFormRef = useRef(null);
 const networkFormRef = useRef(null);
 const [current, setCurrent] = useState(0);
 const [allValues, setAllValues] = useState({});
+const stepData = [                                  // 提取具名常量，currentStep 与 data 共用
+    { text: '基础信息', value: 'basic' },
+    { text: '网络配置', value: 'network' },
+    { text: '确认提交', value: 'confirm' },
+];
 
 // 每步的 onSuccess 回调：存值 + 推进
 const handleBasicSuccess = (values) => {
@@ -159,24 +182,20 @@ const handleNext = () => {
 
 // Steps：currentStep 对应 data[].value（不是下标）
 <Steps
-    data={[                                            // items → data, title → text
-        { text: '基础信息', value: 'basic' },
-        { text: '网络配置', value: 'network' },
-        { text: '确认提交', value: 'confirm' },
-    ]}
-    currentStep={stepItems[current].value}
+    data={stepData}
+    currentStep={stepData[current].value}
 />
 {current === 0 && (
     <BasicInfoForm
         formRef={basicFormRef}                         // form prop → formRef
-        initialValues={allValues.basic}
-        onSuccess={handleBasicSuccess}                 // 传入回调
+        initialValues={allValues.basic || {}}          // ⚠️ 必须 || {}：undefined 会让 onSuccess 收空值
+        onSuccess={handleBasicSuccess}                // 传入回调
     />
 )}
 {current === 1 && (
     <NetworkForm
         formRef={networkFormRef}
-        initialValues={allValues.network}
+        initialValues={allValues.network || {}}        // ⚠️ 同上
         onSuccess={handleNetworkSuccess}
     />
 )}
@@ -194,7 +213,7 @@ export default function BasicInfoForm({ formRef, initialValues, onSuccess }) {
     return (
         <Form
             ref={formRef}
-            initialValues={initialValues}
+            initialValues={initialValues || {}}        // ⚠️ 必须 || {}：undefined 会让 onSuccess 收空值
             layout="vertical"
             itemCol={12}                                  // 所有项统一半宽
             validateErrorType="tip"
@@ -406,10 +425,12 @@ eview-react 不支持同一 Form 内混用不同宽度。如果所有字段都�
 2. **`form` prop → `ref` prop**：`<Form form={form}>` → `<Form ref={formRef}>`
 3. **`validateFields()` Promise → `submit()` 回调**：推进逻辑从 `.then()` 移到 `onSuccess` 回调内
 4. **`onFinish` → `onSuccess`**：函数签名一致 `(values) => void`
-5. **`rules` 删 message**：eview-react rules 没有 message 字段
-6. **Switch → Toggle**：加 `valuePropName="toggled" updateTrigger="onToggle"`
-7. **Checkbox in Form.Item**：加 `updateTriggerIndex={1}`
-8. **`htmlType="submit"` → `onClick={() => formRef.current.submit()}`**
-9. **`loading` → `disabled` + 文案切换**
-10. **Modal → Dialog**：`open`→`isOpen`；`onOk`→`buttons[].onClick`；成功才关
-11. **多列布局用 `itemCol`**：Form 级统一设置，所有项同等宽度；不支持单项覆盖；Form 内不允许用 div 做栅格；混合宽度需拆成多个 Form
+5. **`initialValues` 必须是对象**：向导多步等动态场景一律 `initialValues={x || {}}`；传 `undefined` 会让 `onSuccess(values)` 收到空对象（"托管没生效"的根因，已真机确认）
+6. **`rules` 删 message**：eview-react rules 没有 message 字段
+7. **Switch → Toggle**：加 `valuePropName="toggled" updateTrigger="onToggle"`
+8. **Checkbox in Form.Item**：加 `valuePropName="checked" updateTriggerIndex={1}`（真机示例不加也能 submit，但 `values` 收到的是 Checkbox 的 `value` 不是 `checked`；要干净布尔值就加）
+9. **控件 `validator` 提交校验**：Form rules（`required`/`email`/`range` 等）在 `submit()` 时正常跑；控件自带 `validator` 默认不跑，需 Form 上加 `validateAllChildComponent={true}`（待实测）
+10. **`htmlType="submit"` → `onClick={() => formRef.current.submit()}`**
+11. **`loading` → `disabled` + 文案切换**
+12. **Modal → Dialog**：`open`→`isOpen`；`onOk`→`buttons[].onClick`；成功才关
+13. **多列布局用 `itemCol`**：Form 级统一设置，所有项同等宽度；不支持单项覆盖；Form 内不允许用 div 做栅格；混合宽度需拆成多个 Form
