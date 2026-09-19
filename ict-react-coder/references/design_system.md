@@ -182,57 +182,32 @@ Raw scale: `--font-size-sm(10) / base(12) / md(14) / lg(16) / xl(18) / 2xl(20) /
 4. **Chart colors:** follow chart component defaults — don't hardcode; keep consistent per-category mapping (see `charts_usage.md`).
 5. **Text & icons by function:** use semantic color tokens; `inverse-*` only on dark backgrounds.
 6. **Default light:** pages default to light theme — do NOT auto-generate dark sidebars.
-7. **No shadow + border combo:** never use `box-shadow` and `border` on the same element — pick one.
-8. **No accent strips:** no left-border colored accent strips on cards or alerts — use `var(--error-container)` background instead.
-9. **Card pattern:** `background: var(--surface-container-highest); border-radius: var(--radius-container); box-shadow: var(--shadow-card);` — no structural border when shadow is present.
-10. **Token first:** prefer tokens over raw values; use raw hex/px only when the requirement specifies an exact value.
-11. **Machine-enforced:** build.mjs CSS lint FAILs on unknown `var(--*)` names and `:root`/`.dark` blocks; hardcoded hex triggers a WARN.
-12. **Custom per-mode values:** for values tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override.
+7. **No shadow + border combo:** never use `box-shadow` and `border` on the same element — see Layout & Elevation / Content Card.
+8. **No accent strips:** no left-border colored accent strips on cards or alerts — see Layout & Elevation / Content Card.
+9. **Token first:** prefer tokens over raw values; use raw hex/px only when the requirement specifies an exact value.
+10. **Machine-enforced:** build.mjs CSS lint FAILs on unknown `var(--*)` names and `:root`/`.dark` blocks; hardcoded hex triggers a WARN.
+11. **Custom per-mode values:** for values tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override.
 
-## Elevation & Depth
+## Layout & Elevation
 
-We achieve spatial hierarchy through a precise combination of **Tonal Layering** and **Ambient Shadows**, avoiding heavy traditional borders.
+### Page Skeleton
 
-### The Layering Principle (Stacking Order)
+- **Header:** height `48px`, `var(--surface-container-highest)` — carries global nav only; Brand identity, primary nav, global tools and user area stay stable.
+- **Side nav:** default light `var(--surface-container-highest)`; expanded `248px`, collapsed `48px`. Collapsed state keeps icons, Tooltip and selected state. Multi-level nav only when the information architecture truly needs it.
+- **Page background:** `var(--surface-container-lowest)`.
 
-Depth is established by stacking architectural tiers from back to front:
-- **Level 0 (The Canvas):** Use `var(--surface-container-lowest)` with no shadows. This is the absolute bottom layer (the page background).
-- **Level 1 (Active Containers):** Use `var(--surface-container-highest)` paired with `var(--shadow-sm)` (or `var(--shadow-card)`). Reserved for primary content containers: Data Cards, Tables, Navigations, and Drawers to make them "pop" forward.
-- **Level 2 (Inner Sub-regions):** Use `var(--surface-variant)`. Apply this *inside* Level 1 cards to visually separate internal functional blocks (e.g., inner lists, or nested form areas).
+### Content Card
 
-### Text & Contrast Pairings
+- Card is a layout container (`div`/`section`), not a component.
+- Pattern: `background: var(--surface-container-highest); border-radius: var(--radius-container); box-shadow: var(--shadow-card);` — no structural border when shadow is present.
+- No left-border colored accent strips — use `var(--*-container)` background instead.
+- Avoid meaningless nesting; keep consistent structure for same-type cards. Primary actions go in page/section action area; Footer only for secondary actions.
 
-Always pair backgrounds with their strict `on-*` text tokens to maintain premium readability:
-- On `surface-container-*` backgrounds ➔ Use `var(--on-surface)`.
-- On `surface-variant` backgrounds ➔ Use `var(--on-surface-variant)`.
+### Elevation Levels
 
-### Semantic States (Status Indicator Layering)
-
-To indicate semantic states (error, warning, success, info), apply the respective `var(--*-container)` tokens as background tints.
-**Crucially:** Always pair them with the corresponding `var(--on-*-container)` tokens (and use the base `*` token for icons if needed).
-
-### Strict UI Constraints (CRITICAL)
-
-- **Mutual Exclusion:** NEVER combine a shadow with a structural border. If a container floats, it is borderless.
-- **No Accent Strips:** Strictly NO left-border colored accent strips on cards or alerts. Use `var(--error-container)` background instead.
-
-## Layout
-
-### Content Container / Card
-
-- Card is a layout container, not a component — use `div` or `section` (antd Card is banned).
-- Use `background: var(--surface-container-highest); border-radius: var(--radius-container); box-shadow: var(--shadow-card);` — no structural border when shadow is present.
-- Avoid meaningless nesting; keep consistent structure for same-type Cards. Primary actions go in page/section action area; Footer only for secondary actions.
-
-### Header Navigation
-
-- Height `48px`, use `var(--surface-container-highest)`. Brand identity, primary nav, global tools and user area stay stable.
-- Only carries global nav; page filters, batch actions and primary actions go in content area.
-
-### Side Navigation
-
-- Default light `var(--surface-container-highest)`. Expanded width `248px`, collapsed `48px`.
-- Collapsed state keeps icons, Tooltip and selected state. Use multi-level nav only when the information architecture truly needs it.
+- **Level 0 (canvas):** `var(--surface-container-lowest)`, no shadow — the page background.
+- **Level 1 (active containers):** `var(--surface-container-highest)` + `var(--shadow-card)` — cards, tables, navigations, drawers.
+- **Level 2 (inner sub-regions):** `var(--surface-variant)` — inside Level 1 cards, separates internal functional blocks (inner lists, nested form areas).
 
 ## Charts
 
