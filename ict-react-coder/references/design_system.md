@@ -234,13 +234,6 @@ To indicate semantic states (error, warning, success, info), apply the respectiv
 - Default light `var(--surface-container-highest)`. Expanded width `248px`, collapsed `48px`.
 - Collapsed state keeps icons, Tooltip and selected state. Use multi-level nav only when the information architecture truly needs it.
 
-## Global Constraints
-
-- Page background: `var(--surface-container-lowest)`. Main content containers: `var(--surface-container-highest)`.
-- Overlays use corresponding shadow token. Containers with shadow do not add structural border.
-- Internal dividers: `var(--divider)`. Flat shadowless shells: `var(--outline)`.
-- Section spacing: `var(--spacing-section)`. Page edge padding: `var(--spacing-page)`.
-
 ## Charts
 
 > Detailed chart selection, layout, and color constraints see `charts_usage.md`. Core rules only here.
