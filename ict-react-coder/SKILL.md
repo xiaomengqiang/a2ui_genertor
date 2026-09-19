@@ -84,6 +84,14 @@ NOT supported:
 
 Read **[references/component/Icon.md](references/component/Icon.md)** — Lucide names only (`<Icon name="search" size={14} />`), **never hand-write SVG paths**, **never use @ant-design/icons**. Build validates and injects icons on demand.
 
+### Charts
+
+> Detailed chart selection, layout, and color constraints see **[references/charts_usage.md](references/charts_usage.md)**. Core rules only here.
+
+- All chart components come with legend, units, and axis — do not generate these UI elements, just pass data to the chart component.
+- Chart height must fill the parent container — large whitespace is ugly.
+- Chart data key names must be in Chinese for readability.
+
 ### Internationalization
 
 **Default: single-language (zh-CN), already configured in the starter** — `app.jsx` imports `antd-zh.js` (dayjs + antd zh-CN locale) and wraps `<ConfigProvider locale={zhCN}>`. No extra work needed for Chinese pages.

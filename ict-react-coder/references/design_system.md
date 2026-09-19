@@ -209,40 +209,20 @@ Raw scale: `--font-size-sm(10) / base(12) / md(14) / lg(16) / xl(18) / 2xl(20) /
 - **Level 1 (active containers):** `var(--surface-container-highest)` + `var(--shadow-card)` — cards, tables, navigations, drawers.
 - **Level 2 (inner sub-regions):** `var(--surface-variant)` — inside Level 1 cards, separates internal functional blocks (inner lists, nested form areas).
 
-## Charts
-
-> Detailed chart selection, layout, and color constraints see `charts_usage.md`. Core rules only here.
-
-- All chart components come with legend, units, and axis — do not generate these UI elements, just pass data to the chart component.
-- Chart height must fill the parent container — large whitespace is ugly.
-- Chart data key names must be in Chinese for readability.
-
-## Text
-
-- *Color:*
-  - Table content: use `var(--on-surface)` uniformly.
-- *Typography:*
-  - Card Title: must use `--font-headline-m` (18px).
-  - Table Content: must use `--font-body-m` (14px).
-
-## Brand & Visual Quality
-
-ICT products should present a clear, useful, trustworthy, restrained, natural, professional and unified enterprise-grade experience — making page purpose, key information, status and actions quickly understood, and reflecting quality through clear hierarchy, alignment, grouping, whitespace and consistent components.
-
-- Tech aesthetics must serve business understanding — use restrained visual cues related to devices, networks, data, processes and states.
-- Avoid: marketing-style compositions, cyber or gaming feel, neon effects, heavy glass-morphism, random particles, exaggerated 3D and meaningless decoration.
-- Any visual richness that interferes with data, actions or status should be reduced.
-- Specific tokens, components, font and layout rules take precedence over general guidelines.
-
 ## Responsive & Adaptive
 
-- Default canvas: 1920 × 1080. Desktop design width based on 1920px, default `1rem = 16px`.
+- Default canvas: 1920 × 1080. Desktop design width based on 1920px, at 1920px `1rem = 16px`.
 - Mobile `<768px`. Tablet `768–1024px`. Desktop `>1024px`.
 
-## 全局选择规则
+## Scenario Rules
 
-- 顶部导航和侧边导航必须使用 `Menu`，不得使用 `Tabs`，也不得在导航项中放置 `Checkbox`、`RadioGroup` 或 `Tag`。
-- 卡片右上角的少量互斥视图切换使用 `Segmented`；同级内容分区才使用 `Tabs`。
-- 表格行选择使用 Table 的 `rowSelection`，不得手动画 Checkbox 列。
-- 关键词搜索使用 `Input` 并设置搜索图标，不创建不存在的 Search 组件。
-- 只调用当前运行环境真实提供的组件；没有独立规范文件的组件不得臆造 props。
+**Typography in specific elements:**
+- Table content: color `var(--on-surface)`, font `var(--font-body-m)`.
+- Card title: color `var(--on-surface)`, font `var(--font-headline-m)`.
+
+**Component selection:**
+- Top nav and side nav must use `Menu` — never `Tabs`; no `Checkbox`, `RadioGroup` or `Tag` inside nav items.
+- Card top-right mutually exclusive view switching uses `Segmented`; same-level content sections use `Tabs`.
+- Table row selection uses Table's `rowSelection` — never hand-draw Checkbox columns.
+- Keyword search uses `Input` with a search icon — do not create a non-existent Search component.
+- Only call components actually provided by the runtime; never fabricate props for components without spec files.
