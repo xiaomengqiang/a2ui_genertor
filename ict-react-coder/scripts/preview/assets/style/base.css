@@ -291,8 +291,7 @@
 /* ── body base ── */
 body {
   margin: 0;
-  font-family: var(--font-family);
-  line-height: var(--line-height-base);
+  font: var(--font-body-m);
   background-color: var(--surface);
   color: var(--on-surface);
 }

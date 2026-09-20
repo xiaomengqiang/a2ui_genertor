@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HUI Charts UMD Demo</title>
+  <style>
+    body { margin: 20px; font-family: sans-serif; }
+    .chart-container { width: 600px; height: 400px; border: 1px solid #ddd; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <h1>HUI Charts UMD Demo</h1>
+  <div id="barChart" class="chart-container"></div>
+  <div id="pieChart" class="chart-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+  <script src="./hui-charts.umd.js"></script>
+  <script>
+    // 创建图表实例
+    var barChart = new HUICharts();
+    // 初始化图表容器
+    barChart.init(document.getElementById('barChart'));
+    // 填入图表配置项
+    barChart.setSimpleOption('BarChart', {
+      theme: 'cloud-light',
+      data: [
+        { name: 'ccA', value: 100 },
+        { name: 'ccB', value: 200 },
+        { name: 'ccC', value: 150 },
+      ],
+    });
+    // 开始渲染
+    barChart.render();
+
+    // 创建图表实例
+    var pieChart = new HUICharts();
+    // 初始化图表容器
+    pieChart.init(document.getElementById('pieChart'));
+    // 填入图表配置项
+    pieChart.setSimpleOption('PieChart', {
+      data: [
+        { name: 'A', value: 100 },
+        { name: 'B', value: 200 },
+        { name: 'C', value: 150 },
+      ],
+    });
+    // 开始渲染
+    pieChart.render();
+  </script>
+</body>
+</html>
