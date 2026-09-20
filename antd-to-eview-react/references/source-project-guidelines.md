@@ -171,7 +171,7 @@ src/styles/
 
 ---
 
-## 3. 图标方案应避免运行时 fetch
+## 3. 图标方案：用接口匹配 icon+ 名（优选），避免运行时 fetch SVG 注入
 
 ### 3.1 问题
 
@@ -232,37 +232,69 @@ const svgCache = new Map(); // "name&variant&color" -> svg text 缓存
 
 迁移到 eview-react 时面临三个问题：
 
-**问题 1：不知道图标名怎么映射**
+**问题 1：图标名怎么映射——可解（用 icon-plus 接口查）**
 
-eview-react 有两套图标方案：
-- `Icon name="ict_xxx"`——内置图标，但 skill 里只有 `ict_chevronDown`/`ict_trash`/`ict_edit` 等少数几个名字被提到，没有完整目录
-- `@hui/icon-plus`——icon+ 图标库按需导入，命名规律是 `IconPlusIc<Category><Name>`，但 skill 里也只有 `IconPlusIcPublicSearch`/`IconPlusIcPublicTrash` 等少数例子
+eview-react 默认用 icon+（`@nce/icon-plus` 按需引入，命名规律 `IconPlusIc<Category><Name>`）；内置 `Icon name="ict_xxx"` 已下线、不再推荐。icon+ 全量目录不随 skill 打包，但源项目的 icon-plus 在线接口（见 §3.1 第二层）可吃 Lucide 名或 antd 名做 keyword 查询、返回匹配的 icon+ 名，迁移时用它做一次名发现即可——见 §3.3 优选方案。
 
-无法确认 `sun` 对应的 icon-plus 组件名是 `IconPlusIcWeatherSun` 还是 `IconPlusIcSystemSun` 还是别的什么。
+迁移时拿源项目的图标名（如 `sun`/`search`/`arrow-left`，或对应 antd 名 `SunOutlined`/`SearchOutlined`/`ArrowLeftOutlined`）当 keyword 查 `getIconInfo`，拿到 icon+ 组件名后在 eview-react 工程里 `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态用。
 
-**问题 2：运行时 fetch 与静态 import 范式不兼容**
+**问题 2：运行时 fetch SVG 注入与静态 import 范式不兼容**
 
 ```
 源项目：运行时 fetch → 动态注入 SVG → 需要网络
 eview-react：构建时 import → 静态 React 组件 → 离线可用
 ```
 
-不能简单地保留源项目的 Icon 组件——它依赖的 `https://octo.hdesign.huawei.com` 在 eview-react 工程里不一定能访问，而且它绕过了 eview-react 的图标体系。
+不能简单地保留源项目的 Icon 组件——它依赖的 `https://octo.hdesign.huawei.com` 在 eview-react 工程里不一定能访问，而且它绕过了 eview-react 的图标体系。**但接口的名发现能力可复用为迁移期一次性查询**：fetch 只在迁移时查名、不参与运行时渲染，范式冲突消除。
 
-**问题 3：最终只能退化方案**
+**问题 3：原迁移退化掉了所有图标——现在可保留**
 
-因为上面两个问题，转换时把所有图标都去掉了：
+之前因问题 1+2，转换时把所有图标都去掉了：
 - 搜索框→`SearchInput`（自带搜索图标，不用单独传）
 - 深浅色切换→纯文字 Button（`text="深色"`）
 - 上一步/下一步→纯文字 Button（无 leftIcon/rightIcon）
 - 侧导航菜单→纯文字按钮（无图标）
 - 品牌 logo→CSS 色块（`<span className="shell-brand-mark" />`）
 
-丢失了所有视觉图标。
+有了 §3.3 的接口名发现优选方案，不必再"丢失所有视觉图标"，可按 icon+ 名正常渲染。
 
 ### 3.3 建议方案
 
-**方案 A（最优）：直接用 `@ant-design/icons`**
+**优选方案：用 icon-plus 接口做名映射，迁到 eview-react icon+ 组件**
+
+源项目的 icon-plus 在线接口（§3.1 第二层）可吃 Lucide 名或 antd 名做 keyword 查询，返回匹配的 icon+ 图标名（下划线小写形，如 `ic_public_search`），再按下划线分段转 PascalCase 得到组件名（`IconPlusIcPublicSearch`），在 eview-react 工程（已装 `@nce/icon-plus`）里静态 import。
+
+**接口调用**：`GET https://octo.hdesign.huawei.com/assetRepository/iconPlus/getIconInfo?keyword=<keyword>&topK=2&source_id=6`
+- 迁移期一次性查询：收集源项目所有图标名（Lucide/antd 名），`keyword` 传逗号拼接的全部名，一次请求拿回每个名对应的 icon+ 名
+- 响应是数组，每项 `item.icons[]`；优先取 `group` 含「系统图标」的图标，取其 `name`；否则回退 `item.icons[0].name`；都没有则该名解析失败
+
+**下划线/小写名 → PascalCase 组件名**：按下划线分段、每段首字母大写、拼接、去掉点号、前加 `IconPlus`。例：`ic_bpit_home` → `IconPlusIcBpitHome`；`ic_public_search` → `IconPlusIcPublicSearch`。
+
+**失败回退**：API 不可用或某名无匹配时，用占位图标 `IconPlusIcPublicTransverseRectangleTemplate`，保证编译通过、不阻塞迁移（后续人工替换）。
+
+**整体流程**：
+
+```jsx
+// 1) 收集源项目所有图标名（Lucide/antd 名，如 sun/search/arrow-left）
+// 2) 一次性请求 getIconInfo?keyword=sun,search,arrow-left,... → 拿到每个名对应的 icon+ 下划线名（如 ic_public_sun）
+// 3) 按下划线分段转 PascalCase（IconPlusIcPublicSun）
+// 4) eview-react 工程里静态 import
+import { IconPlusIcPublicSearch, IconPlusIcPublicSun } from '@nce/icon-plus';
+<Button leftIcon={<IconPlusIcPublicSun />} onClick={toggleDark} />
+```
+
+接口在此**只做迁移期一次的名发现**，不参与运行时渲染，范式冲突消除；不需要把源项目的 Icon 组件搬过去。
+
+迁移时名映射示意（icon+ 组件名为示意，真实值靠接口查得 + PascalCase 转换）：
+
+| 源项目图标（Lucide/antd 名） | 接口返回下划线名（示意） | icon+ 组件名 |
+|------------------------------|------------------------|-------------|
+| `search` / `SearchOutlined` | `ic_public_search` | `IconPlusIcPublicSearch` |
+| `sun` / `SunOutlined` | `ic_public_sun` | `IconPlusIcPublicSun` |
+| `arrow-left` / `ArrowLeftOutlined` | `ic_public_arrow_left` | `Button leftIcon={<IconPlusIcPublicArrowLeft />}` |
+| `edit` / `EditOutlined` | `ic_public_edit` | `IconButton iconName={<IconPlusIcPublicEdit />}` |
+
+**备选方案 A：直接用 `@ant-design/icons`**
 
 ```jsx
 import { SearchOutlined, SunOutlined, MoonOutlined,
@@ -271,18 +303,18 @@ import { SearchOutlined, SunOutlined, MoonOutlined,
 <Button icon={<SunOutlined />} onClick={toggleDark} />
 ```
 
-迁移时映射关系清晰：
+迁移时映射关系清晰（icon+ 组件名为示意，真实值靠接口查得）：
 
 | antd 图标 | eview-react 对应 |
 |-----------|-----------------|
 | `SearchOutlined` | `SearchInput` 自带，或 `IconPlusIcPublicSearch` |
-| `SunOutlined` | `IconPlusIcWeatherSun`（需查目录确认） |
-| `ArrowLeftOutlined` | `Button leftIcon` 或 `Icon name="ict_chevronLeft"` |
-| `EditOutlined` | `IconButton iconName="ict_edit"`（skill 里有这个名字） |
+| `SunOutlined` | `IconPlusIcPublicSun`（需查接口确认） |
+| `ArrowLeftOutlined` | `Button leftIcon={<IconPlusIcPublicArrowLeft />}` |
+| `EditOutlined` | `IconButton iconName={<IconPlusIcPublicEdit />}` |
 
-@ant-design/icons 的名字是公开标准，可以在 npm/官网查到完整目录。即使 skill 没有 icon-plus 目录，至少可以从 antd 图标名推断 intent，再在真实工程里查 icon-plus 对应名。
+`@ant-design/icons` 的名字是公开标准，可在 npm/官网查到完整目录。接口不可用时用它兜底——从 antd 名推断 intent，再到真实工程查 icon+ 对应名。
 
-**方案 B（次优）：用内联 SVG 组件**
+**备选方案 B：用内联 SVG 组件**
 
 ```jsx
 function SearchIcon({ size = 14 }) {
@@ -297,26 +329,25 @@ function SearchIcon({ size = 14 }) {
 ```
 
 迁移时：
-- eview-react 的 `Icon` 支持 `iconUrl="./icons/search.svg"`——直接用静态 SVG 文件
-- 或者继续用内联 SVG 组件，不依赖任何图标库
-- 不需要网络、不需要构建时 import、不需要猜名字
+- eview-react 的图标 prop 多收 ReactElement，可直接塞内联 SVG 组件或静态 SVG 文件
+- 不依赖任何图标库，不需要网络、不需要构建时 import、不需要猜名字
 
-**方案 C（应避免）：运行时 fetch 图标服务（源项目现状）**
+**方案 C（应避免）：运行时 fetch SVG 注入图标服务（源项目现状）**
 
-迁移时的问题：
+仅指源项目那条"fetch SVG → `dangerouslySetInnerHTML` 注入 DOM"的渲染旁路。迁移时的问题：
 - 需要决定保留还是替换
 - 保留→依赖内网 API，离线不可用，且绕过 eview-react 图标体系
-- 替换→需要从 10 个 Lucide 名映射到 eview-react icon-plus 名，但无目录可查
-- 无论选哪个，都增加了额外的决策成本和实现成本
+- 替换→名映射走优选方案的接口即可，不再"无目录可查"
+- 接口的名发现能力已被优选方案复用，但 SVG 注入这条渲染旁路仍应避免
 
 ### 3.4 成本对比
 
-| 方面 | 运行时 fetch（现状） | @ant-design/icons（方案 A） | 内联 SVG（方案 B） |
-|------|-------------------|---------------------------|-------------------|
-| 迁移时图标名映射 | 无法映射（名字体系不兼容） | 可查 antd 官网目录，推断 intent | 不需要映射，SVG 直接用 |
-| 网络依赖 | 运行时 fetch 内网 API | 无 | 无 |
-| 迁移后是否保留 | 需额外决策 | 直接映射到 icon-plus 或保留 | 直接用或转 `iconUrl` |
-| 迁移额外成本 | 高（猜名字 + 改范式） | 低（名字可查） | 低（不需映射） |
+| 方面 | 运行时 fetch SVG 注入（现状） | 接口名发现（优选） | @ant-design/icons（备选 A） | 内联 SVG（备选 B） |
+|------|-------------------|---------------------------|---------------------------|-------------------|
+| 迁移时图标名映射 | 不适用（运行时渲染） | 接口按 keyword 查得 icon+ 名 | 可查 antd 官网目录，推断 intent | 不需要映射，SVG 直接用 |
+| 网络依赖 | 运行时 fetch 内网 API（离线不可用） | 迁移期一次性查询（可选） | 无 | 无 |
+| 迁移后是否保留 | 不保留（旁路应避免） | icon+ 组件静态 import，保留图标 | 直接映射到 icon+ 或暂保留 | 直接用或塞图标 prop |
+| 迁移额外成本 | 高（运行时依赖 + 绕过体系） | 低（查名 + 静态 import） | 低（名字可查） | 低（不需映射） |
 
 ---
 
@@ -328,7 +359,7 @@ function SearchIcon({ size = 14 }) {
 |----|-----------|--------------|--------|
 | 构建工具 | UMD + Babel-standalone | 全套 Vite 工程 | 已有 Vite |
 | Token 定义 | 666 个变量内联在 HTML | 全部丢失 | 独立 CSS 文件，与 `aui3_1.css` 并存，布局 CSS 不改 |
-| 图标加载 | 230 行运行时 fetch 组件 | 无法映射，退化为纯文字 | 标准图标库或内联 SVG |
+| 图标加载 | 230 行运行时 fetch 组件 | 名映射无目录、退化为纯文字 | 接口查 icon+ 名 → 静态 import，或内联 SVG |
 | 应用代码 | 内联在 HTML + src/ 两份 | 需判断以哪份为准 | 只有一份 |
 
 改进后，迁移的工作量从"重建基础设施 + 替换组件"缩减为**纯组件替换**。

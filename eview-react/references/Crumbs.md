@@ -48,6 +48,13 @@ const crumbs: Crumb[] = useMemo(() => [
 
 // 带标题 / 图标 / 折叠阈值
 <Crumbs title="当前位置" data={crumbs} countLimit={4} itemTip />
+
+// 项图标 / 分隔图标用 icon+
+import { IconPlusIcPublicHome, IconPlusIcPublicChevronRight } from '@nce/icon-plus';
+<Crumbs
+  data={[{ title: '首页', url: '/', icon: <IconPlusIcPublicHome /> }, { title: '用户管理' }]}
+  splitIcon={<IconPlusIcPublicChevronRight />}
+/>
 ```
 
 ## 5. 数据结构
@@ -58,7 +65,7 @@ interface Crumb {
   title: string;
   url?: string;          // 有 url 才可点；最后一项省略
   enable?: boolean;      // 是否禁用（api 描述如此）
-  icon?: string;         // 图标 url
+  icon?: string | ReactElement;  // 项图标，默认用 icon+ 组件，也收图片 url
   id?: string | number;  // demo 里附带，便于 onClick 识别
 }
 ```
@@ -140,11 +147,11 @@ data={[{ title: '用户管理', url: '/users' }, { title: '编辑', url: '/users
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
-| `data` | `Array<{ title, url?, enable?, icon? }>`，**必填** | 路径项；有 `url` 才可点 |
+| `data` | `Array<{ title, url?, enable?, icon? }>`，**必填** | 路径项；有 `url` 才可点；`icon` 收 `string \| ReactElement`（默认用 icon+） |
 | `onClick` | `(data, event) => void` | 点击带链接的项 |
 | `title` | `string` | 面包屑前的标题，如"当前位置" |
 | `seprator` | `string`，默认 `>` | 分隔符（拼写照官方） |
-| `splitIcon` | `string` | 自定义分隔图标 url |
+| `splitIcon` | `string \| ReactElement` | 自定义分隔图标，默认用 icon+ 组件 |
 | `countLimit` | `number`，默认 `6` | 超过则折叠为下拉 |
 | `itemTip` | `boolean`，默认 `false` | 悬浮显示项文本提示 |
 | `itemStyle` / `style` / `className` / `id` | — | 样式与标识 |

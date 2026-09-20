@@ -13,7 +13,7 @@ Rating 是星级评分：展示评价或快速评级，支持半星、只读、�
 | 用户打分（可交互） | `Rating` + `onClick` | antd `Rate` + `onChange` |
 | 只展示分数 | `Rating disabled` | 手写星星 |
 | 满意度 / 优先级五档 | `Rating starCount={5}` | RadioGroup |
-| 非星形（心形 / 自定义） | `iconName="ict_heart"` | 换组件 |
+| 非星形（心形 / 自定义） | `iconName={<IconPlusIcPublicHeart />}` | 换组件 |
 
 ## 2. 典型场景
 
@@ -58,7 +58,8 @@ const [hoverScore, setHoverScore] = useState<number | null>(null);
 ### 自定义图标与颜色
 
 ```tsx
-<Rating iconName="ict_heart" starColor="#f43146" value={likes} starCount={5} />
+import { IconPlusIcPublicHeart } from '@nce/icon-plus';
+<Rating iconName={<IconPlusIcPublicHeart />} starColor="#f43146" value={likes} starCount={5} />
 ```
 
 ## 5. 数据结构
@@ -158,7 +159,7 @@ export default function ReviewPanel() {
 
 ```tsx
 // ❌ antd 习惯：eview Rating 没有 onChange / allowHalf / count / character / allowClear
-<Rate allowHalf count={5} onChange={setScore} allowClear character={<Icon />} />
+<Rate allowHalf count={5} onChange={setScore} allowClear character={<IconPlusIcPublicXxx />} />
 
 // ❌ 用 onChange 接取值，永远收不到回调（应为 onClick）
 <Rating value={score} onChange={(v) => setScore(v)} />
@@ -185,7 +186,7 @@ export default function ReviewPanel() {
 | `disabled` | `boolean`，默认 `false` | 只读，无法交互 |
 | `size` | `number`，默认 `16` | 图标大小 |
 | `starColor` | `string`，默认 `'#eeba18'` | 选中颜色 |
-| `iconName` / `iconProps` | `string` / `{ color, hoverColor, disabledColor }` | 用组件库图标替换星形及其颜色 |
+| `iconName` / `iconProps` | `string \| ReactElement` / `{ color, hoverColor, disabledColor }` | 用 icon+ 组件（推荐）或组件库图标名替换星形及其颜色 |
 | `onClick` | `(value: number) => void` | **取值回调** |
 | `onMouseOver` / `onMouseLeave` | `(value: number) => void` | 悬浮预览 / 移出 |
 | `onKeyDown` | `(value: number) => void` | 键盘选择 |

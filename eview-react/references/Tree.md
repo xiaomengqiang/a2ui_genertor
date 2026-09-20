@@ -96,6 +96,21 @@ const treeRef = useRef<any>(null);   // 搜索定位用 findLevelNodes
 <Tree ref={treeRef} … />
 ```
 
+### 三态图标：iconLeaf / iconExpanded / iconCollapsed 用 icon+
+
+```tsx
+import { IconPlusIcPublicFile, IconPlusIcPublicFolderOpen, IconPlusIcPublicFolder } from '@nce/icon-plus';
+<Tree
+  data={treeData}
+  nodeKey="id"
+  iconLeaf={<IconPlusIcPublicFile />}
+  iconExpanded={<IconPlusIcPublicFolderOpen />}
+  iconCollapsed={<IconPlusIcPublicFolder />}
+  …
+/>
+// 三态需成套设置；同名属性也可在节点数据里单节点覆盖
+```
+
 ## 5. 数据结构
 
 ```tsx
