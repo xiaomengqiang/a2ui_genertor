@@ -73,6 +73,21 @@ const dataset = [
 />
 ```
 
+### 三态图标用 icon+
+
+```tsx
+import { IconPlusIcPublicFile, IconPlusIcPublicFolderOpen, IconPlusIcPublicFolder } from '@nce/icon-plus';
+<TreeTable
+  columns={columns}
+  dataset={dataset}
+  nodeKey="id"
+  iconLeaf={<IconPlusIcPublicFile />}
+  iconExpanded={<IconPlusIcPublicFolderOpen />}
+  iconCollapsed={<IconPlusIcPublicFolder />}
+  …
+/>
+```
+
 ## 5. 数据结构
 
 ```tsx
@@ -193,6 +208,6 @@ export default function DeviceConfigTree() {
 | `virtualScroll` / `virtualShowNum` | `boolean` / `number` | 虚拟滚动 |
 | `enableColumnFilter` / `itemOrderChanger` / `onFilterOkClick` | — | 列筛选弹窗 |
 | `enableColumnDrag` / `onColumnSizeChange` | `boolean`（默认 true）/ 回调 | 列宽拖拽 |
-| `iconLeaf` / `iconExpanded` / `iconCollapsed`（及 Class） | `string` | 三态图标 |
+| `iconLeaf` / `iconExpanded` / `iconCollapsed`（及 Class） | `string \| ReactNode` | 三态图标，默认用 icon+ 组件 |
 | `showEmptyImage` / `rowStyle` / `customRowStyle` / `tableStyle` / `style` / `className` / `id` | — | 空图 / 样式 |
 | `ref.expandAll()` / `ref.collapseAll()` | 命令式方法 | 全展开 / 全收起（demo） |

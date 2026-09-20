@@ -78,7 +78,8 @@ const toggle = (key: string) => {
 ### 信息标签带图标
 
 ```tsx
-<Tag isMessageTag hasIcon iconName="ict_about">已认证</Tag>
+import { IconPlusIcPublicAbout } from '@nce/icon-plus';
+<Tag isMessageTag hasIcon iconName={<IconPlusIcPublicAbout />}>已认证</Tag>
 ```
 
 ## 5. 数据结构
@@ -189,7 +190,7 @@ export default function AlarmTags() {
 
 ```tsx
 // ❌ antd 习惯：eview Tag 没有 closable / onClose / CheckableTag / icon 属性
-<Tag closable onClose={remove} icon={<Icon />}>标签</Tag>
+<Tag closable onClose={remove} icon={<IconPlusIcPublicXxx />}>标签</Tag>
 <Tag.CheckableTag checked={on} onChange={setOn}>筛选</Tag.CheckableTag>
 
 // ❌ 颜色写 antd 的色名，eview 只认 default/primary/success/warning/caution/danger（或自定义 style）
@@ -219,7 +220,7 @@ export default function AlarmTags() {
 | `size` | `'small' \| 'normal' \| 'large'`，默认 `normal` | 尺寸（`normal` 为小尺寸，`large` 为大尺寸） |
 | `onClick` | `(e: MouseEvent) => void` | 点击 |
 | `isMessageTag` | `boolean`，默认 `false` | 信息标签样式 |
-| `hasIcon` / `iconName` | `boolean` / `string` | 信息标签图标（`iconName` 与组件库图标名相同） |
-| `tagIconProps` | `{ iconUrl, hoverColor, style, className }` | 自定义图标 |
+| `hasIcon` / `iconName` | `boolean` / `string \| ReactElement` | 信息标签图标（默认用 `iconName={<IconPlusIc* />}`） |
+| `tagIconProps` | `{ iconUrl, hoverColor, style, className }` | 自定义图标；`iconUrl` 仅自定义图片，默认用 `iconName` 走 icon+ |
 | `style` | `{ color?, background?, borderColor?, borderRadius?, border? }` | 自定义颜色（分类标签用法） |
 | `id` / `className` | — | 最外层 |

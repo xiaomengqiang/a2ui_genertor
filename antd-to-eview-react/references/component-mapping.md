@@ -51,7 +51,7 @@
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Table` | `Table` | `dataSource`→`dataset`；`rowKey`→`keyIndex`；`columns[].dataIndex`→`key`；`pagination`→`enablePagination`+`pagingProps`+`onPageChange`；`rowSelection`→`enableCheckBox`+`onRowCheck`；`emptyText`→`emptyTableMsg` |
+| `Table` | `Table` | `dataSource`→`dataset`；`rowKey`→`keyIndex`；`columns[].dataIndex`→`key`；`pagination`→`enablePagination`+`pagingProps`+`onPageChange`；`rowSelection`→`enableCheckBox`+`onRowCheck`；`emptyText`→`emptyTableMsg`；**render 函数保留但需检查 i18n key 对齐**（见 [migration-workflow.md](migration-workflow.md) §3.5） |
 | `Tabs` / `TabPane` | `Tab` / `TabItem` | children 驱动（`<TabItem title>`）；切换回调是 `onClick(index,title,event)`（不是 `onChange`）；`draggable` 默认 true 需关；`items` 不存在 |
 | `Collapse` / `Panel` | `Panel` / `PanelItem` | `selectedIndex` 数组；`enableMultiExpand` 手风琴；`closable` 默认 true 要关 |
 | `List` | 手写或 `Table` | 无导出 |
@@ -101,6 +101,5 @@
 
 | antd | eview-react | 关键差异 |
 |------|-----------|---------|
-| `@ant-design/icons` | `@hui/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@hui/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 只能取 12/14/16/20/24/32/36/40/48/60 |
-| `@ant-design/icons` (内置) | `Icon name="ict_*"` | 标准图标自带主题与 hover；改色需 `isStandard={false}` |
-| 可点击图标 | `IconButton` | `iconName`+`tipText`；不要给 `Icon` 挂 onClick |
+| `@ant-design/icons` | `@nce/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 只能取 12/14/16/20/24/32/36/40/48/60；icon+ 名迁移时用 icon-plus 接口（`getIconInfo`）按 antd/Lucide 名 keyword 查得（见 [source-project-guidelines §3.3](source-project-guidelines.md)） |
+| 可点击图标 | `IconButton` | `iconName={<IconPlusIc* />}`+`tipText`；不要给图标组件挂 onClick |

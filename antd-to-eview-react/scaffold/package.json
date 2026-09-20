@@ -13,7 +13,7 @@
         "react-dom": "^18.3.0",
         "react-intl": "^7.1.14",
         "@nce/eview-react": "latest",
-        "@hui/icon-plus": "latest",
+        "@nce/icon-plus": "latest",
         "@cloudsop/horizon": "latest",
         "@cloudsop/horizon-intl": "latest",
         "@cloudsop/htimezone": "latest",

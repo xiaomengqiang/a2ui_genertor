@@ -49,6 +49,17 @@ const stepData = [
 <Steps data={stepData} currentStep={stepData[stepIndex].value} />
 ```
 
+### 自定义步骤图标：iconUrl 用 icon+
+
+```tsx
+import { IconPlusIcPublicConfig, IconPlusIcPublicCheck } from '@nce/icon-plus';
+const stepData = [
+  { text: '配置', value: '1', iconUrl: <IconPlusIcPublicConfig /> },
+  { text: '确认', value: '2', iconUrl: <IconPlusIcPublicCheck /> },
+];
+<Steps data={stepData} currentStep={stepData[stepIndex].value} />
+```
+
 ### 上一步 / 下一步 —— 校验当前步再前进
 
 ```tsx

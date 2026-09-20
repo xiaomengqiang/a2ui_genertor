@@ -9,6 +9,7 @@
 > ✅ **运行时已验证（内网真机，2026-09）**：2.0 托管模式（`Form.Item name` + 控件不传 `value`/`onChange` + `ref.submit()` → `onSuccess(values)`）在真实工程里**能收到 `values`**（含所有 `name` 字段）；`setFieldsValue` / `resetFields` / `submit` / `getFieldsValue` 均可用。先前 `TODO.md`「待实测」对应项 hereby 关闭。
 > ⚠️ **硬坑**：`initialValues` **必须传对象，不能是 `undefined`**。真机观察到传 `undefined` 时 `submit()` 仍触发 `onSuccess` 但 `values` 是空对象（"托管没生效"的表现；机制未深究但可复现，传具体对象则 `values` 正常）。动态/异步场景务必 `initialValues={x || {}}`。
 > ⚠️ 控件自带 `validator`（如 TextField/TextArea 的 `validator`）默认**不在 `submit()` 时执行**，需 Form 上加 `validateAllChildComponent={true}`；Form rules（`required`/`email`/`range` 等）则在 `submit()` 时正常跑（已验证）。`onFailed` 真机示例只取第一参 `errors`，第二参 `values` 是否提供待实测。
+> ⚠️ `Form.Item` 必须是 `Form` 的**直接子节点**，不能套在 `div` / flex / CSS grid 里模拟 antd 的 `Row/Col`，条件显隐也不能用 Fragment 包一组（栅格同样失效，实测）：标签（渲染后的 `ev_label`）宽度与栅格都由 Form 按直接子级 `Form.Item` 计算，隔一层 DOM 标签宽度即塌缩、只显示一小截。多列在 `Form` 上设 `itemCol={8}` 等，单项覆盖用 `Form.Item.col`；说明文案用 `labelTip` 或放在 `Form.Item` 之间，不要连同 `Form.Item` 一起包进装饰性容器。
 
 ## 1. 功能定位
 
@@ -25,7 +26,7 @@ Form 是表单容器：按 `Form.Item` 的 `name` 收集值、按 `rules` 统一
 
 - 新建 / 编辑资源：`initialValues` 回填 → 逐项 `rules` → `onSuccess` 提交
 - 登录 / 注册：必填 + 邮箱 / 长度规则，提交按钮防重复
-- 多列表单：`itemCol={12}` 两列、`labelCol` 控制标签宽
+- 多列表单：`Form` 上设 `itemCol`（两列 12 / 三列 8 / 四列 6）+ `labelCol` 控制标签宽；禁止 div 栅格包裹 `Form.Item`
 - 动态表单：用 `setFieldsValue` 联动改值，`onValuesChange` 监听字段变化显隐区块
 
 ## 3. 状态声明
@@ -75,6 +76,41 @@ const initialValues: ResourceForm = { name: '', region: null, port: '', agree: f
   </Form.Item>
 </Form>
 ```
+
+### 多列布局：itemCol 设在 Form 上，Form.Item 保持直接子级
+
+```tsx
+<Form ref={formRef} itemCol={8} labelCol={6}>          {/* 三列；两列 12、四列 6 */}
+  <Form.Item label="名称" name="name"><TextField /></Form.Item>
+  <Form.Item label="区域" name="region"><Select options={regionOptions} /></Form.Item>
+  <Form.Item label="协议" name="protocol"><Select options={protocolOptions} /></Form.Item>
+  <Form.Item label="端口" name="port"><TextField format="number" /></Form.Item>
+  <Form.Item col={24} label="备注" name="remark"><TextArea /></Form.Item>  {/* 单项整行 */}
+</Form>
+
+{/* 分组标题、说明文案等装饰内容：放在 Form.Item 之间、或用 labelTip / Form 的 title，不要把 Form.Item 包进 div */}
+```
+
+### 条件显隐的 Form.Item：逐项三元或数组，不要用 Fragment 包一组
+
+`itemCol` / `labelCol` 只注入到**直接子级** `Form.Item`；`{cond ? (<>…</>) : null}` 里 Fragment 包住的整组 Form.Item 会脱离直接子级，栅格不生效（实测）。两种写法：
+
+```tsx
+{/* 写法一：逐项三元 */}
+{cond ? (
+  <Form.Item label="端口" name="port"><TextField /></Form.Item>
+) : null}
+
+{/* 写法二：整组放数组（代码更聚合，实测可行）：React.Children 遍历子级时会展开数组，
+   数组内 Form.Item 仍是直接子级，itemCol 正常注入 */}
+const detailItems = [
+  <Form.Item key="port" label="端口" name="port"><TextField /></Form.Item>,
+  <Form.Item key="remark" label="备注" name="remark" col={24}><TextArea /></Form.Item>,
+];
+{cond ? detailItems : null}
+```
+
+装饰性节点（分组标题等）同样逐项三元，不影响其他 Form.Item 的栅格。
 
 ### 非 value/onChange 型控件：valuePropName + updateTrigger (+ updateTriggerIndex)
 
@@ -245,6 +281,27 @@ const [form] = Form.useForm();
 // ❌ 提取 Form.Item 为变量（project-setting.md 明确不推荐）
 const FormItem = Form.Item;
 
+// ❌ div / CSS grid 模拟 antd Row/Col 包裹 Form.Item：不是直接子级，ev_label 宽度塌缩只显示一小截，itemCol 栅格也不生效
+<Form>
+  <div className="form-row">
+    <div className="form-col">
+      <Form.Item label="名称" name="name"><TextField /></Form.Item>
+    </div>
+  </div>
+</Form>
+// ✅ Form.Item 直接子级，多列在 Form 上设 itemCol
+<Form itemCol={8}>...</Form>
+
+// ❌ 条件显隐用 Fragment 包一组：整组脱离直接子级，itemCol 栅格失效（实测）
+{cond ? (
+  <>
+    <Form.Item label="端口" name="port"><TextField /></Form.Item>
+    <Form.Item label="备注" name="remark"><TextArea /></Form.Item>
+  </>
+) : null}
+// ✅ 逐项三元
+{cond ? <Form.Item label="端口" name="port"><TextField /></Form.Item> : null}
+
 // ❌ 1.0 写法：控件自己带 name / value / onChange，绕开 Form 托管
 <Form><TextField name="username" value={u} onChange={setU} /></Form>
 
@@ -274,7 +331,7 @@ rules={[{ required: true, message: '必填' }, { type: 'email' }]}
 | `onFailed` | `(errors, values?) => void` | 提交且校验失败；真机示例只取第一参 `errors`，第二参 `values` 待实测 |
 | `onValuesChange` | `(changedFields, allNewValues, allPrevValues) => void` | 字段更新 |
 | `layout` | `'horizontal' \| 'vertical'`，默认 `horizontal` | 不支持 inline |
-| `itemCol` | `24 \| 12 \| 8 \| 6`，默认 `24` | 多列表单，每项占栅格 |
+| `itemCol` | `24 \| 12 \| 8 \| 6`，默认 `24` | 多列表单，每项占栅格；只作用于**直接子级** `Form.Item` |
 | `labelCol` / `wrapperCol` | `number \| { span, offset }` | 仅水平布局；`labelCol + wrapperCol <= 24` |
 | `labelAlign` / `colon` | `'left' \| 'right'`（默认 right）/ `boolean`（默认 true） | 标签对齐 / 冒号 |
 | `validateTrigger` / `updateTrigger` | `string`，默认 `onChange` | 校验 / 取值的回调名 |

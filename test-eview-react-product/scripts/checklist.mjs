@@ -76,7 +76,7 @@ const checks = [
   // === 1. import 类（阻断） ===
   neg('no-antd-import', 'import', 'block', /from\s+['"]antd['"]|require\(['"]antd['"]\)/, '仍从 antd 导入（应删除）'),
   neg('no-antd-locale', 'import', 'block', /from\s+['"]antd\/locale/, '仍用 antd locale（应换 @nce/eview-react/locales）'),
-  neg('no-antd-icons', 'import', 'block', /from\s+['"]@ant-design\/icons['"]/, '仍用 @ant-design/icons（应换 @hui/icon-plus）'),
+  neg('no-antd-icons', 'import', 'block', /from\s+['"]@ant-design\/icons['"]/, '仍用 @ant-design/icons（应换 @nce/icon-plus）'),
   neg('eview-import-path', 'import', 'block', /from\s+['"]@nce\/eview-react['"]/, '用命名导入（应为 @nce/eview-react/<Component> 默认导入）'),
   {
     id: 'no-src-prefix-in-src', category: 'import', severity: 'block',

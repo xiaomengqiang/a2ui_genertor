@@ -114,6 +114,10 @@ useEffect(() => {
 <Dialog isOpen={open} modal={false} movable onClose={close}>…</Dialog>              // 非模态，可拖
 <Dialog isOpen={open} closable={false} closeOnEscape={false} buttons={[…]}>…</Dialog> // 只能走按钮
 <Dialog isOpen={open} position={[200, 120]} size={[400, 300]} resizable>…</Dialog>
+
+// 标题栏自定义图标用 icon+
+import { IconPlusIcPublicHelp } from '@nce/icon-plus';
+<Dialog isOpen={open} title="新建" customIcons={<IconPlusIcPublicHelp />} onClose={close}>…</Dialog>
 ```
 
 ## 5. 数据结构
@@ -280,5 +284,5 @@ buttons={[{ text: '确定', onClick: () => { setOpen(false); save(); } }]}
 | `customClose` | `boolean`，默认 `false` | 为 true 时默认关闭按钮不生效，自行处理 |
 | `boundary` / `isAllowedExceed` / `autoSetPosition` | `{ top, right, bottom, left }` / `boolean` / `boolean` | 拖拽范围 / 可拖出窗口 / 自动定位 |
 | `animationOff` | `boolean`，默认 `false` | 关闭动画 |
-| `customIcons` / `url` | `any` / `string` | 标题栏自定义图标 / 内嵌第三方页面 |
+| `customIcons` / `url` | `any` / `string` | 标题栏自定义图标（默认用 `customIcons={<IconPlusIc* />}`）/ 内嵌第三方页面 |
 | `id` / `className` | — | 最外层 |

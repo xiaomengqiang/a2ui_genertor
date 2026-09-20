@@ -305,15 +305,15 @@
     {
       "id": 22,
       "prompt": "用 eview-react 写一个概览卡片区：三张统计卡片各自可刷新，刷新中只盖住自己；接口失败显示失败空态并可重试，数据为 0 显示成功空态；卡片右上角是带气泡提示的图标按钮；页面首屏整体加载",
-      "expected_output": "首屏 Loading type=\"global\"；每张卡片父容器 position: relative + Loading type=\"local\" 各自 isOpen；失败 Empty type=\"fail\" + 重试按钮，为 0 Empty type=\"success\"；卡片右上角 IconButton iconName tipText tipData.direction 或 TipBox 包裹 Icon；请求在 finally 关闭 loading",
+      "expected_output": "首屏 Loading type=\"global\"；每张卡片父容器 position: relative + Loading type=\"local\" 各自 isOpen；失败 Empty type=\"fail\" + 重试按钮，为 0 Empty type=\"success\"；卡片右上角 IconButton iconName={<IconPlusIc* />} tipText tipData.direction 或 TipBox 包裹 icon+ 组件；请求在 finally 关闭 loading",
       "assertions": [
         { "text": "首屏使用 Loading type=\"global\" isOpen，卡片局部使用 Loading type=\"local\" 且父容器 position: relative", "type": "eview_compliance" },
         { "text": "Loading 的关闭写在 finally 中，失败时不会一直转", "type": "behavioral" },
         { "text": "接口失败使用 Empty type=\"fail\" 并在 description 中放重试按钮；数据为 0 使用 Empty type=\"success\"", "type": "eview_compliance" },
-        { "text": "卡片右上角使用 IconButton（iconName + tipText + tipData.direction）或 TipBox 包裹 Icon，没有给 Icon 直接挂 onClick 当按钮", "type": "eview_compliance" },
+        { "text": "卡片右上角使用 IconButton（iconName={<IconPlusIc* />} + tipText + tipData.direction）或 TipBox 包裹 icon+ 组件，没有给图标组件直接挂 onClick 当按钮", "type": "eview_compliance" },
         { "text": "没有使用 antd 的 Spin / Empty image / Tooltip，也没有把 Spinner 当 loading", "type": "eview_compliance" },
         { "text": "各卡片的 loading 状态相互独立，刷新一张不影响其他卡片", "type": "behavioral" },
-        { "text": "如果通过 Icon 的颜色属性自定义颜色，使用 isStandard={false}", "type": "eview_compliance" }
+        { "text": "图标用 icon+ 组件，自定义颜色用 iconColor（不再用内置 Icon name/isStandard）", "type": "eview_compliance" }
       ]
     }
   ]

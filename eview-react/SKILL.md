@@ -27,10 +27,12 @@ description: >-
 ## 必须遵守
 
 - 导入用 `@nce/eview-react` 的命名导出或 `@nce/eview-react/组件名` 的默认导出；不能用源码别名 `eview-react/…` 或 antd 顶替。入口引入主题 CSS：`aui3_1.css`（浅色），运行时切深色的工程同时引 `aui3_1_dark.css` 靠根 DOM `aui3_1` / `aui3_1 aui3_1_dark` 切换（详见工程 Pattern）。确保 `ConfigProvider` / `IntlProvider` 与依赖已接入。
+- **图标默认用 icon+**（`import { IconPlusIc* } from '@nce/icon-plus'` 按需引入），不用内置 `Icon name='ict_…'`（已下线）；可点击图标用 `IconButton iconName={<IconPlus* />}`，不给图标组件挂 onClick。
 - **props、导出名、回调参数顺序和 ref 方法都以对应 Reference 为准，查不到不推断**；不按其他库 API 或原生 event 猜写法。资料冲突按文档兼容方案处理，保留待实测说明，不能擅自认定某一版正确。
 - 校验器 `validator` 返回 `{ result, message }`，`result === true` 表示通过；提交前触发文档支持的校验。不要给没有记录 ref 方法的组件虚构 `validate()` / `getValue()`。
 - 受控方式逐组件核对：尤其是 Radio 的 `isControlled`、密码回填、DatePicker 回写及 Spinner 程序化更新；具体规则在各 Reference。
 - `Form.Item` 按 `name + rules` 托管，内部控件不另传 `value/onChange`；特殊取值回调按 Form 文档配置 `valuePropName/updateTrigger`，不提取 `Form.Item` 别名。
+- `Form.Item` 必须是 `Form` 的直接子节点，禁止用 `div` / flex / CSS grid 包裹或模拟 antd 的 `Row/Col`：标签（渲染后的 `ev_label`）宽度与栅格由 Form 按直接子级计算，隔一层 DOM 标签就塌缩成一小截。多列在 `Form` 上设 `itemCol`（24/12/8/6），单项覆盖用 `Form.Item.col`；条件显隐逐项三元或返回 `Form.Item` 数组（React.Children 会展开，实测可行），不得用 Fragment/容器包一组（整组脱离直接子级、栅格失效）；说明文案用 `labelTip` 或放在 `Form.Item` 之间，不要连 `Form.Item` 一起包进装饰性容器。
 - 弹层显隐由业务状态更新；保存成功才关闭，失败保留输入。筛选变化重置分页；父级切换清空子级；异步结果防串数据，处理 loading / error / empty，并防重复提交。
 - `Dialog` 尺寸：宽按场景设（表单 480–560、详情 640–800，勿过窄/过宽），高用 `size={[宽, 'auto']}` 自适应 + `style={{ maxHeight: '80vh' }}` 限高、超出内部滚动；勿定死高度。
 - 新代码用函数组件 + hooks、ES module、`const/let`、`===`、分号及 `handleXxx` 事件命名；不留调试 `console.log`。
