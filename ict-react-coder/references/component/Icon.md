@@ -7,7 +7,7 @@
 本 skill 的页面图标一律使用 **Lucide 图标**（`<Icon name="..." />`），不使用 `@ant-design/icons`。antd 组件自身的内置图标（Select 箭头、Modal 关闭键等）随 antd.min.js 携带，无需处理、也不做替换。
 
 ```jsx
-import { Icon } from "./assets/shared/icons.js";
+import { Icon } from "./assets/shared/icon.jsx";
 
 <Icon name="chevron-down" size={16} color="#0067D1" className="chev" />
 

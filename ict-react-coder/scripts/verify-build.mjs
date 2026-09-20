@@ -193,6 +193,34 @@ if (!antdLoadedOk(antd)) {
 }
 console.log(`PASS  antd ${antd.version} loaded (Button/ConfigProvider present)`);
 
+// echarts + hui-charts — 图表库(页面 import Chart 组件时使用)。
+// echarts 在无头环境导入较重,加载失败(如 canvas 探测)不阻断验证 — 图表渲染本就需真实浏览器。
+try {
+  const echarts = loadUmd(await readFile(LIB("echarts.min.js"), "utf8"));
+  globalThis.echarts = echarts;
+  stubWindow.echarts = echarts; // 产物脚本执行时 window 参数是 stubWindow,需与浏览器语义对齐
+  if (typeof echarts.init !== "function") throw new Error("echarts.init missing");
+  console.log(`PASS  echarts loaded (init present)`);
+  try {
+    const mod = loadUmd(
+      await readFile(LIB("hui-charts.umd.js"), "utf8"),
+      (n) => {
+        if (n === "echarts" || n.startsWith("echarts/")) return echarts;
+        throw new Error(`unexpected require: ${n}`);
+      }
+    );
+    const HUICharts = typeof mod === "function" ? mod : mod.default;
+    globalThis.HUICharts = HUICharts;
+    stubWindow.HUICharts = HUICharts;
+    if (typeof HUICharts !== "function") throw new Error("HUICharts is not a constructor");
+    console.log(`PASS  hui-charts loaded (HUICharts global present)`);
+  } catch (e) {
+    console.log(`NOTE  hui-charts headless load skipped: ${e.message}`);
+  }
+} catch (e) {
+  console.log(`NOTE  echarts headless load skipped: ${e.message}`);
+}
+
 // react-intl offline bundle — 自挂 globalThis.ReactIntl(页面 import 时使用)
 new Function(await readFile(LIB("react-intl.umd.js"), "utf8"))();
 if (!globalThis.ReactIntl || typeof globalThis.ReactIntl.IntlProvider !== "function") {

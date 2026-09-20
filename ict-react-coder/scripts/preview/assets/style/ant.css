@@ -1,4 +1,8 @@
 /* 组件样式汇总：由 npm run build:css 生成，勿手改 */
+.ant-table {
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+}
 
 /* Divider 组件样式（占位，待填充 token 映射） */
 .ant-divider {

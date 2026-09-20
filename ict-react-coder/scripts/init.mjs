@@ -62,6 +62,8 @@ const REQUIRED = [
   "library/react.production.min.js",
   "library/antd.min.js",
   "library/dayjs.min.js",
+  "library/echarts.min.js",
+  "library/hui-charts.umd.js",
   "library/babel.min.js",
   "library/react-intl.umd.js",
   "library/lucide-icon-nodes.json",
@@ -70,7 +72,7 @@ const REQUIRED = [
   "style/theme.css",
   "style/dark.css",
   "style/ant.css",
-  "shared/icons.js",
+  "shared/icon.jsx",
   "shared/antd-zh.js",
 ];
 for (const p of REQUIRED) {

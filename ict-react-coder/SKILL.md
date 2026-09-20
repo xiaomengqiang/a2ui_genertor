@@ -64,7 +64,8 @@ import { useState, useEffect } from "react";          // → React globals
 import { Menu, Button, Table, ConfigProvider } from "antd"; // → antd globals (layout components banned, see below)
 import { IntlProvider, FormattedMessage, useIntl } from "react-intl"; // → ReactIntl global (optional, multilingual pages)
 import zhCN from "./assets/shared/antd-zh.js";        // antd zh-CN locale (dayjs zh-cn + antd zhCN)
-import { Icon } from "./assets/shared/icons.js";      // Lucide icon component
+import { Icon } from "./assets/shared/icon.jsx";      // Lucide icon component
+import Chart from "./assets/shared/chart.jsx";         // HUICharts React wrapper
 import { AppProvider, useApp } from "./src/context.jsx"; // relative imports for own modules
 import DeviceTable from "./src/views/device-table/index.jsx"; // component import (optional)
 import "./src/views/device-table/index.css";          // component CSS (optional)
@@ -86,11 +87,15 @@ Read **[references/component/Icon.md](references/component/Icon.md)** — Lucide
 
 ### Charts
 
-> Detailed chart selection, layout, and color constraints see **[references/charts_usage.md](references/charts_usage.md)**. Core rules only here.
+Use `<Chart>` (`import Chart from "./assets/shared/chart.jsx"`) — React wrapper over HUICharts (echarts-based). Props and sizing patterns see **[references/component/Chart.md](references/component/Chart.md)**; per-type option rules see `references/component/{ChartName}.md` (BarChart / LineChart / PieChart / GaugeChart / HillChart / JadeJueChart / ProcessChart).
 
-- All chart components come with legend, units, and axis — do not generate these UI elements, just pass data to the chart component.
-- Chart height must fill the parent container — large whitespace is ugly.
-- Chart data key names must be in Chinese for readability.
+```jsx
+<Chart name="BarChart" option={{ data: [...] }} style={{ height: 300 }} />
+```
+
+- All charts come with legend, units, and axis — do not generate these UI elements, just pass data via `option`.
+- Charts fill their container (100% × 100%) — **the parent must have an explicit height** (fixed px card or flex-fill area), or set `style={{ height }}` directly.
+- Dark mode is automatic (hdesign-light/hdesign-dark themes switch with `.dark`).
 
 ### Internationalization
 
@@ -194,4 +199,4 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 - **[references/design_system.md](references/design_system.md)** — Design tokens (with usage notes), elevation, layout, brand quality
 - **[references/component/](references/component/)** — Component design specs (usage rules, Don'ts). Read on demand; API follows Ant Design 5
 - **[references/component/Icon.md](references/component/Icon.md)** — Lucide icon usage (props, naming rules, antd integration)
-- **[references/charts_usage.md](references/charts_usage.md)** — Chart usage guidelines
+- **[references/component/Chart.md](references/component/Chart.md)** — Chart component (chart types, props, sizing patterns, per-type option rules)

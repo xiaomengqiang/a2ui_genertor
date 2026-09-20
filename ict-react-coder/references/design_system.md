@@ -179,7 +179,7 @@ Raw scale: `--font-size-sm(10) / base(12) / md(14) / lg(16) / xl(18) / 2xl(20) /
 1. **Semantic first:** brand, interaction, text, border and error/warning/critical/success/info states must use corresponding semantic tokens — no arbitrary color substitution.
 2. **Non-semantic colors only for visual richness:** data classification, chart series, illustrations, decorative backgrounds — control quantity, keep consistent mapping.
 3. **Semantic wins over decorative:** never change state meaning or text readability for visual richness.
-4. **Chart colors:** follow chart component defaults — don't hardcode; keep consistent per-category mapping (see `charts_usage.md`).
+4. **Chart colors:** follow chart component defaults, keep consistent per-category mapping (see `references/component/Chart.md`).
 5. **Text & icons by function:** use semantic color tokens; `inverse-*` only on dark backgrounds.
 6. **Default light:** pages default to light theme — do NOT auto-generate dark sidebars.
 7. **No shadow + border combo:** never use `box-shadow` and `border` on the same element — see Layout & Elevation / Content Card.

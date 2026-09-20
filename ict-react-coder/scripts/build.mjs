@@ -11,7 +11,7 @@
 //   3. 剥离 import/export 语句(固定模式),模块包进 IIFE 共享一个 __export 池
 //   4. 提取使用到的 Lucide 图标(扫描 name="x" / icon: "x" 等模式),
 //      在 lucide-icon-nodes.json(1777 icons)中校验,非 Lucide 名 → WARN,
-//      将图标 nodes 注入 shared/icons.js 模块(const LUCIDE = {...})
+//      将图标 nodes 注入 shared/icon.jsx 模块(const LUCIDE = {...})
 //   5. 内联全部产物 — base/light/theme/dark/ant 五层 CSS 进 <style>
 //      (font url() 重写为 HTML 根相对路径),
 //      React/ReactDOM/dayjs/antd/Babel 保持本地 assets/library 引用
@@ -39,7 +39,7 @@ const STYLE_DIR = resolve(ROOT, "assets/style");
 // → ant(antd 组件换肤层,.dark 规则随暗色生效)
 const STYLE_FILES = ["base.css", "light.css", "theme.css", "dark.css", "ant.css"].map((f) => resolve(STYLE_DIR, f));
 const LUCIDE_JSON = resolve(ROOT, "assets/library/lucide-icon-nodes.json");
-const ICONS_MODULE = "assets/shared/icons.js";
+const ICONS_MODULE = "assets/shared/icon.jsx";
 
 // Matches: import [Def,] [Def2] [{ named, names }] from "source";
 const IMPORT_RE = /^[ \t]*import\s+(?:(\w+)\s*,\s*)?(?:(\w+)\s+)?(?:\{([^}]*)\})?\s*from\s*["']([^"']+)["'];?[ \t]*$/gm;
@@ -130,7 +130,7 @@ async function loadModule(filePath) {
       return "";
     }
     if (source === "@ant-design/icons") {
-      throw new Error(`${label}: 本 skill 不使用 @ant-design/icons — 页面图标一律使用 <Icon name="lucide-name" />(import { Icon } from "./assets/shared/icons.js")`);
+      throw new Error(`${label}: 本 skill 不使用 @ant-design/icons — 页面图标一律使用 <Icon name="lucide-name" />(import { Icon } from "./assets/shared/icon.jsx")`);
     }
     deps.push(resolve(dirname(filePath), source));
     if (def) defImports.push({ local: def, dep: resolve(dirname(filePath), source) });
@@ -355,15 +355,18 @@ const html = `<!DOCTYPE html>
 <script src="./assets/library/dayjs.min.js"></script>
 <!-- 2. UI Components (local UMD, antd 内置图标随包携带) -->
 <script src="./assets/library/antd.min.js"></script>
-<!-- 3. react-intl (offline, exposes ReactIntl) -->
+<!-- 3. Charts (local UMD, echarts → hui-charts 全局 HUICharts) -->
+<script src="./assets/library/echarts.min.js"></script>
+<script src="./assets/library/hui-charts.umd.js"></script>
+<!-- 4. react-intl (offline, exposes ReactIntl) -->
 <script src="./assets/library/react-intl.umd.js"></script>
-<!-- 4. Babel Transpiler (local) -->
+<!-- 5. Babel Transpiler (local) -->
 <script src="./assets/library/babel.min.js"></script>
-<!-- 5. 五层 CSS(base → light → theme → dark → ant 组件换肤层)内联 -->
+<!-- 6. 五层 CSS(base → light → theme → dark → ant 组件换肤层)内联 -->
 <style>
 ${cssParts.join("\n\n")}
 </style>
-<!-- 6. Base styles -->
+<!-- 7. Base styles -->
 <style>
 body, html { margin: 0; padding: 0; height: 100%; font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif); }
 #root { height: 100%; }
