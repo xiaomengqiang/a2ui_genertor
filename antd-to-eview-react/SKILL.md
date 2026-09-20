@@ -22,6 +22,8 @@ description: >-
 - **Form 模式不兼容**：antd 的 `Form.useForm()` + `form.validateFields()` 返回 Promise，eview-react 是 `ref.submit()` → `onSuccess(values)` 回调，控制流从同步变异步
 - **组件无对应**：Layout、Menu、Avatar、Descriptions、Result、Space 在 eview-react 中无直接对应或无 Reference，需要手写补位
 - **CSS token 丢失**：源项目 token 内联在 HTML 里，迁移到 Vite 后 HTML 不能用，token 定义跟着丢。解决方法：提取 token 到独立 CSS 文件，与 eview-react 的 `aui3_1.css` + `aui3_1_dark.css` 并存，布局 CSS 一行不改（见 [css-token-mapping.md](references/css-token-mapping.md)）
+- **IntlProvider 放错位置**：源项目的 IntlProvider 在 `app.jsx`/AppShell 里（跟 antd ConfigProvider locale 放一起），迁移时容易原样留在 AppShell。但 eview-react 的 `ConfigProvider` 在 `main.jsx`，弹层（Dialog 等 portal）由 ConfigProvider 管理，**IntlProvider 必须是 ConfigProvider 的直接子级**，否则弹层内容取不到业务文案，报 `MISSING_TRANSLATION`。同时 locale 要用 `"zh"`（不是 `"zh-CN"`），匹配 `componentsLocales` 的 key。详见 [i18n-migration.md](references/i18n-migration.md) §4
+- **Table render 的 i18n key 不对齐**：antd 项目的 Table 列 `render` 常用 `t(cellValue, cellValue)` 翻译单元格值，但 `data.js` 里 value 是短代码（`"gateway"`），i18n key 带前缀（`"deviceType.gateway"`），`t("gateway", ...)` 找不到消息报 `MISSING_TRANSLATION`。这个 bug 在 antd 源项目里就存在（antd 的 locale 不走 react-intl 所以没暴露），迁移后 IntlProvider 严格报错。修复：`render: (value) => t("deviceType." + value, value)`。提供自动排查脚本 `scripts/check-i18n-keys.cjs`（交叉比对 t(x,x) 调用与 data.js 的 value≠msgId 字段，用法见 [migration-workflow.md](references/migration-workflow.md) §5.2）。详见 [migration-workflow.md](references/migration-workflow.md) §3.5
 - **命名拼写异常**：`seprator`（不是 separator）、`taggledChildren`（不是 toggledChildren）、`disable`（SelectCard 用，不是 disabled）
 - **文件位置变化导致 import 路径失效**：UMD/旧工程常见 `app.jsx` 在工程根目录并导入 `./src/context.jsx`；拷贝 scaffold 后 `app.jsx` 位于 `src/app.jsx`，必须改为 `./context.jsx`。迁移后必须跑相对导入解析检查（脚本位于本 skill 的 `scripts/check-relative-imports.cjs`，调用方式见步骤 5），语法检查不能发现这类错误。
 
@@ -36,7 +38,7 @@ description: >-
 | **2. 换 Provider 与入口** | 移除 antd `ConfigProvider` + `theme.darkAlgorithm`；eview-react 用 `ConfigProvider` + `IntlProvider` + `<body>` 加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `<body>`） | Provider 就绪 |
 | **3. 逐组件替换** | 按映射总表替换每个 antd 组件；Form 模式单独按 [form-migration.md](references/form-migration.md) 转换；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写 | 组件代码全部替换 |
 | **4. 提取 CSS token** | 将源项目内联 token 填入骨架的 `src/styles/tokens.css`、`.dark` 覆盖填入 `src/styles/theme-dark.css`（见 [css-token-mapping.md](references/css-token-mapping.md)），布局 CSS 不改 | 样式跟随主题 |
-| **5. 验证** | `npm install` / `npm run dev` 前先跑相对导入解析检查（脚本位于本 skill 的 `scripts/check-relative-imports.cjs`，两种调用方式见 [migration-workflow.md](references/migration-workflow.md) §5.1）；再做构建与功能验证 | import/构建/功能通过 |
+| **5. 验证** | `npm install` / `npm run dev` 前先跑两个静态检查：相对导入解析（`scripts/check-relative-imports.cjs`）与 i18n 动态 key（`scripts/check-i18n-keys.cjs`，两种调用方式见 [migration-workflow.md](references/migration-workflow.md) §5.1/§5.2）；再做构建与功能验证 | import/i18n/构建/功能通过 |
 
 ### scaffold/ 预制骨架（步骤 1 可直接拷贝）
 
@@ -182,7 +184,7 @@ const handleSuccess = (values) => {
 
 1. **导入路径**：`import Button from '@nce/eview-react/Button'`，不是 `import { Button } from 'antd'`
 2. **样式**：入口引 `import '@nce/eview-react/styles/aui3_1.css'` + `import '@nce/eview-react/styles/aui3_1_dark.css'`；原始 token 提取到独立 CSS 并存引入（见下方"CSS 样式"）
-3. **Provider**：`ConfigProvider` + `IntlProvider`（`messages={componentsLocales[locale]}`）；antd 的 `ConfigProvider locale={zhCN}` 整套删掉——详见 [i18n-migration.md](references/i18n-migration.md)
+3. **Provider**：`ConfigProvider` + `IntlProvider`（`messages={componentsLocales[locale]}`）；antd 的 `ConfigProvider locale={zhCN}` 整套删掉——详见 [i18n-migration.md](references/i18n-migration.md)。**IntlProvider 必须在 `main.jsx`，是 `ConfigProvider` 的直接子级**（不是在 `app.jsx`/AppShell 里），否则弹层（Dialog 等 portal）取不到业务文案报 `MISSING_TRANSLATION`；**locale 用 `"zh"` 不是 `"zh-CN"`**（匹配 `componentsLocales` 的 key）；有业务文案时合并 `componentsLocales` + 业务语言包
 4. **`<body>` 类名**：加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `<body>`）和 `.dark`（挂 `<html>`）
 5. **回调签名**：第一个参数通常是值不是 event（TextField `onChange(value, ...)`、Select `onChange(value, oldValue, text, oldText, event)`）
 6. **validator**：返回 `{ result: true, message }`，`result: true` = 通过

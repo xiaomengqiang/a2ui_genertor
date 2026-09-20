@@ -139,7 +139,7 @@ npm install
 npm run dev
 ```
 
-预期：页面能渲染（显示 "app root"），无样式报错。若报 `Element type is invalid` → horizon 等 peer 依赖未装上，常见报错对照见步骤 5.3。
+预期：页面能渲染（显示 "app root"），无样式报错。若报 `Element type is invalid` → horizon 等 peer 依赖未装上，常见报错对照见步骤 5.5。
 
 ## 步骤 2：换 Provider 与入口
 
@@ -178,6 +178,29 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 - 删除 `antd-zh-cn.js` 等语言包
 - 删除 UMD 库引用（`antd.min.js` 等）
 
+### 2.5 IntlProvider 放在 main.jsx（不要跟着 AppShell 搬）
+
+> **高频踩坑点。** 源项目的 IntlProvider 通常在 `app.jsx` 的 AppShell 里（antd 项目把 `ConfigProvider locale` 和 `IntlProvider` 放一起）。迁移时容易原样留在 AppShell——但 eview-react 的 `ConfigProvider` 在 `main.jsx`，弹层（Dialog 等 portal）由 ConfigProvider 管理，**IntlProvider 必须是 ConfigProvider 的直接子级**，否则弹层内容取不到业务文案，报 `MISSING_TRANSLATION`。
+
+操作要点（详见 [i18n-migration.md](i18n-migration.md) §4）：
+
+1. **IntlProvider 放 main.jsx**，是 `ConfigProvider` 的直接子级
+2. **locale 用 `"zh"`**（不是 `"zh-CN"`），匹配 `componentsLocales` 的 key
+3. **合并组件文案 + 业务文案**：`mergedMessages = { zh: { ...componentsLocales.zh, ...businessMessages.zh }, en: ... }`
+4. **lang state 在 context 里** → 用 `Root` 组件包一层读 `lang` 再提供 `IntlProvider`；`AppProvider` 放 `ConfigProvider` 内、`Root` 外
+5. **app.jsx/AppShell 不再放** IntlProvider / AppProvider / mergedMessages / dayjs effect
+
+```jsx
+// main.jsx 结构
+<ConfigProvider>
+    <AppProvider>
+        <Root />           {/* Root 里读 lang → IntlProvider → App */}
+    </AppProvider>
+</ConfigProvider>
+```
+
+> 反例与排查见 [i18n-migration.md](i18n-migration.md) §4.1 / §4.2。
+
 ## 步骤 3：逐组件替换
 
 > 按组件映射总表替换，Form 模式单独处理。
@@ -211,6 +234,55 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 1. **叶子组件先换**（Button / TextField / Select 等）—— 改动小、验证快
 2. **容器组件后换**（Form / Dialog / Table）—— 模式变化大
 3. **布局组件最后换**（Layout / Menu / Breadcrumb）—— 影响全局
+
+### 3.5 i18n key 对齐检查（Table render 函数）
+
+> **高频源码 bug。** antd 项目的 Table 列 `render` 常用 `t(cellValue, cellValue)` 翻译单元格值。如果数据模型里 cell value 是短代码（如 `"gateway"`），而 i18n 字典的 key 带命名空间前缀（如 `"deviceType.gateway"`），`t("gateway", "gateway")` 会找不到消息，报 `MISSING_TRANSLATION`。这个 bug 在 antd 项目里就存在（antd 的 ConfigProvider locale 不走 react-intl，所以 antd 项目可能没注意到），迁移到 eview-react 后 IntlProvider 会严格报错。
+
+**排查方法：** 对每个 Table 列的 `render` 函数，检查是否用 `t(value, ...)` / `intl.formatMessage({ id: value, ... })` 翻译单元格值。如果是，对照 `data.js` 的选项字典确认 value 是否等于 i18n key。也可以直接跑 `scripts/check-i18n-keys.cjs` 自动完成"调用侧 × 数据侧"交叉比对（见 §5.2）：
+
+```js
+// data.js 选项字典
+export const deviceTypeOptions = [
+  { value: "gateway", msgId: "deviceType.gateway", fallback: "智能网关" },
+  //     ^^^^^^^         ^^^^^^^^^^^^^^^^^^^^
+  //     value ≠ msgId    → render 里 t(value, value) 会 MISSING_TRANSLATION
+];
+
+export const policyTemplates = [
+  { value: "policy.highFreq", msgId: "policy.highFreq", fallback: "高频采集策略" },
+  //     ^^^^^^^^^^^^^^^^^^         ^^^^^^^^^^^^^^^^^^
+  //     value === msgId             → render 里 t(value, value) 正确
+];
+```
+
+**修复模式：**
+
+```jsx
+// ❌ value 是短代码，缺前缀 → MISSING_TRANSLATION
+{ key: "type", render: (value) => t(value, value) }        // t("gateway", "gateway") ✗
+{ key: "site", render: (value) => t(value, value) }        // t("shanghai", "shanghai") ✗
+
+// ✅ 补上 i18n 命名空间前缀
+{ key: "type", render: (value) => t("deviceType." + value, value) }
+{ key: "site", render: (value) => t("site." + value, value) }
+
+// ✅ value 本身就是完整 i18n key（无需改）
+{ key: "policy", render: (value) => t(value, value) }      // t("policy.highFreq", ...) ✓
+```
+
+**对照表（常见命名空间）：**
+
+| 数据字段 | value 示例 | i18n key 前缀 | render 写法 |
+|---------|-----------|--------------|------------|
+| type / deviceType | `"gateway"` | `"deviceType."` | `t("deviceType." + value, value)` |
+| site | `"shanghai"` | `"site."` | `t("site." + value, value)` |
+| status | `"online"` | `"status."` | `t("status." + value, value)` 或用 StatusTag 组件 |
+| priority | `"high"` | `"option.priority."` | `t("option.priority." + value, value)` |
+| compression | `"gzip"` | `"option.compression."` | `t("option.compression." + value, value)` |
+| policy | `"policy.highFreq"` | （value 即完整 key） | `t(value, value)` 无需改 |
+
+> **规则：** 凡是 `render: (value) => t(value, ...)` 且 `data.js` 中该字段的 `value ≠ msgId`，必须补前缀。`value === msgId` 的无需改。StatusTag 等自定义组件如果内部已做 `"status." + status` 拼接，则无需在 render 里再拼。
 
 ## 步骤 4：提取 CSS token
 
@@ -261,18 +333,44 @@ node scripts/check-relative-imports.cjs .
 | `./src/views/AppShell.jsx` | `src/app.jsx` | `./views/AppShell.jsx` |
 | `./src/data.js` | `src/app.jsx` | `./data.js` |
 
-### 5.2 编译检查
+### 5.2 i18n 动态 key 检查（必跑）
+
+> 针对 §3.5 的高频 bug（`t(value, value)` 缺命名空间前缀 → `MISSING_TRANSLATION`）。人工逐列核对容易漏，迁移后、`npm run dev` 前必须跑脚本。
+
+脚本位于本 skill 的 `scripts/check-i18n-keys.cjs`，两种调用方式任选其一：
+
+```bash
+# 方式 A：直接用 skill 目录的脚本
+node <skill目录>/scripts/check-i18n-keys.cjs <目标工程根>
+
+# 方式 B：把脚本拷到目标工程的 scripts/ 后在工程根执行
+node scripts/check-i18n-keys.cjs .
+```
+
+脚本做两类静态检查（纯正则，不执行代码）：
+
+1. **数据侧**：扫描 `src/` 下 `{ value: "...", msgId: "..." }` 选项字典，列出所有 `value !== msgId` 的字段及其命名空间前缀（如 `value="gateway"` / `msgId="deviceType.gateway"` → 前缀 `"deviceType."`）
+2. **调用侧**：扫描所有 `t(x, x)` 双参同名的动态翻译调用（典型如 Table 列 `render: (value) => t(value, value)`），并与数据侧结果交叉比对：
+   - 字段的 `value ≠ msgId` 且调用未加前缀 → **高危**（运行时必报 `MISSING_TRANSLATION`），按 `t("前缀" + value, value)` 修复
+   - 字段的 `value === msgId`（如 `policy.highFreq`）→ 无需改，报告标"待核对"
+
+脚本默认 advisory（退出码 0，输出报告供人工核对）；加 `--strict` 时发现高危调用退出码 1，可接入 CI。
+
+### 5.3 编译检查
 
 ```bash
 npm install
 npm run dev
 ```
 
-### 5.3 功能验证清单
+### 5.4 功能验证清单
 
 - [ ] 页面能渲染（无 `Element type is invalid` → 检查 peer 依赖）
 - [ ] 组件有 ICT 3.1 样式（无样式 → 检查 `aui3_1.css` 导入和 `<body>` 上的 `aui3_1` 类名）
 - [ ] 弹层文案是中文（显示 key → 检查 `IntlProvider` + `messages`）
+- [ ] 控制台无 `MISSING_TRANSLATION` 报错（弹层里的业务文案取不到 → 见 §2.5 / 5.5；Table render 里 cell value 不是完整 i18n key → 见 §3.5）
+- [ ] 已运行 `check-i18n-keys.cjs` 且报告中无"高危"项（见 §5.2）
+- [ ] Table 列 render 函数中 `t(value, ...)` 的 value 是完整 i18n key（否则补前缀，见 §3.5）
 - [ ] 表单能输入（`TextField` value+onChange 成对）
 - [ ] 表单校验触发（`ref.submit()` → `onSuccess`）
 - [ ] 下拉选项渲染（`options=[{text,value}]` 字段名正确）
@@ -280,7 +378,7 @@ npm run dev
 - [ ] 暗色模式切换（`<body>` 上 `aui3_1` / `aui3_1_dark` + `<html>` 上 `.dark` 都切）
 - [ ] 手写补位组件样式跟随主题（用了 CSS 变量，不写死色值）
 
-### 5.4 常见报错对照
+### 5.5 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -289,4 +387,6 @@ npm run dev
 | `Form.Item is undefined` | Form 导入方式错 | `import Form from '@nce/eview-react/Form'` |
 | 组件无样式 | 未引 css 或缺类名 | 引 `aui3_1.css` + `<body>` 加 `class="aui3_1"` |
 | 弹层文案是 key | 缺 IntlProvider | 加 `IntlProvider` + `messages` |
+| `MISSING_TRANSLATION: Missing message "xxx" for locale "zh"` | IntlProvider 放在 `app.jsx`/AppShell 里，不是 `ConfigProvider` 的直接子级；ConfigProvider 的弹层（Dialog 等 portal）落到了 IntlProvider 之外，业务 `<FormattedMessage>` 取不到业务文案 | 把 IntlProvider 搬到 `main.jsx`，做 `ConfigProvider` 的直接子级；lang state 在 context 里就用 `Root` 组件包一层读 lang；locale 用 `"zh"` 不是 `"zh-CN"`；合并 `componentsLocales` + 业务文案。详见 [i18n-migration.md](i18n-migration.md) §4 |
+| `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 翻译单元格值，但 `data.js` 里 value 是短代码（`"gateway"`），i18n key 带前缀（`"deviceType.gateway"`），`t("gateway", ...)` 找不到消息 | 在 render 里补 i18n 命名空间前缀：`t("deviceType." + value, value)`；对照 `data.js` 选项字典的 `value` vs `msgId`，`value ≠ msgId` 的都要补。详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |

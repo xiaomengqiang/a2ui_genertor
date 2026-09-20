@@ -213,7 +213,6 @@ const { t } = useTranslation();
 
 ```jsx
 const [antLocale, setAntLocale] = useState(zhCN);
-
 const switchToEnglish = () => setAntLocale(enUS);
 
 <ConfigProvider locale={antLocale}>
@@ -225,7 +224,6 @@ const switchToEnglish = () => setAntLocale(enUS);
 
 ```jsx
 const [locale, setLocale] = useState('zh');
-
 const switchToEnglish = () => setLocale('en');
 
 <IntlProvider locale={locale} messages={messages[locale]}>
@@ -234,6 +232,103 @@ const switchToEnglish = () => setLocale('en');
 ```
 
 注意：切换语言时 `locale` 和 `messages` 要**同时**更新。如果用了合并包（场景 B），切换时取 `messages[locale]` 即可。
+
+### 4.1 IntlProvider 放在 main.jsx，不要跟着 AppShell 搬进 src/
+
+> **这是迁移中最常踩的坑。** 源项目的 IntlProvider 通常在 `app.jsx` 的 AppShell 里（因为 antd 项目把 `ConfigProvider locale` 和 `IntlProvider` 放一起，跟着 `lang` state 走）。迁移时容易原样把 IntlProvider 留在 AppShell——但 eview-react 的 `ConfigProvider` 在 `main.jsx`，弹层（Dialog 等 portal）由 ConfigProvider 统一管理，**IntlProvider 必须是 ConfigProvider 的直接子级**，否则弹层内容会落到 IntlProvider 之外，业务 `<FormattedMessage>` 取不到业务文案，报 `MISSING_TRANSLATION`。
+
+**正确结构（IntlProvider 在 main.jsx，直接包在 ConfigProvider 内）：**
+
+```jsx
+// main.jsx
+import { IntlProvider } from 'react-intl';
+import componentsLocales from '@nce/eview-react/locales';
+import ConfigProvider from '@nce/eview-react/ConfigProvider';
+import { AppProvider, useApp } from './src/context.jsx';
+import { messages as businessMessages } from './src/i18n.js';
+import App from './app.jsx';
+
+const mergedMessages = {
+    zh: { ...componentsLocales.zh, ...businessMessages.zh },
+    en: { ...componentsLocales.en, ...businessMessages.en },
+};
+
+// lang state 在 context 里 → 用 Root 包一层读 lang，再提供 IntlProvider
+function Root() {
+    const { lang } = useApp();
+    return (
+        <IntlProvider locale={lang} messages={mergedMessages[lang]}>
+            <App />
+        </IntlProvider>
+    );
+}
+
+createRoot(document.getElementById('root')).render(
+    <StrictMode>
+        <ConfigProvider>
+            <AppProvider>
+                <Root />
+            </AppProvider>
+        </ConfigProvider>
+    </StrictMode>
+);
+```
+
+```jsx
+// app.jsx — 只剩布局，不再放 IntlProvider / AppProvider / mergedMessages / dayjs
+import { ToastProvider } from './src/components/Toast.jsx';
+import HeaderBar from './src/views/header-bar.jsx';
+import SideMenu from './src/views/side-menu.jsx';
+import ConsolePage from './src/views/console-page.jsx';
+
+export default function App() {
+    return (
+        <ToastProvider>
+            <div className="app-shell">
+                <HeaderBar />
+                <SideMenu />
+                <ConsolePage />
+            </div>
+        </ToastProvider>
+    );
+}
+```
+
+**错误结构（IntlProvider 在 app.jsx/AppShell，报 MISSING_TRANSLATION）：**
+
+```jsx
+// ❌ main.jsx 没有 IntlProvider
+<ConfigProvider>
+    <App />
+</ConfigProvider>
+
+// ❌ app.jsx 的 AppShell 里放 IntlProvider —— ConfigProvider 的弹层落在外面
+function AppShell() {
+    const { lang } = useApp();
+    return (
+        <IntlProvider locale={lang} messages={mergedMessages[lang]}>
+            {/* Dialog 等弹层的内容取不到 mergedMessages 的业务 key */}
+        </IntlProvider>
+    );
+}
+```
+
+### 4.2 locale 用 "zh"，不是 "zh-CN"
+
+`componentsLocales` 的 key 是 `"zh"` / `"en"`（不是 `"zh-CN"`）。IntlProvider 的 `locale` 必须用 `"zh"`，否则：
+
+- `componentsLocales[locale]` 取不到（`componentsLocales["zh-CN"]` 是 `undefined`）
+- 报错信息里的 locale 与 `componentsLocales` 的 key 对不上，排查困难
+
+```jsx
+// ✅ locale="zh"，匹配 componentsLocales 的 key
+<IntlProvider locale={lang} messages={mergedMessages[lang]}>  // lang === "zh"
+
+// ❌ locale="zh-CN"，componentsLocales["zh-CN"] 是 undefined
+<IntlProvider locale={isZh ? "zh-CN" : "en"} messages={mergedMessages[lang]}>
+```
+
+> antd 项目常用 `locale={isZh ? "zh-CN" : "en"}`（因为 antd 的 locale 包是 `zh_CN`）。迁移到 eview-react 后改成 `"zh"`。HTML 的 `<html lang="zh-CN">` 不用改——那是给浏览器/无障碍用的，与 react-intl 的 locale 无关。
 
 ## 5. 日期库 locale
 
@@ -297,13 +392,16 @@ useEffect(() => {
 
 ## 7. 迁移检查清单
 
-- [ ] `IntlProvider` 在最外层，包住所有 eview-react 组件
-- [ ] `messages` 传了 `componentsLocales[locale]`（不是空对象）
+- [ ] `IntlProvider` 在 **main.jsx**，是 `ConfigProvider` 的直接子级（不是在 `app.jsx`/AppShell 里）——否则弹层 MISSING_TRANSLATION（见 §4.1）
+- [ ] `locale` 用 `"zh"`（不是 `"zh-CN"`），匹配 `componentsLocales` 的 key（见 §4.2）
+- [ ] `messages` 传了合并包 `mergedMessages[locale]`（`componentsLocales` + 业务语言包），不是空对象
+- [ ] 已运行 `check-i18n-keys.cjs`：无 `t(x, x)` 调用落在 `value ≠ msgId` 的字段上（Table render 动态 key，见 [migration-workflow.md](migration-workflow.md) §3.5/§5.2）
 - [ ] 删掉了 `import zhCN from 'antd/locale/...'` 或自写的 locale 文件
 - [ ] 删掉了 `ConfigProvider` 的 `locale` prop（eview-react 的 ConfigProvider 不管 locale）
 - [ ] Form rules 里删掉了所有 `message` 字段
 - [ ] 业务文案如果是 react-intl，已合并 `componentsLocales` + 业务语言包
 - [ ] 如果项目用 dayjs 且需要中文星期/月份，已单独注册 dayjs locale
+- [ ] `app.jsx`/AppShell 不再放 IntlProvider / AppProvider / mergedMessages / dayjs effect（都在 main.jsx 的 Root 里）
 - [ ] DatePicker 的月份/星期在配置 `IntlProvider` 后显示正常
 - [ ] Pagination 的"条/页""跳至"显示正常
 - [ ] Table 的"筛选""确定""暂无数据"显示正常
