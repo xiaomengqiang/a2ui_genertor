@@ -1,15 +1,15 @@
 ---
 name: antd-to-eview-react
 description: >-
-  将基于 antd 的 React 项目迁移到 @nce/eview-react（HUI Eview React，ICT 3.1 风格）的专项 Skill。
-  从 antd 开发者视角出发，提供：antd 组件 → eview-react 组件的完整映射总表（含"无对应需手写"标注）、
-  Form 模式转换（useForm/validateFields Promise → ref.submit/onSuccess 回调）、
-  Layout/Menu/Avatar/Descriptions/Result/Space 等未覆盖组件的手写补位模板、
-  CSS 变量体系切换映射、API 命名异常速查（seprator/taggledChildren/disable vs disabled 等）、
-  以及五步迁移工作流。务必在以下场景使用此 Skill：将 antd 项目迁移到 eview-react、
-  把 antd 组件代码改写为 eview-react、评估 antd 项目的迁移可行性、
-  在 antd → eview-react 迁移中遇到 Form/Steps/Modal 等模式转换问题、
-  需要将 antd 的 Layout/Menu/Breadcrumb/Avatar/Descriptions 等组件替换为 eview-react 等价实现。
+  将基于 antd 的 React 项目迁移到 @nce/eview-react（HUI Eview React，ICT 3.1 风格）的专项 Skill。
+  从 antd 开发者视角出发，提供：antd 组件 → eview-react 组件的完整映射总表（含"无对应需手写"标注）、
+  Form 模式转换（useForm/validateFields Promise → ref.submit/onSuccess 回调）、
+  Layout/Menu/Avatar/Descriptions/Result/Space 等未覆盖组件的手写补位模板、
+  CSS 变量体系切换映射、API 命名异常速查（seprator/taggledChildren/disable vs disabled 等）、
+  以及五步迁移工作流。务必在以下场景使用此 Skill：将 antd 项目迁移到 eview-react、
+  把 antd 组件代码改写为 eview-react、评估 antd 项目的迁移可行性、
+  在 antd → eview-react 迁移中遇到 Form/Steps/Modal 等模式转换问题、
+  需要将 antd 的 Layout/Menu/Breadcrumb/Avatar/Descriptions 等组件替换为 eview-react 等价实现。
 ---
 
 # antd → eview-react 迁移 Skill
