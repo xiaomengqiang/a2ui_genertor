@@ -4,17 +4,18 @@ React wrapper over HUICharts (echarts-based).
 
 **Import:** `import Chart from "../../../assets/shared/chart.jsx"` (adjust relative depth for component folders)
 
-## Usage — three sizing patterns
+## Sizing
 
-The chart fills its container (default 100% × 100%). The container must end up with a computable height — via inline `style`, a CSS `className`, flex/grid sizing, any way works. Percentage heights (`height: 50%`) count as computable only when the ancestor chain resolves to a definite height (e.g., `100vh` layouts) — a percentage inside an auto-height parent collapses to 0. Three patterns:
+The chart fills its container (default 100% × 100%). **echarts** reads the container size at init — without a computable height the chart renders at 0px (invisible).
 
-Common height traps:
+**Rules** — any sizing method works (style / className / flex / grid) as long as the height is computable:
 
-- `min-height` / `max-height` alone do NOT give a computable height — percentage children resolve against the `height` property only → 0px chart. Always set `height`, not just `min-height`.
-- Grid `auto` rows are not computable (content-sized); `1fr` rows in a definite-height grid are.
-- Charts inside initially-hidden containers (antd Tabs / Collapse / Drawer panes) init at 0×0 but self-heal — the wrapper's ResizeObserver resizes automatically when the pane is shown. No conditional rendering needed.
+- Percentages (`height: 50%`) only when the ancestor chain resolves to a definite height (e.g. `100vh` layouts) — inside an auto-height parent they collapse to 0
+- `min-height` / `max-height` alone are NOT computable
+- Grid `auto` rows are not computable; `1fr` rows in a definite-height grid are
+- Hidden containers (antd Tabs / Collapse / Drawer panes) init at 0×0 but self-heal via ResizeObserver — no conditional rendering needed
 
-**Pattern A — parent provides the height, chart fills:**
+**Pattern A — parent fixed height, chart fills:**
 
 ```jsx
 <div style={{ height: 320, display: "flex", gap: 16 }}>
@@ -23,7 +24,7 @@ Common height traps:
 </div>
 ```
 
-**Pattern B — height set directly on the chart, parent auto-height:**
+**Pattern B — direct height on the chart, parent auto-height:**
 
 ```jsx
 // use style
@@ -32,23 +33,21 @@ Common height traps:
 <Chart name="PieChart" option={{ ... }} className="chart-box" /> 
 ```
 
-**Pattern C — chart fills an elastic card (recommended for card grids):**
+**Pattern C — elastic card (recommended for card grids):**
 
-Cards in an equal-height grid (`align-items: stretch`) are stretched by the tallest sibling. A chart with a fixed `height` then leaves blank space below it — the chart no longer matches its container. Make the chart fill the leftover height instead of fixing it:
+In equal-height grids (`align-items: stretch`), fixed heights leave dead space below the chart. Make the card `flex column`, give the chart `flex: 1`:
 
 ```jsx
 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "stretch" }}>
-  {/* tall card — stretches the sibling to its height */}
+  // tall card — stretches the sibling to its height
   <div className="card">…400px tall content…</div>
-  {/* elastic card — flex column, chart absorbs the stretched height */}
+  // elastic card — flex column, chart absorbs the stretched height
   <div className="card" style={{ display: "flex", flexDirection: "column" }}>
     <h3>月度发电量</h3>
     <Chart name="BarChart" option={barOption} style={{ flex: 1 }} />
   </div>
 </div>
 ```
-
-> echarts requires a container with a computable height at init — neither pattern applied → the chart renders at 0 height (invisible).
 
 ## Props
 
