@@ -112,7 +112,7 @@ scaffold/
 | `Badge` | `Badge` | `count`→`content` |
 | `Divider` | `Divider` | API 基本一致 |
 | `Steps` | `Steps` | `current`→`currentStep`（对应 `data[].value`）；`items`→`data=[{text,value}]` |
-| `@ant-design/icons` | `@hui/icon-plus` 或 `Icon name="ict_*"` | icon+ 按需引入；`Icon` 改色需 `isStandard={false}` |
+| `@ant-design/icons` | `@nce/icon-plus` 按需引入 | icon+ 名迁移时用 icon-plus 接口（`getIconInfo`）按 antd/Lucide 名 keyword 查得（见 [source-project-guidelines §3.3](references/source-project-guidelines.md)）；内置 `Icon name="ict_*"` 已下线 |
 
 ### 无对应需手写（见 [handwrite-templates.md](references/handwrite-templates.md)）
 

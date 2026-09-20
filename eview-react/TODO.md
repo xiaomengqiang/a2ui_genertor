@@ -37,7 +37,6 @@
 | 项 | 现状 | 确认后动作 |
 |----|------|-----------|
 | `RadioGroup.onChange` 参数顺序 | 类型 `(oldValue, value, event)` vs 文档 `(value, oldValue, event)`，无 demo | 确认后把 `Radio.md` §4 的兼容写法简化为直接取值，删掉 ⚠️ |
-| icon+ 包名 | `rules/project-setting.md` 写 `@nce/icon-plus`，`demos/Button/__demo__/IconPlus.tsx` 导入 `@hui/icon-plus` | 以实际工程为准后统一 `project-setup.md` §1 与 `Button.md` |
 | 根 DOM 是否需要 `class="aui3_1"` | `aui_to_ict.md`（3.7.5+）要求；`f_&_q.md` 称 4.x 起默认 ICT3.1 | 确认目标版本后精简 `project-setup.md` §2 第 3 条 |
 | `Checkbox.checked` 是否完全受控 | API 有 `forceUpdate` / `treeChecked` 暗示内部维护 state；FAQ 称组件在 receiveProps 做新旧值比较 | 若父级更新 `checked` 不生效，`Checkbox.md` 补 `forceUpdate` 说明 |
 | `TextField.defaultValidator.integer()` | demo `InputValidator.jsx` 使用，但 api 表的 18 个内置规则里没有 | 确认存在则加入速查正文；不存在则从 `TextField.md` 移除 |

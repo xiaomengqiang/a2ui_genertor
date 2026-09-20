@@ -52,6 +52,10 @@ const notify = (type: Notice['type'], text: string, title?: string) => setNotice
 
 // 自定义内容
 <DivMessage display type="success" title="批量删除完成"><div>成功 8 条，失败 2 条（<a href="#log">查看日志</a>）</div></DivMessage>
+
+// 自定义图标（默认用 icon+ 组件）
+import { IconPlusIcPublicInfo } from '@nce/icon-plus';
+<DivMessage display type="success" showIcon icon={<IconPlusIcPublicInfo />} text="已保存" />
 ```
 
 ## 5. 数据结构
@@ -160,6 +164,6 @@ const [show, setShow] = useState(false);
 | `enableDisposeTimeOut` | `boolean`，默认 `true` | 是否自动消失 |
 | `onClose` | `(event?) => void` | 点关闭按钮 |
 | `closeIconDisplay` / `closeIconFocus` / `lastfocus` | `boolean`，默认 `true` | 关闭按钮显示 / 聚焦 / 关闭后焦点返回 |
-| `showIcon` / `icon` / `iconClassName` | `boolean`（默认 true）/ `string` / `string` | 图标 |
+| `showIcon` / `icon` / `iconClassName` | `boolean`（默认 true）/ `string \| ReactElement` / `string` | 图标（默认用 `icon={<IconPlusIc* />}`） |
 | `size` | `string[]`，默认 `['auto','auto']` | 宽高 |
 | `id` / `className` / `style` | — | 最外层 |

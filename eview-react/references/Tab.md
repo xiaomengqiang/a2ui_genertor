@@ -83,8 +83,9 @@ const [loaded, setLoaded] = useState<Set<number>>(new Set([0]));
 ### 竖排 / 禁用 / 图标 / 自定义标题
 
 ```tsx
+import { IconPlusIcPublicHome } from '@nce/icon-plus';
 <Tab position="left" style={{ height: 400 }}>
-  <TabItem title="基本设置" icon="./image/home-default.svg">…</TabItem>
+  <TabItem title="基本设置" icon={<IconPlusIcPublicHome />}>…</TabItem>
   <TabItem title="高级设置" disabled>…</TabItem>
   <TabItem title="通知" titleExtraContent={<span className="my-unread">3</span>} itemTip="未读 3 条">…</TabItem>
 </Tab>

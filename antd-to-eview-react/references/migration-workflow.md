@@ -125,7 +125,7 @@ import AppShell from './views/AppShell.jsx';
 | `react` / `react-dom` | React 运行时 | 必需 |
 | `react-intl` | eview-react 组件内置文案的 i18n（`IntlProvider`） | 必需 |
 | `@nce/eview-react` | 组件库本体 | 必需 |
-| `@hui/icon-plus` | 图标库（`IconPlusIc*` 按需引入） | 用图标时必需 |
+| `@nce/icon-plus` | 图标库（`IconPlusIc*` 按需引入） | 用图标时必需 |
 | `@cloudsop/horizon` | eview-react 的 peer 依赖；缺失报 `Element type is invalid` | 必需（peer） |
 | `@cloudsop/horizon-intl` / `@cloudsop/htimezone` / `@baize/wdk` / `@hui/design-token` | eview-react 生态关联依赖（i18n 适配 / 时区 / 工具 / 设计 token） | 骨架预置；未用到可在 package.json 删除 |
 | `lodash` | 工具库 | 源项目用到则保留 |

@@ -36,7 +36,7 @@ const [helpKey, setHelpKey] = useState<number>(0);
 ```tsx
 // 悬停说明（最常用）
 <TipBox type="simple" content="端口范围 1-65535" direction="top">
-  <Icon name="ict_questionmarkCircle" />
+  <IconPlusIcPublicQuestion />
 </TipBox>
 
 // 点击展开、鼠标移出不关、带关闭按钮
@@ -71,7 +71,7 @@ import React, { useState } from 'react';
 import TipBox from '@nce/eview-react/TipBox';
 import TextField from '@nce/eview-react/TextField';
 import Button from '@nce/eview-react/Button';
-import Icon from '@nce/eview-react/Icon';
+import { IconPlusIcPublicQuestion } from '@nce/icon-plus';
 
 // 表单字段帮助气泡 + 点击展开的策略说明 + 复制反馈气泡
 export default function TipBoxUsage() {
@@ -83,7 +83,7 @@ export default function TipBoxUsage() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <TextField label="端口" format="number" value={port} onChange={(v: string) => setPort(v)} />
         <TipBox type="simple" content="取值 1-65535，1024 以下需管理员权限" direction="top">
-          <Icon name="ict_questionmarkCircle" />
+          <IconPlusIcPublicQuestion />
         </TipBox>
       </div>
 
@@ -113,7 +113,7 @@ export default function TipBoxUsage() {
 
 ```tsx
 // ❌ antd 习惯：没有 Tooltip / Popover / title 属性做内容 / placement
-<Tooltip title="说明" placement="topLeft"><Icon /></Tooltip>
+<Tooltip title="说明" placement="topLeft"><IconPlusIcPublicXxx /></Tooltip>
 
 // ❌ 传统定位写法（README 标不推荐）：手算 position
 <TipBox position={[120, 40]} content="说明" display />

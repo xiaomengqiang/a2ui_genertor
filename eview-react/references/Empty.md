@@ -137,5 +137,5 @@ export default function DeviceCards() {
 |-----|--------------|------|
 | `type` | `'success' \| 'fail'` | 加载成功无数据 / 失败（默认图） |
 | `description` | `ReactNode` | 描述，可放按钮 |
-| `icon` / `imgSrc` | `ReactNode` / `string` | 自定义图标 / 图片 |
+| `icon` / `imgSrc` | `ReactNode` / `string` | 自定义图标（默认用 `icon={<IconPlusIc* />}`）/ 自定义图片（仅 icon+ 里没有的图，如无权限插画） |
 | `className` / `style` | — | 最外层 |

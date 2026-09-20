@@ -36,6 +36,7 @@ const [panelLoading, setPanelLoading] = useState<boolean>(false);  // local，�
 无事件，纯受控显隐：
 
 ```tsx
+import { IconPlusIcPublicLoading } from '@nce/icon-plus';
 // 全局
 <Loading type="global" isOpen={pageLoading} />
 
@@ -48,8 +49,8 @@ const [panelLoading, setPanelLoading] = useState<boolean>(false);  // local，�
 // 微型 + 说明
 <Loading type="micro" isOpen={submitting} desc="提交中" />
 
-// 自定义图标（demo MicroIconExample）
-<Loading type="micro" isOpen iconUrl="./image/loading.gif" desc="加载说明文字" />
+// 自定义图标（demo MicroIconExample），默认用 icon+ 组件
+<Loading type="micro" isOpen iconUrl={<IconPlusIcPublicLoading />} desc="加载说明文字" />
 ```
 
 请求骨架：
@@ -175,6 +176,6 @@ import Loader from '@nce/eview-react/Loader'; import Loading from '@nce/eview-re
 | `isOpen` | `boolean`，默认 `false` | 显隐 |
 | `type` | `'global' \| 'local' \| 'micro'`，默认 `global` | 全页 / 局部（父容器 relative）/ 微型 |
 | `desc` | `string` | 说明文字 |
-| `iconUrl` | `string` | 自定义图标（表注"必填"，demo 不传也可用默认图标） |
+| `iconUrl` | `string \| ReactElement` | 自定义图标，默认用 icon+ 组件（表注"必填"，demo 不传也可用默认图标） |
 | `textClassName` | `string` | 说明文字样式 |
 | `id` / `className` / `style` | — | 最外层（局部遮罩常需 `zIndex`） |
