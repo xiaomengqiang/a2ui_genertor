@@ -40,22 +40,6 @@ grep -rn "from \"antd\"" src/ --include="*.jsx" --include="*.tsx"
 | Layout | B | 手写 | AppShell.jsx | 无对应 |
 | ... | | | | |
 
-### 0.5 复杂度判定（决定走多 agent 闭环 vs 单遍自检）
-
-扫完组件清单后，按下列条件判复杂度（满足任一即「复杂页 / 多页应用」）：
-
-| 判定条件 | 含义 |
-|---------|------|
-| ≥3 个独立 view 文件 | `src/views/*.jsx` 有 3 个以上顶层页面 |
-| 同时含 ≥2 个 C 类模式 | Form+Steps / Form+Modal.confirm / 多个 Form 交织 |
-| C 类 + ≥3 个 B 类手写 | Form 逻辑 + Layout/Menu/Avatar 等手写堆叠 |
-| 向导 / 多步 / CRUD 跨页 | 页面模式本身跨多步多页 |
-
-- **复杂页** → 走多 agent 闭环：顶层 [`build-test-fix-loop`](../../build-test-fix-loop/SKILL.md) 派发 1 个「骨架 agent」+ N 个并行「页面 agent」+ 1 个测试 agent（[`test-eview-react-product`](../../test-eview-react-product/SKILL.md)）。本 skill 作为生成侧（骨架/页面两种角色，见 [SKILL.md "与编排器对接"](../SKILL.md)）。**复杂页跳过本文件步骤 5 的自检，由编排器闭环覆盖。**
-- **简单页** → 单生成 agent 跑下方步骤 1-5（步骤 3 三轨 + 步骤 5 一次性自检）。
-
-> 判复杂度的目的：单 agent 在复杂页上同时背"API命名/样式/逻辑"三关注点会顾此失彼；多 agent 按 view 文件分桶 + 客观 L0 门槛 + 独立 L2 像素 diff 兜底。复杂页不走多 agent = 必然掉东西。
-
 ## 步骤 1：建工程骨架
 
 ### 1.1 判断是否需要新建
@@ -217,79 +201,41 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 
 > 反例与排查见 [i18n-migration.md](i18n-migration.md) §4.1 / §4.2。
 
-## 步骤 3：分轨替换（按关注点分三遍扫描）
+## 步骤 3：逐组件替换
 
-> **分轨原则**：按**关注点**分三遍扫全部文件，不按文件分桶——一个 `.jsx` 三遍都改，每遍只盯一个关注点。这样避免单遍同时背"API命名/样式/逻辑"三关注点而顾此失彼。每轨末跑 `test-eview-react-product` 的 `checklist.mjs` 自检本轨 L0 子集全绿才进下一轨（脚本位于 [`test-eview-react-product/scripts/checklist.mjs`](../../test-eview-react-product/scripts/checklist.mjs)，输出 `.checklist-result.json`，断言清单见 [`test-checklist.md`](../../test-eview-react-product/references/test-checklist.md)）。
+> 按组件映射总表替换，Form 模式单独处理。
 
-> **多 agent 模式**：复杂页走 `build-test-fix-loop` 多生成 agent 时，每个页面 agent 对自己认领的 view 文件**全责跑这三轨**（见 [SKILL.md "与编排器对接"](../SKILL.md)）。本节三轨说明对单生成 agent 和页面 agent 都适用。
+### 3.1 A 类（有对应）：改 props
 
-### 3.1 Pass 1：功能骨架（能跑起来，导入/命名对）
+对每个有对应的组件，执行：
+1. 改导入路径：`from 'antd'` → `from '@nce/eview-react/<Component>'`
+2. 改属性名：对照 [naming-quirks.md](naming-quirks.md) 逐项替换
+3. 改回调签名：首参从 event 改为 value
+4. 改数据格式：`options` 的 `label`→`text`，`items`→`data` 等
 
-**目标**：app 能渲染、无 import/命名报错。Form 只搭结构、B 类手写只保证渲染不报错——**样式和控制流留后两轨**，避免本轨就陷进调样式/重写控制流。
+### 3.2 B 类（无对应）：手写补位
 
-范围：
-1. **入口/Provider 就绪**（步骤 2 产物）：main.jsx 的 ConfigProvider/IntlProvider/4 处 CSS import；index.html 的 `<body class="ev_no_wcag aui3_1">`；app.jsx 空壳 `<div className="root">`
-2. **A 类组件改 props**：
-   - 改导入路径：`from 'antd'` → `from '@nce/eview-react/<Component>'`
-   - 改属性名：对照 [naming-quirks.md](naming-quirks.md) 逐项替换（Button `status` / Select `text`+`defaultLabel` / Toggle `toggled`+`onToggle` / Steps `currentStep` / Dialog `isOpen` / Drawer `visible` / Loading `isOpen` / Badge `content` / Table `dataset`+`keyIndex`+`key` / Crumbs `seprator` / SelectCard+FileUpload `disable` / Tag 无 `closable`）
-   - 改数据格式：`options` 的 `label`→`text`，`items`→`data` 等
-3. **B 类手写最小可渲染版**：读 [handwrite-templates.md](handwrite-templates.md) 取结构骨架，先保证"渲染不报错"——样式用 CSS 变量占位（`var(--surface)` 等），不调样式细节；加 `// TODO(eview-react): 样式待 Pass 2 补`
-4. **Form 只搭结构**：`<Form>` / `<Form.Item name=...>` 结构建好、控件能输入；提交按钮先 `onClick={() => {}}` 占位。**控制流（useForm→ref、onSuccess）留 Pass 3**，本轨 Form 仍可用 `form` 变量名但不要写 `validateFields`
+1. 读 [handwrite-templates.md](handwrite-templates.md) 取对应模板
+2. 按模板实现，样式用源项目的 CSS 变量（原始 token）
+3. 加 `// TODO(eview-react)` 注释
+4. 在最终回复中列出所有手写补位
 
-> **回调签名本轨只改 A 类叶子组件的**（TextField/Select/Checkbox 等 value-based）；Form 内控件托管给 Form.Item 的本轨不动（Pass 3 随 Form 一起改）。
+### 3.3 C 类（Form 模式转换）
 
-**本轨门槛**（跑 `checklist.mjs`，以下 L0 子集全绿才进 Pass 2）：
-- `import` 类全 6 条：`no-antd-import` / `no-antd-locale` / `no-antd-icons` / `eview-import-path` / `no-src-prefix-in-src` / `css-imports-in-entry`
-- `API 命名` 类全条（`test-checklist.md` §2）：`button-status` / `button-status-present` / `select-text-not-label` / `select-defaultLabel` / `toggle-toggled` / `toggle-onToggle` / `toggle-taggled-children` / `crumbs-seprator` / `selectcard-disable` / `fileupload-disable` / `dialog-isOpen` / `drawer-visible` / `loading-isOpen` / `steps-currentStep` / `badge-content` / `tag-no-closable` / `table-dataset` / `table-keyIndex` / `table-key-in-columns`
-- 入口 4 条（属样式类但步骤 2 已就绪）：`body-aui3_1` / `body-ev-no-wcag` / `config-provider-present` / `intl-provider-present`
-- **允许暂红**：`模式转换` 类（Form 控制流 Pass 3 才改）、`样式` 类剩余 5 条（暗色/色值/类名前缀 Pass 2 才改）
+1. 读 [form-migration.md](form-migration.md)
+2. `useForm()` → `useRef(null)`
+3. `validateFields()` Promise → `submit()` + `onSuccess` 回调
+4. 推进逻辑从 `.then()` 移到 `onSuccess` 内
+5. `rules` 删 `message`
+6. Toggle 加 `valuePropName="toggled" updateTrigger="onToggle"`
 
-### 3.2 Pass 2：样式保真（视觉对齐，暗色切得动）
+### 3.4 替换顺序建议
 
-**目标**：视觉对齐源项目，暗色切换生效。
-
-范围：
-1. **填全局 CSS token**（步骤 4）：源项目 `:root` 变量填 `src/styles/tokens.css`，`.dark` 覆盖填 `src/styles/theme-dark.css`；布局/手写 CSS 不改（继续引用 `var(--surface)` 等原始变量名）。详见 [css-token-mapping.md](css-token-mapping.md)
-2. **B 类手写补样式**：把 Pass 1 的 `// TODO(eview-react): 样式待 Pass 2 补` 逐个补齐——用源项目 CSS 变量、不写死色值（`#191919` 之类）、类名用 `app-` 前缀（不用 `ev_`）、可点击元素用 `<button type="button">`（不用 `<div onClick>`）
-3. **暗色切换 useEffect**：`aui3_1_dark` 挂 `<body>`、`.dark` 挂 `<html>`（documentElement），两处在同一 toggle 块切。完整代码见 [css-token-mapping.md](css-token-mapping.md) §4
-4. **暗色挂 body 不挂 root**：`document.body.classList` 加 `aui3_1_dark`，**禁止** `querySelector('.root')` 切类名（弹层 portal 挂 body 下，挂 root 会丢暗色）
-
-**本轨门槛**（`样式` 类剩余 5 条全绿）：
-- `dark-useeffect-two-classes` / `dark-on-body-not-root` / `no-dead-color-in-css` / `no-ev-class-prefix` / `clickable-is-button`
-- 有 baseline 截图时：跑 `test-eview-react-product` 的 L2 视觉层（`visual-test.mjs`），像素 diff ≤ tolerance
-
-### 3.3 Pass 3：逻辑保真（交互行为正确）
-
-**目标**：Form/Modal 控制流对、回调签名对、i18n key 对齐。
-
-范围：
-1. **C 类 Form 模式转换**（读 [form-migration.md](form-migration.md)）：
-   - `useForm()` → `useRef(null)`；`form={form}` → `ref={formRef}`
-   - `validateFields()` Promise → `formRef.current.submit()` + `onSuccess(values)` 回调；`onFinish` → `onSuccess`；推进逻辑从 `.then()` 移到 `onSuccess` 内
-   - `rules` 删 `message` 字段
-   - Toggle 加 `valuePropName="toggled" updateTrigger="onToggle"`；Checkbox 加 `valuePropName="checked" updateTriggerIndex={1}`
-   - Form 内删 `<Row><Col>` / `<div grid>`，改 `itemCol`（Form 级统一，24 栅格）
-   - `initialValues` 必传对象：`initialValues={x || {}}`（动态/异步/向导多步场景）
-2. **Modal/Drawer 受控关闭**：Dialog `onClose` 里 `setIsOpen(false)`、Drawer `onClose` 里 `setVisible(false)`——不会自动关；`message.success()` → `<DivMessage>`（无命令式 API）；`<Popconfirm>` → `<MessageDialog type="confirm">`
-3. **回调签名**：首参是 value 不是 event——TextField `onChange(value,...)` / Select `onChange(value,oldValue,text,oldText,event)` / TextArea `onChange(targetValue,value,event)` / Checkbox `onChange(value,checked,event)` / Rating `onClick(value)` / Button `onClick(event,additionalData)`。清除所有 `e.target.value` / `e.target.checked`
-4. **Table render i18n key 对齐**（高频源码 bug，见 §3.5）
-
-**本轨门槛**：
-- `模式转换` 类全 12 条：`form-ref-not-useForm` / `form-ref-present` / `form-no-validateFields` / `form-submit-onSuccess` / `form-no-onFinish` / `form-no-row-col-inside` / `form-rules-no-message` / `toggle-form-item-props` / `checkbox-form-item-props` / `modal-manual-close` / `message-imperial-gone` / `popconfirm-to-messagedialog`
-- `回调签名` 类：`no-etarget-value`（warning，0 匹配为过）
-- L1：`npm install` + `npm run dev` 无报错
-- 静态脚本：`check-relative-imports.cjs` + `check-i18n-keys.cjs` 全过（见 §5.1/§5.2）
-
-### 3.4 替换顺序（单生成 agent 视角）
-
-单生成 agent 跑三轨时，每轨内仍建议：
 1. **叶子组件先换**（Button / TextField / Select 等）—— 改动小、验证快
 2. **容器组件后换**（Form / Dialog / Table）—— 模式变化大
 3. **布局组件最后换**（Layout / Menu / Breadcrumb）—— 影响全局
 
-> 多 agent 模式下：页面 agent 只管自己 view 内的顺序；全局布局（Layout/Menu/Breadcrumb）归骨架 agent。
-
-### 3.5 i18n key 对齐检查（Pass 3 子项·Table render 函数）
+### 3.5 i18n key 对齐检查（Table render 函数）
 
 > **高频源码 bug。** antd 项目的 Table 列 `render` 常用 `t(cellValue, cellValue)` 翻译单元格值。如果数据模型里 cell value 是短代码（如 `"gateway"`），而 i18n 字典的 key 带命名空间前缀（如 `"deviceType.gateway"`），`t("gateway", "gateway")` 会找不到消息，报 `MISSING_TRANSLATION`。这个 bug 在 antd 项目里就存在（antd 的 ConfigProvider locale 不走 react-intl，所以 antd 项目可能没注意到），迁移到 eview-react 后 IntlProvider 会严格报错。
 
@@ -356,10 +302,6 @@ export const policyTemplates = [
 - 可点击元素用 `<button type="button">`
 
 ## 步骤 5：验证
-
-> **分流**：
-> - **简单页**（§0.5 判定）：跑本步 5.1-5.5 全套自检。
-> - **复杂页 / 多页应用**（§0.5 判定）：**跳过本步**，已由 `build-test-fix-loop` 编排器闭环覆盖（生成=本 skill 骨架/页面 agent 跑三轨时每轨末已跑 `checklist.mjs` 子集门槛；测试=`test-eview-react-product` 跑 L0/L1/L2；失败按 file:line 路由回属主 agent 循环修复）。见 [SKILL.md "与编排器对接"](../SKILL.md)。
 
 ### 5.1 相对导入解析检查（必跑）
 

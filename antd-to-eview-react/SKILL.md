@@ -26,18 +26,6 @@ description: >-
 - **Table render 的 i18n key 不对齐**：antd 项目的 Table 列 `render` 常用 `t(cellValue, cellValue)` 翻译单元格值，但 `data.js` 里 value 是短代码（`"gateway"`），i18n key 带前缀（`"deviceType.gateway"`），`t("gateway", ...)` 找不到消息报 `MISSING_TRANSLATION`。这个 bug 在 antd 源项目里就存在（antd 的 locale 不走 react-intl 所以没暴露），迁移后 IntlProvider 严格报错。修复：`render: (value) => t("deviceType." + value, value)`。提供自动排查脚本 `scripts/check-i18n-keys.cjs`（交叉比对 t(x,x) 调用与 data.js 的 value≠msgId 字段，用法见 [migration-workflow.md](references/migration-workflow.md) §5.2）。详见 [migration-workflow.md](references/migration-workflow.md) §3.5
 - **命名拼写异常**：`seprator`（不是 separator）、`taggledChildren`（不是 toggledChildren）、`disable`（SelectCard 用，不是 disabled）
 - **文件位置变化导致 import 路径失效**：UMD/旧工程常见 `app.jsx` 在工程根目录并导入 `./src/context.jsx`；拷贝 scaffold 后 `app.jsx` 位于 `src/app.jsx`，必须改为 `./context.jsx`。迁移后必须跑相对导入解析检查（脚本位于本 skill 的 `scripts/check-relative-imports.cjs`，调用方式见步骤 5），语法检查不能发现这类错误。
-- **复杂页顾此失彼**：单 agent 在复杂页上同时背"API命名/样式/逻辑"三关注点，注意力带宽有限必然掉一个——功能对了样式差、样式对了逻辑错。解决：复杂页走多 agent 闭环（按 view 文件拆 N 个并行「页面 agent」+ 1 个「骨架 agent」，客观 L0 门槛 + 独立测试兜底），见下方"页面复杂度判定"与"与编排器对接"。
-
-## 页面复杂度判定与 agent 架构
-
-迁移前先判复杂度，决定走「多 agent 闭环」还是「单遍自检」：
-
-| 复杂度 | 判定（满足任一） | 架构 |
-|--------|-----------------|------|
-| **复杂页 / 多页应用** | ① ≥3 个独立 view 文件；② 同时含 ≥2 个 C 类模式（Form+Steps / Form+Modal.confirm / 多 Form）；③ C 类 + ≥3 个 B 类手写；④ 向导 / 多步 / CRUD 跨页 | 走多 agent 闭环：顶层 [`build-test-fix-loop`](../build-test-fix-loop/SKILL.md)，生成侧按 view 文件拆 N 个并行「页面 agent」+ 1 个「骨架 agent」，测试侧 [`test-eview-react-product`](../test-eview-react-product/SKILL.md)。失败按 `file:line` 路由回属主 agent。详见下方"与编排器对接" |
-| **简单页** | 单一表单 / 单页列表无复杂交互 / view 文件 <3 | 单生成 agent 跑三轨（见"迁移工作流"步骤 3）+ 步骤 5 一次性自检 |
-
-> 复杂页务必走多 agent：单 agent 注意力并行三关注点易掉一个，多 agent 按文件分桶 + 客观 checklist 门槛 + 独立 L2 像素 diff 兜底。
 
 ## 迁移工作流（评估 + 5 步）
 
@@ -48,9 +36,9 @@ description: >-
 | **0. 评估** | 扫描 antd 项目用到的组件，对照组件映射总表标注"有对应/无对应需手写" | 组件迁移清单 |
 | **1. 建工程骨架** | 若源项目非 Vite + npm 工程：把 `scaffold/` 整目录拷到目标工程根（改 `package.json` 的 `name`、`index.html` 的 `<title>`），`npm install` + `npm run dev` 即空壳可跑。详见 [migration-workflow.md](references/migration-workflow.md) 步骤 1 | 可运行的空壳工程 |
 | **2. 换 Provider 与入口** | 移除 antd `ConfigProvider` + `theme.darkAlgorithm`；eview-react 用 `ConfigProvider` + `IntlProvider` + `<body>` 加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `<body>`） | Provider 就绪 |
-| **3. 分轨替换** | 按**关注点**分三遍扫全部文件（不按文件分桶，一个 `.jsx` 三遍都改，每遍只盯一个关注点）：**Pass1 功能骨架**（导入路径+API命名+B类最小可渲染版+Form只搭结构）→ **Pass2 样式保真**（填 tokens/theme-dark+补 B 类样式+暗色双类名）→ **Pass3 逻辑保真**（Form onSuccess/Toggle valuePropName/Modal 受控关闭/回调签名/i18n key 对齐）。每轨末跑 `test-eview-react-product` 的 `checklist.mjs` 自检本轨 L0 子集全绿才进下一轨。详见 [migration-workflow.md](references/migration-workflow.md) §3 | 三轨全绿 |
+| **3. 逐组件替换** | 按映射总表替换每个 antd 组件；Form 模式单独按 [form-migration.md](references/form-migration.md) 转换；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写 | 组件代码全部替换 |
 | **4. 提取 CSS token** | 将源项目内联 token 填入骨架的 `src/styles/tokens.css`、`.dark` 覆盖填入 `src/styles/theme-dark.css`（见 [css-token-mapping.md](references/css-token-mapping.md)），布局 CSS 不改 | 样式跟随主题 |
-| **5. 验证** | **简单页**：跑 `check-relative-imports.cjs` + `check-i18n-keys.cjs` + `test-eview-react-product` 的 `checklist.mjs` 38 条 + 构建功能验证。**复杂页**：不在此步自检，已由 `build-test-fix-loop` 闭环覆盖（生成=本 skill 的页面/骨架 agent，测试=`test-eview-react-product`，失败按 file:line 路由回属主 agent 循环修复），见上方"与编排器对接" | 全过 / 闭环收敛 |
+| **5. 验证** | `npm install` / `npm run dev` 前先跑两个静态检查：相对导入解析（`scripts/check-relative-imports.cjs`）与 i18n 动态 key（`scripts/check-i18n-keys.cjs`，两种调用方式见 [migration-workflow.md](references/migration-workflow.md) §5.1/§5.2）；再做构建与功能验证 | import/i18n/构建/功能通过 |
 
 ### scaffold/ 预制骨架（步骤 1 可直接拷贝）
 
@@ -255,37 +243,3 @@ const handleSuccess = (values) => {
 | **表单提交页** | `Form onFinish`→`onSuccess`；`rules message` 删掉；Toggle 配 `valuePropName`+`updateTrigger` |
 | **侧边详情/编辑** | `Drawer`→`Drawer`（`open`→`visible`）；底部按钮自写；`Descriptions`→手写 KeyValueList |
 | **布局骨架** | `Layout`/`Menu`/`Avatar` 全部手写；`Breadcrumb`→`Crumbs`；`Input.Search`→`SearchInput` |
-
-## 与编排器对接（复杂页走多 agent）
-
-复杂页 / 多页应用由 [`build-test-fix-loop`](../build-test-fix-loop/SKILL.md) 编排，本 skill 作为生成侧，有两种角色：
-
-### 角色 A：骨架 agent（Phase 0，1 个）
-
-职责 = 步骤 0-2 + 全局 CSS + 冻结契约：
-
-- 步骤 0 评估 + 复杂度判定（确认 ≥3 独立 view → 走多 agent）
-- 步骤 1 拷 scaffold
-- 步骤 2 main.jsx（ConfigProvider/IntlProvider/4 处 CSS import）+ app.jsx 空壳 + index.html（`body class="ev_no_wcag aui3_1"`）
-- 步骤 4（全局）填 `tokens.css` / `theme-dark.css`
-- **冻结契约**：`data.js` / `context.jsx` / i18n keys / CSS 变量名，作为只读快照交给各页面 agent
-- **拥有文件**：`main.jsx` / `app.jsx` / `index.html` / `context.jsx` / `data.js` / `styles/*.css` / `AppShell.jsx`（路由壳）
-
-### 角色 B：页面 agent（Phase 1，N 个并行）
-
-每个 agent 认领一个 `src/views/<X>.jsx` + 其私有子组件/样式，**全责跑三轨**：
-
-- 收到：view 文件路径 + 私有子组件/样式目录 + 冻结契约快照（只读）+ 三轨说明 + 每轨 L0 子集门槛
-- **禁碰**：`main.jsx` / `app.jsx` / `context.jsx` / `data.js` / `styles/*.css` / `AppShell.jsx`（全局文件，归骨架）
-- 全责三轨（同"迁移工作流"步骤 3 的 Pass1/2/3），每轨末跑 `checklist.mjs` 自检本轨子集（只看自己 view 文件相关的失败）
-- 需新 i18n key / 新共享组件 → **不自行加**，标 `// TODO_CONTRACT: 需新增 i18n key "xx.yy"`，由编排器收齐交骨架 agent 统一补
-
-### 失败路由（Phase 3）
-
-`test-eview-react-product` 的 failures 带 `file:line`（`checklist.mjs` 输出 `{file, line, text}`），编排器按 file 归属路由：
-
-- file 属某 view → 续接该 page agent 的 `GEN_ID` 修
-- file 属全局（main/app/context/data/styles）→ 续接骨架 agent 的 `GEN_ID` 修
-- 只传该 agent 相关的 failures 子集，不串扰其他 agent
-
-> 轮次预算：Phase 0 骨架 1 轮；Phase 1 页面并行各 1 轮；Phase 2-3 整体循环默认 5 轮（全局预算，非每页 5 轮，否则成本爆炸）。
