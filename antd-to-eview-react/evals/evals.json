@@ -56,7 +56,10 @@
         "Menu 手写（有 TODO 注释）",
         "Avatar 手写（有 TODO 注释）",
         "手写元素只用 CSS 变量不写死色值",
-        "类名用业务前缀不用 ev_"
+        "类名用业务前缀不用 ev_",
+        "Form.Item.col 可单项覆盖 Form 的 itemCol",
+        "混合宽度不拆 Form（用 Form.Item.col）",
+        "NOT 拆成两个 Form 做混合宽度"
       ]
     },
     {

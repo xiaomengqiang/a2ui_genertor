@@ -155,7 +155,7 @@ scaffold/
 | Checkbox | `valuePropName="checked"` | `valuePropName="checked" updateTriggerIndex={1}` |
 | rules message | `rules=[{required:true, message:'必填'}]` | `rules=[{required:true}]`（无 message） |
 | 提交按钮 | `htmlType="submit"` 或 `onClick` | `onClick={() => formRef.current.submit()}` |
-| 多列布局 | `<Row><Col>` 或 `<div className="grid">` 包裹 | Form 自带 24 栅格：`itemCol`（Form 级统一设置，所有项同等宽度）；**不支持单项覆盖**；Form 内不允许用 div 做栅格 |
+| 多列布局 | `<Row><Col>` 或 `<div className="grid">` 包裹 | Form 自带 24 栅格：`itemCol` 设 Form 级默认宽度；**单项覆盖用 `Form.Item.col`**；Form 内不允许用 div 做栅格 |
 
 ### 向导迁移示例（antd → eview-react）
 
@@ -190,7 +190,7 @@ const handleSuccess = (values) => {
 6. **validator**：返回 `{ result: true, message }`，`result: true` = 通过
 7. **API 表里查不到的 props 一律不写**
 8. **CSS 不写死色值**：用源项目的 CSS 变量（原始 token）；类名用业务前缀 `app-` 不用 `ev_`
-9. **Form 内不允许用 `<div>` 做栅格**：多列布局用 `itemCol`（Form 级统一设置，所有项同等宽度，不支持单项覆盖）；24 栅格制；删掉 antd 的 Row/Col 或 div+CSS grid 包裹
+9. **Form 内不允许用 `<div>` 做栅格**：多列布局用 Form 级 `itemCol` 设默认宽度（24 栅格制）；**单项覆盖用 `Form.Item.col`**（不拆 Form、不用 div/Row/Col 包裹）；删掉 antd 的 Row/Col 或 div+CSS grid 包裹
 10. **Form `initialValues` 必须传对象**：动态/异步/向导多步场景一律 `initialValues={x || {}}`。传 `undefined` 会让 `submit()` → `onSuccess(values)` 收到**空对象**（"托管没生效、确认页没数据"的根因，已真机确认）。控件自带 `validator` 要在 `submit()` 时跑需 Form 上加 `validateAllChildComponent={true}`（Form rules `required`/`email`/`range` 默认就跑）。详见 [form-migration.md](references/form-migration.md) 顶部"运行时已验证"段
 11. **迁移后必须验证相对导入解析**：尤其检查 `src/**/*.jsx` 中是否残留 `./src/...`。这是 Vite import-analysis 阶段才会报的错误，不能只做 Babel/TypeScript 语法检查。
 
@@ -216,7 +216,7 @@ const handleSuccess = (values) => {
 | `open` (Drawer) | `visible` | Drawer |
 | `loading` (Button) | 无（用 `disabled`+文案切换） | Button |
 | `loading` (Spin) | `isOpen` | Loading |
-| `<Row><Col>`（Form 内） | `itemCol` | Form 自带 24 栅格，Form 级统一设置所有项同等宽度；不能用 div/Row/Col 包裹 |
+| `<Row><Col>`（Form 内） | `itemCol`（Form 级默认） / `Form.Item.col`（单项覆盖） | Form 自带 24 栅格，Form 级设默认宽度，单项可用 `col` 覆盖；不能用 div/Row/Col 包裹 |
 
 ## CSS 样式：保留原始 token
 
