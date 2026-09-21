@@ -148,6 +148,27 @@
         "Rating 用 onClick 不是 onChange",
         "Steps.onClick 首参是 index（区别于 Tab 的 (index,title,event)）"
       ]
+    },
+    {
+      "id": 9,
+      "name": "多页应用多 agent 协作",
+      "description": "复杂页（≥3 view 文件 + Form+Steps 交织）走多 agent 闭环：骨架 agent 建全局入口+冻结契约，N 个页面 agent 并行各跑三轨，测试 agent 整产物测，失败按 file 路由",
+      "input": "antd 多页应用（AppShell 路由 + ListPage/StepFlow/Detail 三个 view，含 Form+Steps+Modal.confirm+Layout 手写）",
+      "assertions": [
+        "复杂度判定命中复杂页（≥3 view 或 ≥2 C类模式）",
+        "走 build-test-fix-loop 多生成 agent 模式（非单生成）",
+        "派发 1 个骨架 agent（Phase 0）建 main.jsx/app.jsx/context.jsx/data.js/styles/* + 冻结契约",
+        "按 src/views/*.jsx 拆 N 个页面 agent 并行派发（Phase 1，同一消息多 task）",
+        "GEN_ID_MAP 含 __skeleton__ + 每个 view 路径作 key",
+        "页面 agent 全责跑三轨（功能/样式/逻辑），每轨末跑 checklist.mjs 自检子集",
+        "页面 agent 禁碰全局文件（main/app/context/data/styles/AppShell）",
+        "页面 agent 需新 i18n key 时标 TODO_CONTRACT 不自行加",
+        "测试 agent（test-eview-react-product）整产物跑 L0/L1/L2",
+        "失败按 file:line 路由：属 view 续接该 page agent，属全局续接骨架 agent",
+        "failures 按 file 分组只传相关 agent，不串扰其他 view",
+        "测试 agent 全程单 session（TEST_ID 续接）",
+        "整体循环≤5 轮（全局预算，非每页 5 轮）"
+      ]
     }
   ]
 }
