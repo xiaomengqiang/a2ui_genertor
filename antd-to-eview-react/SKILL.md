@@ -25,7 +25,7 @@ description: >-
 
 ## 前置条件
 
-1. **网络**：`@nce/eview-react` 及其 peer 依赖托管在华为内网 npm 源（`cmc.centralrepo.rnd.huawei.com`，见 `scaffold/.npmrc`）。步骤 1 执行 `npm install` 前须确认内网/VPN 可达，否则直接停机并提示用户，不要尝试用公网源替代。
+1. **网络**：`@nce/eview-react` 及其 peer 依赖托管在华为内网 npm 源（`cmc.centralrepo.rnd.huawei.com`，见 `scaffold/.npmrc`）。步骤 1 执行 `npm install` 前须确认内网/VPN 可达，如果不可达仍继续，在最后提示用户需要到内网安装依赖。
 2. **运行时**：Node.js ≥ 16（Vite 5 要求），`npm` 可正常解析 `.npmrc` 中的 `@nce` scope。
 3. **源项目**：须为 React 项目（非 Vue/Angular）。典型源项目为 `ict-react-coder` skill 的产物——UMD 单 HTML 工程（`index.page.html` + `src/` 双份代码、内联 token CSS、Lucide 图标、禁用 Layout/Grid/Space/Card），其结构特征及迁移成本评估见 [source-project-guidelines.md](references/source-project-guidelines.md)。
 
@@ -48,18 +48,30 @@ description: >-
 
 ```
 scaffold/
-├── package.json        # 依赖已含 @nce/eview-react / react-intl / horizon peer / lodash 等
+├── package.json        # 依赖已含 @nce/eview-react / react-intl / dayjs / horizon peer / lodash / icon-plus 等
 ├── .npmrc              # 华为内网源（@nce scope）
 ├── vite.config.js      # Vite + @vitejs/plugin-react
-├── index.html          # <body class="ev_no_wcag"> + /src/main.jsx
+├── index.html          # <body class="ev_no_wcag aui3_1"> + 图表 UMD <script> + /src/main.jsx
+├── public/
+│   ├── font/           # HarmonyOS Sans SC 字体（Bold/Light/Medium/Regular .woff2），font.css @font-face 引用
+│   │   └── HarmonyOS_SansSC/
+│   └── library/        # 图表 UMD，index.html <script> 注入 window.HUICharts + window.echarts
+│       ├── echarts.min.js
+│       └── hui-charts.umd.js
 └── src/
-    ├── main.jsx        # ConfigProvider + IntlProvider + 四处 css import（aui3_1 / base / tokens / theme-dark）
+    ├── main.jsx        # ConfigProvider + IntlProvider + 六处 css import（aui3_1 / aui3_1_dark / base / font / tokens / theme-dark）
     ├── app.jsx         # 空壳 App（根 div class="root"；aui3_1 挂 <body>），步骤 3 往里填 AppShell
+    ├── shared/         # 预制图标 + 图表组件，迁移时直接复用、调用点零改动（只改 import 路径）
+    │   ├── chart.jsx             # <Chart name option> 契约保留（HUICharts 封装，.dark 自动切主题）
+    │   └── icon.jsx              # <Icon name="..."> 契约保留（icon-plus 在线，内网恒可达，无离线兜底）
     └── styles/
         ├── base.css          # 骨架自带全局重置（ev_no_wcag 焦点轮廓），开箱即用不用改
-        ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量
+        ├── font.css          # HarmonyOS Sans SC @font-face（预制，不用改）；--font-family 仍由 tokens.css 定义
+        ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量（含 --font-family）
         └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
 ```
+
+scaffold 预制了 `src/shared/`（icon.jsx + chart.jsx）与 `public/library/`（图表 UMD）。源项目（`ict-react-coder` 产物）用 `<Icon name="search" />` / `<Chart name="BarChart" option={...} />`，迁移时**调用点零改动**，只把 import 从 `./assets/shared/icon.jsx` 改成 `./shared/icon.jsx`（或 `../shared/icon.jsx`），图表 UMD 已由 scaffold 的 `index.html` `<script>` 注入。icon.jsx 走 icon-plus 在线（`octo.hdesign.huawei.com`），内网恒可达，不带 Lucide 兜底与 763KB JSON。
 
 用法：`node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标题] [--force]`（自动拷贝 scaffold/、改 `package.json` name、改 `index.html` title；目标非空时加 `--force`），然后 `npm install` + `npm run dev`。两条注意事项（app.jsx 导入路径修正、暗色切换 useEffect 迁移）见 [migration-workflow.md](references/migration-workflow.md) §1.3 / §2.2。
 
@@ -87,7 +99,13 @@ Layout/Header/Sider/Content、Menu、Avatar、Descriptions、Space、Statistic�
 
 ### 图标
 
-`@ant-design/icons` → `@nce/icon-plus` 按需引入（脚手架已预置 `@nce/icon-plus` 依赖）；icon+ 名迁移用 icon-plus 接口 `getIconInfo` 按 antd/Lucide 名 keyword 查得（见 [source-project-guidelines.md](references/source-project-guidelines.md) §3.3）；内置 `Icon name="ict_*"` 已下线
+scaffold 已预制 `src/shared/icon.jsx`（保留 `<Icon name="search" />` 契约）。源项目（`ict-react-coder` 产物）的 `<Icon name="..." />` 调用点**零改动**，迁移时只改 import 路径：`./assets/shared/icon.jsx` → `./shared/icon.jsx`（src/ 下）或 `../shared/icon.jsx`（views/ 下）。底层走 icon-plus 在线（`octo.hdesign.huawei.com`），内网恒可达，**无 Lucide 离线兜底**（不带 763KB lucide JSON）。源项目的 Lucide 兜底层在 scaffold shim 中已剥离——见 [source-project-guidelines.md](references/source-project-guidelines.md) §3。
+
+> 此预制件保留运行时 fetch 范式以最小化迁移工作量；若需切到 icon+ 静态 import（`import { IconPlusIcXxx } from '@nce/icon-plus'`），按 [source-project-guidelines.md](references/source-project-guidelines.md) §3.3 的接口名发现流程逐个查名替换（脚手架已预置 `@nce/icon-plus` 依赖）。内置 `Icon name="ict_*"` 已下线。
+
+### 图表（HUI Charts）
+
+scaffold 已预制 `src/shared/chart.jsx` + `public/library/`（`echarts.min.js` + `hui-charts.umd.js`），`index.html` 用两行 `<script>` 注入 `window.HUICharts` + `window.echarts`。源项目（`ict-react-coder` 产物）的 `<Chart name="BarChart" option={...} />` 调用点**零改动**，迁移时只改 import 路径：`./assets/shared/chart.jsx` → `./shared/chart.jsx`（src/ 下）或 `../shared/chart.jsx`（views/ 下）。组件契约、`.dark` 自动切 hdesign-light/dark 主题、ResizeObserver 自适应、ref 方法（`getEchartsInstance` / `resizeHandler`）均与源项目一致——见 ict-react-coder 的 `references/component/Chart.md`。图表类型与 per-type option 规则不变（BarChart / LineChart / PieChart / GaugeChart / HillChart / JadeJueChart / ProcessChart）。
 
 ## Form 迁移模式（最关键的模式转换）
 
@@ -120,7 +138,7 @@ Layout/Header/Sider/Content、Menu、Avatar、Descriptions、Space、Statistic�
 
 ## CSS 样式：保留原始 token
 
-迁移时**保留源项目的 token 体系**，不做变量名替换：源项目 token 提取到独立 CSS，与 eview-react 的 `aui3_1.css` + `aui3_1_dark.css` 并存（两套变量名不冲突，布局/手写 CSS 一行不用改）。入口四处 CSS import 已在 scaffold 写好。暗色模式同时切 `<body>` 的 `aui3_1_dark` + `<html>` 的 `.dark`。完整步骤见 [references/css-token-mapping.md](references/css-token-mapping.md)。
+迁移时**保留源项目的 token 体系**，不做变量名替换：源项目 token 提取到独立 CSS，与 eview-react 的 `aui3_1.css` + `aui3_1_dark.css` 并存（两套变量名不冲突，布局/手写 CSS 一行不用改）。入口六处 CSS import（`aui3_1` / `aui3_1_dark` / `base` / `font` / `tokens` / `theme-dark`）已在 scaffold 写好。暗色模式同时切 `<body>` 的 `aui3_1_dark` + `<html>` 的 `.dark`。完整步骤见 [references/css-token-mapping.md](references/css-token-mapping.md)。
 
 ## 页面模式迁移
 

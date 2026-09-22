@@ -46,7 +46,7 @@ src/styles/
 - `:root { ... }` 里的所有 `--xxx` 变量定义 → 放进 `tokens.css`
 - `.dark { ... }` 里的所有 `--xxx` 变量覆盖 → 放进 `theme-dark.css`
 - 不带变量定义的选择器规则（如 `body { ... }`、`#root { ... }`）→ 按需放进 `app.css` 或对应组件 CSS
-- `@font-face` 定义 → 放进 `tokens.css` 或单独的 `fonts.css`
+- `@font-face` 定义 → scaffold 已预制在 `src/styles/font.css`（HarmonyOS Sans SC，4 个权重），字体文件在 `public/font/HarmonyOS_SansSC/`；源项目若用同名字体直接复用，不同字体再追加到 `font.css`
 
 ### 2. 在入口同时引入两套 CSS
 
@@ -55,10 +55,11 @@ src/styles/
 - `import '@nce/eview-react/styles/aui3_1.css'` — eview-react 组件的样式和变量
 - `import '@nce/eview-react/styles/aui3_1_dark.css'` — eview-react 暗色组件变量（**必须导入**，否则暗色切换时 eview-react 组件变量不生效）
 - `import './styles/base.css'` — 骨架自带全局重置（ev_no_wcag 焦点轮廓）
-- `import './styles/tokens.css'` — 原始 token 定义（布局/手写 CSS 引用这套）
+- `import './styles/font.css'` — HarmonyOS Sans SC @font-face（预制，不用改）
+- `import './styles/tokens.css'` — 原始 token 定义（布局/手写 CSS 引用这套，含 `--font-family`）
 - `import './styles/theme-dark.css'` — 原始暗色覆盖
 
-引入顺序：先 `aui3_1.css` 再 `aui3_1_dark.css` 再 `tokens.css` 再 `theme-dark.css`——如果两边有同名变量（实际不会），后者覆盖前者。`.dark` 选择器在 `theme-dark.css` 中、位于 `tokens.css` 的 `:root` 之后，确保暗色覆盖生效。
+引入顺序：先 `aui3_1.css` 再 `aui3_1_dark.css` 再 `base.css` 再 `font.css` 再 `tokens.css` 再 `theme-dark.css`——如果两边有同名变量（实际不会），后者覆盖前者。`.dark` 选择器在 `theme-dark.css` 中、位于 `tokens.css` 的 `:root` 之后，确保暗色覆盖生效。
 
 ### 3. 布局/手写 CSS 保持原样
 
@@ -108,7 +109,7 @@ useEffect(() => {
 入口 CSS 按以下顺序加载（已在 scaffold 中写好）：
 
 ```
-aui3_1.css → aui3_1_dark.css → tokens.css → theme-dark.css
+aui3_1.css → aui3_1_dark.css → base.css → font.css → tokens.css → theme-dark.css
 ```
 
 **关键**：`tokens.css` 中的 `:root` 定义（语义变量、角色变量）会覆盖 `dark.css` / `aui3_1_dark.css` 中同名的 `.dark` 变量吗？
@@ -121,7 +122,7 @@ aui3_1.css → aui3_1_dark.css → tokens.css → theme-dark.css
 **如果源项目的 `:root` 包含角色变量（如 `--primary`、`--surface`、`--on-surface`）**，这些变量在 `:root` 中定义为对语义变量的惰性引用（如 `--surface: var(--color-bg-1)`）。由于 CSS 变量是惰性求值，当 `.dark` 切换 `--color-bg-1` 的值时，`--surface` 会自动跟随。但如果 `tokens.css` 中也在 `:root` 直接定义了语义变量（如 `--color-bg-1`），则 `theme-dark.css` 的 `.dark` 中**必须**重复覆盖这些语义变量，否则 `tokens.css` 的 `:root` 会在级联中覆盖 `.dark`（两者特异性相同，后加载者胜——`tokens.css` 在 `dark.css` 之后加载）。
 
 最佳实践：
-- `tokens.css` 放：基础色阶 + 排版 + 间距 + `@font-face` + `@media` 响应式 + `:root` **角色层**变量（`--primary`、`--surface` 等，这些引用语义变量、惰性求值，不依赖 CSS 加载顺序）
+- `tokens.css` 放：基础色阶 + 排版 + 间距 + `@media` 响应式 + `:root` **角色层**变量（`--primary`、`--surface`、`--font-family` 等，这些引用语义变量、惰性求值，不依赖 CSS 加载顺序）。`@font-face` 已移至预制的 `font.css`，不放进 `tokens.css`
 - `tokens.css` **不放**：语义层变量（`--color-bg-1`、`--color-text-primary` 等），这些由 `aui3_1.css` 在 `.aui3_1` 下定义，`aui3_1_dark.css` 在 `.aui3_1_dark` 下覆盖
 - `theme-dark.css` 放：`.dark` 下的语义层覆盖 + `.dark` 下的角色层覆盖（如果角色变量在 `:root` 中直接写了色值而非 `var()` 引用，则 `.dark` 中必须显式覆盖）
 - 如果源项目的原始 token 用 `:root` 同时定义了语义变量和角色变量，拷贝到 `tokens.css` 后，`theme-dark.css` 必须在 `.dark` 中覆盖**所有**在 `tokens.css` 的 `:root` 中有定义且暗色值不同的变量

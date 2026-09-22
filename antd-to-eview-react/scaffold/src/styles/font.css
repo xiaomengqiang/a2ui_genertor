@@ -1,0 +1,27 @@
+/* font.css — HarmonyOS Sans SC 字体注册（预制，不用改）
+   字体文件在 public/font/HarmonyOS_SansSC/，Vite 以 / 根路径提供。
+   --font-family 仍由 tokens.css（步骤 4 填）定义，本文件只注册字体面。 */
+@font-face {
+  font-family: 'HarmonyOS Sans';
+  src: url('/font/HarmonyOS_SansSC/Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'HarmonyOS Sans';
+  src: url('/font/HarmonyOS_SansSC/Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'HarmonyOS Sans';
+  src: url('/font/HarmonyOS_SansSC/Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'HarmonyOS Sans';
+  src: url('/font/HarmonyOS_SansSC/Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+}
