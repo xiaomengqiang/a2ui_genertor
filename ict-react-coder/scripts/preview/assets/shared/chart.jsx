@@ -29,6 +29,7 @@ const Chart = forwardRef(function Chart(
     chart.init(dom, { renderer: "svg"});
     chart.setSimpleOption(name, {
       theme: isDark ? "hdesign-dark" : "hdesign-light",
+      a2ui: true,
       ...option,
     });
     chart.render();
