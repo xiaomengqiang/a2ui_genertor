@@ -20,8 +20,8 @@
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Form` / `Form.Item` | `Form` / `Form.Item` | `useForm()`→`useRef`；`validateFields()` Promise→`submit()`+`onSuccess` 回调；多列用 `itemCol`（Form 级统一，不支持单项覆盖）；Form 内不能用 div/Row/Col 做栅格；详见 [form-migration.md](form-migration.md) |
-| `Row` / `Col`（Form 内用） | 删掉（用 `itemCol`） | eview-react Form 自带 24 栅格，`itemCol` 统一设置所有项宽度；不支持单项 col 覆盖 |
+| `Form` / `Form.Item` | `Form` / `Form.Item` | `useForm()`→`useRef`；`validateFields()` Promise→`submit()`+`onSuccess` 回调；多列用 `itemCol` 设 Form 级默认，**单项覆盖用 `Form.Item.col`**；Form 内不能用 div/Row/Col 做栅格；详见 [form-migration.md](form-migration.md) |
+| `Row` / `Col`（Form 内用） | 删掉（用 `itemCol` / `Form.Item.col`） | eview-react Form 自带 24 栅格，`itemCol` 设默认宽度，**单项可用 `Form.Item.col` 覆盖** |
 | `Input` | `TextField` | `onChange(value, oldValue, event)` 首参是值；`validator` 返回 `{result,message}`；`required` 自带星号；无 `allowClear`/`prefix`/`rules`/`onPressEnter` |
 | `Input.TextArea` | `TextArea` | `onChange(targetValue, value, event)`；`onBlur(event)` 无 value；`maxLength` 自带右下角计数（替代 `showCount`）；无 `autoSize`/`allowClear`；无 ref 方法 |
 | `Input.Search` | `SearchInput` | `onSearch` 值变化也触发（需防抖）；`onClear(value)`；`placeholder` 保留；`onSuggest` vs `popItems` 互斥 |

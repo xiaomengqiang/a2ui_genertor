@@ -1,8 +1,4 @@
 /* 组件样式汇总：由 npm run build:css 生成，勿手改 */
-.ant-table {
-  font-family: var(--font-family);
-  font-size: var(--font-size-md);
-}
 
 /* Divider 组件样式（占位，待填充 token 映射） */
 .ant-divider {
@@ -179,6 +175,9 @@
 }
 
 /* Input 组件样式（占位，待填充 token 映射） */
+.ant-input {
+  border-radius: var(--radius-base);
+}
 input.ant-input {
   padding: 0 var(--spacing-3);
   height: 32px;
@@ -208,6 +207,7 @@ input.ant-input.ant-input-sm {
 .ant-input-affix-wrapper {
   padding: 0 var(--spacing-3);
   height: 32px;
+  border-radius: 4px;
 }
 .ant-input-affix-wrapper .ant-input {
   height: 100%;
@@ -291,6 +291,7 @@ input.ant-input.ant-input-sm {
   height: 32px;
   border-color: var(--gray-20);
   box-shadow: none;
+  border-radius: var(--radius-base);
 }
 .ant-input-number .ant-input-number-action-down {
   padding-left: var(--spacing-2);
@@ -372,6 +373,18 @@ input.ant-input.ant-input-sm {
 .ant-select.ant-select-outlined.ant-select-disabled {
   --ant-select-border-color: var(--color-border-disabled);
 }
+.ant-select.ant-select-outlined.ant-select-status-error {
+  --ant-select-border-color: var(--color-error);
+}
+.ant-select.ant-select-outlined.ant-select-status-error:not(.ant-select-disabled):hover {
+  --ant-select-border-color: var(--color-error-hover);
+}
+.ant-select.ant-select-outlined.ant-select-status-warning {
+  --ant-select-border-color: var(--color-warning);
+}
+.ant-select.ant-select-outlined.ant-select-status-warning:not(.ant-select-disabled):hover {
+  --ant-select-border-color: var(--color-warning-hover);
+}
 .ant-select:not(.ant-select-disabled) .ant-select-placeholder {
   color: var(--color-text-placeholder);
 }
@@ -408,6 +421,8 @@ input.ant-input.ant-input-sm {
 .ant-select-dropdown {
   border-radius: var(--radius-md);
   background-color: var(--color-bg-4);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-base);
 }
 .ant-select-dropdown .ant-select-item-option-disabled {
   color: var(--color-text-disabled);
@@ -438,6 +453,95 @@ input.ant-input.ant-input-sm {
 .ant-select-multiple .ant-select-content .ant-select-selection-item {
   margin-inline-end: var(--spacing-2);
   background: var(--color-hover);
+}
+
+.ant-tree-select-dropdown {
+  padding: var(--spacing-1);
+}
+.ant-tree-select-dropdown .ant-select-tree {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-4);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode {
+  line-height: 22px;
+  align-items: center;
+  margin-bottom: unset;
+  padding: 4px 0;
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-checkbox {
+  margin-block-start: unset;
+  align-self: unset;
+  border: 1px solid var(--color-icon-tertiary);
+  border-radius: var(--radius-xs);
+  background-color: var(--color-fill-subtle);
+  color: var(--color-text-primary);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-checkbox.ant-select-tree-checkbox-checked {
+  background-color: var(--color-brand);
+  border-color: var(--color-brand);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-checkbox.ant-select-tree-checkbox-checked + .ant-select-tree-node-content-wrapper {
+  background-color: var(--color-select);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-checkbox.ant-select-tree-checkbox-checked + .ant-select-tree-node-content-wrapper:hover {
+  background-color: var(--color-select);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-checkbox.ant-select-tree-checkbox-indeterminate:after {
+  background-color: var(--color-brand);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-checkbox.ant-select-tree-checkbox-indeterminate + .ant-select-tree-node-content-wrapper {
+  background-color: var(--color-select);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-checkbox.ant-select-tree-checkbox-indeterminate + .ant-select-tree-node-content-wrapper:hover {
+  background-color: var(--color-select);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-checkbox.ant-select-tree-checkbox-disabled {
+  border: 1px solid var(--color-border-disabled);
+  background-color: var(--color-fill-disabled-subtle);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode.ant-select-tree-treenode-disabled .ant-select-tree-node-content-wrapper {
+  color: var(--color-text-disabled);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode:not(.ant-select-tree-treenode-disabled) .ant-select-tree-node-content-wrapper.ant-select-tree-node-selected {
+  color: var(--color-text-on);
+  background-color: var(--color-select);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode:not(.ant-select-tree-treenode-disabled) .ant-select-tree-node-content-wrapper.ant-select-tree-node-selected:hover {
+  color: var(--color-text-on);
+  background-color: var(--color-select);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode:not(.ant-select-tree-treenode-disabled) .ant-select-tree-node-content-wrapper:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-hover);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-node-content-wrapper {
+  min-height: unset;
+  border-radius: var(--radius-base);
+  padding: 3px 8px 3px 4px;
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-node-content-wrapper .ant-select-tree-iconEle {
+  width: 14px;
+  height: 14px;
+  vertical-align: baseline;
+  margin-right: 8px;
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode::before {
+  display: none;
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-switcher {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  justify-content: center;
+  align-self: unset;
+  margin-inline-end: 8px;
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-switcher .ant-select-tree-switcher-icon {
+  height: 10px;
+  margin: auto;
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-switcher:before {
+  display: none;
 }
 
 /* TimePicker 组件样式（占位，待填充 token 映射） */
@@ -496,6 +600,9 @@ input.ant-input.ant-input-sm {
 .ant-picker-range .ant-picker-separator::before {
   content: '-';
   color: var(--color-text-primary);
+}
+.ant-picker-large {
+  border-radius: var(--radius-base);
 }
 .dark .ant-picker.ant-picker-css-var {
   --ant-color-border: var(--gray-50);
@@ -773,6 +880,10 @@ input.ant-input.ant-input-sm {
 }
 
 /* Table 组件样式（占位，待填充 token 映射） */
+.ant-table {
+  font-size: var(--font-size-md);
+  font-family: var(--font-family);
+}
 .ant-table .ant-table-content {
   border-start-start-radius: 0 !important;
   border-start-end-radius: 0 !important;

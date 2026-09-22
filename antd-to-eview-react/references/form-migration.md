@@ -2,6 +2,8 @@
 
 > antd Form 和 eview-react Form 都用 `Form.Item name` 托管值，但**校验触发与回调机制完全不同**。
 > 这是迁移中最大的模式差异，本文给出三种常见场景的完整转换示例。
+>
+> 📁 **完整综合案例**：[form-case.jsx](form-case.jsx) — 真机工程片段，演示 `Form.Item.col` 单项覆盖 Form 级 `itemCol`、`inputStyle`/`selectStyle` 控控件本体宽度、`SelectCard` 在 Form 内的用法、`validateAllChildComponent`。作为本文各场景的综合参考。
 
 > ✅ **运行时已验证（内网真机示例）**：`Form.Item name` + 控件不传 `value`/`onChange` + `ref.submit()` → `onSuccess(values)` 这套托管模式在真实 `@nce/eview-react` 工程里**确实能收到 `values`**（含所有 `name` 字段）。先前 `eview-react/TODO.md` 把它列为「待实测」，现已确认成立。
 >
@@ -304,14 +306,14 @@ const handleSuccess = async (values) => {
 
 ### eview-react Form 自带栅格系统
 
-eview-react 的 Form 内置 24 栅格系统，通过 `itemCol` 控制每项宽度，**不需要也不能用 `<div>` 做栅格**。
+eview-react 的 Form 内置 24 栅格系统，`itemCol` 设 Form 级默认宽度、`Form.Item.col` 单项覆盖；**不需要也不能用 `<div>` 做栅格**。
 
 | 属性 | 位置 | 作用 | 取值 |
 |------|------|------|------|
-| `itemCol` | `<Form>` | 所有 Form.Item 的栅格数（**统一设置，不支持单项覆盖**） | `24`(全宽) / `12`(半宽) / `8`(三分之一) / `6`(四分之一)，默认 `24` |
+| `itemCol` | `<Form>` | 所有 Form.Item 的栅格数（**Form 级默认值，可被 `Form.Item.col` 单项覆盖**） | `24`(全宽) / `12`(半宽) / `8`(三分之一) / `6`(四分之一)，默认 `24` |
 | `labelCol` | `<Form>` | **仅在 `layout="horizontal"` 时生效**；将该项宽度分为 24 份，label 占其中的份数，剩余给输入框 | `number`，如 `labelCol={4}` → label 占 4/24（1/6），输入框占 20/24（5/6） |
 
-**关键限制**：`itemCol` 是 Form 级属性，设置后**所有 Form.Item 统一占同样的栅格数**，不支持单项单独定义宽度。
+**关键限制**：`itemCol` 是 Form 级属性，设置后作为所有 `Form.Item` 的**默认栅格数**；**单项可用 `Form.Item.col` 覆盖**（在同一 Form 内混用不同宽度，不必拆 Form）。
 
 **layout 与栅格的关系**：
 - `layout="vertical"`：label 在输入框上方，label 和输入框都占满 `itemCol` 的宽度；`labelCol` 不生效
@@ -319,7 +321,7 @@ eview-react 的 Form 内置 24 栅格系统，通过 `itemCol` 控制每项宽�
 
 **硬约束**：
 - `<Form>` 标签内不允许使用 `<div>` 进行栅格布局
-- 多列布局只能通过 Form 级的 `itemCol` 实现，所有项统一宽度
+- 多列布局优先用 Form 级的 `itemCol` 设默认宽度；**单项不同宽度用 `Form.Item.col` 覆盖**（不拆 Form、不用 div 包裹）
 
 ### antd 常见写法 → eview-react 转换
 
@@ -367,7 +369,7 @@ eview-react 的 Form 内置 24 栅格系统，通过 `itemCol` 控制每项宽�
 
 #### eview-react 转换后：itemCol
 
-eview-react 不支持同一 Form 内混用不同宽度。如果所有字段都用半宽：
+如果所有字段都用半宽（Form 级统一 `itemCol={12}`）：
 
 ```jsx
 // ✅ eview-react：所有项统一半宽
@@ -384,18 +386,16 @@ eview-react 不支持同一 Form 内混用不同宽度。如果所有字段都�
 </Form>
 ```
 
-如果需要"名称"全宽、"类型"和"站点"半宽的混合布局，可以拆成两段：
+如果需要"名称"全宽、"类型"和"站点"半宽的混合布局，**用 `Form.Item.col` 单项覆盖 Form 的 `itemCol`，不要拆成两个 Form**（拆 Form 会让 `ref.submit()` / `onSuccess` 各自独立，无法统一校验和提交）：
 
 ```jsx
-// ✅ eview-react：拆成两个 Form，分别设 itemCol
-<Form layout="vertical" itemCol={24} ref={formRef} onSuccess={onSuccess}>
-  <Form.Item name="name" label="名称" rules={[{ required: true }]}>
-    <TextField placeholder="请输入" maxLength={32} />   {/* 24 = 全宽 */}
+// ✅ eview-react：Form 设 itemCol={12}（默认半宽），名称项用 col={24} 单项整行
+<Form layout="vertical" itemCol={12} ref={formRef} onSuccess={onSuccess}>
+  <Form.Item name="name" label="名称" rules={[{ required: true }]} col={24}>
+    <TextField placeholder="请输入" maxLength={32} />   {/* col={24} 覆盖默认，整行 */}
   </Form.Item>
-</Form>
-<Form layout="vertical" itemCol={12}>
   <Form.Item name="type" label="类型" rules={[{ required: true }]}>
-    <Select options={typeOptions} defaultLabel="-请选择-" enableClear />
+    <Select options={typeOptions} defaultLabel="-请选择-" enableClear />   {/* 走 Form 级 itemCol=12，半宽 */}
   </Form.Item>
   <Form.Item name="station" label="站点" rules={[{ required: true }]}>
     <Select options={stationOptions} defaultLabel="-请选择-" enableClear />
@@ -403,7 +403,30 @@ eview-react 不支持同一 Form 内混用不同宽度。如果所有字段都�
 </Form>
 ```
 
-> 注意：拆成两个 Form 后，`ref.submit()` / `onSuccess` 只能各自独立触发。如果需要统一校验和提交，应放在同一个 Form 里，接受所有项统一宽度（`itemCol={12}` 或 `itemCol={24}`）。
+也可以不设 Form 级 `itemCol`，每个 `Form.Item` 单独设 `col`（来自真机工程的写法）：
+
+```jsx
+// ✅ eview-react：不设 Form 级 itemCol，逐项 col 控制
+<Form layout="vertical" ref={formRef} onSuccess={onSuccess} validateErrorType="div">
+  <Form.Item name="deviceName" label="设备名称" rules={[{ required: true }]} col={24}>
+    <TextField placeholder="如：华北风电场-03 逆变器 A12" maxLength={32} />
+  </Form.Item>
+  <Form.Item name="deviceType" label="设备类型" rules={[{ required: true }]} col={12}>
+    <Select options={deviceTypeOptions} defaultLabel="请选择设备类型" enableClear />
+  </Form.Item>
+  <Form.Item name="station" label="所属站点" rules={[{ required: true }]} col={12}>
+    <Select options={stationOptions} defaultLabel="请选择所属站点" enableClear />
+  </Form.Item>
+  <Form.Item name="protocol" label="接入协议" rules={[{ required: true }]}>
+    <SelectCard data={protocolRadioData} />                {/* 不设 col 走默认 24，整行 */}
+  </Form.Item>
+  <Form.Item name="remark" label="备注">
+    <TextArea placeholder="补充设备用途、投运时间等信息（选填）" rows={3} maxLength={200} />
+  </Form.Item>
+</Form>
+```
+
+> **不要拆成两个 Form 做混合宽度**：拆 Form 后 `ref.submit()` / `onSuccess` 各自独立触发，无法统一校验和提交。同一 Form 内用 `Form.Item.col` 单项覆盖即可。
 
 ### 水平布局的 labelCol
 
@@ -433,4 +456,4 @@ eview-react 不支持同一 Form 内混用不同宽度。如果所有字段都�
 10. **`htmlType="submit"` → `onClick={() => formRef.current.submit()}`**
 11. **`loading` → `disabled` + 文案切换**
 12. **Modal → Dialog**：`open`→`isOpen`；`onOk`→`buttons[].onClick`；成功才关
-13. **多列布局用 `itemCol`**：Form 级统一设置，所有项同等宽度；不支持单项覆盖；Form 内不允许用 div 做栅格；混合宽度需拆成多个 Form
+13. **多列布局用 `itemCol` + `Form.Item.col`**：`itemCol` 设 Form 级默认宽度，**单项覆盖用 `Form.Item.col`**（不拆 Form）；Form 内不允许用 div 做栅格
