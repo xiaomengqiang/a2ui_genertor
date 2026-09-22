@@ -87,7 +87,7 @@ Layout/Header/Sider/Content、Menu、Avatar、Descriptions、Space、Statistic�
 
 ### 图标
 
-`@ant-design/icons` → `@nce/icon-plus` 按需引入；icon+ 名迁移用 icon-plus 接口 `getIconInfo` 按 antd/Lucide 名 keyword 查得（见 [source-project-guidelines.md](references/source-project-guidelines.md) §3.3）；内置 `Icon name="ict_*"` 已下线
+`@ant-design/icons` → `@nce/icon-plus` 按需引入（脚手架已预置 `@nce/icon-plus` 依赖）；icon+ 名迁移用 icon-plus 接口 `getIconInfo` 按 antd/Lucide 名 keyword 查得（见 [source-project-guidelines.md](references/source-project-guidelines.md) §3.3）；内置 `Icon name="ict_*"` 已下线
 
 ## Form 迁移模式（最关键的模式转换）
 

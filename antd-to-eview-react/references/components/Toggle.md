@@ -53,7 +53,12 @@ const [switching, setSwitching] = useState<Set<string>>(new Set());
 ### 开关内显示文字 / 图标
 
 ```tsx
+// 文字
 <Toggle toggled={on} taggledChildren="开" unTaggledChildren="关" onToggle={(v: boolean) => setOn(v)} />
+
+// 图标（icon+ 组件）
+import { IconPlusIcPublicCheck, IconPlusIcPublicClose } from '@nce/icon-plus';
+<Toggle toggled={on} taggledChildren={<IconPlusIcPublicCheck />} unTaggledChildren={<IconPlusIcPublicClose />} onToggle={(v: boolean) => setOn(v)} />
 ```
 
 ### 行内开关：切换即请求，失败回滚
