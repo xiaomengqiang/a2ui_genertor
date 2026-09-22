@@ -11,16 +11,12 @@ import path from 'path';
 const productRoot = path.resolve(process.argv[2] || process.cwd());
 const srcRoot = path.join(productRoot, 'src');
 
-if (!fs.existsSync(srcRoot)) {
-  console.error(`[checklist] src not found: ${srcRoot}`);
-  process.exit(1);
-}
-
 const srcExts = ['.js', '.jsx', '.ts', '.tsx'];
 const srcFiles = [];
 const cssFiles = [];
 
 function walk(dir) {
+  if (!fs.existsSync(dir)) return;
   for (const name of fs.readdirSync(dir)) {
     const full = path.join(dir, name);
     const stat = fs.statSync(full);
@@ -73,6 +69,77 @@ function neg(id, category, severity, re, failMsg) {
 }
 
 const checks = [
+  // === 0. 项目骨架完整性类（阻断，前置门） ===
+  // 各条独立跑，不互相短路；任一失败 → 跳过后续 import/api/mode/style。
+  {
+    id: 'package-json-exists', category: 'structure', severity: 'block',
+    run: () => {
+      const f = readFile('package.json');
+      return { passed: !!f, detail: f ? '' : 'package.json 未找到（工程根缺失）' };
+    }
+  },
+  {
+    id: 'package-json-react-dep', category: 'structure', severity: 'block',
+    run: () => {
+      const f = readFile('package.json');
+      if (!f) return { passed: false, detail: 'package.json 未找到' };
+      let pkg;
+      try { pkg = JSON.parse(f.content); } catch { return { passed: false, detail: 'package.json 非合法 JSON' }; }
+      const deps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+      const ok = 'react' in deps || 'react-dom' in deps;
+      return { passed: ok, detail: ok ? '' : 'package.json 缺 react / react-dom 依赖' };
+    }
+  },
+  {
+    id: 'package-json-eview-dep', category: 'structure', severity: 'block',
+    run: () => {
+      const f = readFile('package.json');
+      if (!f) return { passed: false, detail: 'package.json 未找到' };
+      let pkg;
+      try { pkg = JSON.parse(f.content); } catch { return { passed: false, detail: 'package.json 非合法 JSON' }; }
+      const deps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+      const ok = Object.keys(deps).some(k => k.startsWith('@nce/') || k.startsWith('@cloudsop/') || k.startsWith('@hui/'));
+      return { passed: ok, detail: ok ? '' : 'package.json 缺 @nce/* / @cloudsop/* / @hui/* 依赖（eview-react 未接入）' };
+    }
+  },
+  {
+    id: 'package-json-scripts', category: 'structure', severity: 'block',
+    run: () => {
+      const f = readFile('package.json');
+      if (!f) return { passed: false, detail: 'package.json 未找到' };
+      let pkg;
+      try { pkg = JSON.parse(f.content); } catch { return { passed: false, detail: 'package.json 非合法 JSON' }; }
+      const scripts = pkg.scripts || {};
+      const missing = [];
+      if (!scripts.build) missing.push('build');
+      if (!scripts.dev) missing.push('dev');
+      return { passed: missing.length === 0, detail: missing.length ? `package.json scripts 缺 ${missing.join(', ')}` : '' };
+    }
+  },
+  {
+    id: 'entry-file-exists', category: 'structure', severity: 'block',
+    run: () => {
+      const f = readFile('src/main.jsx') || readFile('src/main.tsx') || readFile('src/main.js')
+        || readFile('src/index.jsx') || readFile('src/index.tsx') || readFile('src/index.js');
+      return { passed: !!f, detail: f ? '' : '入口文件未找到（src/main.{jsx,tsx,js} 或 src/index.{jsx,tsx,js}）' };
+    }
+  },
+  {
+    id: 'index-html-exists', category: 'structure', severity: 'block',
+    run: () => {
+      const f = readFile('index.html') || readFile('public/index.html');
+      return { passed: !!f, detail: f ? '' : 'index.html 未找到（根目录或 public/）' };
+    }
+  },
+  {
+    id: 'build-config-exists', category: 'structure', severity: 'block',
+    run: () => {
+      const candidates = ['vite.config.js', 'vite.config.ts', 'vite.config.mjs', 'vite.config.cjs', 'webpack.config.js', 'webpack.config.ts'];
+      const found = candidates.find(c => readFile(c));
+      return { passed: !!found, detail: found ? '' : '构建配置未找到（vite.config.{js,ts,mjs,cjs} 或 webpack.config.{js,ts}）' };
+    }
+  },
+
   // === 1. import 类（阻断） ===
   neg('no-antd-import', 'import', 'block', /from\s+['"]antd['"]|require\(['"]antd['"]\)/, '仍从 antd 导入（应删除）'),
   neg('no-antd-locale', 'import', 'block', /from\s+['"]antd\/locale/, '仍用 antd locale（应换 @nce/eview-react/locales）'),
@@ -200,12 +267,20 @@ const checks = [
   neg('no-etarget-value', 'callback', 'warn', /e\.target\.(value|checked)/, '用 e.target.value（eview-react 首参是 value）'),
 ];
 
-// 执行
+// 执行：structure 类先跑（各条独立，不互相短路），任一失败 → 跳过后续 import/api/mode/style
 const results = [];
-let blockNext = false;
+let structureFailed = false;
 for (const c of checks) {
+  if (c.category !== 'structure') continue;
+  const r = c.run();
+  results.push({ id: c.id, category: c.category, severity: c.severity, passed: r.passed, detail: r.detail });
+  if (!r.passed) structureFailed = true;
+}
+let blockNext = structureFailed;
+for (const c of checks) {
+  if (c.category === 'structure') continue;
   if (blockNext && c.severity !== 'warn') {
-    results.push({ id: c.id, category: c.category, severity: c.severity, passed: false, skipped: true, detail: '因前序 import 错误跳过' });
+    results.push({ id: c.id, category: c.category, severity: c.severity, passed: false, skipped: true, detail: structureFailed ? '因骨架检查未过跳过' : '因前序 import 错误跳过' });
     continue;
   }
   const r = c.run();
