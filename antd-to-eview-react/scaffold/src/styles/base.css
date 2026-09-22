@@ -3,3 +3,7 @@
 body.ev_no_wcag *:not([class ^= "eui*"]):focus{
    outline: none !important;
 }
+/* 保证Form中每一行对齐 */
+.ev_form_item{
+   vertical-align: top;
+}

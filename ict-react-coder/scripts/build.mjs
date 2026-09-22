@@ -232,7 +232,7 @@ if (!entryDefault) {
 }
 
 // --- Banned antd components (布局/装饰类 — 须用 H5 + CSS 或组件组合实现) ---
-const ANTD_BANNED = ["Layout", "Grid", "Row", "Col", "Flex", "Space", "Card", "Skeleton", "Masonry", "Popconfirm", "Watermark"];
+const ANTD_BANNED = ["Layout", "Grid", "Row", "Col", "Flex", "Space", "Card", "Skeleton", "Masonry", "Popconfirm", "Watermark", "Typography", "List"];
 const bannedHits = [];
 for (const mod of modules) {
   for (const n of mod.antdNames) {

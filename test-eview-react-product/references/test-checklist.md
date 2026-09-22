@@ -1,17 +1,33 @@
 # 测试清单（静态层）
 
-> 30+ 条断言，从 [antd-to-eview-react 的硬约束 + naming-quirks + form-migration + component-mapping](../../antd-to-eview-react/SKILL.md) 反向推导。每条迁移规则对应一条测试断言。
+> 45 条断言：7 条骨架完整性（前置门）+ 38 条迁移正确性。迁移规则从 [antd-to-eview-react 的硬约束 + naming-quirks + form-migration + component-mapping](../../antd-to-eview-react/SKILL.md) 反向推导。
 > `scripts/checklist.mjs` 按本清单执行，输出 `.checklist-result.json`。
 
 ## 分类与严重度
 
 | 分类 | 严重度 | 说明 |
 |------|--------|------|
+| **骨架完整性** | 阻断（前置门） | 项目骨架不完整（缺 package.json/入口/index.html/构建配置），后续迁移检查无意义，整批跳过 |
 | **import** | 阻断 | 错了 dev 起不来，跳过后续层 |
 | **API 命名** | 硬失败 | props 名错组件不认 |
 | **模式转换** | 硬失败 | Form/Modal 控制流不对，功能不工作 |
 | **样式** | 硬失败 | 暗色/主题不跟随；CSS 写死色值 |
 | **回调签名** | 警告 | `e.target.value` 多了会出错但未必挡运行 |
+
+## 0. 项目骨架完整性类（阻断，前置门）
+
+> 各条独立跑（不互相短路），任一失败 → `blockNext=true`，跳过后续所有 import/api/mode/style 类；warn 类（回调签名）仍跑。
+> detail 直接指向缺失的文件/字段，让生成 agent 知道是"补骨架"而不是"改迁移写法"。
+
+| id | 检查方法 | 通过条件 |
+|----|---------|---------|
+| `package-json-exists` | read `package.json` | 文件存在 |
+| `package-json-react-dep` | parse `package.json`，查 `dependencies`+`devDependencies` | 含 `react` 或 `react-dom` |
+| `package-json-eview-dep` | parse `package.json`，查 `dependencies`+`devDependencies` | 含 `@nce/*` / `@cloudsop/*` / `@hui/*` 任一（eview-react 已接入） |
+| `package-json-scripts` | parse `package.json`，查 `scripts` | 同时有 `build` + `dev` |
+| `entry-file-exists` | read `src/main.{jsx,tsx,js}` 或 `src/index.{jsx,tsx,js}` | 任一存在 |
+| `index-html-exists` | read `index.html` 或 `public/index.html` | 任一存在 |
+| `build-config-exists` | read `vite.config.{js,ts,mjs,cjs}` 或 `webpack.config.{js,ts}` | 任一存在 |
 
 ## 1. import 类（阻断）
 
@@ -89,9 +105,10 @@
 
 ## 检查执行顺序
 
-1. 先跑 import 类——任一失败标 `category=import` 且 `blockNext=true`，`checklist.mjs` 跑完 import 后若 `blockNext` 直接结束（不跑后续类），主 agent 据此跳过第 2/3 层。
-2. import 全过 → 跑 API 命名 → 模式转换 → 样式 → 回调签名。
-3. 输出汇总：`total` / `passed` / `failed` / `warnings`。
+1. 先跑骨架完整性类（structure）——各条独立跑，不互相短路。任一失败设 `blockNext=true`，跳过后续 import/api/mode/style（warn 类仍跑），主 agent 据此跳过 L1/L2。
+2. 骨架全过 → 跑 import 类——任一失败设 `blockNext=true`，跑完 import 后若 `blockNext` 跳过 api/mode/style。
+3. import 全过 → 跑 API 命名 → 模式转换 → 样式 → 回调签名。
+4. 输出汇总：`total` / `passed` / `failed` / `warnings`。
 
 ## 失败 detail 写法
 

@@ -40,6 +40,27 @@ grep -rn "from \"antd\"" src/ --include="*.jsx" --include="*.tsx"
 | Layout | B | 手写 | AppShell.jsx | 无对应 |
 | ... | | | | |
 
+### 0.5 派发子 agent：评估扫描
+
+步骤 0 要读源项目所有含 antd 导入的文件（可能几十个），但主 agent 只需迁移清单。用 Task 工具派发 explore 子 agent：
+
+**任务描述模板：**
+
+```
+扫描 <源项目路径>/src/ 下所有 .jsx/.tsx 文件的 antd 导入（from 'antd'、from "@ant-design/icons"），
+对照 <skill目录>/references/component-mapping.md 分三类：
+- A 有对应：eview-react 有直接对应组件
+- B 无对应需手写：eview-react 无对应
+- C 模式转换：有对应但 API 模式不同（Form / Steps / Modal）
+
+输出迁移清单表格（markdown）：
+| antd 组件 | 分类 | eview-react 替换 | 涉及文件 |
+```
+
+- **子 agent 读**：源项目 src/ + references/component-mapping.md
+- **子 agent 输出**：迁移清单表格
+- **主 agent 用清单**：规划步骤 3 的子 agent 拆分（按分类和涉及文件分组）
+
 ## 步骤 1：建工程骨架
 
 ### 1.1 判断是否需要新建
@@ -49,11 +70,14 @@ grep -rn "from \"antd\"" src/ --include="*.jsx" --include="*.tsx"
 
 ### 1.2 拷贝预制骨架
 
-`scaffold/`（skill 根目录，与 `references/` 并列）是预制好的可运行空壳工程，已含步骤 1 所需全部文件，不必逐个手写。整目录拷贝到目标工程根：
+`scaffold/`（skill 根目录，与 `references/` 并列）是预制好的可运行空壳工程，已含步骤 1 所需全部文件。用脚本一键拷贝并替换 `package.json` name 和 `index.html` title：
 
 ```bash
-cp -r scaffold/ <目标工程根>
+node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标题] [--force]
 ```
+
+- 项目名缺省时用目标目录名；标题缺省时用项目名
+- 目标目录非空时需加 `--force` 确认覆盖
 
 布局：
 
@@ -128,7 +152,7 @@ import AppShell from './views/AppShell.jsx';
 | `@nce/icon-plus` | 图标库（`IconPlusIc*` 按需引入） | 用图标时必需 |
 | `@cloudsop/horizon` | eview-react 的 peer 依赖；缺失报 `Element type is invalid` | 必需（peer） |
 | `@cloudsop/horizon-intl` / `@cloudsop/htimezone` / `@baize/wdk` / `@hui/design-token` | eview-react 生态关联依赖（i18n 适配 / 时区 / 工具 / 设计 token） | 骨架预置；未用到可在 package.json 删除 |
-| `lodash` | 工具库 | 源项目用到则保留 |
+| `lodash` | 工具库 | 必需 |
 
 > 上述用途为基于包名与已有报错信息的推断，具体以实际工程的 `npm install` 与运行结果为准。
 
@@ -160,6 +184,8 @@ import zhCN from './assets/shared/antd-zh-cn.js';
 ### 2.2 暗色模式改类名切换
 
 eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark` 挂 `<body>`（eview-react 组件暗色）、`.dark` 挂 `<html>`（原始 token 暗色覆盖）。完整 `useEffect` 代码见 [css-token-mapping.md](css-token-mapping.md) §4。
+
+> scaffold 的 `src/app.jsx` 内置了一段暗色切换 `useEffect`（演示用）。步骤 3 用源项目 AppShell 替换 `app.jsx` 时，务必把这段暗色切换逻辑迁移到新 AppShell 或 `main.jsx`，否则暗色模式切换会失效。
 
 ### 2.3 `<body>` 加 aui3_1 类名
 
@@ -284,6 +310,41 @@ export const policyTemplates = [
 
 > **规则：** 凡是 `render: (value) => t(value, ...)` 且 `data.js` 中该字段的 `value ≠ msgId`，必须补前缀。`value === msgId` 的无需改。StatusTag 等自定义组件如果内部已做 `"status." + status` 拼接，则无需在 render 里再拼。
 
+### 3.6 派发子 agent：逐组件替换
+
+步骤 3 上下文消耗最高（form-migration.md 423 行 + handwrite-templates.md 270 行 + 涉及的 components/*.md ~200KB）。按组件类别拆成 2-3 个 general 子 agent 并行，每个只加载自己负责的 reference 子集。
+
+**分组建议：**
+
+| 子 agent | 负责类别 | 读哪些 reference | 源文件（来自步骤 0 清单） |
+|---------|---------|-----------------|------------------------|
+| A 表单类 | Input/Select/Form/Upload 等表单组件 + Form 模式转换 | form-migration.md + components/ 下 TextField/Select/Form/Spinner/Toggle/DatePicker/FileUpload/MultipleSelect/Cascader/Checkbox/Radio/SelectCard/SearchInput/TextArea/Rating/DragInput + naming-quirks.md | 分类 A/C 的表单类涉及文件 |
+| B 展示反馈类 | Table/Tab/Dialog/Drawer/Loading 等展示反馈组件 | component-mapping.md + components/ 下 Table/Tab/Dialog/Drawer/DivMessage/Loading/Tag/Badge/TipBox/Empty/Panel/Steps/Crumbs + naming-quirks.md | 分类 A 的展示/反馈涉及文件 |
+| C 无对应手写 | Layout/Menu/Avatar/Descriptions 等无对应组件 | handwrite-templates.md | 分类 B 的涉及文件 |
+
+> 源文件分组依据步骤 0 的迁移清单。某文件同时含表单和展示组件时，归到组件数多的那组。
+
+**任务描述模板（以子 agent A 为例）：**
+
+```
+将以下文件中的 antd 组件替换为 eview-react 组件：
+<源文件列表>
+
+规则（严格遵守 <skill目录>/references/ 下文档）：
+1. 读 form-migration.md 处理 Form 模式转换（useForm→useRef、Promise→onSuccess 回调）
+2. 读 naming-quirks.md 逐项替换命名差异
+3. 读 components/<组件>.md 查每个组件完整 API
+4. 读 component-mapping.md 查"关键 API 差异"列
+5. 导入路径改为 import X from '@nce/eview-react/X'
+6. 遵守 SKILL.md 的"eview-react 硬约束"11 条
+
+输出：改了哪些文件 + 每个文件改了哪些组件 + 遗留问题（如某组件无对应标记 TODO）
+```
+
+- **子 agent 读**：自己那组 reference + 源文件
+- **子 agent 输出**：改动清单 + 遗留问题
+- **主 agent**：合并各子 agent 结果，决定是否追加子 agent 轮次修复遗留问题
+
 ## 步骤 4：提取 CSS token
 
 > 详见 [css-token-mapping.md](css-token-mapping.md)
@@ -390,3 +451,29 @@ npm run dev
 | `MISSING_TRANSLATION: Missing message "xxx" for locale "zh"` | IntlProvider 放在 `app.jsx`/AppShell 里，不是 `ConfigProvider` 的直接子级；ConfigProvider 的弹层（Dialog 等 portal）落到了 IntlProvider 之外，业务 `<FormattedMessage>` 取不到业务文案 | 把 IntlProvider 搬到 `main.jsx`，做 `ConfigProvider` 的直接子级；lang state 在 context 里就用 `Root` 组件包一层读 lang；locale 用 `"zh"` 不是 `"zh-CN"`；合并 `componentsLocales` + 业务文案。详见 [i18n-migration.md](i18n-migration.md) §4 |
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 翻译单元格值，但 `data.js` 里 value 是短代码（`"gateway"`），i18n key 带前缀（`"deviceType.gateway"`），`t("gateway", ...)` 找不到消息 | 在 render 里补 i18n 命名空间前缀：`t("deviceType." + value, value)`；对照 `data.js` 选项字典的 `value` vs `msgId`，`value ≠ msgId` 的都要补。详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
+
+### 5.6 派发子 agent：验证
+
+步骤 5 的脚本输出 + npm install/dev 日志可能几百行，主 agent 只需 pass/fail + 问题列表。用 Task 工具派发 general 子 agent：
+
+**任务描述模板：**
+
+```
+对 <目标工程根> 执行迁移验证：
+1. 跑 node <skill目录>/scripts/check-relative-imports.cjs <目标工程根>，报告 unresolved imports
+2. 跑 node <skill目录>/scripts/check-i18n-keys.cjs <目标工程根>，报告高危 i18n key
+3. cd <目标工程根> && npm install，报告是否成功（失败贴报错）
+4. npm run dev，报告是否启动成功（失败贴报错）
+5. 按 <skill目录>/references/migration-workflow.md §5.4 功能验证清单逐项检查
+
+输出：
+- check-relative-imports: PASS / FAIL（附问题列表）
+- check-i18n-keys: PASS / FAIL（附问题列表）
+- npm install: PASS / FAIL
+- npm run dev: PASS / FAIL
+- 功能验证清单: X/Y 项通过（附未通过项）
+```
+
+- **子 agent 读**：migration-workflow.md §5.4
+- **子 agent 输出**：验证结果摘要
+- **主 agent**：若 FAIL 则回到步骤 3 派子 agent 续接修复，再回到 §5.6 重测
