@@ -79,7 +79,7 @@ NOT supported:
 - `export default` must be a named function declaration (`export default function App()`)
 - Page entry file must be `app.jsx`
 - Relative imports must include file extensions (`./src/views/device-table/index.jsx`, no omitting `.jsx`/`.js`/`.css`)
-- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` `Typography` `List`. If needed, use pure H5 or existing component combinations instead.
+- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` `Typography` `List` `Listy`. If needed, use pure H5 or existing component combinations instead.
 
 ### Icon usage
 
@@ -177,7 +177,7 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 - No `import * as`, no aliased imports (`{ a as b }`) — see Import contract
 - No npm packages beyond react/react-dom/antd/dayjs/react-intl — see Import contract
 - No `@ant-design/icons` — use Lucide Icon — see Import contract
-- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` `Typography` `List` — use H5 or existing components when needed — see Import contract
+- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` `Typography` `List` `Listy` — use H5 or existing components when needed — see Import contract
 - `export default` must be a named function declaration; page entry must be `app.jsx` — see Import contract
 - Relative imports must include file extensions (`.jsx`/`.js`/`.css`) — see Import contract
 - No bare `:root`/`.dark` selectors in component CSS — see Styling rule 3
