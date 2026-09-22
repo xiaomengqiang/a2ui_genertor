@@ -11318,7 +11318,10 @@
         center: ['50%', '50%'],
         radius: '65%'
       },
-      adaptive: true
+      adaptive: true,
+      splitLine: {
+        show: false
+      }
     };
     return defOption;
   }
@@ -21832,10 +21835,32 @@
         color: marklineColor
       }
     };
-    markGauge.data = [{
-      value: markLine
-    }];
+    var markLineValue = isObject(markLine) ? markLine.value : markLine;
+    if (markLineValue) {
+      markGauge.data = [{
+        value: markLineValue
+      }];
+    }
     return markGauge;
+  }
+  function setMarkLineoffset(iChartOpt, eChartOpt, echartsIns, that) {
+    var _echartsIns$getModel, _echartsIns$getModel$, _echartsIns$getModel$2, _that$dom;
+    var rect = (echartsIns.getModel == null ? void 0 : (_echartsIns$getModel = echartsIns.getModel()) == null ? void 0 : _echartsIns$getModel.getComponent == null ? void 0 : (_echartsIns$getModel$ = _echartsIns$getModel.getComponent('grid')) == null ? void 0 : (_echartsIns$getModel$2 = _echartsIns$getModel$.coordinateSystem) == null ? void 0 : _echartsIns$getModel$2.getRect()) || (echartsIns == null ? void 0 : echartsIns.getDom == null ? void 0 : echartsIns.getDom().getBoundingClientRect()) || ((_that$dom = that.dom) == null ? void 0 : _that$dom.getBoundingClientRect == null ? void 0 : _that$dom.getBoundingClientRect()) || {};
+    var series = eChartOpt.series;
+    var itemStyle = iChartOpt.itemStyle;
+    var barWidth = itemStyle != null && itemStyle.width ? itemStyle.width : chartToken$m.barWidth;
+    var radius = series[0].radius;
+    var offset;
+    if (isString$1(radius) && radius.indexOf('%') > -1) {
+      radius = parseFloat(radius);
+      var wh = rect.width < rect.height ? rect.width : rect.height;
+      offset = radius / 100 * wh / 2 - barWidth - 15 - 2;
+    } else {
+      offset = radius - barWidth - 15 - 2;
+    }
+    if (series != null && series[1]) {
+      series[1].pointer.offsetCenter = [0, -offset];
+    }
   }
   function handleOther(iChartOption, seriesUnit, series, data) {
     var marklineColor = iChartOption.markLineColor ? iChartOption.markLineColor : Token.config.colorState.colorError;
@@ -22183,6 +22208,7 @@
       // 合并用户自定义series
       this.baseOption.legend.show = false;
       adapt(iChartOption, this.baseOption, containerWidth, containerHeight);
+      setMarkLineoffset(this.iChartOption, this.baseOption, this.chartInstance, this);
       setMiniGauge(this.baseOption, iChartOption);
       mergeSeries(iChartOption, this.baseOption);
     };
