@@ -1,7 +1,7 @@
 ---
 name: test-eview-react-product
 description: >-
-  测 antd → @nce/eview-react 迁移产物的专项测试 agent skill。按能力分级：L0 静态清单（grep 38 条断言，任何环境都能跑）/ L1 构建运行（npm install/build/dev，需内网依赖）/ L2 视觉交互（playwright 像素 diff + 交互 + 类名断言，需 L1 dev + baseline + playwright）/ L3 视觉语义（多模态 LLM 判断，占位待就绪）。外网或无内网依赖时自动降级到 L0；无 baseline 或 dev 起不来时跳过 L2；多模态未就绪时跳过 L3。跳过的层不算失败但 notes 写明覆盖范围。输出 .test-result.json（status/round/failures/notes），兼容 build-test-fix-loop 编排器。务必在以下场景使用：要测 antd-to-eview-react 迁移产物能否正确运行、要核对还原度是否达到原始版本、用户提供了基线截图目录要做像素对比、要验证 Form ref/onSuccess 模式与暗色类名切换在浏览器里真的生效、被 build-test-fix-loop 作为测试子 agent 调用、外网或无多模态环境下仍要做静态层检查。
+  测 antd → @nce/eview-react 迁移产物的专项测试 agent skill。按能力分级：L0 静态清单（45 条断言：7 条骨架前置门 + 38 条迁移，任何环境都能跑）/ L1 构建运行（npm install/build/dev，需内网依赖）/ L2 视觉交互（playwright 像素 diff + 交互 + 类名断言，需 L1 dev + baseline + playwright）/ L3 视觉语义（多模态 LLM 判断，占位待就绪）。外网或无内网依赖时自动降级到 L0；无 baseline 或 dev 起不来时跳过 L2；多模态未就绪时跳过 L3。跳过的层不算失败但 notes 写明覆盖范围。输出 .test-result.json（status/round/failures/notes），兼容 build-test-fix-loop 编排器。务必在以下场景使用：要测 antd-to-eview-react 迁移产物能否正确运行、要核对还原度是否达到原始版本、用户提供了基线截图目录要做像素对比、要验证 Form ref/onSuccess 模式与暗色类名切换在浏览器里真的生效、被 build-test-fix-loop 作为测试子 agent 调用、外网或无多模态环境下仍要做静态层检查。
 ---
 
 # eview-react 迁移产物测试 Skill
@@ -62,9 +62,9 @@ description: >-
 node <skill目录>/scripts/checklist.mjs <PRODUCT_PATH>
 ```
 
-输出 `<PRODUCT_PATH>/.checklist-result.json`，38 条断言，分四类：import / API 命名 / 模式转换 / 样式 / 回调签名。清单全文见 [references/test-checklist.md](references/test-checklist.md)。
+输出 `<PRODUCT_PATH>/.checklist-result.json`，45 条断言（7 条骨架完整性前置门 + 38 条迁移正确性），分六类：项目骨架 / import / API 命名 / 模式转换 / 样式 / 回调签名。清单全文见 [references/test-checklist.md](references/test-checklist.md)。
 
-L0 的 import 类失败（`from 'antd'` 残留 / `./src/...` 残留）→ dev 起不来 → 跳过 L1/L2，`notes` 注明"因 import 错误跳过 L1/L2"。
+L0 先跑骨架完整性类（package.json/入口/index.html/构建配置是否齐备），任一失败 → 跳过后续所有迁移类检查 + 跳过 L1/L2，`notes` 注明"因骨架不完整跳过 L1/L2"。骨架全过再跑 import 类；import 类失败（`from 'antd'` 残留 / `./src/...` 残留）→ dev 起不来 → 跳过 L1/L2，`notes` 注明"因 import 错误跳过 L1/L2"。
 
 ### L1：构建与运行检查（需内网依赖）
 
@@ -151,7 +151,7 @@ L3 的 case 在 manifest 里标 `"semantic": true`。当前测试 agent 遇到 `
 3. 三个中间结果文件（`.checklist-result.json` / `.build-result.json` / `.visual-result.json`）写在 PRODUCT_PATH 下，便于排查；最终只汇总到 `.test-result.json`。
 4. 判定只信三个结果文件 + 自己写的 `.test-result.json`，不凭主观印象。
 5. `failures` 逐条写清**可操作**的失败点（让生成 agent 知道改哪），不写"测试失败"这种废话。
-6. L0 发现 import 路径错误（`from 'antd'` 残留 / `./src/...` 残留）→ 跳过 L1/L2/L3（dev 起不来），`notes` 注明"因 import 错误跳过 L1/L2/L3"。
+6. L0 发现骨架不完整（缺 package.json/入口/index.html/构建配置）→ 跳过 L1/L2/L3（dev 起不来），`notes` 注明"因骨架不完整跳过 L1/L2/L3"；L0 发现 import 路径错误（`from 'antd'` 残留 / `./src/...` 残留）→ 跳过 L1/L2/L3（dev 起不来），`notes` 注明"因 import 错误跳过 L1/L2/L3"。
 7. **跳过 ≠ 失败**：能力不具备的层跳过不算 FAIL，但必须在 `notes` 写明覆盖范围，让用户/主 agent 知道当前判定的边界。
 8. L2 视觉层容差以 manifest 的 `tolerance` 为准（默认 0.05）；像素 diff 失败要给 `diffRatio` 数值。
 9. L3 多模态 case（manifest 标 `semantic: true`）当前跳过，不要假装跑。
@@ -171,6 +171,7 @@ L3 的 case 在 manifest 里标 `"semantic": true`。当前测试 agent 遇到 `
    │
    ├─[L0] checklist.mjs  ──▶ .checklist-result.json
    │      │
+   │      ├─ 骨架不完整? ──▶ 跳过 L1/L2/L3，直接汇总
    │      └─ import 错误? ──▶ 跳过 L1/L2/L3，直接汇总
    │
    ├─[L1] run-build.mjs   ──▶ .build-result.json

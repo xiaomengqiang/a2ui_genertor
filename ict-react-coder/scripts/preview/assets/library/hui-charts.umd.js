@@ -11260,6 +11260,11 @@
       defOption.yAxis.axisLabel = {
         alignMaxLabel: 'right'
       };
+      defOption.xAxis = {
+        axisLabel: {
+          alignMinLabel: 'right'
+        }
+      };
     }
     return defOption;
   }
@@ -14685,6 +14690,8 @@
       } else {
         title.padding[0] = padding[0] - 30;
         title.padding[3] = padding[3];
+        title.left = 0;
+        title.top = 0;
       }
     }
     // y轴文本的样式需要合并到title配置上
@@ -16617,8 +16624,8 @@
    */
   // 组装直角坐标系自适应
   function AdaptiveRectSys(baseOpt, iChartOpt, echartsIns, self) {
-    var _echartsIns$getModel, _echartsIns$getModel$, _echartsIns$getModel$2;
-    if (baseOpt.xAxis[0].type !== 'category') return;
+    var _baseOpt$xAxis, _baseOpt$xAxis$, _echartsIns$getModel, _echartsIns$getModel$, _echartsIns$getModel$2;
+    if (((_baseOpt$xAxis = baseOpt.xAxis) == null ? void 0 : (_baseOpt$xAxis$ = _baseOpt$xAxis[0]) == null ? void 0 : _baseOpt$xAxis$.type) !== 'category') return;
     if (!iChartOpt.adaptive && iChartOpt.a2ui || iChartOpt.a2ui) return;
     var rect = (echartsIns == null ? void 0 : echartsIns.getModel == null ? void 0 : (_echartsIns$getModel = echartsIns.getModel()) == null ? void 0 : _echartsIns$getModel.getComponent == null ? void 0 : (_echartsIns$getModel$ = _echartsIns$getModel.getComponent('grid')) == null ? void 0 : (_echartsIns$getModel$2 = _echartsIns$getModel$.coordinateSystem) == null ? void 0 : _echartsIns$getModel$2.getRect()) || (echartsIns == null ? void 0 : echartsIns.getDom == null ? void 0 : echartsIns.getDom().getBoundingClientRect()) || {};
     var y0left = rect.x || rect.left || 0;
@@ -16907,8 +16914,8 @@
      * _extent是一个数组，_extent[0]为该轴上最小值，_extent[1]为该轴上最大值
      */;
     _proto.getYAxisMaxValue = function getYAxisMaxValue(echartsIns, index) {
-      var _echartsIns$getModel, _echartsIns$getModel$, _echartsIns$getModel$2, _echartsIns$getModel$3, _echartsIns$getModel$4;
-      return (echartsIns == null ? void 0 : echartsIns.getModel == null ? void 0 : (_echartsIns$getModel = echartsIns.getModel()) == null ? void 0 : (_echartsIns$getModel$ = _echartsIns$getModel.getComponent('yAxis', index)) == null ? void 0 : (_echartsIns$getModel$2 = _echartsIns$getModel$.axis) == null ? void 0 : (_echartsIns$getModel$3 = _echartsIns$getModel$2.scale) == null ? void 0 : (_echartsIns$getModel$4 = _echartsIns$getModel$3._extent) == null ? void 0 : _echartsIns$getModel$4[1]) || 1;
+      var _echartsIns$getModel, _echartsIns$getModel$, _echartsIns$getModel$2, _echartsIns$getModel$3, _echartsIns$getModel$4, _echartsIns$getModel2, _echartsIns$getModel3, _echartsIns$getModel4, _echartsIns$getModel5, _echartsIns$getModel6, _echartsIns$getModel7;
+      return (echartsIns == null ? void 0 : echartsIns.getModel == null ? void 0 : (_echartsIns$getModel = echartsIns.getModel()) == null ? void 0 : (_echartsIns$getModel$ = _echartsIns$getModel.getComponent('yAxis', index)) == null ? void 0 : (_echartsIns$getModel$2 = _echartsIns$getModel$.axis) == null ? void 0 : (_echartsIns$getModel$3 = _echartsIns$getModel$2.scale) == null ? void 0 : (_echartsIns$getModel$4 = _echartsIns$getModel$3._extent) == null ? void 0 : _echartsIns$getModel$4[1]) || (echartsIns == null ? void 0 : echartsIns.getModel == null ? void 0 : (_echartsIns$getModel2 = echartsIns.getModel()) == null ? void 0 : (_echartsIns$getModel3 = _echartsIns$getModel2.getComponent('yAxis', index)) == null ? void 0 : (_echartsIns$getModel4 = _echartsIns$getModel3.axis) == null ? void 0 : (_echartsIns$getModel5 = _echartsIns$getModel4.scale) == null ? void 0 : (_echartsIns$getModel6 = _echartsIns$getModel5._extent) == null ? void 0 : (_echartsIns$getModel7 = _echartsIns$getModel6[0]) == null ? void 0 : _echartsIns$getModel7[1]) || 1;
     }
 
     /**
@@ -16918,8 +16925,8 @@
      * _extent是一个数组，_extent[0]为该轴上最小值，_extent[1]为该轴上最大值
      */;
     _proto.getYAxisMinValue = function getYAxisMinValue(echartsIns, index) {
-      var _echartsIns$getModel2, _echartsIns$getModel3, _echartsIns$getModel4, _echartsIns$getModel5, _echartsIns$getModel6;
-      return (echartsIns == null ? void 0 : echartsIns.getModel == null ? void 0 : (_echartsIns$getModel2 = echartsIns.getModel()) == null ? void 0 : (_echartsIns$getModel3 = _echartsIns$getModel2.getComponent('yAxis', index)) == null ? void 0 : (_echartsIns$getModel4 = _echartsIns$getModel3.axis) == null ? void 0 : (_echartsIns$getModel5 = _echartsIns$getModel4.scale) == null ? void 0 : (_echartsIns$getModel6 = _echartsIns$getModel5._extent) == null ? void 0 : _echartsIns$getModel6[0]) || 0;
+      var _echartsIns$getModel8, _echartsIns$getModel9, _echartsIns$getModel10, _echartsIns$getModel11, _echartsIns$getModel12, _echartsIns$getModel13, _echartsIns$getModel14, _echartsIns$getModel15, _echartsIns$getModel16, _echartsIns$getModel17, _echartsIns$getModel18;
+      return (echartsIns == null ? void 0 : echartsIns.getModel == null ? void 0 : (_echartsIns$getModel8 = echartsIns.getModel()) == null ? void 0 : (_echartsIns$getModel9 = _echartsIns$getModel8.getComponent('yAxis', index)) == null ? void 0 : (_echartsIns$getModel10 = _echartsIns$getModel9.axis) == null ? void 0 : (_echartsIns$getModel11 = _echartsIns$getModel10.scale) == null ? void 0 : (_echartsIns$getModel12 = _echartsIns$getModel11._extent) == null ? void 0 : _echartsIns$getModel12[0]) || (echartsIns == null ? void 0 : echartsIns.getModel == null ? void 0 : (_echartsIns$getModel13 = echartsIns.getModel()) == null ? void 0 : (_echartsIns$getModel14 = _echartsIns$getModel13.getComponent('yAxis', index)) == null ? void 0 : (_echartsIns$getModel15 = _echartsIns$getModel14.axis) == null ? void 0 : (_echartsIns$getModel16 = _echartsIns$getModel15.scale) == null ? void 0 : (_echartsIns$getModel17 = _echartsIns$getModel16._extent) == null ? void 0 : (_echartsIns$getModel18 = _echartsIns$getModel17[0]) == null ? void 0 : _echartsIns$getModel18[0]) || 0;
     };
     _proto.resize = function resize(callback) {
       var _this$iChartOption$le;
@@ -21530,8 +21537,8 @@
         lineStyle = _iChartOption$itemSty.lineStyle,
         width = _iChartOption$itemSty.width;
       width = width || chartToken$m.barWidth;
-      seriesUnit.splitLine.length = lineStyle && lineStyle.length || 7;
-      seriesUnit.splitLine.distance = lineStyle && lineStyle.distance || 0;
+      seriesUnit.splitLine.length = lineStyle && lineStyle.length || width;
+      seriesUnit.splitLine.distance = lineStyle && lineStyle.distance || -width;
     } else {
       seriesUnit.splitLine.length = 7;
       seriesUnit.splitLine.distance = 0;
@@ -27298,7 +27305,7 @@
       var iChartOption = this.iChartOption;
       // 装载除series之外的其他配置
       PolarCoordSys(this.baseOption, iChartOption, CHART_TYPE.SUNBURST);
-      this.baseOption.color = [''].concat(iChartOption.color);
+      this.baseOption.color = [].concat(iChartOption.color);
       this.baseOption.series = setSeries$3(iChartOption);
       // 合并用户自定义series
       merge(this.baseOption.series, iChartOption.series);

@@ -1,44 +1,46 @@
 ---
 name: antd-to-eview-react
 description: >-
-  将基于 antd 的 React 项目迁移到 @nce/eview-react（HUI Eview React，ICT 3.1 风格）的专项 Skill。
-  从 antd 开发者视角出发，提供：antd 组件 → eview-react 组件的完整映射总表（含"无对应需手写"标注）、
-  Form 模式转换（useForm/validateFields Promise → ref.submit/onSuccess 回调）、
-  Layout/Menu/Avatar/Descriptions/Result/Space 等未覆盖组件的手写补位模板、
-  CSS 变量体系切换映射、API 命名异常速查（seprator/taggledChildren/disable vs disabled 等）、
-  以及五步迁移工作流。务必在以下场景使用此 Skill：将 antd 项目迁移到 eview-react、
-  把 antd 组件代码改写为 eview-react、评估 antd 项目的迁移可行性、
-  在 antd → eview-react 迁移中遇到 Form/Steps/Modal 等模式转换问题、
-  需要将 antd 的 Layout/Menu/Breadcrumb/Avatar/Descriptions 等组件替换为 eview-react 等价实现。
+  将基于 antd 的 React 项目迁移到 @nce/eview-react（HUI Eview React，ICT 3.1）的专项 Skill。
+  提供组件映射总表、Form 模式转换、未覆盖组件手写模板、CSS token 映射、命名异常速查及五步迁移工作流。
+  务必在以下场景使用：将 antd 项目迁移到 eview-react、把 antd 组件改写为 eview-react、
+  评估迁移可行性、遇到 Form/Steps/Modal 等模式转换问题、
+  需要将 Layout/Menu/Breadcrumb/Avatar/Descriptions 等组件替换为 eview-react 等价实现。
 ---
 
 # antd → eview-react 迁移 Skill
 
 ## 核心问题
 
-从 antd 迁移到 eview-react 时的典型失败模式：
+从 antd 迁移到 eview-react 时的典型失败模式（每条详情见对应 reference）：
 
-- **API 名称猜错**：`Button type="primary"`（应为 `status="primary"`）、`Select placeholder`（应为 `defaultLabel`）、`Switch checked`（应为 `toggled`）
-- **Form 模式不兼容**：antd 的 `Form.useForm()` + `form.validateFields()` 返回 Promise，eview-react 是 `ref.submit()` → `onSuccess(values)` 回调，控制流从同步变异步
-- **组件无对应**：Layout、Menu、Avatar、Descriptions、Result、Space 在 eview-react 中无直接对应或无 Reference，需要手写补位
-- **CSS token 丢失**：源项目 token 内联在 HTML 里，迁移到 Vite 后 HTML 不能用，token 定义跟着丢。解决方法：提取 token 到独立 CSS 文件，与 eview-react 的 `aui3_1.css` + `aui3_1_dark.css` 并存，布局 CSS 一行不改（见 [css-token-mapping.md](references/css-token-mapping.md)）
-- **IntlProvider 放错位置**：源项目的 IntlProvider 在 `app.jsx`/AppShell 里（跟 antd ConfigProvider locale 放一起），迁移时容易原样留在 AppShell。但 eview-react 的 `ConfigProvider` 在 `main.jsx`，弹层（Dialog 等 portal）由 ConfigProvider 管理，**IntlProvider 必须是 ConfigProvider 的直接子级**，否则弹层内容取不到业务文案，报 `MISSING_TRANSLATION`。同时 locale 要用 `"zh"`（不是 `"zh-CN"`），匹配 `componentsLocales` 的 key。详见 [i18n-migration.md](references/i18n-migration.md) §4
-- **Table render 的 i18n key 不对齐**：antd 项目的 Table 列 `render` 常用 `t(cellValue, cellValue)` 翻译单元格值，但 `data.js` 里 value 是短代码（`"gateway"`），i18n key 带前缀（`"deviceType.gateway"`），`t("gateway", ...)` 找不到消息报 `MISSING_TRANSLATION`。这个 bug 在 antd 源项目里就存在（antd 的 locale 不走 react-intl 所以没暴露），迁移后 IntlProvider 严格报错。修复：`render: (value) => t("deviceType." + value, value)`。提供自动排查脚本 `scripts/check-i18n-keys.cjs`（交叉比对 t(x,x) 调用与 data.js 的 value≠msgId 字段，用法见 [migration-workflow.md](references/migration-workflow.md) §5.2）。详见 [migration-workflow.md](references/migration-workflow.md) §3.5
-- **命名拼写异常**：`seprator`（不是 separator）、`taggledChildren`（不是 toggledChildren）、`disable`（SelectCard 用，不是 disabled）
-- **文件位置变化导致 import 路径失效**：UMD/旧工程常见 `app.jsx` 在工程根目录并导入 `./src/context.jsx`；拷贝 scaffold 后 `app.jsx` 位于 `src/app.jsx`，必须改为 `./context.jsx`。迁移后必须跑相对导入解析检查（脚本位于本 skill 的 `scripts/check-relative-imports.cjs`，调用方式见步骤 5），语法检查不能发现这类错误。
+- **API 名称猜错**：`type`→`status`、`placeholder`→`defaultLabel`、`checked`→`toggled` 等；完整对照见 [naming-quirks.md](references/naming-quirks.md)
+- **Form 模式不兼容**：`useForm()`+Promise → `useRef`+`onSuccess` 回调，控制流从同步变异步；见 [form-migration.md](references/form-migration.md)
+- **组件无对应**：Layout/Menu/Avatar/Descriptions/Result/Space 无直接对应，需手写补位；见 [handwrite-templates.md](references/handwrite-templates.md)
+- **CSS token 丢失**：源项目 token 内联在 HTML，迁移到 Vite 后丢失；提取到独立 CSS 与 `aui3_1.css` 并存；见 [css-token-mapping.md](references/css-token-mapping.md)
+- **IntlProvider 放错位置**：必须在 `main.jsx` 作为 `ConfigProvider` 直接子级，locale 用 `"zh"` 不是 `"zh-CN"`；见 [i18n-migration.md](references/i18n-migration.md) §4
+- **Table render i18n key 不对齐**：`t(cellValue, cellValue)` 取不到带前缀的 key，需 `t("deviceType." + value, value)`；脚本 `scripts/check-i18n-keys.cjs` 自动排查；见 [migration-workflow.md](references/migration-workflow.md) §3.5
+- **命名拼写异常**：`seprator`/`taggledChildren`/`disable` 等官方拼错；见 [naming-quirks.md](references/naming-quirks.md)
+- **import 路径失效**：scaffold 后 `app.jsx` 在 `src/`，`./src/context.jsx` 须改 `./context.jsx`；脚本 `scripts/check-relative-imports.cjs` 排查；见步骤 5
+
+## 前置条件
+
+1. **网络**：`@nce/eview-react` 及其 peer 依赖托管在华为内网 npm 源（`cmc.centralrepo.rnd.huawei.com`，见 `scaffold/.npmrc`）。步骤 1 执行 `npm install` 前须确认内网/VPN 可达，否则直接停机并提示用户，不要尝试用公网源替代。
+2. **运行时**：Node.js ≥ 16（Vite 5 要求），`npm` 可正常解析 `.npmrc` 中的 `@nce` scope。
+3. **源项目**：须为 React 项目（非 Vue/Angular）；若为 UMD 单 HTML 工程须先读 [source-project-guidelines.md](references/source-project-guidelines.md) 评估成本。
 
 ## 迁移工作流（评估 + 5 步）
 
 > 详细步骤见 [references/migration-workflow.md](references/migration-workflow.md)
 
-| 步骤 | 做什么 | 产出 |
-|------|--------|------|
-| **0. 评估** | 扫描 antd 项目用到的组件，对照组件映射总表标注"有对应/无对应需手写" | 组件迁移清单 |
-| **1. 建工程骨架** | 若源项目非 Vite + npm 工程：把 `scaffold/` 整目录拷到目标工程根（改 `package.json` 的 `name`、`index.html` 的 `<title>`），`npm install` + `npm run dev` 即空壳可跑。详见 [migration-workflow.md](references/migration-workflow.md) 步骤 1 | 可运行的空壳工程 |
-| **2. 换 Provider 与入口** | 移除 antd `ConfigProvider` + `theme.darkAlgorithm`；eview-react 用 `ConfigProvider` + `IntlProvider` + `<body>` 加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `<body>`） | Provider 就绪 |
-| **3. 逐组件替换** | 按映射总表替换每个 antd 组件；Form 模式单独按 [form-migration.md](references/form-migration.md) 转换；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写 | 组件代码全部替换 |
-| **4. 提取 CSS token** | 将源项目内联 token 填入骨架的 `src/styles/tokens.css`、`.dark` 覆盖填入 `src/styles/theme-dark.css`（见 [css-token-mapping.md](references/css-token-mapping.md)），布局 CSS 不改 | 样式跟随主题 |
-| **5. 验证** | `npm install` / `npm run dev` 前先跑两个静态检查：相对导入解析（`scripts/check-relative-imports.cjs`）与 i18n 动态 key（`scripts/check-i18n-keys.cjs`，两种调用方式见 [migration-workflow.md](references/migration-workflow.md) §5.1/§5.2）；再做构建与功能验证 | import/i18n/构建/功能通过 |
+| 步骤 | 做什么 | 产出 | 执行方式 |
+|------|--------|------|---------|
+| **0. 评估** | 扫描 antd 项目用到的组件，对照组件映射总表标注"有对应/无对应需手写" | 组件迁移清单 | 派发 explore 子 agent（[§0.5](references/migration-workflow.md)） |
+| **1. 建工程骨架** | 若源项目非 Vite + npm 工程：跑 `init-scaffold.cjs` 拷贝 scaffold 骨架，`npm install` + `npm run dev` 即空壳可跑。详见 [migration-workflow.md](references/migration-workflow.md) 步骤 1 | 可运行的空壳工程 | 主 agent 跑脚本 |
+| **2. 换 Provider 与入口** | 移除 antd `ConfigProvider` + `theme.darkAlgorithm`；eview-react 用 `ConfigProvider` + `IntlProvider` + `<body>` 加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `<body>`） | Provider 就绪 | 主 agent |
+| **3. 逐组件替换** | 按映射总表替换每个 antd 组件；Form 模式单独按 [form-migration.md](references/form-migration.md) 转换；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写 | 组件代码全部替换 | 按组件类别派发 2-3 个 general 子 agent 并行（[§3.6](references/migration-workflow.md)） |
+| **4. 提取 CSS token** | 将源项目内联 token 填入骨架的 `src/styles/tokens.css`、`.dark` 覆盖填入 `src/styles/theme-dark.css`（见 [css-token-mapping.md](references/css-token-mapping.md)），布局 CSS 不改 | 样式跟随主题 | 派发 general 子 agent（可选） |
+| **5. 验证** | `npm install` / `npm run dev` 前先跑两个静态检查：相对导入解析（`scripts/check-relative-imports.cjs`）与 i18n 动态 key（`scripts/check-i18n-keys.cjs`，两种调用方式见 [migration-workflow.md](references/migration-workflow.md) §5.1/§5.2）；再做构建与功能验证 | import/i18n/构建/功能通过 | 派发 general 子 agent（[§5.6](references/migration-workflow.md)） |
 
 ### scaffold/ 预制骨架（步骤 1 可直接拷贝）
 
@@ -46,139 +48,55 @@ description: >-
 
 ```
 scaffold/
-├── package.json        # 依赖已含 @nce/eview-react / react-intl / horizon peer / lodash 等
-├── .npmrc              # 华为内网源（@nce scope）
-├── vite.config.js      # Vite + @vitejs/plugin-react
-├── index.html          # <body class="ev_no_wcag"> + /src/main.jsx
+├── package.json        # 依赖已含 @nce/eview-react / react-intl / horizon peer / lodash 等
+├── .npmrc              # 华为内网源（@nce scope）
+├── vite.config.js      # Vite + @vitejs/plugin-react
+├── index.html          # <body class="ev_no_wcag"> + /src/main.jsx
 └── src/
     ├── main.jsx        # ConfigProvider + IntlProvider + 四处 css import（aui3_1 / base / tokens / theme-dark）
-    ├── app.jsx         # 空壳 App（根 div class="root"；aui3_1 挂 <body>，见 index.html），步骤 3 往里填 AppShell
+    ├── app.jsx         # 空壳 App（根 div class="root"；aui3_1 挂 <body>），步骤 3 往里填 AppShell
     └── styles/
         ├── base.css          # 骨架自带全局重置（ev_no_wcag 焦点轮廓），开箱即用不用改
         ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量
         └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
 ```
 
-用法：`cp -r scaffold/ <目标工程根>`，改 `package.json` 的 `name` 与 `index.html` 的 `<title>`，`npm install` 后 `npm run dev`。空壳能直接渲染（显示 "app root"），步骤 3/4 再往里填内容，`main.jsx` 不用再改。
-
-> 注意：scaffold 的 `app.jsx` 在 `src/app.jsx`。如果源项目根目录也有 `app.jsx` 且导入 `./src/context.jsx`、`./src/views/...`，迁移到 scaffold 后必须改成 `./context.jsx`、`./views/...`。`src/` 内文件一律不应残留 `./src/...` 导入。
-
-> 注意：scaffold 的 `src/app.jsx` 内置了一段暗色切换 `useEffect`（演示用，切换 `aui3_1_dark` + `.dark` 两个类名）。步骤 3 用源项目 AppShell 替换 `app.jsx` 时，务必把这段暗色切换逻辑迁移到新 AppShell 或 `main.jsx`，否则暗色模式切换会失效。完整切换代码见 [css-token-mapping.md](references/css-token-mapping.md) §4。
+用法：`node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标题] [--force]`（自动拷贝 scaffold/、改 `package.json` name、改 `index.html` title；目标非空时加 `--force`），然后 `npm install` + `npm run dev`。两条注意事项（app.jsx 导入路径修正、暗色切换 useEffect 迁移）见 [migration-workflow.md](references/migration-workflow.md) §1.3 / §2.2。
 
 > 若源项目是 UMD 单 HTML 工程 / 内联 token CSS / 运行时 fetch 图标，迁移前先读 [source-project-guidelines.md](references/source-project-guidelines.md) 了解这些结构如何影响迁移成本，以及在源项目侧可以做什么来降低成本。
 
 ## 组件映射总表
 
-> 完整版含 API 差异详见 [references/component-mapping.md](references/component-mapping.md)
+> 完整版含 API 差异详见 [references/component-mapping.md](references/component-mapping.md)；组件完整 API 详见 [references/components/INDEX.md](references/components/INDEX.md) 索引，按需查阅对应组件 .md
 
 ### 有直接对应（API 不同，需改 props）
 
-| antd 组件 | eview-react 组件 | 关键差异 |
-|-----------|-----------------|---------|
-| `Button` (`type="primary"`) | `Button` (`status="primary"`) | `type`→`status`；无 `loading`/`htmlType`；文字用 `text` 或 children |
-| `Input` | `TextField` | `onChange` 首参是 value 不是 event；`validator` 返回 `{result,message}` |
-| `Input.TextArea` | `TextArea` | 无 `showCount`/`autoSize`；`maxLength` 自带计数；`onBlur` 只有 event |
-| `Input.Search` | `SearchInput` | `onSearch` 值变化也触发需防抖；`placeholder` 保留 |
-| `Input.Password` | `TextField type="password"` | 需 `isAllowToModifyPasswordByProps` 才能 props 清空 |
-| `InputNumber` | `Spinner` | `onChange` 只在有效值触发；`onInputError` 接无效值；重置加 `doNotFocusWhenValueUpdate` |
-| `Select` | `Select` | `options` 字段 `label`→`text`；`placeholder`→`defaultLabel`；五参 `onChange` |
-| `Select` (多选) | `MultipleSelect` | `mode="multiple"` 删掉；`value` 数组；`onChange(value[],changeValue[])` |
-| `AutoComplete` | `InputSelect` | `onlySelect` 决定输入是否可作值 |
-| `Cascader` | `Cascader` | 唯一用 `label` 的组件；值是路径数组 |
-| `Checkbox` / `.Group` | `Checkbox` / `CheckboxGroup` | Group 用 `data` 不是 children |
-| `Radio` / `.Group` | `Radio` / `RadioGroup` | Group 用 `data`；需 `isControlled` 才受控 |
-| `Radio.Button` | `SelectCard` | 导出名 SelectCard；`data=[{text,value}]`；禁用是 `disable` |
-| `Switch` | `Toggle` | `checked`→`toggled`；`onChange`→`onToggle(value)`；`data=[关,开]` |
-| `Slider` | `DragInput` | `value` 永远是数组；`type="range"` 开双滑块 |
-| `Rate` | `Rating` | 取值是 `onClick(value)` 不是 onChange |
-| `DatePicker` | `DatePicker` | 不要无条件回写 `onChange` 的字符串到 `value`（官方反例） |
-| `RangePicker` | `DatePicker range={[]}` | 用 `onOkClick` 取 `fromDateObj/toDateObj` |
-| `TimePicker` | `Spinner type="time"` | 值是字符串 `"hh:mm:ss"` |
-| `Upload` | `FileUpload` | 组件不发请求；`handleSubmit` 自己上传；`disable` 不是 `disabled` |
-| `Form` / `Form.Item` | `Form` / `Form.Item` | **见下方 Form 迁移模式** |
-| `Table` | `Table` | `dataSource`→`dataset`；`rowKey`→`keyIndex`；`columns[].dataIndex`→`key` |
-| `Tabs` / `TabPane` | `Tab` / `TabItem` | children 驱动；切换回调是 `onClick(index,title,event)` |
-| `Modal` | `Dialog` | `open`→`isOpen`；`footer`→`buttons` 数组；不会自动关闭 |
-| `Modal.confirm()` | `MessageDialog` | `type` 七种；`buttons={{ok,cancel}}` 对象 |
-| `Drawer` | `Drawer` | `open`→`visible`；`onClose(isShowDrawer)` |
-| `Alert` | `DivMessage` | `display` 控制；默认 10s 消失；换 key 重挂 |
-| `message.success()` | `DivMessage` | 无命令式 API；只能渲染组件 |
-| `Spin` | `Loading` | `isOpen`；`type="global"/"local"/"micro"` |
-| `Empty` | `Empty` | `type="success"`（成功无数据）vs `"fail"` |
-| `Breadcrumb` | `Crumbs` | `data=[{title,url?}]`；`seprator`（拼错）；`onClick(data,event)` |
-| `Collapse` | `Panel` / `PanelItem` | `selectedIndex` 数组；`enableMultiExpand` |
-| `Tooltip` | `TipBox` | 包裹式；`direction` 12 方位 |
-| `Popover` | `TipBox` | `trigger="click"` |
-| `Popconfirm` | `MessageDialog type="confirm"` | `buttons={{ok,cancel}}` |
-| `Tag` | `Tag` | 无 `closable`；`color` 六语义色；`fill="outline"` |
-| `Badge` | `Badge` | `count`→`content` |
-| `Divider` | `Divider` | API 基本一致 |
-| `Steps` | `Steps` | `current`→`currentStep`（对应 `data[].value`）；`items`→`data=[{text,value}]` |
-| `@ant-design/icons` | `@nce/icon-plus` 按需引入 | icon+ 名迁移时用 icon-plus 接口（`getIconInfo`）按 antd/Lucide 名 keyword 查得（见 [source-project-guidelines §3.3](references/source-project-guidelines.md)）；内置 `Icon name="ict_*"` 已下线 |
+**表单与输入**：Input→TextField、Input.TextArea→TextArea、Input.Search→SearchInput、Input.Password→TextField、InputNumber→Spinner、Select、Select(多选)→MultipleSelect、AutoComplete→InputSelect、Cascader、TreeSelect、Checkbox/Checkbox.Group→CheckboxGroup、Radio/Radio.Group→RadioGroup、Radio.Button→SelectCard、Switch→Toggle、Slider→DragInput、Rate→Rating、DatePicker、RangePicker→DatePicker range、TimePicker→Spinner、Upload→FileUpload、Form/Form.Item
+
+**数据展示**：Table、Tabs/TabPane→Tab/TabItem、Collapse→Panel/PanelItem、Empty、Badge、Tag、Tooltip/Popover→TipBox、Popconfirm→MessageDialog、Breadcrumb→Crumbs
+
+**反馈**：Modal→Dialog、Modal.confirm→MessageDialog、Drawer、Alert/message/notification→DivMessage、Spin→Loading、Result→Empty+手写
+
+**通用**：Button（`type`→`status`）、Divider
 
 ### 无对应需手写（见 [handwrite-templates.md](references/handwrite-templates.md)）
 
-| antd 组件 | 处置 | 说明 |
-|-----------|------|------|
-| `Layout` / `Header` / `Sider` / `Content` | 手写 CSS 布局 | eview-react 有 `Layout`/`Col`/`Row` 导出名但无 Reference |
-| `Menu` | 手写导航列表 | eview-react 有 `Menu` 导出名但无 Reference |
-| `Avatar` | 手写 div 圆形 | 无导出 |
-| `Descriptions` | 手写 KeyValueList | 无导出；用 `<dl>/<dt>/<dd>` + CSS 变量 |
-| `Result` | `Empty type="success"` + 手写内容 | API 不同 |
-| `Space` | flex div + gap | 无导出 |
-| `Statistic` | 手写 | 无导出 |
-| `Skeleton` | 手写 | 无导出 |
-| `Card` | 手写或 `Panel` | 无 Reference；fallback-handwrite 有卡片模板 |
-| `List` | 手写或 `Table` | 无导出 |
-| `Typography` | 手写标签 | `Typography.Link`→`Button status="text"` |
-| `Carousel` | 手写 | 无 Reference（导出名存在但未覆盖） |
-| `Timeline` | 手写 | 无 Reference（导出名 `TimeLine` 存在但未覆盖） |
-| `Transfer` | 手写 | 无 Reference（导出名 `DoubleSelect` 可能近似） |
-| `Mentions` | 手写 | 无导出 |
-| `Comment` | 手写 | 无导出 |
+Layout/Header/Sider/Content、Menu、Avatar、Descriptions、Space、Statistic、Skeleton、Card、List、Typography、Carousel、Timeline、Transfer、Mentions、Comment、Image、Affix、BackTop
+
+### 图标
+
+`@ant-design/icons` → `@nce/icon-plus` 按需引入；icon+ 名迁移用 icon-plus 接口 `getIconInfo` 按 antd/Lucide 名 keyword 查得（见 [source-project-guidelines.md](references/source-project-guidelines.md) §3.3）；内置 `Icon name="ict_*"` 已下线
 
 ## Form 迁移模式（最关键的模式转换）
 
 > 完整示例（向导 / CRUD）见 [references/form-migration.md](references/form-migration.md)
 
-### 核心差异
+三点核心差异：
+1. **获取实例**：`Form.useForm()` → `useRef(null)`；`<Form form={form}>` → `<Form ref={formRef}>`
+2. **触发校验**：`await form.validateFields()`（Promise）→ `formRef.current.submit()` 触发 `onSuccess(values)` / `onFailed(errors)` 回调，控制流从同步变异步
+3. **多列布局**：Form 自带 24 栅格，`itemCol` 设 Form 级默认宽度，**单项覆盖用 `Form.Item.col`**；Form 内不允许用 div/Row/Col 做栅格
 
-| 维度 | antd | eview-react |
-|------|------|-------------|
-| 获取 form 实例 | `const [form] = Form.useForm()` | `const formRef = useRef(null)` |
-| 触发校验 | `await form.validateFields()` → Promise | `formRef.current.submit()` → `onSuccess(values)` 回调 |
-| 校验失败 | catch / reject | `onFailed(errorFields, values)` 回调 |
-| 重置 | `form.resetFields()` | `formRef.current.resetFields()`（相同） |
-| 回填 | `form.setFieldsValue(record)` | `formRef.current.setFieldsValue(record)`（相同） |
-| 控件值托管 | Form.Item `name` 托管（相同） | Form.Item `name` 托管（相同） |
-| Toggle | `valuePropName="checked"` | `valuePropName="toggled" updateTrigger="onToggle"` |
-| Checkbox | `valuePropName="checked"` | `valuePropName="checked" updateTriggerIndex={1}` |
-| rules message | `rules=[{required:true, message:'必填'}]` | `rules=[{required:true}]`（无 message） |
-| 提交按钮 | `htmlType="submit"` 或 `onClick` | `onClick={() => formRef.current.submit()}` |
-| 多列布局 | `<Row><Col>` 或 `<div className="grid">` 包裹 | Form 自带 24 栅格：`itemCol` 设 Form 级默认宽度；**单项覆盖用 `Form.Item.col`**；Form 内不允许用 div 做栅格 |
-
-### 向导迁移示例（antd → eview-react）
-
-```tsx
-// ❌ antd：Promise 链，校验通过后同步推进
-const [form] = Form.useForm();
-const handleNext = async () => {
-    try {
-        const values = await form.validateFields();
-        setAllValues(prev => ({ ...prev, basic: values }));
-        setCurrent(c => c + 1);
-    } catch { /* 校验失败 */ }
-};
-
-// ✅ eview-react：回调链，submit 触发 onSuccess 后才推进
-const formRef = useRef(null);
-const handleNext = () => { formRef.current.submit(); };
-const handleSuccess = (values) => {
-    setAllValues(prev => ({ ...prev, basic: values }));
-    setCurrent(c => c + 1);
-};
-// Form 的 onSuccess={handleSuccess}；onFailed 不推进（停在本步）
-```
+> ⚠️ `initialValues` 必须传对象（`x || {}`）；传 `undefined` 会让 `onSuccess(values)` 收到空对象。控件自带 `validator` 要在 `submit()` 时跑需加 `validateAllChildComponent={true}`。详见 [form-migration.md](references/form-migration.md) 顶部"运行时已验证"段
 
 ## eview-react 硬约束（迁移时必须遵守）
 
@@ -196,42 +114,11 @@ const handleSuccess = (values) => {
 
 ## 命名异常速查
 
-> 完整版见 [references/naming-quirks.md](references/naming-quirks.md)
-
-| antd 写法 | eview-react 正确写法 | 组件 |
-|-----------|---------------------|------|
-| `separator` | `seprator` | Crumbs |
-| `checkedChildren` | `taggledChildren` | Toggle |
-| `unCheckedChildren` | `unTaggledChildren` | Toggle |
-| `checked` | `toggled` | Toggle |
-| `onChange` (Switch) | `onToggle(value)` | Toggle |
-| `disabled` (SelectCard) | `disable` | SelectCard |
-| `type="primary"` | `status="primary"` | Button |
-| `placeholder` (Select) | `defaultLabel` | Select |
-| `label` (options) | `text` | Select/SelectCard/RadioGroup/CheckboxGroup |
-| `count` (Badge) | `content` | Badge |
-| `closable` (Tag) | 无（靠数组+onClick 删） | Tag |
-| `current` (Steps) | `currentStep`（对应 `data[].value`） | Steps |
-| `open` (Modal) | `isOpen` | Dialog/MessageDialog |
-| `open` (Drawer) | `visible` | Drawer |
-| `loading` (Button) | 无（用 `disabled`+文案切换） | Button |
-| `loading` (Spin) | `isOpen` | Loading |
-| `<Row><Col>`（Form 内） | `itemCol`（Form 级默认） / `Form.Item.col`（单项覆盖） | Form 自带 24 栅格，Form 级设默认宽度，单项可用 `col` 覆盖；不能用 div/Row/Col 包裹 |
+> eview-react 部分 API 命名与"正确英文"或 antd 习惯不同（如 `seprator`/`taggledChildren`/`disable`/`status`/`defaultLabel`/`toggled` 等），迁移前必查 [references/naming-quirks.md](references/naming-quirks.md)（含拼写异常、属性名差异、回调签名差异三类共 79 条）
 
 ## CSS 样式：保留原始 token
 
-迁移时**保留源项目的 token 体系**，不做变量名替换。源项目自带 token 定义提取到独立 CSS 文件，与 eview-react 的 `aui3_1.css` 并存。两套变量名不冲突（`--surface` ≠ `--colorBackground`），布局/手写 CSS 一行不用改。
-
-> 完整操作步骤见 [references/css-token-mapping.md](references/css-token-mapping.md)
-
-入口的四处 CSS import（`aui3_1.css` + `aui3_1_dark.css` + `base.css`+ `tokens.css` + `theme-dark.css`）已在 `scaffold/src/main.jsx` 写好，拷贝骨架后不用改；步骤 4 只往 `tokens.css` / `theme-dark.css` 填内容。
-
-暗色模式同时切两处：`<body>` 追加 `aui3_1_dark`、`<html>` 加 `.dark`。**`aui3_1_dark` 必须挂 `<body>`**（不能只挂 `.root`）——eview-react 的弹层（Dialog/Select 下拉/TipBox 等）通过传送门挂到 `<body>` 下，只有 `<body>` 上有 `aui3_1` / `aui3_1_dark` 弹层才能继承变量、跟随主题。完整切换代码见 [css-token-mapping.md](references/css-token-mapping.md) §4。
-
-通用规则：
-- 不写死色值（如 `#191919`），用 CSS 变量（源项目的原始 token）
-- 类名用业务前缀（`app-`），不用 `ev_`（组件库内部前缀）
-- 可点击元素用 `<button type="button">`，不用 `<div onClick>`
+迁移时**保留源项目的 token 体系**，不做变量名替换：源项目 token 提取到独立 CSS，与 eview-react 的 `aui3_1.css` + `aui3_1_dark.css` 并存（两套变量名不冲突，布局/手写 CSS 一行不用改）。入口四处 CSS import 已在 scaffold 写好。暗色模式同时切 `<body>` 的 `aui3_1_dark` + `<html>` 的 `.dark`。完整步骤见 [references/css-token-mapping.md](references/css-token-mapping.md)。
 
 ## 页面模式迁移
 
