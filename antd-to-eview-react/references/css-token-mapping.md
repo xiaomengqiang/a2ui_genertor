@@ -4,6 +4,32 @@
 > 源项目 token 定义提取到独立 CSS 文件，与 eview-react 的 `aui3_1.css` 并存。
 > 两套变量名不冲突，布局/手写 CSS 一行不用改。
 
+## ict-react-coder 源项目 token 结构
+
+典型源项目（`ict-react-coder` 产出）的 token 采用四层架构，构建后内联在 `index.page.html` 的 `<style>` 块中。迁移时无需逐行扫描源 CSS——按下表直接知道哪些进 `tokens.css`、哪些进 `theme-dark.css`：
+
+| 源层级 | 源文件 | 选择器 | 内容 | 迁移目标 |
+|--------|--------|--------|------|---------|
+| Primitive | `assets/style/base.css` | `:root` + `.dark` | 原始色阶、字号、间距、圆角 | `tokens.css`（:root）+ `theme-dark.css`（.dark）|
+| Semantic (light) | `assets/style/light.css` | `:root` | `--color-*` 角色变量 → primitive 引用 | `tokens.css` |
+| Theme (AI-facing) | `assets/style/theme.css` | `:root` | 语义别名（`--primary`、`--surface` 等） | `tokens.css` |
+| Semantic (dark) | `assets/style/dark.css` | `.dark` | 暗色覆盖 | `theme-dark.css` |
+
+提取规则：将内联 `<style>` 中所有 `:root { ... }` 变量定义合并到 `tokens.css`，所有 `.dark { ... }` 覆盖合并到 `theme-dark.css`。无需区分原始层级——四层在 `:root` 下是叠加引用关系（CSS 变量惰性求值），合并后行为不变。
+
+常见 token 变量名（布局/手写 CSS 引用这些，迁移时一行不改）：
+
+| 类别 | 示例变量名 |
+|------|-----------|
+| 主色 | `--primary`、`--on-primary`、`--primary-hover`、`--primary-container` |
+| 表面 | `--surface`、`--on-surface`、`--surface-container-lowest` / `-low` / `-high` / `-highest` |
+| 功能色 | `--error`、`--success`、`--warning`、`--critical`、`--info`（各含 `-container` / `-on-*` 变体）|
+| 间距 | `--spacing-inline`(8px)、`--spacing-stack`(12px)、`--spacing-gutter`(16px)、`--spacing-inset`(24px)、`--spacing-page`(32px) |
+| 阴影 | `--shadow-card`、`--shadow-popover`、`--shadow-modal` |
+| 圆角 | `--radius-base`(4px)、`--radius-container`(8px)、`--radius-full`(9999px) |
+| 排版 | `--font-body-m`(14px/1.5)、`--font-headline-m`(18px/1.375)、`--font-weight-semibold`(600) |
+| 分割线/轮廓 | `--divider`、`--outline`、`--outline-variant` |
+
 ## 操作步骤
 
 ### 1. 提取 token 定义到独立 CSS 文件
@@ -12,7 +38,7 @@
 
 ```
 src/styles/
-├── tokens.css          # :root { --brand-50: #0067D1; --gray-90: #191919; ... } 全部原始色阶 + 语义层 + 角色层
+├── tokens.css          # :root { --primary: #0067D1; --on-surface: #191919; --surface: #F3F3F3; ... } 全部原始色阶 + 语义层 + 角色层
 └── theme-dark.css      # .dark { --color-text-primary: #FFFFFF; ... } 暗色覆盖
 ```
 
