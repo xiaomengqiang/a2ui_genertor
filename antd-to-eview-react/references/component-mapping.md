@@ -9,7 +9,7 @@
 |------|-----------|-------------|
 | `Button type="primary"` | `Button status="primary"` | `type`→`status`（default/primary/risk/text）；无 `loading`/`htmlType`/`danger`；文字用 `text` 或 children；处理中用 `disabled`+文案切换 |
 | `Button danger` | `Button status="risk"` | 同上 |
-| `Button icon={...}` | `Button leftIcon` / `rightIcon` | icon+ 组件或 `Icon name` |
+| `Button icon={...}` | `Button leftIcon` / `rightIcon` | icon+ 组件 |
 | `Space` | flex div + `gap` | 无对应组件；用 `<div style={{ display:'flex', gap:'0.75rem' }}>` |
 | `Typography.Link` | `Button status="text"` | 或手写 `<a>` |
 | `Typography.Title` | 手写 `<h1>`~`<h6>` | 用 `--fontSizeLarge` / `--titleFontSize` 变量 |
