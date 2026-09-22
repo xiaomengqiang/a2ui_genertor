@@ -173,24 +173,15 @@ src/styles/
 
 ---
 
-## 3. 图标方案：用接口匹配 icon+ 名（优选），避免运行时 fetch SVG 注入
+## 3. 图标方案：scaffold 预制 Icon shim（默认零改动），icon+ 静态为可选
 
-### 3.1 问题
+> scaffold 已把源项目的 `<Icon>` 组件预制为 `src/shared/icon.jsx`（剥离 Lucide 兜底，内网 icon-plus 恒可达）。迁移时**默认走预制件复用**（调用点零改动，只改 import 路径，见 [migration-workflow.md](migration-workflow.md) §3.0）；若要消除运行时 fetch / 走 eview-react 惯用范式，再按 §3.3 把 shim 换成 icon+ 静态 import（可选）。
 
-`assets/shared/icons.js` 是 230 行的自定义图标组件，做了三件事：
+### 3.1 源项目 Icon 组件结构
 
-**第一层：硬编码 Lucide SVG path 表**
+`assets/shared/icon.jsx`（源项目，约 230 行）做三件事：
 
-```js
-const LUCIDE = {
-    "arrow-left": [["path", {"d": "m12 19-7-7 7-7"}], ...],
-    "search": [["path", {"d": "m21 21-4.34-4.34"}], ["circle", {"cx":"11",...}]],
-    "sun": [["circle", {"cx":"12",...}], ...],
-    // ... 共 10 个图标
-};
-```
-
-这 10 个图标的 SVG path 数据写死在代码里。另外 `assets/library/lucide-icon-nodes.json` 有 714.9KB 的完整 Lucide 图标库。
+**第一层：Lucide SVG path 表**——`assets/library/lucide-icon-nodes.json`（约 763KB）含完整 Lucide 图标库 nodes，离线兜底用。
 
 **第二层：运行时 fetch 华为 icon-plus 在线服务**
 
@@ -206,65 +197,30 @@ const GET_ICON = `${ICON_API_BASE}/assetRepository/iconPlus/getIcon`;
 2. 如果可用，按图标名 `fetch(getIconInfo?keyword=xxx)` 查找匹配图标
 3. 再 `fetch(getIcon?url=xxx&size=16&style=border&color=xxx&fileType=svg)` 获取 SVG 文本
 4. 把 SVG 文本 `dangerouslySetInnerHTML` 注入 DOM
-5. 如果 icon-plus 不可用，回退到 Lucide 硬编码表
+5. 如果 icon-plus 不可用，回退到 Lucide nodes 表
 
-**第三层：缓存 + 状态管理**
+**第三层：缓存 + 状态管理**——`plusState`（探测状态）、`iconInfoMap`（name→{name,url}）、`svgCache`（"name&variant&color"→svg text）。每个 `<Icon name="search" />` 内部用 `useState` + `useEffect` 管理 SVG 异步加载。
 
-```js
-let plusState = null;      // null = 探测中, true = icon-plus 可用, false = 回退 Lucide
-let plusPromise = null;    // 单例 getConfig 探测 Promise
-const iconInfoMap = {};    // name -> { name, url } 缓存
-const svgCache = new Map(); // "name&variant&color" -> svg text 缓存
-```
+### 3.2 默认路径：scaffold 预制 Icon shim 复用
 
-每个 `<Icon name="search" />` 组件内部用 `useState` + `useEffect` 管理 SVG 异步加载状态。
+scaffold 的 `src/shared/icon.jsx` 保留源项目 Icon 组件的 icon-plus 在线层（§3.1 第二层 + 第三层：getConfig 探测、getIconInfo 查名、getIcon 取 SVG、缓存），**剥离第一层 Lucide 兜底**（内网环境 icon-plus 恒可达，不需要离线兜底，连带去掉 `lucide-icon-nodes.json` 的 763KB）。契约、props（`name`/`src`/`size`/`color`/`className`/`style`/`variant`）、运行时机制不变；`<Icon>` 在 icon-plus 探测中 / 探测失败时渲染 `null`（内网下探测失败属异常态，不退化到 Lucide）。
 
-### 3.2 迁移时的影响
+**迁移操作**：源项目所有 `<Icon name="search" size={14} />` 调用点零改动，只改 import 路径：
+- `import { Icon } from "./assets/shared/icon.jsx"` → `import { Icon } from "./shared/icon.jsx"`（src/ 下）或 `"../shared/icon.jsx"`（views/ 下）
+- 跑 `scripts/check-relative-imports.cjs` 扫残留的 `./assets/shared/...` 旧路径
+- 源项目的 `strokeWidth` prop 在 shim 中已移除（仅 Lucide 分支用）；调用点若传了 `strokeWidth` 会被忽略，不影响渲染
 
-源项目里用到的图标：
+**取舍**（相比 icon+ 静态 import）：
+- ✅ 迁移工作量最小（调用点零改动，无需名发现）
+- ✅ 无 763KB lucide JSON 负担
+- ⚠️ 保留运行时 fetch（icon-plus 在线取 SVG，依赖内网 `octo.hdesign.huawei.com` 可达）
+- ⚠️ 探测失败 / 网络异常时该图标渲染 `null`（无 Lucide 兜底）
 
-| 图标名 | 用途 | 出现位置 |
-|--------|------|---------|
-| `zap` | 品牌 logo | AppShell header |
-| `search` | 搜索框前缀图标 | AppShell header |
-| `sun` / `moon` | 深浅色切换 | AppShell header |
-| `arrow-left` / `arrow-right` | 上一步/下一步 | StepFlow footer |
-| `rotate-ccw` | 重新配置 | StepFlow success 页 |
-| `gauge` / `server` / `bell` / `settings` | 侧导航菜单图标 | AppShell sider |
+> 之前版本的迁移因"运行时 fetch 与静态 import 范式不兼容"把所有图标退化为纯文字 / CSS 色块（搜索框→SearchInput 自带图标、深浅切换→纯文字 Button、上一步/下一步→无 leftIcon、侧导航→无图标、品牌 logo→色块）。预制 shim 后这条退化路径不再需要——图标全部保留。
 
-迁移到 eview-react 时面临三个问题：
+### 3.3 可选路径：切到 icon+ 静态 import（消除运行时 fetch）
 
-**问题 1：图标名怎么映射——可解（用 icon-plus 接口查）**
-
-eview-react 默认用 icon+（`@nce/icon-plus` 按需引入，命名规律 `IconPlusIc<Category><Name>`）；内置 `Icon name="ict_xxx"` 已下线、不再推荐。icon+ 全量目录不随 skill 打包，但源项目的 icon-plus 在线接口（见 §3.1 第二层）可吃 Lucide 名或 antd 名做 keyword 查询、返回匹配的 icon+ 名，迁移时用它做一次名发现即可——见 §3.3 优选方案。
-
-迁移时拿源项目的图标名（如 `sun`/`search`/`arrow-left`，或对应 antd 名 `SunOutlined`/`SearchOutlined`/`ArrowLeftOutlined`）当 keyword 查 `getIconInfo`，拿到 icon+ 组件名后在 eview-react 工程里 `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态用。
-
-**问题 2：运行时 fetch SVG 注入与静态 import 范式不兼容**
-
-```
-源项目：运行时 fetch → 动态注入 SVG → 需要网络
-eview-react：构建时 import → 静态 React 组件 → 离线可用
-```
-
-不能简单地保留源项目的 Icon 组件——它依赖的 `https://octo.hdesign.huawei.com` 在 eview-react 工程里不一定能访问，而且它绕过了 eview-react 的图标体系。**但接口的名发现能力可复用为迁移期一次性查询**：fetch 只在迁移时查名、不参与运行时渲染，范式冲突消除。
-
-**问题 3：原迁移退化掉了所有图标——现在可保留**
-
-之前因问题 1+2，转换时把所有图标都去掉了：
-- 搜索框→`SearchInput`（自带搜索图标，不用单独传）
-- 深浅色切换→纯文字 Button（`text="深色"`）
-- 上一步/下一步→纯文字 Button（无 leftIcon/rightIcon）
-- 侧导航菜单→纯文字按钮（无图标）
-- 品牌 logo→CSS 色块（`<span className="shell-brand-mark" />`）
-
-有了 §3.3 的接口名发现优选方案，不必再"丢失所有视觉图标"，可按 icon+ 名正常渲染。
-
-### 3.3 建议方案
-
-**优选方案：用 icon-plus 接口做名映射，迁到 eview-react icon+ 组件**
-
-源项目的 icon-plus 在线接口（§3.1 第二层）可吃 Lucide 名或 antd 名做 keyword 查询，返回匹配的 icon+ 图标名（下划线小写形，如 `ic_public_search`），再按下划线分段转 PascalCase 得到组件名（`IconPlusIcPublicSearch`），在 eview-react 工程（已装 `@nce/icon-plus`）里静态 import。
+若要彻底离线、走 eview-react 惯用范式，可把预制 shim 换成 `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import（scaffold 已预置 `@nce/icon-plus` 依赖）。需做一次名发现——icon+ 全量目录不随 skill 打包，用源项目的 icon-plus 在线接口按 Lucide/antd 名 keyword 查得 icon+ 名。
 
 **接口调用**：`GET https://octo.hdesign.huawei.com/assetRepository/iconPlus/getIconInfo?keyword=<keyword>&topK=2&source_id=6`
 - 迁移期一次性查询：收集源项目所有图标名（Lucide/antd 名），`keyword` 传逗号拼接的全部名，一次请求拿回每个名对应的 icon+ 名
@@ -280,14 +236,14 @@ eview-react：构建时 import → 静态 React 组件 → 离线可用
 // 1) 收集源项目所有图标名（Lucide/antd 名，如 sun/search/arrow-left）
 // 2) 一次性请求 getIconInfo?keyword=sun,search,arrow-left,... → 拿到每个名对应的 icon+ 下划线名（如 ic_public_sun）
 // 3) 按下划线分段转 PascalCase（IconPlusIcPublicSun）
-// 4) eview-react 工程里静态 import
+// 4) eview-react 工程里静态 import，替换原 <Icon name="sun" /> 调用点
 import { IconPlusIcPublicSearch, IconPlusIcPublicSun } from '@nce/icon-plus';
 <Button leftIcon={<IconPlusIcPublicSun />} onClick={toggleDark} />
 ```
 
-接口在此**只做迁移期一次的名发现**，不参与运行时渲染，范式冲突消除；不需要把源项目的 Icon 组件搬过去。
+接口在此只做迁移期一次的名发现，不参与运行时渲染。切完后可删 `src/shared/icon.jsx`（shim 不再被引用）。
 
-迁移时名映射示意（icon+ 组件名为示意，真实值靠接口查得 + PascalCase 转换）：
+名映射示意（icon+ 组件名为示意，真实值靠接口查得 + PascalCase 转换）：
 
 | 源项目图标（Lucide/antd 名） | 接口返回下划线名（示意） | icon+ 组件名 |
 |------------------------------|------------------------|-------------|
@@ -296,60 +252,44 @@ import { IconPlusIcPublicSearch, IconPlusIcPublicSun } from '@nce/icon-plus';
 | `arrow-left` / `ArrowLeftOutlined` | `ic_public_arrow_left` | `Button leftIcon={<IconPlusIcPublicArrowLeft />}` |
 | `edit` / `EditOutlined` | `ic_public_edit` | `IconButton iconName={<IconPlusIcPublicEdit />}` |
 
-**备选方案 A：直接用 `@ant-design/icons`**
+### 3.4 其他备选（icon+ 名查不到时兜底）
+
+**备选 A：直接用 `@ant-design/icons`**
 
 ```jsx
 import { SearchOutlined, SunOutlined, MoonOutlined,
-         ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
+         ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
 
 <Button icon={<SunOutlined />} onClick={toggleDark} />
 ```
 
-迁移时映射关系清晰（icon+ 组件名为示意，真实值靠接口查得）：
-
-| antd 图标 | eview-react 对应 |
-|-----------|-----------------|
-| `SearchOutlined` | `SearchInput` 自带，或 `IconPlusIcPublicSearch` |
-| `SunOutlined` | `IconPlusIcPublicSun`（需查接口确认） |
-| `ArrowLeftOutlined` | `Button leftIcon={<IconPlusIcPublicArrowLeft />}` |
-| `EditOutlined` | `IconButton iconName={<IconPlusIcPublicEdit />}` |
-
 `@ant-design/icons` 的名字是公开标准，可在 npm/官网查到完整目录。接口不可用时用它兜底——从 antd 名推断 intent，再到真实工程查 icon+ 对应名。
 
-**备选方案 B：用内联 SVG 组件**
+**备选 B：用内联 SVG 组件**
 
 ```jsx
 function SearchIcon({ size = 14 }) {
-    return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" strokeWidth={2}>
-            <path d="m21 21-4.34-4.34" />
-            <circle cx="11" cy="11" r="8" />
-        </svg>
-    );
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" strokeWidth={2}>
+            <path d="m21 21-4.34-4.34" />
+            <circle cx="11" cy="11" r="8" />
+        </svg>
+    );
 }
 ```
 
-迁移时：
-- eview-react 的图标 prop 多收 ReactElement，可直接塞内联 SVG 组件或静态 SVG 文件
-- 不依赖任何图标库，不需要网络、不需要构建时 import、不需要猜名字
+迁移时：eview-react 的图标 prop 多收 ReactElement，可直接塞内联 SVG 组件或静态 SVG 文件；不依赖任何图标库，不需要网络、不需要构建时 import、不需要猜名字。
 
-**方案 C（应避免）：运行时 fetch SVG 注入图标服务（源项目现状）**
+### 3.5 成本对比
 
-仅指源项目那条"fetch SVG → `dangerouslySetInnerHTML` 注入 DOM"的渲染旁路。迁移时的问题：
-- 需要决定保留还是替换
-- 保留→依赖内网 API，离线不可用，且绕过 eview-react 图标体系
-- 替换→名映射走优选方案的接口即可，不再"无目录可查"
-- 接口的名发现能力已被优选方案复用，但 SVG 注入这条渲染旁路仍应避免
-
-### 3.4 成本对比
-
-| 方面 | 运行时 fetch SVG 注入（现状） | 接口名发现（优选） | @ant-design/icons（备选 A） | 内联 SVG（备选 B） |
-|------|-------------------|---------------------------|---------------------------|-------------------|
-| 迁移时图标名映射 | 不适用（运行时渲染） | 接口按 keyword 查得 icon+ 名 | 可查 antd 官网目录，推断 intent | 不需要映射，SVG 直接用 |
-| 网络依赖 | 运行时 fetch 内网 API（离线不可用） | 迁移期一次性查询（可选） | 无 | 无 |
-| 迁移后是否保留 | 不保留（旁路应避免） | icon+ 组件静态 import，保留图标 | 直接映射到 icon+ 或暂保留 | 直接用或塞图标 prop |
-| 迁移额外成本 | 高（运行时依赖 + 绕过体系） | 低（查名 + 静态 import） | 低（名字可查） | 低（不需映射） |
+| 方面 | 预制 shim 复用（默认） | icon+ 静态（可选 §3.3） | @ant-design/icons（备选 A） | 内联 SVG（备选 B） |
+|------|----------------------|------------------------|---------------------------|-------------------|
+| 迁移时图标名映射 | 不需要（调用点零改动） | 接口按 keyword 查得 icon+ 名 | 可查 antd 官网目录，推断 intent | 不需要映射，SVG 直接用 |
+| 网络依赖 | 运行时 fetch icon-plus（内网恒可达，无 Lucide 兜底） | 迁移期一次性查询（可选） | 无 | 无 |
+| 迁移后调用点改动 | 仅改 import 路径 | 逐个改调用点为静态 import | 逐个改调用点 | 逐个改调用点 |
+| bundle 体积 | 仅用到的 SVG（无 lucide JSON） | 只打包用到的 icon+ | 用到的 antd 图标 | 用到的 SVG |
+| 迁移额外成本 | 最低 | 中（查名 + 逐点替换） | 中（名字可查 + 逐点替换） | 中（逐点替换） |
 
 ---
 
@@ -361,7 +301,7 @@ function SearchIcon({ size = 14 }) {
 |----|-----------|--------------|--------|
 | 构建工具 | UMD + Babel-standalone | 全套 Vite 工程 | 已有 Vite |
 | Token 定义 | 666 个变量内联在 HTML | 全部丢失 | 独立 CSS 文件，与 `aui3_1.css` 并存，布局 CSS 不改 |
-| 图标加载 | 230 行运行时 fetch 组件 | 名映射无目录、退化为纯文字 | 接口查 icon+ 名 → 静态 import，或内联 SVG |
+| 图标加载 | 230 行运行时 fetch 组件（icon-plus 在线 + Lucide 兜底） | scaffold 预制 shim 复用（默认零改动，仅改 import 路径） | 预制 shim 复用（默认，剥离 Lucide）；可选切 icon+ 静态 import（§3.3） |
 | 应用代码 | 内联在 HTML + src/ 两份 | 需判断以哪份为准 | 只有一份 |
 
-改进后，迁移的工作量从"重建基础设施 + 替换组件"缩减为**纯组件替换**。
+改进后，迁移的工作量从"重建基础设施 + 替换组件"缩减为**纯组件替换**——图标与图表（HUI Charts）连组件替换都省了：scaffold 已预制 `src/shared/icon.jsx` + `chart.jsx` 与 `public/library/` UMD，源项目的 `<Icon>` / `<Chart>` 调用点零改动，只改 import 路径。icon-plus 在线恒可达（内网），shim 不带 Lucide 兜底与 lucide JSON。
