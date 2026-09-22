@@ -7,3 +7,12 @@ body.ev_no_wcag *:not([class ^= "eui*"]):focus{
 .ev_form_item{
    vertical-align: top;
 }
+/* 保证Form中的元素的宽度 */
+.ev_form .ev_selectCom,
+.ev_form .ev_select_div,
+.ev_form .ev_inputSelect,
+.ev_form .ev_spinner,
+.ev_form .ev_spinner_wrap,
+.ev_form .ev_spinner_container {
+  width: 100%;
+}

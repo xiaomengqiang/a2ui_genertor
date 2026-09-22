@@ -4,6 +4,8 @@
 > 迁移到 eview-react 时可以跳过"重建基础设施"阶段，直接聚焦于组件库替换。
 >
 > 每条建议基于一次真实迁移任务（device-access-wizard 项目）中遇到的实际问题。
+>
+> **典型源项目**：`ict-react-coder` skill 生成的单页原型——UMD 单 HTML（`index.page.html` + `src/` 双份代码）、antd 5、内联 token CSS、Lucide 图标、禁用 Layout/Grid/Space/Card 等布局组件。下方各"问题"小节描述的结构特征均源自该类项目。
 
 ---
 

@@ -27,7 +27,7 @@ description: >-
 
 1. **网络**：`@nce/eview-react` 及其 peer 依赖托管在华为内网 npm 源（`cmc.centralrepo.rnd.huawei.com`，见 `scaffold/.npmrc`）。步骤 1 执行 `npm install` 前须确认内网/VPN 可达，否则直接停机并提示用户，不要尝试用公网源替代。
 2. **运行时**：Node.js ≥ 16（Vite 5 要求），`npm` 可正常解析 `.npmrc` 中的 `@nce` scope。
-3. **源项目**：须为 React 项目（非 Vue/Angular）；若为 UMD 单 HTML 工程须先读 [source-project-guidelines.md](references/source-project-guidelines.md) 评估成本。
+3. **源项目**：须为 React 项目（非 Vue/Angular）。典型源项目为 `ict-react-coder` skill 的产物——UMD 单 HTML 工程（`index.page.html` + `src/` 双份代码、内联 token CSS、Lucide 图标、禁用 Layout/Grid/Space/Card），其结构特征及迁移成本评估见 [source-project-guidelines.md](references/source-project-guidelines.md)。
 
 ## 迁移工作流（评估 + 5 步）
 
@@ -82,6 +82,8 @@ scaffold/
 ### 无对应需手写（见 [handwrite-templates.md](references/handwrite-templates.md)）
 
 Layout/Header/Sider/Content、Menu、Avatar、Descriptions、Space、Statistic、Skeleton、Card、List、Typography、Carousel、Timeline、Transfer、Mentions、Comment、Image、Affix、BackTop
+
+> 若源项目为 `ict-react-coder` 产出：Layout/Space/Card/Skeleton 已被生成端禁用并改写为 H5（纯 `<div>` + CSS 变量），迁移时**保留已有 H5 结构即可**，无需再查 antd 组件或套 handwrite 模板。仅 Menu/Avatar/Descriptions 等生成端未覆盖的组件才需要手写补位。
 
 ### 图标
 
