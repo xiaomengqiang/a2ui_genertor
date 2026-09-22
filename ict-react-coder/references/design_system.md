@@ -224,5 +224,5 @@ Raw scale: `--font-size-sm(10) / base(12) / md(14) / lg(16) / xl(18) / 2xl(20) /
 - Top nav and side nav must use `Menu` — never `Tabs`; no `Checkbox`, `RadioGroup` or `Tag` inside nav items.
 - Card top-right mutually exclusive view switching uses `Segmented`; same-level content sections use `Tabs`.
 - Table row selection uses Table's `rowSelection` — never hand-draw Checkbox columns.
-- Keyword search uses `Input` with a search icon — do not create a non-existent Search component.
+- Keyword search uses `Input` with a search icon in `suffix` (right side) — do not create a non-existent Search component.
 - Only call components actually provided by the runtime; never fabricate props for components without spec files.
