@@ -386,7 +386,7 @@ export const policyTemplates = [
 通用规则：
 - 不写死色值，用 CSS 变量（源项目的原始 token）
 - 类名用业务前缀（`app-`）不用 `ev_`
-- 可点击元素用 `<button type="button">`
+- 可点击元素用 `<button type="button">`（仅限无 eview-react 对应组件时；图标按钮用 `IconButton`，不手写原生 button）
 
 ## 步骤 5：验证
 

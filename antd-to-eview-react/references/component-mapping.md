@@ -9,7 +9,8 @@
 |------|-----------|-------------|
 | `Button type="primary"` | `Button status="primary"` | `type`→`status`（default/primary/risk/text）；无 `loading`/`htmlType`/`danger`；文字用 `text` 或 children；处理中用 `disabled`+文案切换 |
 | `Button danger` | `Button status="risk"` | 同上 |
-| `Button icon={...}` | `Button leftIcon` / `rightIcon` | icon+ 组件 |
+| `Button type="text" shape="circle" icon={<Icon/>}`（无 children，纯图标按钮） | `IconButton iconName tipText` | antd `shape="circle"`/`type="text"`+`icon`+无 children 是纯图标按钮信号；**不要**退化为原生 `<button>+<Icon>`；`onClick`→`onClick`、antd 的 `message.success` 提示文案移到 `tipText` |
+| `Button icon={...}`（有文字 children） | `Button leftIcon` / `rightIcon` | 仅当有文字 children 时；无 children 的纯图标按钮走 IconButton（见上行） |
 | `Space` | flex div + `gap` | 无对应组件；用 `<div style={{ display:'flex', gap:'0.75rem' }}>` |
 | `Typography.Link` | `Button status="text"` | 或手写 `<a>` |
 | `Typography.Title` | 手写 `<h1>`~`<h6>` | 用 `--fontSizeLarge` / `--titleFontSize` 变量 |

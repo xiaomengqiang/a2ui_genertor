@@ -22,7 +22,7 @@ icon+（`@nce/icon-plus`）是组件库首推的图标方案，按需引入、20
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
 | 装饰性图标 / 状态图标 | icon+ 组件 | antd `@ant-design/icons` 或内置 `Icon name` |
-| 可点击的图标操作（编辑 / 删除 / 刷新） | `IconButton iconName={<IconPlus* />} tipText onClick` | 给图标组件挂 onClick |
+| 可点击的图标操作（编辑 / 删除 / 刷新） | `IconButton iconName={<IconPlus* />} tipText onClick` | 给图标组件挂 onClick / antd 纯图标 Button 退化 |
 | 文字 + 图标按钮 | `Button leftIcon={<IconPlusXxx />}`（[Button.md](Button.md)） | IconButton 加文字 |
 | 一组图标操作 | `IconButtonGroup`（未覆盖） | 多个 IconButton 手排 |
 
@@ -138,6 +138,7 @@ import { EditOutlined } from '@ant-design/icons';
 <Icon name="ict_trash" />
 
 // ❌ 给图标组件挂 onClick 当按钮用，没有气泡提示、没有禁用态、键盘不可达 → 用 IconButton
+//   也包括 antd <Button type="text" shape="circle" icon={...}>（无 children）→ 同样用 IconButton，不要退化为原生 button+Icon
 <IconPlusIcPublicTrash onClick={remove} />
 
 // ❌ icon+ 尺寸随意写（只能 12/14/16/20/24/32/36/40/48/60）

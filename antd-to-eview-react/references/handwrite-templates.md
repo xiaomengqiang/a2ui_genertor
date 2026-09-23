@@ -2,7 +2,7 @@
 
 > 以下 antd 组件在 eview-react 中无直接对应或无 Reference，按 fallback-handwrite.md 第三层手写。
 > 模板中的 CSS 变量沿用源项目的原始 token 体系（保留策略），不写死色值。
-> 类名用业务前缀 `app-`，可点击元素用 `<button type="button">`。
+> 类名用业务前缀 `app-`，可点击元素用 `<button type="button">`（仅限无 eview-react 对应组件时；图标按钮有 `IconButton` 对应，不得用原生 `<button>+<Icon>`）。
 > 以下示例用 `var(--*)` 表示源项目的 token——具体变量名按源项目实际使用替换。
 
 ## 1. 卡片 / 面板区块（antd Card）
