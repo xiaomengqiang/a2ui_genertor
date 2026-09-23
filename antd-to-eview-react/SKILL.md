@@ -69,18 +69,14 @@ scaffold/
 ├── package.json        # 依赖已含 @nce/eview-react / react-intl / dayjs / horizon peer / lodash / icon-plus 等
 ├── .npmrc              # 华为内网源（@nce scope）
 ├── vite.config.js      # Vite + @vitejs/plugin-react
-├── index.html          # <body class="ev_no_wcag aui3_1"> + 图表 UMD <script> + /src/main.jsx
+├── index.html          # <body class="ev_no_wcag aui3_1"> + /src/main.jsx
 ├── public/
-│   ├── font/           # HarmonyOS Sans SC 字体（Bold/Light/Medium/Regular .woff2），font.css @font-face 引用
-│   │   └── HarmonyOS_SansSC/
-│   └── library/        # 图表 UMD，index.html <script> 注入 window.HUICharts + window.echarts
-│       ├── echarts.min.js
-│       └── hui-charts.umd.js
+│   └── font/           # HarmonyOS Sans SC 字体（Bold/Light/Medium/Regular .woff2），font.css @font-face 引用
+│       └── HarmonyOS_SansSC/
 └── src/
     ├── main.jsx        # ConfigProvider + IntlProvider + 六处 css import（aui3_1 / aui3_1_dark / base / font / tokens / theme-dark）
     ├── app.jsx         # 空壳 App（根 div class="root"；aui3_1 挂 <body>），步骤 3 往里填 AppShell
-    ├── shared/         # 预制图标 + 图表组件，迁移时直接复用、调用点零改动（只改 import 路径）
-    │   ├── chart.jsx             # <Chart name option> 契约保留（HUICharts 封装，.dark 自动切主题）
+    ├── shared/         # 预制图标组件，迁移时直接复用、调用点零改动（只改 import 路径）
     │   └── icon.jsx              # <Icon name="..."> 契约保留（icon-plus 在线，内网恒可达，无离线兜底）
     └── styles/
         ├── base.css          # 骨架自带全局重置（ev_no_wcag 焦点轮廓），开箱即用不用改
@@ -89,7 +85,7 @@ scaffold/
         └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
 ```
 
-scaffold 预制了 `src/shared/`（icon.jsx + chart.jsx）与 `public/library/`（图表 UMD）。源项目（`ict-react-coder` 产物）用 `<Icon name="search" />` / `<Chart name="BarChart" option={...} />`，迁移时**调用点零改动**，只把 import 从 `./assets/shared/icon.jsx` 改成 `./shared/icon.jsx`（或 `../shared/icon.jsx`），图表 UMD 已由 scaffold 的 `index.html` `<script>` 注入。icon.jsx 走 icon-plus 在线（`octo.hdesign.huawei.com`），内网恒可达，不带 Lucide 兜底与 763KB JSON。
+scaffold 预制了 `src/shared/icon.jsx`。源项目（`ict-react-coder` 产物）用 `<Icon name="search" />` / `<Chart name="BarChart" option={...} />`，迁移时**调用点零改动**：图标只把 import 从 `./assets/shared/icon.jsx` 改成 `./shared/icon.jsx`（或 `../shared/icon.jsx`）；图表直接 `import Chart from '@nce/eview-react/Chart'`（契约同源项目，见下方「图表」段）。icon.jsx 走 icon-plus 在线（`octo.hdesign.huawei.com`），内网恒可达，不带 Lucide 兜底与 763KB JSON。
 
 用法：`node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标题] [--force]`（自动拷贝 scaffold/、改 `package.json` name、改 `index.html` title；目标非空时加 `--force`），然后 `npm install` + `npm run dev`。两条注意事项（app.jsx 导入路径修正、暗色切换 useEffect 迁移）见 [migration-workflow.md](references/migration-workflow.md) §1.3 / §2.2。
 
@@ -123,7 +119,7 @@ scaffold 已预制 `src/shared/icon.jsx`（保留 `<Icon name="search" />` 契�
 
 ### 图表（HUI Charts）
 
-scaffold 已预制 `src/shared/chart.jsx` + `public/library/`（`echarts.min.js` + `hui-charts.umd.js`），`index.html` 用两行 `<script>` 注入 `window.HUICharts` + `window.echarts`。源项目（`ict-react-coder` 产物）的 `<Chart name="BarChart" option={...} />` 调用点**零改动**，迁移时只改 import 路径：`./assets/shared/chart.jsx` → `./shared/chart.jsx`（src/ 下）或 `../shared/chart.jsx`（views/ 下）。组件契约、`.dark` 自动切 hdesign-light/dark 主题、ResizeObserver 自适应、ref 方法（`getEchartsInstance` / `resizeHandler`）均与源项目一致——见 ict-react-coder 的 `references/component/Chart.md`。图表类型与 per-type option 规则不变（BarChart / LineChart / PieChart / GaugeChart / HillChart / JadeJueChart / ProcessChart）。
+直接用 `@nce/eview-react/Chart`，无需 UMD 注入或自写封装。源项目（`ict-react-coder` 产物）的 `<Chart name="BarChart" option={...} />` 调用点**零改动**，迁移时只改 import 路径：`./assets/shared/chart.jsx` → `@nce/eview-react/Chart`。组件契约（`name` + `option`）、`.dark` 自动切主题、ResizeObserver 自适应、ref 方法（`getEchartsInstance` / `resizeHandler`）均由 eview-react 原生提供，与源项目一致——见 [references/components/Chart.md](references/components/Chart.md)。图表类型与 per-type option 规则不变（BarChart / LineChart / PieChart / GaugeChart / HillChart / JadeJueChart / ProcessChart）。
 
 ## Form 迁移模式（最关键的模式转换）
 

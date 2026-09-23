@@ -86,18 +86,14 @@ scaffold/
 ├── package.json        # 依赖已含 @nce/eview-react / react-intl / horizon peer / lodash / icon-plus 等
 ├── .npmrc              # @nce scope 指向华为 product_npm 源
 ├── vite.config.js      # Vite + @vitejs/plugin-react
-├── index.html          # 薄入口，<body class="ev_no_wcag aui3_1"> + 图表 UMD <script> + /src/main.jsx
+├── index.html          # 薄入口，<body class="ev_no_wcag aui3_1"> + /src/main.jsx
 ├── public/
-│   ├── font/           # HarmonyOS Sans SC 字体（4 个 .woff2），font.css @font-face 引用
-│   │   └── HarmonyOS_SansSC/
-│   └── library/        # 图表 UMD（echarts + hui-charts），<script> 注入 window.HUICharts
-│       ├── echarts.min.js
-│       └── hui-charts.umd.js
+│   └── font/           # HarmonyOS Sans SC 字体（4 个 .woff2），font.css @font-face 引用
+│       └── HarmonyOS_SansSC/
 └── src/
     ├── main.jsx        # ConfigProvider + IntlProvider + aui3_1.css + aui3_1_dark.css + base.css + font.css + tokens.css + theme-dark.css
     ├── app.jsx         # 空壳 App（<div className="root">；aui3_1 挂 <body>），步骤 3 替换为 AppShell
-    ├── shared/         # 预制图标 + 图表组件，迁移时调用点零改动（只改 import 路径）
-    │   ├── chart.jsx             # <Chart name option> 契约保留（HUICharts 封装）
+    ├── shared/         # 预制图标组件，迁移时调用点零改动（只改 import 路径）
     │   └── icon.jsx              # <Icon name="..."> 契约保留（icon-plus 在线，内网恒可达，无离线兜底）
     └── styles/
         ├── base.css          # 骨架自带全局重置（ev_no_wcag 焦点轮廓），开箱即用不用改
@@ -113,18 +109,16 @@ scaffold/
 | `package.json` | 依赖锁定（@nce/eview-react latest / react ^18.3 / react-intl ^7 / horizon peer / lodash / icon-plus） | 改 `name` |
 | `.npmrc` | `@nce` scope 指向 product_npm 源 | 一般不改 |
 | `vite.config.js` | Vite + plugin-react，最小配置 | 一般不改 |
-| `index.html` | 薄入口，`<body class="ev_no_wcag aui3_1">` + 图表 UMD `<script>` + `/src/main.jsx` | 改 `<title>` |
+| `index.html` | 薄入口，`<body class="ev_no_wcag aui3_1">` + `/src/main.jsx` | 改 `<title>` |
 | `public/font/*` | HarmonyOS Sans SC 字体（4 个 .woff2） | 不改（font.css 引用） |
-| `public/library/*` | 图表 UMD（echarts + hui-charts），`index.html` 已注入全局 | 不改；不用图表可删目录 + 删 index.html 两行 `<script>` |
 | `src/main.jsx` | Provider 组装 + 六处 css import（含 font.css） | import 不用改；步骤 2 切暗色时加类名切换逻辑 |
 | `src/app.jsx` | 空壳 App | 步骤 3 替换为源项目 AppShell |
 | `src/shared/icon.jsx` | 预制 `<Icon name=...>` shim（icon-plus 在线，无 Lucide 兜底） | 不改；源项目 `<Icon>` 调用点只改 import 路径（见 §3.0） |
-| `src/shared/chart.jsx` | 预制 `<Chart>` 封装（HUICharts，契约同源项目） | 不改；源项目 `<Chart>` 调用点只改 import 路径（见 §3.0） |
 | `src/styles/font.css` | HarmonyOS Sans SC @font-face（4 个权重） | 不改；`--font-family` 由 tokens.css 步骤 4 填 |
 | `src/styles/tokens.css` | 空壳占位 | 步骤 4 填（含 `--font-family: 'HarmonyOS Sans', ...`） |
 | `src/styles/theme-dark.css` | 空壳占位 | 步骤 4 填 |
 
-> `main.jsx` 已把 `aui3_1.css` + `aui3_1_dark.css` + `base.css` + `font.css` + `tokens.css` + `theme-dark.css` 六处 import 都写好，步骤 4 填充 token 后无需再改入口。`src/shared/` 的图标/图表组件、`public/library/` 的图表 UMD、`public/font/` 的字体已预置，源项目用到的 `<Icon>` / `<Chart>` 迁移时调用点零改动。
+> `main.jsx` 已把 `aui3_1.css` + `aui3_1_dark.css` + `base.css` + `font.css` + `tokens.css` + `theme-dark.css` 六处 import 都写好，步骤 4 填充 token 后无需再改入口。`src/shared/icon.jsx` 的图标 shim、`public/font/` 的字体已预置；图表直接用 `@nce/eview-react/Chart`（见 §3.0）。源项目用到的 `<Icon>` / `<Chart>` 迁移时调用点零改动。
 
 ### 1.3 文件位置变化与相对路径
 
@@ -247,18 +241,19 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 
 > 按组件映射总表替换，Form 模式单独处理。
 
-### 3.0 预制件直接复用（图标 / 图表，零组件替换）
+### 3.0 预制件复用 / 包导入（图标 / 图表，零调用点改动）
 
-scaffold 已预制 `src/shared/icon.jsx` + `chart.jsx`，并经 `public/library/` + `index.html` `<script>` 注入 `window.HUICharts`。源项目（`ict-react-coder` 产物）的 `<Icon name="..." />` / `<Chart name="..." option={...} />` **不走上面的组件替换流程**，调用点零改动，只改 import 路径：
+图标仍走 scaffold 预制 shim（`src/shared/icon.jsx`），图表改为直接从 eview-react 包导入。源项目（`ict-react-coder` 产物）的 `<Icon name="..." />` / `<Chart name="..." option={...} />` **调用点零改动**，只改 import 路径：
 
-| 源项目 import | 迁移后 import | 适用位置 |
-|---------------|--------------|---------|
-| `./assets/shared/icon.jsx` | `./shared/icon.jsx` | `src/` 下文件 |
-| `./assets/shared/icon.jsx` | `../shared/icon.jsx` | `src/views/<name>/index.jsx` |
-| `../../../assets/shared/chart.jsx` | `../../shared/chart.jsx` | `src/views/<name>/index.jsx`（按层级调整相对深度） |
+| 组件 | 源项目 import | 迁移后 import | 适用位置 |
+|------|---------------|--------------|---------|
+| Icon | `./assets/shared/icon.jsx` | `./shared/icon.jsx` | `src/` 下文件 |
+| Icon | `./assets/shared/icon.jsx` | `../shared/icon.jsx` | `src/views/<name>/index.jsx` |
+| Chart | `../../../assets/shared/chart.jsx` | `@nce/eview-react/Chart` | 任意位置（包导入，不受相对深度影响） |
 
 跑 `scripts/check-relative-imports.cjs`（§5.1）会一并扫出残留的 `./assets/shared/...` 旧路径。
 
+> 图表契约（`<Chart name option />`、`.dark` 自动切主题、ResizeObserver 自适应、ref 方法）由 `@nce/eview-react/Chart` 原生提供，与源项目一致，详见 [components/Chart.md](components/Chart.md)。
 > 若要切到 icon+ 静态 import（`import { IconPlusIcXxx } from '@nce/icon-plus'`）才需逐个查名替换调用点，见 [source-project-guidelines.md](source-project-guidelines.md) §3.3。默认走预制件复用即可。
 
 ### 3.1 A 类（有对应）：改 props
