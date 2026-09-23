@@ -6,6 +6,7 @@
 > ⚠️ 勾选回调 `onRowCheck(row, checkedRows, e)` 的 `checkedRows` 是**主键数组**：设了 `keyIndex` 就是该列的值，没设就是行序号。
 > ⚠️ 分页有两种：`enableAutoPaging` 前台分页（`dataset` 传全量）；后台分页（默认）`dataset` 只传当前页，`recordCount` 传总数，`onPageChange` 里去请求。
 > ⚠️ 排序默认组件自己排（前台）；后台排序要 `disableEviewSort` + `onColumnSort(sortColumn, sortType)` 自己请求再换 `dataset`。
+> ⚠️ **`render(cellValue, rowData, options, row, isEdit)` 的行对象是第 4 参 `row`**；第 2 参 `rowData` 类型是 `any[]`（数组，**不是行对象**）。单元格内要取行字段（文本+图标来自不同字段、取 `row.id` 等）一律用 `row`；只用本格值的用第 1 参 `cell`。误用 `rowData` 当行对象 → `rowData.name` 为 undefined、整列空白（主值用 `cell` 的列看似正常，容易漏判）。
 
 ## 1. 功能定位
 
@@ -54,10 +55,10 @@ const columns = [
   { title: 'IP', key: 'ip' },
   {
     title: '操作', key: 'op', allowSort: false, width: 160,
-    render: (cell: any, rowData: any[], options: any, row: any) => (        // render(cellValue, rowData, options, row, isEdit)
+    render: (cell: any, rowData: any[], options: any, row: any) => (        // render(cellValue, rowData, options, row, isEdit) —— 行对象取第 4 参 row，勿用 rowData
       <>
-        <Button status="text" text="编辑" onClick={() => openEdit(rowData)} />
-        <Button status="text" text="删除" onClick={() => askDelete(rowData)} />
+        <Button status="text" text="编辑" onClick={() => openEdit(row)} />
+        <Button status="text" text="删除" onClick={() => askDelete(row)} />
       </>
     ),
   },
@@ -122,7 +123,7 @@ interface TableColumn {
   display?: boolean;                        // 默认 true；false 隐藏（配合列筛选）
   ellipsis?: boolean;
   tipFormatter?: ((v: any) => string) | string;   // 悬浮提示；非文本单元格必填
-  render?: (cellValue: any, rowData: any[], options: any, row: any, isEdit: boolean) => React.ReactNode;
+  render?: (cellValue: any, rowData: any[], options: any, row: any, isEdit: boolean) => React.ReactNode;   // 整行对象是第 4 参 row（对象行 dataset 时即该行对象）；第 2 参 rowData 是数组，勿当行对象用。取行字段一律 row.xxx
   freezeCol?: boolean;                      // 冻结列；编辑列另有 renderType / isEditable（demo TableEdit）
 }
 
@@ -296,5 +297,6 @@ onRowCheck={(row) => setChecked([...checked, row])}
 | `enableColumnFilter` / `itemOrderChanger` / `onFilterOkClick` | `boolean` / `boolean` / `(hideRow, displayRow, columns) => boolean` | 列筛选弹窗 |
 | `enableRowExpand` / `onRowExpend` / `expandedRow` / `enableMulitiExpand` | `boolean` / `(row) => ReactNode` / `(string \| number)[]` / `boolean` | 行展开 |
 | `enableColumnDrag` / `enableColumnWidthFit` / `freezeColPosition` / `virtualScroll` / `virtualShowNum` | — | 列宽拖拽（默认开）/ 自适应 / 冻结列位置 / 虚拟滚动（3.5.10） |
+| `freezeCol`（列级）/ `freezeColPosition`（表级） | `boolean` / `string` | 冻结列：列上设 `freezeCol: true` 标记冻结，表上 `freezeColPosition` 设位置。映射 antd `columns[].fixed: 'left'/'right'`：列 `fixed:'right'` → `freezeCol:true` + 表 `freezeColPosition="right"`，`fixed:'left'` → `freezeCol:true` + `freezeColPosition="left"`。示例：`<Table freezeColPosition="right" />` + 操作列 `{ ..., freezeCol: true }`。 |
 | `isRequiredToUpdateColumns` / `enableColumnCompareUpdate` | `boolean` | 更新 columns 是否生效 / 比较后再更新 |
 | `ref.getCheckedRowsData()` / `getCheckedRowsIndexes()` / `getSelectedRowData()` / `getSelectedRowIndex()` / `setCheckedRows(keys)` / `getDataset()` / `setRowEditable(id, columns)` | 命令式方法 | 取勾选 / 选中 / 设勾选 / 取数据 / 设行可编辑 |
