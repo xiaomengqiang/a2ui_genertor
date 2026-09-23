@@ -7,6 +7,7 @@
 > ⚠️ 分页有两种：`enableAutoPaging` 前台分页（`dataset` 传全量）；后台分页（默认）`dataset` 只传当前页，`recordCount` 传总数，`onPageChange` 里去请求。
 > ⚠️ 排序默认组件自己排（前台）；后台排序要 `disableEviewSort` + `onColumnSort(sortColumn, sortType)` 自己请求再换 `dataset`。
 > ⚠️ **`render(cellValue, rowData, options, row, isEdit)` 的行对象是第 4 参 `row`**；第 2 参 `rowData` 类型是 `any[]`（数组，**不是行对象**）。单元格内要取行字段（文本+图标来自不同字段、取 `row.id` 等）一律用 `row`；只用本格值的用第 1 参 `cell`。误用 `rowData` 当行对象 → `rowData.name` 为 undefined、整列空白（主值用 `cell` 的列看似正常，容易漏判）。
+> ⚠️ `onRowExpend(row)` / `onRowClick(row)` / `render(cellValue, rowData, ...)` 的 `row` / `rowData` 参数是 **keyIndex 映射后的精简对象**，只包含 `columns` 中定义了 `key` 的字段，不保证包含完整行数据。如需访问未在列定义中的字段（如 `r.desc`、`r.views`），需从源数组通过 `dataset.find(d => d.id === r.id)` 查找完整记录，并对属性访问加空值保护 `??`。
 
 ## 1. 功能定位
 
@@ -105,7 +106,13 @@ const rows = list.map((d) => ({ id: d.id, name: d.name, state: d.state, ip: d.ip
 
 ```tsx
 <Table columns={columns} dataset={allRows} enablePagination enableAutoPaging pageSizeOptions={[10, 20, 50]} maxHeight={500} />   // 前台分页：recordCount 不传，取 dataset.length
-<Table … onRowClick={(row: any, event) => openDetail(row)} enableRowExpand onRowExpend={(row: any) => <DetailPanel row={row} />} />
+
+// ⚠️ row 是精简对象（只含 columns 定义了 key 的字段），需要完整行数据时从源数组查找，并加空值保护
+const expandedRow = (row: any) => {
+  const full = allRows.find((d) => d.id === row.id) || row;
+  return <DetailPanel row={full} />;
+};
+<Table … onRowClick={(row: any, event) => openDetail(row)} enableRowExpand onRowExpend={expandedRow} />
 ```
 
 ## 5. 数据结构
@@ -252,6 +259,16 @@ export default function DeviceTablePage() {
 ## 8. 反面示例
 
 ```tsx
+// ❌ onRowExpend 直接访问未在 columns 中定义 key 的字段 → undefined 抛错
+<Table dataset={rows} columns={[{ key: 'id' }, { key: 'name' }]} onRowExpend={(r) => <p>{r.desc}</p>} />   // r.desc 为 undefined
+// ✅ 需从源数组补齐
+const expandedRow = (r) => { const full = rows.find((d: any) => d.id === r.id) || r; return <p>{full.desc}</p>; };
+
+// ❌ 操作列 render 中 onClick 直接传 r，弹窗/详情页里用到的字段未在 columns key 中定义
+render: (v, rowData) => <Button onClick={() => openDetail(rowData)} />   // rowData 缺少 desc/views 等字段
+// ✅ 传完整行或从源数组查找
+render: (v, rowData) => <Button onClick={() => openDetail(rows.find(d => d.id === rowData.id) || rowData)} />
+
 // ❌ antd 习惯：没有 dataSource / rowKey / pagination 对象 / rowSelection / columns[].dataIndex
 <Table dataSource={rows} rowKey="id" columns={[{ dataIndex: 'name' }]} pagination={{ current: 1 }} rowSelection={{ onChange }} />
 

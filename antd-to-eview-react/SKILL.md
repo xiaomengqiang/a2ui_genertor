@@ -97,7 +97,7 @@ scaffold 预制了 `src/shared/icon.jsx`。源项目（`ict-react-coder` 产物�
 
 ### 有直接对应（API 不同，需改 props）
 
-**表单与输入**：Input→TextField、Input.TextArea→TextArea、Input.Search→SearchInput、Input.Password→TextField、InputNumber→Spinner、Select、Select(多选)→MultipleSelect、AutoComplete→InputSelect、Cascader、TreeSelect、Checkbox/Checkbox.Group→CheckboxGroup、Radio/Radio.Group→RadioGroup、Radio.Button→SelectCard、Switch→Toggle、Slider→DragInput、Rate→Rating、DatePicker、RangePicker→DatePicker range、TimePicker→Spinner、Upload→FileUpload、Form/Form.Item
+**表单与输入**：Input→TextField、Input.TextArea→TextArea、Input.Search→SearchInput、Input.Password→TextField、InputNumber→Spinner、Select、Select(多选)→MultipleSelect、AutoComplete→InputSelect、Cascader、TreeSelect、Checkbox/Checkbox.Group→CheckboxGroup、Radio/Radio.Group→RadioGroup、Radio.Button→SelectCard、**Switch→Switch（推荐）或 Toggle**、Slider→DragInput、Rate→Rating、DatePicker、RangePicker→DatePicker range、TimePicker→Spinner、Upload→FileUpload、Form/Form.Item
 
 **数据展示**：Table、Tabs/TabPane→Tab/TabItem、Collapse→Panel/PanelItem、Empty、Badge、Tag、Tooltip/Popover→TipBox、Popconfirm→MessageDialog、Breadcrumb→Crumbs
 
@@ -144,8 +144,9 @@ scaffold 已预制 `src/shared/icon.jsx`（保留 `<Icon name="search" />` 契�
 8. **CSS 不写死色值**：用源项目的 CSS 变量（原始 token）；类名用业务前缀 `app-` 不用 `ev_`
 9. **Form 内不允许用 `<div>` 做栅格**：多列布局用 Form 级 `itemCol` 设默认宽度（24 栅格制）；**单项覆盖用 `Form.Item.col`**（不拆 Form、不用 div/Row/Col 包裹）；删掉 antd 的 Row/Col 或 div+CSS grid 包裹
 10. **Form `initialValues` 必须传对象**：动态/异步/向导多步场景一律 `initialValues={x || {}}`。传 `undefined` 会让 `submit()` → `onSuccess(values)` 收到**空对象**（"托管没生效、确认页没数据"的根因，已真机确认）。控件自带 `validator` 要在 `submit()` 时跑需 Form 上加 `validateAllChildComponent={true}`（Form rules `required`/`email`/`range` 默认就跑）。详见 [form-migration.md](references/form-migration.md) 顶部"运行时已验证"段
-11. **迁移后必须验证相对导入解析**：尤其检查 `src/**/*.jsx` 中是否残留 `./src/...`。这是 Vite import-analysis 阶段才会报的错误，不能只做 Babel/TypeScript 语法检查。
-12. **图标**：迁移期默认复用 scaffold 自定义 `<Icon>` shim（`src/shared/icon.jsx`，运行时 fetch icon-plus，调用点零改动，见 [source-project-guidelines.md](references/source-project-guidelines.md) §3.2）；eview-react 内置 `Icon name="ict_*"` 已下线不要用；不要用 `@ant-design/icons`；可点击图标用 `IconButton iconName={<IconPlusIc* />} tipText`，不给图标组件挂 onClick；**antd 纯图标按钮（`Button type="text" shape="circle" icon={...}` 无 children）用 `IconButton`，禁止退化为原生 `<button>+<Icon>`**（见 [component-mapping.md](references/component-mapping.md) 图标行）。
+11. **Toggle / Switch 在 Form 内 `data` 必须用布尔值**：`valuePropName="toggled"` 时，`Switch data={[false, true]}`。不要用 `data={['false', 'true']}`（字符串），否则 `toggled` 收到字符串 `'false'`（JS 中为 truthy，`!!'false' === true`），导致开关无法关闭。推荐 `import Switch from '@nce/eview-react/Switch'` 而非 `Toggle`（两者相同，但 Switch 语义更明确）。
+12. **迁移后必须验证相对导入解析**：尤其检查 `src/**/*.jsx` 中是否残留 `./src/...`。这是 Vite import-analysis 阶段才会报的错误，不能只做 Babel/TypeScript 语法检查。
+13. **图标**：迁移期默认复用 scaffold 自定义 `<Icon>` shim（`src/shared/icon.jsx`，运行时 fetch icon-plus，调用点零改动，见 [source-project-guidelines.md](references/source-project-guidelines.md) §3.2）；eview-react 内置 `Icon name="ict_*"` 已下线不要用；不要用 `@ant-design/icons`；可点击图标用 `IconButton iconName={<IconPlusIc* />} tipText`，不给图标组件挂 onClick；**antd 纯图标按钮（`Button type="text" shape="circle" icon={...}` 无 children）用 `IconButton`，禁止退化为原生 `<button>+<Icon>`**（见 [component-mapping.md](references/component-mapping.md) 图标行）。
 
 ## 命名异常速查
 
