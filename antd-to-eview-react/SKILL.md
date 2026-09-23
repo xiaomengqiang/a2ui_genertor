@@ -25,7 +25,7 @@ description: >-
 
 ## 前置条件
 
-1. **网络**：`@nce/eview-react` 及其 peer 依赖托管在华为内网 npm 源（`cmc.centralrepo.rnd.huawei.com`，见 `scaffold/.npmrc`）。步骤 1 执行 `npm install` 前须确认内网/VPN 可达，如果不可达仍继续，在最后提示用户需要到内网安装依赖。
+1. **网络**：`@nce/eview-react` 及其 peer 依赖托管在华为内网 npm 源（`cmc.centralrepo.rnd.huawei.com`，见 `scaffold/.npmrc`）。步骤 1 执行 `npm install` 前须确认内网/VPN 可达，如果不可达仍继续执行转换，在最后提示用户需要到内网安装依赖。
 2. **运行时**：Node.js ≥ 16（Vite 5 要求），`npm` 可正常解析 `.npmrc` 中的 `@nce` scope。
 3. **源项目**：须为 React 项目（非 Vue/Angular）。典型源项目为 `ict-react-coder` skill 的产物——UMD 单 HTML 工程（`index.page.html` + `src/` 双份代码、内联 token CSS、Lucide 图标、禁用 Layout/Grid/Space/Card），其结构特征及迁移成本评估见 [source-project-guidelines.md](references/source-project-guidelines.md)。
 
