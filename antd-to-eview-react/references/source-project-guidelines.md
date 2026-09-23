@@ -194,7 +194,7 @@ const GET_ICON = `${ICON_API_BASE}/assetRepository/iconPlus/getIcon`;
 
 组件渲染时：
 1. 先 `fetch(getConfig)` 探测 icon-plus 服务是否可用
-2. 如果可用，按图标名 `fetch(getIconInfo?keyword=xxx)` 查找匹配图标
+2. 如果可用，按图标名 `fetch(getIconInfo?keyword=xxx&topK=2&source_id=6)` 查找匹配图标（完整 URL 与参数见 §3.3）
 3. 再 `fetch(getIcon?url=xxx&size=16&style=border&color=xxx&fileType=svg)` 获取 SVG 文本
 4. 把 SVG 文本 `dangerouslySetInnerHTML` 注入 DOM
 5. 如果 icon-plus 不可用，回退到 Lucide nodes 表
@@ -304,4 +304,4 @@ function SearchIcon({ size = 14 }) {
 | 图标加载 | 230 行运行时 fetch 组件（icon-plus 在线 + Lucide 兜底） | scaffold 预制 shim 复用（默认零改动，仅改 import 路径） | 预制 shim 复用（默认，剥离 Lucide）；可选切 icon+ 静态 import（§3.3） |
 | 应用代码 | 内联在 HTML + src/ 两份 | 需判断以哪份为准 | 只有一份 |
 
-改进后，迁移的工作量从"重建基础设施 + 替换组件"缩减为**纯组件替换**——图标与图表（HUI Charts）连组件替换都省了：scaffold 已预制 `src/shared/icon.jsx` + `chart.jsx` 与 `public/library/` UMD，源项目的 `<Icon>` / `<Chart>` 调用点零改动，只改 import 路径。icon-plus 在线恒可达（内网），shim 不带 Lucide 兜底与 lucide JSON。
+改进后，迁移的工作量从"重建基础设施 + 替换组件"缩减为**纯组件替换**——图标与图表（HUI Charts）连组件替换都省了：图标走 scaffold 预制 `src/shared/icon.jsx`，图表直接 `import Chart from '@nce/eview-react/Chart'`，源项目的 `<Icon>` / `<Chart>` 调用点零改动，只改 import 路径。icon-plus 在线恒可达（内网），shim 不带 Lucide 兜底与 lucide JSON。

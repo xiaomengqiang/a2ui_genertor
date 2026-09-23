@@ -86,18 +86,14 @@ scaffold/
 ├── package.json        # 依赖已含 @nce/eview-react / react-intl / horizon peer / lodash / icon-plus 等
 ├── .npmrc              # @nce scope 指向华为 product_npm 源
 ├── vite.config.js      # Vite + @vitejs/plugin-react
-├── index.html          # 薄入口，<body class="ev_no_wcag aui3_1"> + 图表 UMD <script> + /src/main.jsx
+├── index.html          # 薄入口，<body class="ev_no_wcag aui3_1"> + /src/main.jsx
 ├── public/
-│   ├── font/           # HarmonyOS Sans SC 字体（4 个 .woff2），font.css @font-face 引用
-│   │   └── HarmonyOS_SansSC/
-│   └── library/        # 图表 UMD（echarts + hui-charts），<script> 注入 window.HUICharts
-│       ├── echarts.min.js
-│       └── hui-charts.umd.js
+│   └── font/           # HarmonyOS Sans SC 字体（4 个 .woff2），font.css @font-face 引用
+│       └── HarmonyOS_SansSC/
 └── src/
     ├── main.jsx        # ConfigProvider + IntlProvider + aui3_1.css + aui3_1_dark.css + base.css + font.css + tokens.css + theme-dark.css
     ├── app.jsx         # 空壳 App（<div className="root">；aui3_1 挂 <body>），步骤 3 替换为 AppShell
-    ├── shared/         # 预制图标 + 图表组件，迁移时调用点零改动（只改 import 路径）
-    │   ├── chart.jsx             # <Chart name option> 契约保留（HUICharts 封装）
+    ├── shared/         # 预制图标组件，迁移时调用点零改动（只改 import 路径）
     │   └── icon.jsx              # <Icon name="..."> 契约保留（icon-plus 在线，内网恒可达，无离线兜底）
     └── styles/
         ├── base.css          # 骨架自带全局重置（ev_no_wcag 焦点轮廓），开箱即用不用改
@@ -113,18 +109,16 @@ scaffold/
 | `package.json` | 依赖锁定（@nce/eview-react latest / react ^18.3 / react-intl ^7 / horizon peer / lodash / icon-plus） | 改 `name` |
 | `.npmrc` | `@nce` scope 指向 product_npm 源 | 一般不改 |
 | `vite.config.js` | Vite + plugin-react，最小配置 | 一般不改 |
-| `index.html` | 薄入口，`<body class="ev_no_wcag aui3_1">` + 图表 UMD `<script>` + `/src/main.jsx` | 改 `<title>` |
+| `index.html` | 薄入口，`<body class="ev_no_wcag aui3_1">` + `/src/main.jsx` | 改 `<title>` |
 | `public/font/*` | HarmonyOS Sans SC 字体（4 个 .woff2） | 不改（font.css 引用） |
-| `public/library/*` | 图表 UMD（echarts + hui-charts），`index.html` 已注入全局 | 不改；不用图表可删目录 + 删 index.html 两行 `<script>` |
 | `src/main.jsx` | Provider 组装 + 六处 css import（含 font.css） | import 不用改；步骤 2 切暗色时加类名切换逻辑 |
 | `src/app.jsx` | 空壳 App | 步骤 3 替换为源项目 AppShell |
 | `src/shared/icon.jsx` | 预制 `<Icon name=...>` shim（icon-plus 在线，无 Lucide 兜底） | 不改；源项目 `<Icon>` 调用点只改 import 路径（见 §3.0） |
-| `src/shared/chart.jsx` | 预制 `<Chart>` 封装（HUICharts，契约同源项目） | 不改；源项目 `<Chart>` 调用点只改 import 路径（见 §3.0） |
 | `src/styles/font.css` | HarmonyOS Sans SC @font-face（4 个权重） | 不改；`--font-family` 由 tokens.css 步骤 4 填 |
 | `src/styles/tokens.css` | 空壳占位 | 步骤 4 填（含 `--font-family: 'HarmonyOS Sans', ...`） |
 | `src/styles/theme-dark.css` | 空壳占位 | 步骤 4 填 |
 
-> `main.jsx` 已把 `aui3_1.css` + `aui3_1_dark.css` + `base.css` + `font.css` + `tokens.css` + `theme-dark.css` 六处 import 都写好，步骤 4 填充 token 后无需再改入口。`src/shared/` 的图标/图表组件、`public/library/` 的图表 UMD、`public/font/` 的字体已预置，源项目用到的 `<Icon>` / `<Chart>` 迁移时调用点零改动。
+> `main.jsx` 已把 `aui3_1.css` + `aui3_1_dark.css` + `base.css` + `font.css` + `tokens.css` + `theme-dark.css` 六处 import 都写好，步骤 4 填充 token 后无需再改入口。`src/shared/icon.jsx` 的图标 shim、`public/font/` 的字体已预置；图表直接用 `@nce/eview-react/Chart`（见 §3.0）。源项目用到的 `<Icon>` / `<Chart>` 迁移时调用点零改动。
 
 ### 1.3 文件位置变化与相对路径
 
@@ -247,18 +241,19 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 
 > 按组件映射总表替换，Form 模式单独处理。
 
-### 3.0 预制件直接复用（图标 / 图表，零组件替换）
+### 3.0 预制件复用 / 包导入（图标 / 图表，零调用点改动）
 
-scaffold 已预制 `src/shared/icon.jsx` + `chart.jsx`，并经 `public/library/` + `index.html` `<script>` 注入 `window.HUICharts`。源项目（`ict-react-coder` 产物）的 `<Icon name="..." />` / `<Chart name="..." option={...} />` **不走上面的组件替换流程**，调用点零改动，只改 import 路径：
+图标仍走 scaffold 预制 shim（`src/shared/icon.jsx`），图表改为直接从 eview-react 包导入。源项目（`ict-react-coder` 产物）的 `<Icon name="..." />` / `<Chart name="..." option={...} />` **调用点零改动**，只改 import 路径：
 
-| 源项目 import | 迁移后 import | 适用位置 |
-|---------------|--------------|---------|
-| `./assets/shared/icon.jsx` | `./shared/icon.jsx` | `src/` 下文件 |
-| `./assets/shared/icon.jsx` | `../shared/icon.jsx` | `src/views/<name>/index.jsx` |
-| `../../../assets/shared/chart.jsx` | `../../shared/chart.jsx` | `src/views/<name>/index.jsx`（按层级调整相对深度） |
+| 组件 | 源项目 import | 迁移后 import | 适用位置 |
+|------|---------------|--------------|---------|
+| Icon | `./assets/shared/icon.jsx` | `./shared/icon.jsx` | `src/` 下文件 |
+| Icon | `./assets/shared/icon.jsx` | `../shared/icon.jsx` | `src/views/<name>/index.jsx` |
+| Chart | `../../../assets/shared/chart.jsx` | `@nce/eview-react/Chart` | 任意位置（包导入，不受相对深度影响） |
 
 跑 `scripts/check-relative-imports.cjs`（§5.1）会一并扫出残留的 `./assets/shared/...` 旧路径。
 
+> 图表契约（`<Chart name option />`、`.dark` 自动切主题、ResizeObserver 自适应、ref 方法）由 `@nce/eview-react/Chart` 原生提供，与源项目一致，详见 [components/Chart.md](components/Chart.md)。
 > 若要切到 icon+ 静态 import（`import { IconPlusIcXxx } from '@nce/icon-plus'`）才需逐个查名替换调用点，见 [source-project-guidelines.md](source-project-guidelines.md) §3.3。默认走预制件复用即可。
 
 ### 3.1 A 类（有对应）：改 props
@@ -366,14 +361,15 @@ export const policyTemplates = [
 3. 读 components/<组件>.md 查每个组件完整 API
 4. 读 component-mapping.md 查"关键 API 差异"列
 5. 导入路径改为 import X from '@nce/eview-react/X'
-6. 遵守 SKILL.md 的"eview-react 硬约束"11 条
+6. 读 <skill目录>/SKILL.md 的"eview-react 硬约束"章节（12 条），严格遵守（<skill目录> 是本 skill 的安装路径，例如 ~/.opencode/skills/antd-to-eview-react）
 
 输出：改了哪些文件 + 每个文件改了哪些组件 + 遗留问题（如某组件无对应标记 TODO）
 ```
 
 - **子 agent 读**：自己那组 reference + 源文件
 - **子 agent 输出**：改动清单 + 遗留问题
-- **主 agent**：合并各子 agent 结果，决定是否追加子 agent 轮次修复遗留问题
+- **主 agent**：从每个子 agent 的最终回复提取 `task_id`（记为 GEN_A_ID / GEN_B_ID / GEN_C_ID）并记录；合并各子 agent 改动清单，决定是否续接修复
+- **续接修复**：若某子 agent 有遗留问题需继续修，**必须传对应 `task_id` 续接同一 session**（如 GEN_A_ID），不要另起新 session——新 agent 丢失之前的产物结构与改动上下文。把遗留问题逐条原样传给该子 agent
 
 ## 步骤 4：提取 CSS token
 
@@ -390,7 +386,7 @@ export const policyTemplates = [
 通用规则：
 - 不写死色值，用 CSS 变量（源项目的原始 token）
 - 类名用业务前缀（`app-`）不用 `ev_`
-- 可点击元素用 `<button type="button">`
+- 可点击元素用 `<button type="button">`（仅限无 eview-react 对应组件时；图标按钮用 `IconButton`，不手写原生 button）
 
 ## 步骤 5：验证
 
@@ -484,7 +480,11 @@ npm run dev
 
 ### 5.6 派发子 agent：验证
 
-步骤 5 的脚本输出 + npm install/dev 日志可能几百行，主 agent 只需 pass/fail + 问题列表。用 Task 工具派发 general 子 agent：
+步骤 5 的脚本输出 + npm install/dev 日志可能几百行，主 agent 只需 pass/fail + 问题列表。用 Task 工具派发 general 子 agent。
+
+**测试结果文件**（主 agent 判定依据）：`<目标工程根>/.migration-result.json`。验证子 agent 每轮覆盖写入，主 agent 用 `read` 工具读其 `status` 字段判定（**不信子 agent 口头结论**）。
+
+**循环上限**：默认 5 轮（round 1 首次验证，round 2~5 修复后重测）。第 5 轮仍 FAIL 必须停止，向用户报告失败项 + 建议人工介入。用户可在消息里指定别的上限。
 
 **任务描述模板：**
 
@@ -496,14 +496,28 @@ npm run dev
 4. npm run dev，报告是否启动成功（失败贴报错）
 5. 按 <skill目录>/references/migration-workflow.md §5.4 功能验证清单逐项检查
 
-输出：
-- check-relative-imports: PASS / FAIL（附问题列表）
-- check-i18n-keys: PASS / FAIL（附问题列表）
-- npm install: PASS / FAIL
-- npm run dev: PASS / FAIL
-- 功能验证清单: X/Y 项通过（附未通过项）
+完成后必须：
+1. 把结果写入 <目标工程根>/.migration-result.json（覆盖写），JSON 结构：
+   {
+     "status": "PASS" 或 "FAIL",
+     "round": {round},
+     "failures": ["失败点 1", "失败点 2", ...],
+     "checks": {
+       "relative-imports": "PASS/FAIL",
+       "i18n-keys": "PASS/FAIL",
+       "npm-install": "PASS/FAIL",
+       "npm-run-dev": "PASS/FAIL",
+       "functional": "X/Y"
+     },
+     "notes": "可选说明"
+   }
+   - 所有验收项全过 → status="PASS"，failures=[]
+   - 任一不过 → status="FAIL"，failures 逐条写清具体失败点（要可操作，让修复 agent 知道改哪、怎么改）
+2. 在最终回复返回 PASS/FAIL。
+
+本轮轮号：{round}
 ```
 
 - **子 agent 读**：migration-workflow.md §5.4
-- **子 agent 输出**：验证结果摘要
-- **主 agent**：若 FAIL 则回到步骤 3 派子 agent 续接修复，再回到 §5.6 重测
+- **子 agent 输出**：把结果写入 `<目标工程根>/.migration-result.json`（覆盖写）并在最终回复返回 PASS/FAIL
+- **主 agent**：用 `read` 工具读 `.migration-result.json` 的 `status` 字段判定（不信子 agent 口头结论）。若 FAIL，取 `failures` 数组，回到步骤 3 续接对应组件类别的子 agent 修复（**传其 task_id 续接同一 session**），再回到 §5.6 续接验证子 agent 重测（**传验证子 agent 的 task_id**，round = 上轮 + 1）。达 5 轮上限仍 FAIL 必须停止

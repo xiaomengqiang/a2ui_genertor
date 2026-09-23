@@ -81,11 +81,29 @@ const groupData = [
 
 ### 图标：leftIcon / rightIcon 用 icon+
 
+> 迁移期若源项目用 `<Icon name="...">` shim（自定义 `<Icon>` 组件，A 范式），调用点零改动即可；下例 `leftIcon`/`rightIcon` 用 icon+ 静态组件为 B 目标范式（可选，见 [source-project-guidelines §3.3](../source-project-guidelines.md)）。
+
 ```tsx
 import { IconPlusIcPublicSave, IconPlusIcPublicArrowRight } from '@nce/icon-plus';
 <Button status="primary" text="保存" leftIcon={<IconPlusIcPublicSave />} onClick={handleSave} />
 <Button text="下一步" rightIcon={<IconPlusIcPublicArrowRight />} onClick={handleNext} />
 ```
+
+### 纯图标按钮：antd `Button type="text" shape="circle" icon` → `IconButton`
+
+antd 把 Button 当纯图标按钮用（有 `icon`、`type="text"`、`shape="circle"`、无文字 children）时，**不要**转成原生 `<button>+<Icon>`，用 `IconButton`（[Icon.md](Icon.md)）：
+
+```tsx
+// antd 源
+<Button size="small" type="text" shape="circle" icon={<Icon name="refresh-cw" size={15} />} onClick={() => message.success("已刷新")} />
+
+// eview-react 迁移（IconButton + icon+；提示文案移到 tipText）
+import { IconPlusIcPublicRefresh } from '@nce/icon-plus';
+import IconButton from '@nce/eview-react/IconButton';
+<IconButton iconName={<IconPlusIcPublicRefresh />} tipText="刷新" size="small" onClick={handleRefresh} />
+```
+
+> 判定信号：antd `Button` 同时有 `icon` 且无文字 children（常见 `type="text"` + `shape="circle"`）→ 走 `IconButton`。
 
 ## 5. 数据结构
 
@@ -186,6 +204,9 @@ export default function LoginPage() {
 ```tsx
 // ❌ antd 习惯：eview-react 没有 type="primary" / danger / loading / htmlType
 <Button type="primary" loading={submitting} htmlType="submit">提交</Button>
+
+// ❌ antd 纯图标 Button 退化为原生 <button>+<Icon>（应用 IconButton iconName tipText）
+<button type="button" className="app-icon-btn" onClick={notify}><Icon name="refresh-cw" /></button>
 
 // ❌ 没有 onClick，点了没反应
 <Button status="primary" text="提交" />

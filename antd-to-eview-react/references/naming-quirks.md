@@ -23,6 +23,7 @@
 | Button | `loading` | 无（用 `disabled` + 文案切换） | 处理中表达 |
 | Button | `htmlType="submit"` | 无（用 `onClick`） | Button 没有 type 属性 |
 | Button | `icon` | `leftIcon` / `rightIcon` | 分左右 |
+| Button | `type="text"` + `shape="circle"` + `icon`（无 children） | `IconButton iconName tipText` | 纯图标按钮走 IconButton |
 | Select | `placeholder` | `defaultLabel` | 占位文案 |
 | Select | `options=[{label,value}]` | `options=[{text,value}]` | 字段名 label→text |
 | Select | `<Select.Option>` | 无（用 `options` 数组） | 不支持 children 写法 |

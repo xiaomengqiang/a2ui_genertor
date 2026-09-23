@@ -9,7 +9,8 @@
 |------|-----------|-------------|
 | `Button type="primary"` | `Button status="primary"` | `type`→`status`（default/primary/risk/text）；无 `loading`/`htmlType`/`danger`；文字用 `text` 或 children；处理中用 `disabled`+文案切换 |
 | `Button danger` | `Button status="risk"` | 同上 |
-| `Button icon={...}` | `Button leftIcon` / `rightIcon` | icon+ 组件 |
+| `Button type="text" shape="circle" icon={<Icon/>}`（无 children，纯图标按钮） | `IconButton iconName tipText` | antd `shape="circle"`/`type="text"`+`icon`+无 children 是纯图标按钮信号；**不要**退化为原生 `<button>+<Icon>`；`onClick`→`onClick`、antd 的 `message.success` 提示文案移到 `tipText` |
+| `Button icon={...}`（有文字 children） | `Button leftIcon` / `rightIcon` | 仅当有文字 children 时；无 children 的纯图标按钮走 IconButton（见上行） |
 | `Space` | flex div + `gap` | 无对应组件；用 `<div style={{ display:'flex', gap:'0.75rem' }}>` |
 | `Typography.Link` | `Button status="text"` | 或手写 `<a>` |
 | `Typography.Title` | 手写 `<h1>`~`<h6>` | 用 `--fontSizeLarge` / `--titleFontSize` 变量 |
@@ -51,7 +52,7 @@
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Table` | `Table` | `dataSource`→`dataset`；`rowKey`→`keyIndex`；`columns[].dataIndex`→`key`；`pagination`→`enablePagination`+`pagingProps`+`onPageChange`；`rowSelection`→`enableCheckBox`+`onRowCheck`；`emptyText`→`emptyTableMsg`；**render 函数保留但需检查 i18n key 对齐**（见 [migration-workflow.md](migration-workflow.md) §3.5） |
+| `Table` | `Table` | `dataSource`→`dataset`；`rowKey`→`keyIndex`；`columns[].dataIndex`→`key`；`columns[].fixed: 'left'/'right'`→列 `freezeCol: true` + 表 `freezeColPosition`（取值待实测确认，见 [Table.md](components/Table.md) §9）；`pagination`→`enablePagination`+`pagingProps`+`onPageChange`；`rowSelection`→`enableCheckBox`+`onRowCheck`；`emptyText`→`emptyTableMsg`；**render 函数保留——行数据取第 4 参 `row.rawData`（不是第 2 参 `rowData`，且 `row.rawData` 可能为 undefined，访问字段写 `row.rawData?.xxx`，见 [Table.md](components/Table.md) 顶部）；并需检查 i18n key 对齐**（见 [migration-workflow.md](migration-workflow.md) §3.5） |
 | `Tabs` / `TabPane` | `Tab` / `TabItem` | children 驱动（`<TabItem title>`）；切换回调是 `onClick(index,title,event)`（不是 `onChange`）；`draggable` 默认 true 需关；`items` 不存在 |
 | `Collapse` / `Panel` | `Panel` / `PanelItem` | `selectedIndex` 数组；`enableMultiExpand` 手风琴；`closable` 默认 true 要关 |
 | `List` | 手写或 `Table` | 无导出 |
@@ -103,3 +104,5 @@
 |------|-----------|---------|
 | `@ant-design/icons` | `@nce/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 只能取 12/14/16/20/24/32/36/40/48/60；icon+ 名迁移时用 icon-plus 接口（`getIconInfo`）按 antd/Lucide 名 keyword 查得（见 [source-project-guidelines §3.3](source-project-guidelines.md)） |
 | 可点击图标 | `IconButton` | `iconName={<IconPlusIc* />}`+`tipText`；不要给图标组件挂 onClick |
+
+> 迁移期默认复用 scaffold 自定义 `<Icon>` shim（`<Icon name="...">` 调用点零改动，只改 import 路径，见 [source-project-guidelines §3.2](source-project-guidelines.md)）；上表 icon+ 静态 import 为可选目标范式（§3.3），非迁移必做。

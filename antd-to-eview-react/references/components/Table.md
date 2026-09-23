@@ -6,6 +6,8 @@
 > ⚠️ 勾选回调 `onRowCheck(row, checkedRows, e)` 的 `checkedRows` 是**主键数组**：设了 `keyIndex` 就是该列的值，没设就是行序号。
 > ⚠️ 分页有两种：`enableAutoPaging` 前台分页（`dataset` 传全量）；后台分页（默认）`dataset` 只传当前页，`recordCount` 传总数，`onPageChange` 里去请求。
 > ⚠️ 排序默认组件自己排（前台）；后台排序要 `disableEviewSort` + `onColumnSort(sortColumn, sortType)` 自己请求再换 `dataset`。
+> ⚠️ **`render(cellValue, rowData, options, row, isEdit)` 的行数据在第 4 参 `row.rawData`**；第 2 参 `rowData` 类型是 `any[]`（数组，**不是行对象**），第 4 参 `row` 是表格内部包装对象，**真正的行数据在 `row.rawData`**（可能为 `undefined`）。单元格内要取行字段（文本+图标来自不同字段、取 `row.rawData?.id` 等）一律写 `row.rawData?.xxx`；只用本格值的用第 1 参 `cell`。误用 `rowData` 当行对象、或误用 `row.xxx` 直接取字段 → 均为 undefined、整列空白（主值用 `cell` 的列看似正常，容易漏判）。
+> ⚠️ `onRowExpend(row)` / `onRowClick(row)` / `render(cellValue, rowData, options, row, ...)` 的 `row` 是表格内部包装对象，**行数据在 `row.rawData`**（可能为 `undefined`，访问字段务必写 `row.rawData?.xxx`）。`row.rawData` 不保证包含未在列定义中定义 `key` 的字段（如 `desc`、`views`），如需这些字段需从源数组通过 `dataset.find(d => d.id === row.rawData?.id)` 查找完整记录，并对属性访问加空值保护 `??`。
 
 ## 1. 功能定位
 
@@ -54,12 +56,15 @@ const columns = [
   { title: 'IP', key: 'ip' },
   {
     title: '操作', key: 'op', allowSort: false, width: 160,
-    render: (cell: any, rowData: any[], options: any, row: any) => (        // render(cellValue, rowData, options, row, isEdit)
-      <>
-        <Button status="text" text="编辑" onClick={() => openEdit(rowData)} />
-        <Button status="text" text="删除" onClick={() => askDelete(rowData)} />
-      </>
-    ),
+    render: (cell: any, rowData: any[], options: any, row: any) => {        // render(cellValue, rowData, options, row, isEdit) —— 行数据在 row.rawData（可能 undefined），取字段写 row.rawData?.xxx
+      const r = row?.rawData;
+      return (
+        <>
+          <Button status="text" text="编辑" onClick={() => openEdit(r)} />
+          <Button status="text" text="删除" onClick={() => askDelete(r)} />
+        </>
+      );
+    },
   },
 ];
 // 对象行：key 与 columns[].key 对应（TableObjectData.jsx）
@@ -104,7 +109,14 @@ const rows = list.map((d) => ({ id: d.id, name: d.name, state: d.state, ip: d.ip
 
 ```tsx
 <Table columns={columns} dataset={allRows} enablePagination enableAutoPaging pageSizeOptions={[10, 20, 50]} maxHeight={500} />   // 前台分页：recordCount 不传，取 dataset.length
-<Table … onRowClick={(row: any, event) => openDetail(row)} enableRowExpand onRowExpend={(row: any) => <DetailPanel row={row} />} />
+
+// row.rawData 才是行数据（可能 undefined），需要完整行数据时从源数组查找，并加空值保护
+const expandedRow = (row: any) => {
+  const r = row?.rawData;
+  const full = allRows.find((d) => d.id === r?.id) || r;
+  return <DetailPanel row={full} />;
+};
+<Table … onRowClick={(row: any, event) => openDetail(row?.rawData)} enableRowExpand onRowExpend={expandedRow} />
 ```
 
 ## 5. 数据结构
@@ -122,7 +134,7 @@ interface TableColumn {
   display?: boolean;                        // 默认 true；false 隐藏（配合列筛选）
   ellipsis?: boolean;
   tipFormatter?: ((v: any) => string) | string;   // 悬浮提示；非文本单元格必填
-  render?: (cellValue: any, rowData: any[], options: any, row: any, isEdit: boolean) => React.ReactNode;
+  render?: (cellValue: any, rowData: any[], options: any, row: any, isEdit: boolean) => React.ReactNode;   // 行数据在第 4 参 row.rawData（可能 undefined，取字段写 row.rawData?.xxx）；第 2 参 rowData 是数组，勿当行对象用
   freezeCol?: boolean;                      // 冻结列；编辑列另有 renderType / isEditable（demo TableEdit）
 }
 
@@ -251,6 +263,16 @@ export default function DeviceTablePage() {
 ## 8. 反面示例
 
 ```tsx
+// ❌ onRowExpend 直接访问未在 columns 中定义 key 的字段 → undefined 抛错
+<Table dataset={rows} columns={[{ key: 'id' }, { key: 'name' }]} onRowExpend={(row) => <p>{row.desc}</p>} />   // 行数据在 row.rawData，row.desc 为 undefined
+// ✅ 行数据取 row.rawData（加 ?. 防御），未定义字段从源数组补齐
+const expandedRow = (row) => { const r = row?.rawData; const full = rows.find((d: any) => d.id === r?.id) || r; return <p>{full?.desc}</p>; };
+
+// ❌ 操作列 render 把 rowData 当行对象，或直接用 row.xxx 取字段 → undefined
+render: (v, rowData) => <Button onClick={() => openDetail(rowData)} />   // rowData 是数组，缺少 desc/views 等字段
+// ✅ 行数据取 row.rawData，或从源数组查找
+render: (v, rowData, options, row) => <Button onClick={() => openDetail(rows.find(d => d.id === row.rawData?.id) || row.rawData)} />
+
 // ❌ antd 习惯：没有 dataSource / rowKey / pagination 对象 / rowSelection / columns[].dataIndex
 <Table dataSource={rows} rowKey="id" columns={[{ dataIndex: 'name' }]} pagination={{ current: 1 }} rowSelection={{ onChange }} />
 
@@ -296,5 +318,6 @@ onRowCheck={(row) => setChecked([...checked, row])}
 | `enableColumnFilter` / `itemOrderChanger` / `onFilterOkClick` | `boolean` / `boolean` / `(hideRow, displayRow, columns) => boolean` | 列筛选弹窗 |
 | `enableRowExpand` / `onRowExpend` / `expandedRow` / `enableMulitiExpand` | `boolean` / `(row) => ReactNode` / `(string \| number)[]` / `boolean` | 行展开 |
 | `enableColumnDrag` / `enableColumnWidthFit` / `freezeColPosition` / `virtualScroll` / `virtualShowNum` | — | 列宽拖拽（默认开）/ 自适应 / 冻结列位置 / 虚拟滚动（3.5.10） |
+| `freezeCol`（列级）/ `freezeColPosition`（表级） | `boolean` / `string` | 冻结列：列上设 `freezeCol: true` 标记冻结，表上 `freezeColPosition` 设位置。映射 antd `columns[].fixed: 'left'/'right'`：列 `fixed:'right'` → `freezeCol:true` + 表 `freezeColPosition="right"`，`fixed:'left'` → `freezeCol:true` + `freezeColPosition="left"`。示例：`<Table freezeColPosition="right" />` + 操作列 `{ ..., freezeCol: true }`。 |
 | `isRequiredToUpdateColumns` / `enableColumnCompareUpdate` | `boolean` | 更新 columns 是否生效 / 比较后再更新 |
 | `ref.getCheckedRowsData()` / `getCheckedRowsIndexes()` / `getSelectedRowData()` / `getSelectedRowIndex()` / `setCheckedRows(keys)` / `getDataset()` / `setRowEditable(id, columns)` | 命令式方法 | 取勾选 / 选中 / 设勾选 / 取数据 / 设行可编辑 |

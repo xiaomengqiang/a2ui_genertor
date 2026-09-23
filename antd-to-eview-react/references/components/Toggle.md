@@ -12,10 +12,11 @@ Toggle 是两态开关：立即生效的启用 / 禁用切换，可带 label、�
 
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
-| 设置项的启用 / 禁用（立即生效） | `Toggle` | antd `Switch checked onChange` |
+| 设置项的启用 / 禁用（立即生效） | `Toggle` 或 `Switch` | antd `Switch checked onChange` |
 | 需要勾选后再提交的布尔项 | `Checkbox`（[Checkbox.md](Checkbox.md)） | Toggle |
 | 切换前要二次确认 | `Switch isControlToggled` + `MessageDialog` | Toggle 直接切 |
 | 多个互斥选项 | `RadioGroup` / `SelectCard` | 多个 Toggle |
+| **Form.Item 内配 `valuePropName="toggled"`** | **`Switch data={[false, true]}`**（布尔值） | Toggle（Toggle 导出即 Switch，但推荐显式 import Switch） |
 
 ## 2. 典型场景
 
@@ -94,9 +95,11 @@ const handleToggle = async (row: Rule, value: boolean) => {
 
 ### 在 Form 内
 
+> ⚠️ `data` 必须传**布尔值** `[false, true]`。传字符串 `['false', 'true']` 会导致 `toggled` 收到字符串 `'false'`（JS truthy），开关无法关闭。同时推荐 `import Switch from '@nce/eview-react/Switch'` 而非 Toggle（两者相同，但 Switch 语义更明确）。
+
 ```tsx
 <Form.Item label="启用" name="enabled" valuePropName="toggled" updateTrigger="onToggle">
-  <Toggle data={[false, true]} />
+  <Switch data={[false, true]} />
 </Form.Item>
 ```
 
@@ -104,6 +107,8 @@ const handleToggle = async (row: Rule, value: boolean) => {
 
 ```tsx
 // data：两态对应的值 [关, 开]，可以是布尔、数字或字符串（api 示例 ["33", "44"]）
+// ⚠️ Form 内 valuePropName="toggled" 时必须用布尔 [false, true]
+//    用字符串 ['false', 'true'] 会导致 toggled 收到 'false'（truthy），开关无法关闭
 type ToggleData<T> = [T, T];
 
 interface Rule {
@@ -205,6 +210,11 @@ onToggle={(v) => { setEnabled(v); api.setEnabled(v); }}
 
 // ❌ Form 内不配 valuePropName / updateTrigger，Form 收不到值
 <Form.Item name="enabled"><Toggle /></Form.Item>
+
+// ❌ Form 内 data 传字符串 ['false', 'true'] → toggled 收到 'false'（truthy），开关无法关闭
+<Form.Item label="启用" name="enabled" valuePropName="toggled" updateTrigger="onToggle">
+  <Switch data={['false', 'true']} />
+</Form.Item>
 
 // ❌ 用 Toggle 表达"提交前勾选同意"（应为 Checkbox）
 <Toggle label="我已阅读协议" />
