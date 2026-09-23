@@ -13,7 +13,9 @@
   font-size: var(--font-size-md);
   border-radius: var(--radius-base);
   font-weight: var(--font-weight-normal);
-  min-width: calc(var(--spacing-4) * 5.5);
+  padding-left: 1rem;
+  padding-right: 1rem;
+  min-width: 6rem;
   box-shadow: none !important;
   gap: 4px;
 }
@@ -69,17 +71,20 @@
   border-color: var(--red-10);
 }
 .ant-btn.ant-btn-sm {
-  height: 28px;
+  height: 1.75rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  font-size: var(--font-size-base);
 }
 .ant-btn.ant-btn-lg {
-  height: 36px;
-  padding: var(--spacing-0) var(--spacing-5);
-  min-width: 96px;
+  height: 2.25rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
   font-size: var(--font-size-md);
 }
 .ant-btn.ant-btn-icon-only {
-  width: 32px !important;
-  height: 32px !important;
+  width: 2rem !important;
+  height: 2rem !important;
   min-width: auto !important;
   border: none !important;
   background-color: transparent !important;
@@ -89,8 +94,8 @@
   font-size: var(--font-size-2xl);
 }
 .ant-btn.ant-btn-icon-only.ant-btn-sm {
-  width: 24px !important;
-  height: 24px !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
 }
 .ant-btn.ant-btn-icon-only.ant-btn-sm .anticon {
   font-size: var(--font-size-md);
@@ -101,7 +106,7 @@
 }
 .ant-btn.ant-btn-variant-link {
   min-width: unset;
-  line-height: 22px;
+  line-height: var(--line-height-sm);
   padding: var(--spacing-0);
   border: none !important;
   background-color: transparent;
@@ -179,10 +184,10 @@
   border-radius: var(--radius-base);
 }
 input.ant-input {
-  padding: 0 var(--spacing-3);
-  height: 32px;
+  padding: 0 0.75rem;
+  height: 2rem;
   font-size: var(--font-size-md);
-  line-height: 24px;
+  line-height: 1.5rem;
   border-radius: var(--radius-base);
   color: var(--color-text-primary);
   border-color: var(--color-border);
@@ -193,27 +198,27 @@ input.ant-input::placeholder {
   color: var(--color-text-placeholder);
 }
 input.ant-input.ant-input-lg {
-  height: 40px;
-  padding: 0 var(--spacing-3);
+  height: 2.5rem;
+  padding: 0 0.75rem;
   font-size: var(--font-size-md);
   border-radius: var(--radius-base);
 }
 input.ant-input.ant-input-sm {
-  padding: 0 var(--spacing-3);
+  padding: 0 0.75rem;
   height: 28px;
   font-size: var(--font-size-base);
   border-radius: var(--radius-base);
 }
 .ant-input-affix-wrapper {
-  padding: 0 var(--spacing-3);
-  height: 32px;
-  border-radius: 4px;
+  padding: 0 0.75rem;
+  height: 2rem;
+  border-radius: var(--radius-base);
 }
 .ant-input-affix-wrapper .ant-input {
   height: 100%;
 }
 .ant-input-affix-wrapper .ant-input[type="password"] {
-  letter-spacing: var(--spacing-1);
+  letter-spacing: 0.5rem;
   color: var(--color-icon-primary);
 }
 .ant-input-affix-wrapper > input.ant-input {
@@ -262,7 +267,7 @@ input.ant-input.ant-input-sm {
 .ant-flex-align-center textarea {
   color: var(--color-text-primary);
   caret-color: var(--brand-50);
-  padding: 6px 16px;
+  padding: 0.3125rem 0.75rem 1rem;
 }
 .ant-input-textarea-affix-wrapper .ant-input-suffix,
 .ant-flex-align-center .ant-input-suffix {
@@ -276,6 +281,11 @@ input.ant-input.ant-input-sm {
 .ant-flex-align-center.ant-input-affix-wrapper-focused {
   border-color: var(--brand-50);
 }
+.ant-input-textarea-show-count .ant-input-data-count {
+  bottom: 0px;
+  right: 0.75rem;
+  background-color: var(--color-fill-subtle);
+}
 .dark .ant-input-textarea-affix-wrapper,
 .dark .ant-flex-align-center {
   border-color: var(--color-border);
@@ -284,6 +294,9 @@ input.ant-input.ant-input-sm {
 .dark .ant-flex-align-center.ant-input-affix-wrapper-focused {
   border-color: var(--brand-40);
 }
+.dark .ant-input-textarea-show-count .ant-input-data-count {
+  background-color: var(--color-bg-1);
+}
 /* textarea style end*/
 
 /* InputNumber 组件样式（占位，待填充 token 映射） */
@@ -291,7 +304,6 @@ input.ant-input.ant-input-sm {
   height: 32px;
   border-color: var(--gray-20);
   box-shadow: none;
-  border-radius: var(--radius-base);
 }
 .ant-input-number .ant-input-number-action-down {
   padding-left: var(--spacing-2);
@@ -350,12 +362,17 @@ input.ant-input.ant-input-sm {
 }
 
 .ant-select-sm {
-  --ant-select-height: 28px;
+  --ant-select-height: 1.75rem;
 }
 .ant-select {
   --ant-select-border-radius: var(--radius-base);
   background: var(--color-bg-4);
   color: var(--color-text-primary);
+}
+.ant-select.ant-select-lg .ant-select-selector,
+.ant-select.ant-select-sm .ant-select-selector,
+.ant-select .ant-select-selector {
+  border-radius: var(--radius-base);
 }
 .ant-select.ant-select-outlined {
   --ant-select-border-color: var(--color-border);
@@ -368,7 +385,6 @@ input.ant-input.ant-input-sm {
 }
 .ant-select.ant-select-outlined:not(.ant-select-disabled).ant-select-focused {
   --ant-select-border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 1px var(--color-border-active);
 }
 .ant-select.ant-select-outlined.ant-select-disabled {
   --ant-select-border-color: var(--color-border-disabled);
@@ -412,8 +428,8 @@ input.ant-input.ant-input-sm {
   color: var(--color-icon-disabled);
 }
 .ant-select .ant-select-suffix svg {
-  width: 10px;
-  height: 10px;
+  width: 0.625rem;
+  height: 0.625rem;
 }
 .ant-select-multiple .ant-select-content .ant-select-selection-item-remove {
   color: var(--color-icon-primary);
@@ -428,7 +444,7 @@ input.ant-input.ant-input-sm {
   color: var(--color-text-disabled);
 }
 .ant-select-dropdown .ant-select-item {
-  padding: 5px var(--spacing-2);
+  padding: 0.3125rem 0.5rem;
 }
 .ant-select-dropdown .ant-select-item:not(.ant-select-item-option-disabled) {
   color: var(--color-text-primary);
@@ -440,6 +456,7 @@ input.ant-input.ant-input-sm {
 .ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
   background-color: var(--color-select);
   color: var(--color-text-on);
+  font-weight: normal;
 }
 .ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
   background-color: var(--color-hover);
@@ -448,10 +465,10 @@ input.ant-input.ant-input-sm {
   opacity: unset;
 }
 .ant-select-dropdown-list-holder-inner {
-  gap: var(--spacing-1);
+  gap: 0.25rem;
 }
 .ant-select-multiple .ant-select-content .ant-select-selection-item {
-  margin-inline-end: var(--spacing-2);
+  margin-inline-end: 0.5rem;
   background: var(--color-hover);
 }
 
@@ -544,78 +561,98 @@ input.ant-input.ant-input-sm {
   display: none;
 }
 
-/* TimePicker 组件样式（占位，待填充 token 映射） */
-.ant-picker.ant-picker-css-var {
-  --ant-color-border: var(--gray-20);
-  --ant-border-radius: 4px;
-  --ant-date-picker-padding-block-sm: 1px;
-  --ant-date-picker-padding-inline: 12px;
-  --ant-date-picker-padding-inline-sm: 12px;
-  --ant-date-picker-padding-inline-lg: 12px;
-  --ant-color-text-quaternary: var(--gray-50);
-  --ant-date-picker-active-border-color: var(--brand-50);
-  --ant-date-picker-active-shadow: 0 0 0 1px var(--brand-10);
-  --ant-date-picker-hover-border-color: var(--gray-0);
+/* TimePicker/DatePicker 组件样式（antd 5 常规属性覆盖，原 --ant-* 变量方案改写） */
+.ant-picker.ant-picker {
   color: var(--color-text-primary);
+  border-color: var(--gray-20);
+  border-radius: var(--radius-base);
+  padding-inline: 0.75rem;
 }
-.ant-picker.ant-picker-css-var.ant-picker-focused {
-  --ant-color-text-quaternary: var(--gray-90);
+.ant-picker.ant-picker:not(.ant-picker-disabled):hover {
+  border-color: var(--gray-0);
 }
-.ant-picker.ant-picker-css-var.ant-picker-disabled {
+.ant-picker.ant-picker:focus-within,
+.ant-picker.ant-picker.ant-picker-focused {
+  border-color: var(--brand-50);
+  box-shadow: 0 0 0 1px var(--brand-10);
+}
+.ant-picker.ant-picker.ant-picker-disabled {
   color: var(--color-text-disabled) !important;
   background-color: rgb(from var(--gray-90) r g b / 0.05);
   border-color: var(--gray-20);
 }
-.ant-picker.ant-picker-css-var.ant-picker-disabled .ant-picker-input > input {
+.ant-picker.ant-picker.ant-picker-disabled .ant-picker-input > input {
   color: var(--color-text-disabled);
 }
-.ant-picker.ant-picker-css-var.ant-picker-disabled .ant-picker-suffix {
+.ant-picker.ant-picker.ant-picker-disabled .ant-picker-suffix {
   color: var(--color-text-disabled) !important;
 }
-.ant-picker.ant-picker-css-var .ant-picker-input > input {
+.ant-picker.ant-picker .ant-picker-input > input {
   z-index: 1;
   color: var(--color-text-primary);
 }
-.ant-picker.ant-picker-css-var .ant-picker-input > input::placeholder {
+.ant-picker.ant-picker .ant-picker-input > input::placeholder {
   color: var(--color-text-placeholder);
+}
+.ant-picker.ant-picker .ant-picker-suffix,
+.ant-picker.ant-picker .ant-picker-clear {
+  color: var(--gray-50);
+}
+.ant-picker.ant-picker.ant-picker-focused .ant-picker-suffix,
+.ant-picker.ant-picker.ant-picker-focused .ant-picker-clear {
+  color: var(--gray-90);
+}
+.ant-picker.ant-picker-small {
+  padding: 1px 0.75rem;
+}
+.ant-picker.ant-picker-large {
+  padding-inline: 0.75rem;
+  border-radius: var(--radius-base);
 }
 .ant-picker-range .ant-picker-active-bar {
   bottom: 4px;
-  height: 22px;
+  height: 1.375rem;
   background: var(--brand-05);
   border-radius: 2px;
 }
-.ant-picker-range .ant-picker-input > input {
-  padding-left: 4px;
-}
 .ant-picker-range .ant-picker-range-separator {
-  padding: 0px;
+  /* antd 5：'~' 为裸文本节点，font-size: 0 隐藏；连字符字形贴基线会偏下，改用绘制短线并 flex 居中 */
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.25rem;
+  font-size: 0px;
 }
-.ant-picker-range .ant-picker-separator {
-  text-align: center;
+.ant-picker-range .ant-picker-range-separator::before {
+  content: '';
+  display: block;
+  width: 0.375rem;
+  height: 1px;
+  background-color: var(--color-text-primary);
 }
-.ant-picker-range .ant-picker-separator span {
+.ant-picker-range .ant-picker-range-separator .ant-picker-separator {
   display: none;
 }
-.ant-picker-range .ant-picker-separator::before {
-  content: '-';
+.dark .ant-picker.ant-picker {
   color: var(--color-text-primary);
+  border-color: var(--gray-50);
 }
-.ant-picker-large {
-  border-radius: var(--radius-base);
+.dark .ant-picker.ant-picker:not(.ant-picker-disabled):hover {
+  border-color: var(--brand-40);
 }
-.dark .ant-picker.ant-picker-css-var {
-  --ant-color-border: var(--gray-50);
-  --ant-color-text-quaternary: var(--gray-30);
-  --ant-date-picker-active-border-color: var(--brand-40);
-  --ant-date-picker-active-shadow: 0 0 0 1px var(--brand-80);
-  --ant-date-picker-hover-border-color: var(--brand-40);
-  color: var(--color-text-primary);
+.dark .ant-picker.ant-picker:focus-within,
+.dark .ant-picker.ant-picker.ant-picker-focused {
+  border-color: var(--brand-40);
+  box-shadow: 0 0 0 1px var(--brand-80);
 }
-.dark .ant-picker.ant-picker-css-var.ant-picker-focused {
-  --ant-color-text-quaternary: var(--gray-10);
+.dark .ant-picker.ant-picker .ant-picker-suffix,
+.dark .ant-picker.ant-picker .ant-picker-clear {
+  color: var(--gray-30);
 }
-.dark .ant-picker.ant-picker-css-var.ant-picker-disabled {
+.dark .ant-picker.ant-picker.ant-picker-focused .ant-picker-suffix,
+.dark .ant-picker.ant-picker.ant-picker-focused .ant-picker-clear {
+  color: var(--gray-10);
+}
+.dark .ant-picker.ant-picker.ant-picker-disabled {
   background-color: rgb(from var(--gray-05) r g b / 0.2);
   border-color: var(--gray-20);
 }
@@ -623,145 +660,163 @@ input.ant-input.ant-input-sm {
   background: rgb(from var(--brand-50) r g b / 0.4);
 }
 
-/* Radio 组件样式（占位，待填充 token 映射） */
-.ant-radio-wrapper:hover .ant-radio {
-  border-color: var(--brand-40);
-}
-.ant-radio-wrapper:hover .ant-radio.ant-radio-checked {
-  background-color: var(--brand-40);
-}
-.ant-radio-wrapper.ant-radio-wrapper-disabled .ant-radio-label {
-  color: var(--color-text-disabled);
-}
-.ant-radio-wrapper.ant-radio-wrapper-disabled .ant-radio {
-  background-color: rgb(from var(--gray-90) r g b / 0.05);
-  border-color: var(--color-border-disabled);
-}
-.ant-radio-wrapper.ant-radio-wrapper-disabled .ant-radio.ant-radio-checked {
-  background-color: var(--brand-20);
-}
-.ant-radio-wrapper.ant-radio-wrapper-disabled .ant-radio.ant-radio-checked::after {
-  background-color: var(--gray-0);
-}
-.ant-radio-wrapper .ant-radio {
-  background-color: var(--gray-0);
-  border-color: var(--gray-40);
-}
-.ant-radio-wrapper .ant-radio.ant-radio-checked {
-  background-color: var(--brand-50);
-  border-color: transparent;
-}
-.ant-radio-wrapper .ant-radio-label {
+/* Radio 组件样式（token 映射，antd 5 结构：可视圆为 .ant-radio-inner，内点为 .ant-radio-inner::after，
+   状态类以 .ant-radio 为准（defaultChecked 时 wrapper-checked 不会更新；radio 无 label 类名）） */
+.ant-radio-wrapper {
   color: var(--color-text-primary);
   font-size: var(--font-size-md);
 }
-.dark .ant-radio {
+.ant-radio-wrapper .ant-radio-inner {
+  width: 1rem;
+  height: 1rem;
+}
+.ant-radio-wrapper:hover .ant-radio:not(.ant-radio-checked):not(.ant-radio-disabled) .ant-radio-inner {
+  border-color: var(--brand-40);
+}
+.ant-radio-wrapper.ant-radio-wrapper-disabled {
+  color: var(--color-text-disabled);
+}
+.ant-radio-wrapper.ant-radio-wrapper-disabled .ant-radio.ant-radio-disabled .ant-radio-inner {
+  background-color: rgb(from var(--gray-90) r g b / 0.05);
+  border-color: var(--color-border-disabled);
+}
+.ant-radio-wrapper.ant-radio-wrapper-disabled .ant-radio.ant-radio-disabled.ant-radio-checked .ant-radio-inner {
+  background-color: var(--brand-20);
+}
+.ant-radio-wrapper.ant-radio-wrapper-disabled .ant-radio.ant-radio-disabled.ant-radio-checked .ant-radio-inner::after {
+  background-color: var(--gray-0);
+}
+.ant-radio-wrapper .ant-radio:not(.ant-radio-checked):not(.ant-radio-disabled) .ant-radio-inner {
+  background-color: var(--gray-0);
+  border-color: var(--gray-40);
+}
+.ant-radio-wrapper:hover .ant-radio-checked:not(.ant-radio-disabled) .ant-radio-inner {
+  background-color: var(--brand-40);
+}
+.ant-radio-wrapper .ant-radio-checked:not(.ant-radio-disabled) .ant-radio-inner {
+  background-color: var(--brand-50);
+  border-color: transparent;
+}
+.dark .ant-radio-wrapper .ant-radio:not(.ant-radio-checked):not(.ant-radio-disabled) .ant-radio-inner {
   background-color: var(--gray-100);
   border-color: var(--gray-50);
 }
-.dark .ant-radio-wrapper.ant-radio-wrapper-disabled .ant-radio {
+.dark .ant-radio-wrapper .ant-radio.ant-radio-disabled .ant-radio-inner {
   background-color: rgb(from var(--gray-05) r g b / 0.2);
   border-color: var(--gray-50);
 }
-.dark .ant-radio-wrapper.ant-radio-wrapper-disabled .ant-radio.ant-radio-checked {
+.dark .ant-radio-wrapper .ant-radio.ant-radio-disabled.ant-radio-checked .ant-radio-inner {
   background-color: var(--brand-70);
   border-color: transparent;
 }
-.dark .ant-radio-wrapper.ant-radio-wrapper-disabled .ant-radio.ant-radio-checked::after {
+.dark .ant-radio-wrapper .ant-radio.ant-radio-disabled.ant-radio-checked .ant-radio-inner::after {
   background-color: rgb(from var(--gray-05) r g b / 0.3);
 }
 
-/* Checkbox 组件样式（token 映射，转换自根目录 checkbox.css） */
+/* Checkbox 组件样式（token 映射，antd 5 结构：可视框为 .ant-checkbox-inner，
+   状态类以 .ant-checkbox 为准（defaultChecked 时 wrapper-checked 不会更新）） */
 .ant-checkbox-wrapper {
   color: var(--color-text-primary);
   font-size: var(--font-size-md);
 }
-.ant-checkbox-wrapper:not(.ant-checkbox-wrapper-checked):hover .ant-checkbox {
+.ant-checkbox-wrapper .ant-checkbox-inner {
+  width: 1rem;
+  height: 1rem;
+}
+.ant-checkbox-wrapper .ant-checkbox-inner::after {
+  width: 0.357rem;
+  height: 0.571rem;
+}
+.ant-checkbox-wrapper:hover .ant-checkbox:not(.ant-checkbox-checked) .ant-checkbox-inner {
   border-color: var(--brand-40) !important;
 }
-.ant-checkbox-wrapper:not(.ant-checkbox-wrapper-checked) .ant-checkbox-disabled.ant-checkbox {
+.ant-checkbox-wrapper .ant-checkbox.ant-checkbox-disabled:not(.ant-checkbox-checked) .ant-checkbox-inner {
   background-color: rgb(from var(--gray-100) r g b / 0.05);
   border-color: var(--color-border-disabled) !important;
 }
-.ant-checkbox-wrapper:not(.ant-checkbox-wrapper-checked) .ant-checkbox-disabled + .ant-checkbox-label {
+.ant-checkbox-wrapper .ant-checkbox.ant-checkbox-disabled:not(.ant-checkbox-checked) + .ant-checkbox-label {
   color: var(--color-text-disabled);
 }
-.ant-checkbox-wrapper:not(.ant-checkbox-wrapper-checked) .ant-checkbox {
+.ant-checkbox-wrapper .ant-checkbox:not(.ant-checkbox-checked) .ant-checkbox-inner {
   border-color: var(--gray-40);
   background-color: var(--gray-0);
 }
-.ant-checkbox-wrapper.ant-checkbox-wrapper-checked:hover .ant-checkbox {
+.ant-checkbox-wrapper:hover .ant-checkbox-checked:not(.ant-checkbox-disabled) .ant-checkbox-inner {
   background-color: var(--brand-40) !important;
 }
-.ant-checkbox-wrapper.ant-checkbox-wrapper-checked .ant-checkbox-disabled.ant-checkbox {
+.ant-checkbox-wrapper .ant-checkbox-checked.ant-checkbox-disabled .ant-checkbox-inner {
   background-color: var(--brand-20) !important;
 }
-.ant-checkbox-wrapper.ant-checkbox-wrapper-checked .ant-checkbox-disabled + .ant-checkbox-label {
-  color: var(--color-text-disabled);
-}
-.ant-checkbox-wrapper.ant-checkbox-wrapper-checked .ant-checkbox-disabled:after {
+.ant-checkbox-wrapper .ant-checkbox-checked.ant-checkbox-disabled .ant-checkbox-inner:after {
   border-color: var(--gray-0);
 }
-.ant-checkbox-wrapper.ant-checkbox-wrapper-checked .ant-checkbox {
+.ant-checkbox-wrapper .ant-checkbox-checked.ant-checkbox-disabled + .ant-checkbox-label {
+  color: var(--color-text-disabled);
+}
+.ant-checkbox-wrapper .ant-checkbox-checked .ant-checkbox-inner {
   background-color: var(--brand-50);
   border-color: transparent ;
 }
-.ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate {
+.ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate .ant-checkbox-inner {
   background-color: var(--brand-50) !important;
   border-color: transparent !important;
 }
-.ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate:hover {
-  background-color: var(--brand-40) !important;
-}
-.ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate::after {
+.ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate .ant-checkbox-inner::after {
+  width: 10px;
   height: 2px;
   background-color: var(--gray-0);
+  border: 0;
+  border-radius: 2px;
 }
-.ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate.ant-checkbox-disabled {
+.ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate:hover .ant-checkbox-inner {
+  background-color: var(--brand-40) !important;
+}
+.ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate.ant-checkbox-disabled .ant-checkbox-inner {
   background-color: var(--brand-20) !important;
   border-color: transparent !important;
 }
-.dark .ant-checkbox-wrapper:not(.ant-checkbox-wrapper-checked) .ant-checkbox {
+.dark .ant-checkbox-wrapper .ant-checkbox:not(.ant-checkbox-checked) .ant-checkbox-inner {
   border-color: var(--gray-50);
   background-color: var(--gray-100);
 }
-.dark .ant-checkbox-wrapper .ant-checkbox-disabled.ant-checkbox {
+.dark .ant-checkbox-wrapper .ant-checkbox.ant-checkbox-disabled:not(.ant-checkbox-checked) .ant-checkbox-inner {
   background-color: rgb(from var(--gray-05) r g b / 0.2);
   border-color: var(--gray-60) !important;
 }
-.dark .ant-checkbox-wrapper.ant-checkbox-wrapper-checked .ant-checkbox-disabled.ant-checkbox {
+.dark .ant-checkbox-wrapper .ant-checkbox-checked.ant-checkbox-disabled .ant-checkbox-inner {
   background-color: var(--brand-70) !important;
   border-color: transparent !important;
 }
-.dark .ant-checkbox-wrapper.ant-checkbox-wrapper-checked .ant-checkbox-disabled:after {
+.dark .ant-checkbox-wrapper .ant-checkbox-checked.ant-checkbox-disabled .ant-checkbox-inner:after {
   border-color: rgb(from var(--gray-05) r g b / 0.3);
 }
-.dark .ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate {
+.dark .ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate .ant-checkbox-inner {
   border-color: transparent !important;
 }
-.dark .ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate::after {
+.dark .ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate .ant-checkbox-inner::after {
   background-color: rgb(from var(--gray-05) r g b / 0.3);
 }
-.dark .ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate.ant-checkbox-disabled {
+.dark .ant-checkbox-wrapper .ant-checkbox-indeterminate.ant-checkbox-indeterminate.ant-checkbox-disabled .ant-checkbox-inner {
   background-color: var(--brand-70) !important;
+  border-color: transparent !important;
 }
 
 /* Switch 组件样式（占位，待填充 token 映射） */
 .ant-switch {
-  height: 20px;
-  line-height: 20px;
-  min-width: 38px;
+  height: 1.25rem;
+  line-height: 1.25rem;
+  min-width: 2.375rem;
   background-color: var(--gray-30);
 }
 .ant-switch .ant-switch-handle {
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
 }
 .ant-switch.ant-switch-checked {
   background-color: var(--brand-50);
 }
 .ant-switch.ant-switch-checked .ant-switch-handle {
-  inset-inline-start: calc(100% - 18px);
+  inset-inline-start: calc(100% - 1.125rem);
 }
 .ant-switch.ant-switch-disabled {
   background-color: var(--gray-10);
@@ -770,11 +825,11 @@ input.ant-input.ant-input-sm {
   background-color: var(--brand-20);
 }
 .ant-switch .ant-switch-inner .ant-switch-inner-unchecked {
-  margin-top: -20px;
+  margin-top: -1.25rem;
 }
 .ant-switch .ant-switch-inner .ant-switch-inner-checked,
 .ant-switch .ant-switch-inner .ant-switch-inner-unchecked {
-  min-height: 20px;
+  min-height: 1.25rem;
 }
 .dark .ant-switch {
   background-color: var(--gray-60);
@@ -873,15 +928,14 @@ input.ant-input.ant-input-sm {
 
 /* Rate 组件样式（占位，待填充 token 映射） */
 .ant-rate .ant-rate-star {
-  margin-inline-end: var(--spacing-2);
+  margin-inline-end: 0.5rem;
 }
 .ant-rate .anticon svg {
   color: var(--yellow-50);
 }
 
-/* Table 组件样式（占位，待填充 token 映射） */
+/* Table 组件样式（token 映射；单元格高度按尺寸区分，rem：大 2.5rem / 中 2rem / 小 1.75rem） */
 .ant-table {
-  font-size: var(--font-size-md);
   font-family: var(--font-family);
 }
 .ant-table .ant-table-content {
@@ -890,33 +944,58 @@ input.ant-input.ant-input-sm {
 }
 .ant-table .ant-table-content .ant-table-column-sorters {
   justify-content: flex-start;
+  max-width: 100%;
 }
 .ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-title {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter {
   display: inline-flex;
   align-items: center;
   line-height: 0;
-  margin-inline-start: 8px;
+  margin-inline-start: 0.5rem;
 }
 .ant-table .ant-table-content .ant-table-filter-column {
   justify-content: flex-start;
+  align-items: center;
+}
+.ant-table .ant-table-content .ant-table-filter-column > .ant-table-column-title:has(> .ant-table-column-sorters) {
+  display: contents;
+}
+.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorters {
+  display: contents;
 }
 .ant-table .ant-table-content .ant-table-filter-column .ant-table-column-title {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ant-table .ant-table-content .ant-table-filter-column .ant-table-filter-trigger {
-  margin-inline-start: 8px;
+  order: 1;
+  margin-inline-start: 0.5rem;
   margin-inline-end: 0;
 }
+.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter {
+  order: 2;
+}
 .ant-table .ant-table-content .ant-table-thead > tr > th {
-  padding: 0.5625rem 8px;
-  line-height: 1.5714;
+  height: 2.5rem;
+  line-height: 2.5rem;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--color-text-primary);
   background-color: var(--gray-05);
   border-top: none !important;
-  border-bottom: none !important;
+  border-bottom: 1px solid var(--gray-05);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-normal);
 }
 .ant-table .ant-table-content .ant-table-thead > tr > th::before {
   background-color: var(--gray-20) !important;
@@ -928,27 +1007,30 @@ input.ant-input.ant-input-sm {
 .ant-table .ant-table-content .ant-table-thead > tr > th:last-child {
   border-start-end-radius: 0 !important;
 }
-.ant-table .ant-table-content .ant-table-tbody > tr > td {
-  padding: 0.5625rem 8px;
+.ant-table .ant-table-content .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
+  height: 2.5rem;
   line-height: 1.5714;
+  vertical-align: middle;
+  /* 子元素顶部对齐行框顶，高内容铺满行框，消除 strut 基线对齐多出的高度 */
+  padding: 0 0.5rem;
+  box-sizing: border-box;
   color: var(--color-text-primary);
+  font-size: var(--font-size-md);
   border-bottom: 1px solid var(--gray-05);
 }
-/* middle 档 32/32 */
-.ant-table.ant-table-middle .ant-table-content .ant-table-thead > tr > th,
-.ant-table.ant-table-middle .ant-table-content .ant-table-tbody > tr > td {
-  padding-block: 0.3125rem;
+.ant-table .ant-table-content .ant-table-tbody > tr:not(.ant-table-measure-row) > td > * {
+  vertical-align: top;
 }
-/* small 档 28/28 */
-.ant-table.ant-table-small .ant-table-content .ant-table-thead > tr > th,
-.ant-table.ant-table-small .ant-table-content .ant-table-tbody > tr > td {
-  padding-block: 0.1875rem;
+.ant-table .ant-table-content .ant-table-tbody > tr:not(.ant-table-measure-row):not(.ant-table-expanded-row) > td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .ant-table .ant-table-content .ant-table-tbody .ant-table-row > .ant-table-cell-row-hover {
-  background-color: var(--brand-10);
+  background-color: rgb(from var(--gray-90) r g b / 0.05) !important;
 }
 .ant-table .ant-table-content .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell {
-  background-color: var(--brand-05);
+  background-color: initial;
 }
 .ant-table .ant-table-content .ant-table-tbody .ant-table-expanded-row .ant-table-cell {
   background-color: rgb(from var(--gray-90) r g b / 0.05);
@@ -956,9 +1038,30 @@ input.ant-input.ant-input-sm {
 .ant-table .ant-table-content .ant-table-tbody .ant-table-column-sort {
   background: initial;
 }
+.ant-table.ant-table-middle .ant-table-content .ant-table-thead > tr > th {
+  height: 2rem;
+  line-height: 2rem;
+  padding: 0 0.5rem;
+}
+.ant-table.ant-table-middle .ant-table-content .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
+  height: 2rem;
+  line-height: 1.5714;
+  padding: 0 0.5rem;
+}
+.ant-table.ant-table-small .ant-table-content .ant-table-thead > tr > th {
+  height: 1.75rem;
+  line-height: 1.75rem;
+  padding: 0 0.5rem;
+}
+.ant-table.ant-table-small .ant-table-content .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
+  height: 1.75rem;
+  line-height: 1.5714;
+  padding: 0 0.5rem;
+}
 .dark .ant-table .ant-table-content .ant-table-thead > tr > th {
   color: var(--color-text-primary);
   background-color: var(--gray-70);
+  border-bottom: 1px solid rgb(from var(--gray-05) r g b / 0.1);
 }
 .dark .ant-table .ant-table-content .ant-table-thead > tr > th::before {
   background-color: var(--gray-50) !important;
@@ -969,10 +1072,10 @@ input.ant-input.ant-input-sm {
   background-color: transparent;
 }
 .dark .ant-table .ant-table-content .ant-table-tbody .ant-table-row > .ant-table-cell-row-hover {
-  background-color: rgb(from var(--brand-50) r g b / 0.4);
+  background-color: rgb(from var(--gray-70) r g b / 0.4) !important;
 }
 .dark .ant-table .ant-table-content .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell {
-  background-color: rgb(from var(--brand-50) r g b / 0.2);
+  background-color: initial;
 }
 .dark .ant-table .ant-table-content .ant-table-tbody .ant-table-expanded-row .ant-table-cell {
   background-color: rgb(from var(--gray-05) r g b / 0.1);
@@ -981,6 +1084,7 @@ input.ant-input.ant-input-sm {
 /* Tabs 组件样式（占位，待填充 token 映射） */
 .ant-tabs .ant-tabs-tab {
   color: var(--color-text-secondary);
+  padding: 0.375rem 0;
 }
 .ant-tabs .ant-tabs-tab:not(.ant-tabs-tab-disabled):hover {
   color: var(--color-text-primary);
@@ -994,9 +1098,13 @@ input.ant-input.ant-input-sm {
 .ant-tabs .ant-tabs-tab.ant-tabs-tab-disabled {
   color: var(--color-text-disabled);
 }
+.ant-tabs.ant-tabs-card {
+  line-height: 1.5rem;
+}
 .ant-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
   background-color: var(--color-card-gray-disabled);
   border-color: transparent;
+  padding: 0.25rem 1rem;
 }
 .ant-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab.ant-tabs-tab-active {
   border-color: var(--color-border-separator);
@@ -1010,8 +1118,15 @@ input.ant-input.ant-input-sm {
   padding: 0;
   font-size: var(--font-size-md);
 }
+.ant-tabs .ant-tabs-ink-bar {
+  background-color: var(--color-link);
+}
 .ant-tabs-top > .ant-tabs-nav::before {
   border-color: var(--color-border-separator);
+}
+.ant-tabs > .ant-tabs-nav .ant-tabs-nav-add,
+.ant-tabs > div > .ant-tabs-nav .ant-tabs-nav-add {
+  min-height: 1.875rem;
 }
 
 /* Collapse 组件样式（占位，待填充 token 映射） */
@@ -1022,13 +1137,14 @@ input.ant-input.ant-input-sm {
   color: var(--color-text-primary);
 }
 .ant-collapse .ant-collapse-item .ant-collapse-header .ant-collapse-expand-icon {
-  margin-inline-end: var(--spacing-1);
+  margin-inline-end: 0.25rem;
+  padding-inline-end: var(--spacing-0);
 }
-.ant-collapse .ant-collapse-item .ant-collapse-panel {
+.ant-collapse .ant-collapse-item .ant-collapse-content {
   border-color: var(--color-border-separator);
 }
-.ant-collapse .ant-collapse-item .ant-collapse-panel .ant-collapse-body {
-  padding: var(--spacing-3) var(--spacing-4) var(--spacing-4) var(--spacing-8);
+.ant-collapse .ant-collapse-item .ant-collapse-content .ant-collapse-content-box {
+  padding: 0.75rem 1rem 1rem 2rem;
 }
 .dark .ant-collapse .ant-collapse-item {
   border-color: var(--color-text-inverse-disabled);
@@ -1040,60 +1156,60 @@ input.ant-input.ant-input-sm {
 .dark .ant-collapse .ant-collapse-item .ant-collapse-header .ant-collapse-expand-icon {
   color: var(--gray-10);
 }
-.dark .ant-collapse .ant-collapse-item .ant-collapse-panel {
+.dark .ant-collapse .ant-collapse-item .ant-collapse-content {
   border-color: var(--color-text-inverse-disabled);
 }
 
 /* Tag 组件样式（占位，待填充 token 映射） */
 .ant-tag {
-  border-color: transparent;
-  padding: 0 var(--spacing-2);
-  line-height: 24px;
+  border: none;
+  padding: 0 0.5rem;
+  line-height: 1.5rem;
   background-color: var(--color-tag-bg-none);
   color: var(--color-text-primary);
 }
-.ant-tag.ant-tag-processing:not(.ant-tag-disabled).ant-tag-filled {
-  background-color: var(--color-tag-bg-info);
+.ant-tag.ant-tag-processing {
+  background: var(--color-tag-bg-info);
   color: var(--color-tag-text-info);
 }
-.ant-tag.ant-tag-error:not(.ant-tag-disabled).ant-tag-filled {
-  background-color: var(--color-tag-bg-error);
+.ant-tag.ant-tag-error {
+  background: var(--color-tag-bg-error);
   color: var(--color-tag-text-error);
 }
-.ant-tag.ant-tag-warning:not(.ant-tag-disabled).ant-tag-filled {
-  background-color: var(--color-tag-bg-warning);
+.ant-tag.ant-tag-warning {
+  background: var(--color-tag-bg-warning);
   color: var(--color-tag-text-warning);
 }
-.ant-tag.ant-tag-gold:not(.ant-tag-disabled).ant-tag-filled {
-  background-color: var(--color-tag-bg-alert);
+.ant-tag.ant-tag-gold {
+  background: var(--color-tag-bg-alert);
   color: var(--color-tag-text-alert);
 }
-.ant-tag.ant-tag-success:not(.ant-tag-disabled).ant-tag-filled {
-  background-color: var(--color-tag-bg-success);
+.ant-tag.ant-tag-success {
+  background: var(--color-tag-bg-success);
   color: var(--color-tag-text-success);
 }
-.ant-tag.ant-tag-green:not(.ant-tag-disabled).ant-tag-filled {
-  background-color: var(--color-tag-bg-green);
+.ant-tag.ant-tag-green {
+  background: var(--color-tag-bg-green);
   color: var(--color-tag-text-green);
 }
-.ant-tag.ant-tag-magenta:not(.ant-tag-disabled).ant-tag-filled {
-  background-color: var(--color-tag-bg-rose);
+.ant-tag.ant-tag-magenta {
+  background: var(--color-tag-bg-rose);
   color: var(--color-tag-text-rose);
 }
-.ant-tag.ant-tag-pink:not(.ant-tag-disabled).ant-tag-filled {
-  background-color: var(--color-tag-bg-pink);
+.ant-tag.ant-tag-pink {
+  background: var(--color-tag-bg-pink);
   color: var(--color-tag-text-pink);
 }
-.ant-tag.ant-tag-purple:not(.ant-tag-disabled).ant-tag-filled {
-  background-color: var(--color-tag-bg-purple);
+.ant-tag.ant-tag-purple {
+  background: var(--color-tag-bg-purple);
   color: var(--color-tag-text-purple);
 }
-.ant-tag.ant-tag-geekblue:not(.ant-tag-disabled).ant-tag-filled {
-  background-color: var(--color-tag-bg-indigo);
+.ant-tag.ant-tag-geekblue {
+  background: var(--color-tag-bg-indigo);
   color: var(--color-tag-text-indigo);
 }
-.ant-tag.ant-tag-cyan:not(.ant-tag-disabled).ant-tag-filled {
-  background-color: var(--color-tag-bg-cyan);
+.ant-tag.ant-tag-cyan {
+  background: var(--color-tag-bg-cyan);
   color: var(--color-tag-text-cyan);
 }
 .ant-tag.ant-tag-disabled {
@@ -1105,7 +1221,7 @@ input.ant-input.ant-input-sm {
 }
 .ant-tag > .anticon + span,
 .ant-tag > span + .anticon {
-  margin-left: var(--spacing-1);
+  margin-left: 0.25rem;
 }
 .ant-tag .anticon {
   color: var(--color-text-primary);
@@ -1113,12 +1229,12 @@ input.ant-input.ant-input-sm {
 
 /* Badge 组件样式（占位，待填充 token 映射） */
 .ant-badge .ant-badge-count {
-  min-width: 16px;
+  min-width: 1rem;
   border: none;
-  padding: var(--spacing-0-5) var(--spacing-1);
+  padding: 0.125rem 0.25rem;
   font-size: var(--font-size-base);
-  line-height: 12px;
-  height: 18px;
+  line-height: 0.75rem;
+  height: 1.125rem;
   border: 1px solid var(--gray-0);
   box-shadow: 0 0 0 1px var(--gray-0);
   background-color: var(--color-error);
@@ -1139,105 +1255,162 @@ input.ant-input.ant-input-sm {
 }
 
 /* Progress 组件样式（占位，待填充 token 映射） */
-.ant-progress .ant-progress-indicator {
+.ant-progress .ant-progress-text {
   font-size: var(--font-size-base);
   color: var(--color-text-primary);
 }
-.ant-progress.ant-progress-line .ant-progress-rail {
-  background-color: var(--color-border-separator);
-}
-.ant-progress.ant-progress-line .ant-progress-track {
+.ant-progress.ant-progress-line .ant-progress-bg {
   background-color: var(--color-brand);
 }
-.ant-progress.ant-progress-line.ant-progress-status-success .ant-progress-track {
+.ant-progress.ant-progress-line.ant-progress-status-success .ant-progress-bg {
   background-color: var(--mint-50);
 }
-.dark .ant-progress.ant-progress-line.ant-progress-status-success .ant-progress-track {
+.ant-progress.ant-progress-line.ant-progress-status-success .ant-progress-inner:not(.ant-progress-circle-gradient) .ant-progress-circle-path {
+  stroke: var(--mint-50);
+}
+.ant-progress.ant-progress-line.ant-progress-status-exception .ant-progress-bg {
+  background-color: var(--color-error);
+}
+.ant-progress.ant-progress-line.ant-progress-status-exception .ant-progress-text {
+  color: var(--color-error);
+}
+.ant-progress.ant-progress-line.ant-progress-status-exception .ant-progress-inner:not(.ant-progress-circle-gradient) .ant-progress-circle-path {
+  stroke: var(--color-error);
+}
+.ant-progress.ant-progress-circle.ant-progress-status-success .ant-progress-text {
+  color: var(--mint-50);
+}
+.ant-progress.ant-progress-circle.ant-progress-status-success .ant-progress-inner:not(.ant-progress-circle-gradient) .ant-progress-circle-path {
+  stroke: var(--mint-50);
+}
+.ant-progress.ant-progress-circle.ant-progress-status-exception .ant-progress-text {
+  color: var(--color-error);
+}
+.ant-progress.ant-progress-circle.ant-progress-status-exception .ant-progress-inner:not(.ant-progress-circle-gradient) .ant-progress-circle-path {
+  stroke: var(--color-error);
+}
+.dark .ant-progress.ant-progress-line.ant-progress-status-success .ant-progress-bg {
   background-color: var(--mint-40);
+}
+.dark .ant-progress.ant-progress-line.ant-progress-status-success .ant-progress-inner:not(.ant-progress-circle-gradient) .ant-progress-circle-path {
+  stroke: var(--mint-40);
 }
 
 /* Steps 组件样式（占位，待填充 token 映射） */
-.ant-steps-title-horizontal.ant-steps-horizontal .ant-steps-item-wrapper {
-  column-gap: var(--spacing-3);
+.ant-steps .ant-steps-item.ant-steps-item-process.ant-steps-item-active .ant-steps-item-container .ant-steps-item-icon {
+  border-color: var(--color-border-focus);
+  background-color: var(--color-brand);
+  color: var(--color-border-focus);
 }
-.ant-steps-small.ant-steps-title-horizontal.ant-steps-horizontal .ant-steps-item-wrapper {
-  column-gap: var(--spacing-2);
+.ant-steps .ant-steps-item.ant-steps-item-process.ant-steps-item-active .ant-steps-item-container .ant-steps-item-content .ant-steps-item-title {
+  color: var(--color-link);
 }
-.ant-steps-title-vertical > .ant-steps-item .ant-steps-item-wrapper {
-  row-gap: var(--spacing-2);
+.ant-steps .ant-steps-item.ant-steps-item-process.ant-steps-item-active .ant-steps-item-container .ant-steps-item-content .ant-steps-item-description {
+  color: var(--color-link);
 }
-.ant-steps-title-horizontal.ant-steps-vertical .ant-steps-item-wrapper {
-  column-gap: var(--spacing-3);
+.ant-steps .ant-steps-item.ant-steps-item-process .ant-steps-item-container .ant-steps-item-content .ant-steps-item-title::after {
+  background-color: var(--color-border-separator);
 }
-.ant-steps-small.ant-steps-title-horizontal.ant-steps-vertical .ant-steps-item-wrapper {
-  column-gap: var(--spacing-2);
+.ant-steps .ant-steps-item.ant-steps-item-process .ant-steps-item-container .ant-steps-item-tail::after {
+  background-color: var(--color-border-separator);
 }
-.ant-steps-title-horizontal.ant-steps-horizontal .ant-steps-item:not(:first-child) {
-  margin-inline-start: var(--spacing-3);
+.ant-steps .ant-steps-item.ant-steps-item-wait .ant-steps-item-container .ant-steps-item-icon {
+  border-color: var(--color-border);
+  color: var(--color-text-placeholder);
+  background-color: var(--color-fill);
 }
-.ant-steps-small.ant-steps-title-horizontal.ant-steps-horizontal .ant-steps-item:not(:first-child) {
-  margin-inline-start: var(--spacing-2);
+.ant-steps .ant-steps-item.ant-steps-item-wait .ant-steps-item-container .ant-steps-item-content .ant-steps-item-title {
+  color: var(--color-text-secondary);
 }
-.ant-steps-title-horizontal.ant-steps-horizontal .ant-steps-item-rail {
-  margin-inline-start: var(--spacing-3);
+.ant-steps .ant-steps-item.ant-steps-item-wait .ant-steps-item-container .ant-steps-item-content .ant-steps-item-title::after {
+  background-color: var(--color-border-separator);
 }
-.ant-steps-title-vertical > .ant-steps-item .ant-steps-item-rail {
-  width: calc(100% - var(--ant-cmp-steps-icon-size) - var(--spacing-2) * 2);
-  inset-inline-start: calc(50% + var(--ant-cmp-steps-icon-size) / 2 + var(--spacing-2));
+.ant-steps .ant-steps-item.ant-steps-item-wait .ant-steps-item-container .ant-steps-item-content .ant-steps-item-description {
+  color: var(--color-text-secondary);
 }
-.ant-steps-small.ant-steps-title-vertical > .ant-steps-item .ant-steps-item-rail {
-  width: calc(100% - var(--ant-cmp-steps-icon-size) - var(--spacing-2) * 2);
-  inset-inline-start: calc(50% + var(--ant-cmp-steps-icon-size) / 2 + var(--spacing-2));
-  margin-inline-start: 0;
+.ant-steps .ant-steps-item.ant-steps-item-wait .ant-steps-item-container .ant-steps-item-tail::after {
+  background-color: var(--color-border-separator);
 }
-.ant-steps .ant-steps-item-rail {
-  border-color: var(--color-border-separator);
+.ant-steps .ant-steps-item .ant-steps-item-title {
+  font-size: var(--font-size-lg);
 }
-.ant-steps .ant-steps-item-rail-process {
-  border-color: var(--brand-50);
+.ant-steps .ant-steps-item.ant-steps-item-finish .ant-steps-item-container .ant-steps-item-content .ant-steps-item-title {
+  color: var(--color-text-primary);
 }
-.ant-steps:not(.ant-steps-dot) .ant-steps-item:not(.ant-steps-item-custom) .ant-steps-item-icon,
-.ant-steps:not(.ant-steps-dot) .ant-steps-item:not(.ant-steps-item-wait) .ant-steps-item-icon {
+.ant-steps .ant-steps-item.ant-steps-item-finish .ant-steps-item-icon {
   border-color: var(--color-border-focus);
   background-color: var(--color-info-primary-subtler);
   color: var(--color-border-focus);
 }
-.ant-steps:not(.ant-steps-dot) .ant-steps-item.ant-steps-item-wait .ant-steps-item-icon {
-  color: var(--color-text-placeholder);
-  background-color: var(--color-fill);
+.ant-steps .ant-steps-item .ant-steps-item-description {
+  font-size: var(--font-size-md);
 }
-.ant-steps:not(.ant-steps-dot) .ant-steps-item-wait.ant-steps-item:not(.ant-steps-item-custom) .ant-steps-item-icon {
-  border-color: var(--color-border);
-}
-.ant-steps:not(.ant-steps-dot) .ant-steps-item:not(.ant-steps-item-custom).ant-steps-item-active .ant-steps-item-icon {
-  border-color: transparent;
-}
-.ant-steps .ant-steps-item:not(.ant-steps-item-wait) .ant-steps-item-title {
-  color: var(--color-text-primary);
-}
-.ant-steps .ant-steps-item.ant-steps-item-wait.ant-steps-item-active .ant-steps-item-title {
-  color: var(--color-link);
-}
-.ant-steps .ant-steps-item.ant-steps-item-wait.ant-steps-item-active .ant-steps-item-content {
-  color: var(--color-link);
-}
-.ant-steps .ant-steps-item .ant-steps-item-title {
-  color: var(--color-text-secondary);
-}
-.ant-steps .ant-steps-item .ant-steps-item-content {
-  color: var(--color-text-secondary);
-}
-.ant-steps .ant-steps-item.ant-steps-item-wait .ant-steps-item-icon {
-  color: var(--color-text-placeholder);
+.ant-steps .ant-steps-item .ant-steps-item-icon {
+  font-size: var(--font-size-md);
+  margin-inline-end: 0.75rem;
 }
 .ant-steps .ant-steps-item-content {
   color: var(--color-text-secondary);
 }
-.ant-steps.ant-steps-small .ant-steps-item-content {
+.ant-steps .ant-steps-item-title {
+  padding-inline-end: 0.75rem;
+}
+.ant-steps.ant-steps-horizontal:not(.ant-steps-label-vertical) .ant-steps-item {
+  padding-inline-start: 0.75rem;
+}
+.ant-steps.ant-steps-small .ant-steps-item-content .ant-steps-item-title {
+  font-size: var(--font-size-md);
+}
+.ant-steps.ant-steps-small .ant-steps-item-content .ant-steps-item-description {
   font-size: var(--font-size-base);
 }
 .ant-steps.ant-steps-small .ant-steps-item-rail {
   margin-inline-start: var(--spacing-2);
+}
+.ant-steps.ant-steps-small .ant-steps-item-title {
+  padding-inline-end: 0.5rem;
+}
+.ant-steps.ant-steps-small .ant-steps-item-icon {
+  margin-inline-end: 0.5rem;
+}
+.ant-steps.ant-steps-small.ant-steps-horizontal:not(.ant-steps-label-vertical) .ant-steps-item {
+  padding-inline-start: 0.5rem;
+}
+.ant-steps.ant-steps-label-vertical .ant-steps-item-icon {
+  margin-inline-end: 0.5rem;
+}
+.ant-steps.ant-steps-label-vertical .ant-steps-item-content {
+  margin-top: 0.5rem;
+}
+.ant-steps.ant-steps-dot.ant-steps-label-vertical .ant-steps-item-content {
+  margin-top: 0.25rem;
+}
+.ant-steps.ant-steps-dot .ant-steps-item-title {
+  font-size: var(--font-size-base);
+}
+.ant-steps.ant-steps-dot .ant-steps-item-icon {
+  margin-inline-end: 0.25rem;
+  border: 1px solid transparent;
+}
+.ant-steps.ant-steps-dot .ant-steps-item-icon .ant-steps-icon-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+.ant-steps.ant-steps-dot .ant-steps-item-tail::after {
+  margin-inline-start: 0.5rem;
+  width: calc(100% - 1rem);
+  height: 1px;
+}
+.ant-steps.ant-steps-dot .ant-steps-item-process.ant-steps-item-active .ant-steps-item-container .ant-steps-item-icon {
+  border-color: transparent;
+}
+.ant-steps.ant-steps-dot .ant-steps-item-process .ant-steps-item-icon {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+.ant-steps.ant-steps-dot .ant-steps-item.ant-steps-item-wait .ant-steps-item-icon > .ant-steps-icon .ant-steps-icon-dot {
+  border-color: var(--color-border);
+  background-color: var(--color-fill);
 }
 .ant-steps.ant-steps-panel .ant-steps-item .ant-steps-item-content {
   font-size: var(--font-size-base);
@@ -1297,37 +1470,38 @@ input.ant-input.ant-input-sm {
 
 /* Pagination 组件样式（占位，待填充 token 映射） */
 .ant-pagination {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .ant-pagination .ant-pagination-total-text {
   color: var(--gray-90);
-  margin-right: var(--spacing-2);
+  margin-right: 0.5rem;
 }
 .ant-pagination .ant-pagination-prev,
 .ant-pagination .ant-pagination-next {
-  margin-right: var(--spacing-2);
-  height: 24px !important;
-  min-width: 24px;
-  margin-inline-end: var(--spacing-2);
+  margin-right: 0.5rem;
+  height: 1.5rem !important;
+  min-width: 1.5rem;
+  margin-inline-end: 0.5rem;
 }
 .ant-pagination .ant-pagination-prev .ant-pagination-item-link,
 .ant-pagination .ant-pagination-next .ant-pagination-item-link {
-  width: 24px !important;
+  width: 1.5rem !important;
 }
 .ant-pagination .ant-pagination-prev .ant-pagination-item-link .anticon,
 .ant-pagination .ant-pagination-next .ant-pagination-item-link .anticon {
-  width: 10px;
-  height: 10px;
+  width: 0.625rem;
+  height: 0.625rem;
 }
 .ant-pagination .ant-pagination-item {
-  margin-right: var(--spacing-2);
+  margin-right: 0.5rem;
   color: var(--gray-90);
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
+  line-height: 2rem;
 }
 .ant-pagination .ant-pagination-item a:hover {
   text-decoration: none;
-  background-color: color-mix(in srgb, var(--gray-90) 50%, transparent);
+  background-color: color-mix(in srgb, var(--gray-90) 5%, transparent);
   color: var(--gray-90);
 }
 .ant-pagination .ant-pagination-item-active {
@@ -1351,54 +1525,28 @@ input.ant-input.ant-input-sm {
 }
 .ant-pagination .ant-pagination-options .ant-pagination-options-quick-jumper input {
   color: var(--gray-90);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .dark {
   /* Pagination 组件样式（占位，待填充 token 映射） */
 }
-.dark .ant-pagination {
-  font-size: 14px;
-}
 .dark .ant-pagination .ant-pagination-total-text {
   color: var(--gray-0);
-  margin-right: var(--spacing-2);
-}
-.dark .ant-pagination .ant-pagination-prev,
-.dark .ant-pagination .ant-pagination-next {
-  margin-right: var(--spacing-2);
-  height: 24px !important;
-  min-width: 24px;
-  margin-inline-end: var(--spacing-2);
-}
-.dark .ant-pagination .ant-pagination-prev .ant-pagination-item-link,
-.dark .ant-pagination .ant-pagination-next .ant-pagination-item-link {
-  width: 24px !important;
-}
-.dark .ant-pagination .ant-pagination-prev .ant-pagination-item-link .anticon,
-.dark .ant-pagination .ant-pagination-next .ant-pagination-item-link .anticon {
-  width: 10px;
-  height: 10px;
 }
 .dark .ant-pagination .ant-pagination-item {
-  margin-right: var(--spacing-2);
   color: var(--gray-0);
-  width: 32px;
-  height: 32px;
 }
 .dark .ant-pagination .ant-pagination-item a:hover {
-  text-decoration: none;
   background-color: color-mix(in srgb, var(--brand-05) 20%, transparent);
   color: var(--gray-0);
 }
 .dark .ant-pagination .ant-pagination-item-active {
   background-color: color-mix(in srgb, var(--brand-50) 40%, transparent);
-  border: none;
   font-weight: var(--font-weight-normal);
   color: var(--gray-0) !important;
 }
 .dark .ant-pagination .ant-pagination-item-active a {
   background-color: color-mix(in srgb, var(--brand-50) 40%, transparent);
-  border: none;
   font-weight: var(--font-weight-normal);
   color: var(--gray-0) !important;
 }
@@ -1406,9 +1554,6 @@ input.ant-input.ant-input-sm {
   color: var(--gray-0);
   background-color: color-mix(in srgb, var(--brand-50) 40%, transparent);
   font-weight: var(--font-weight-normal);
-}
-.dark .ant-pagination .ant-pagination-options {
-  margin-inline-start: 0;
 }
 .dark .ant-pagination .ant-pagination-options .ant-select-dropdown .ant-select-item .ant-select-item-option-content {
   font-weight: var(--font-weight-normal) !important;
@@ -1418,7 +1563,6 @@ input.ant-input.ant-input-sm {
 }
 .dark .ant-pagination .ant-pagination-options .ant-pagination-options-quick-jumper input {
   color: var(--gray-90);
-  font-size: 14px;
 }
 
 .ant-tooltip {
@@ -1450,18 +1594,19 @@ input.ant-input.ant-input-sm {
 }
 
 /* Timeline 组件样式（占位，待填充 token 映射） */
-.ant-steps .ant-steps-item .ant-steps-item-wrapper {
-  column-gap: var(--spacing-2);
+.ant-timeline .ant-timeline-item {
+  padding-bottom: 1rem;
 }
-.ant-steps .ant-steps-item .ant-steps-item-wrapper .ant-steps-item-icon {
-  font-size: var(--font-size-md);
+.ant-timeline .ant-timeline-item .ant-timeline-item-head {
+  width: 0.875rem;
+  height: 0.875rem;
 }
-.ant-steps .ant-steps-item .ant-steps-item-wrapper .ant-steps-item-section {
-  gap: var(--spacing-8) !important;
+.ant-timeline.ant-timeline-start .ant-timeline-item .ant-timeline-item-tail {
+  inset-inline-start: 0.375rem;
 }
-.ant-steps .ant-steps-item .ant-steps-item-wrapper .ant-steps-item-section .ant-steps-item-header .ant-steps-item-rail {
-  margin-top: var(--spacing-1);
-  margin-bottom: var(--spacing-1);
+.ant-timeline.ant-timeline-alternate .ant-timeline-item .ant-timeline-item-head,
+.ant-timeline.ant-timeline-right .ant-timeline-item .ant-timeline-item-head {
+  margin-inline-start: -0.375rem;
 }
 
 /* Tree 组件样式（占位，待填充 token 映射） */
@@ -1470,14 +1615,14 @@ input.ant-input.ant-input-sm {
 }
 .ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-treenode {
   margin-bottom: var(--spacing-0);
-  line-height: var(--spacing-7);
-  padding: var(--spacing-1) 0;
+  line-height: 1.75rem;
+  padding: 0.25rem 0;
 }
 .ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-switcher {
-  width: var(--spacing-4);
-  height: var(--spacing-4);
-  line-height: var(--spacing-4);
-  margin-right: var(--spacing-2);
+  width: 1rem;
+  height: 1rem;
+  line-height: 1rem;
+  margin-right: 0.5rem;
   align-self: center;
 }
 .ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-switcher:hover {
@@ -1485,13 +1630,13 @@ input.ant-input.ant-input-sm {
   border-radius: var(--radius-base);
 }
 .ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-switcher::before {
-  width: var(--spacing-4);
-  height: var(--spacing-4);
+  width: 1rem;
+  height: 1rem;
 }
 .ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-checkbox {
   margin-top: var(--spacing-0);
   align-self: center;
-  margin-right: var(--spacing-2);
+  margin-right: 0.5rem;
 }
 .ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-node-content-wrapper:hover {
   background: var(--color-fill);
@@ -1503,13 +1648,13 @@ input.ant-input.ant-input-sm {
 
 /* Segmented 组件样式（占位，待填充 token 映射） */
 .ant-segmented .ant-segmented-group {
-  gap: var(--spacing-1);
+  gap: 0.25rem;
   background: var(--color-fill);
   color: var(--color-text-secondary);
   border-radius: var(--radius-md);
 }
 .ant-segmented .ant-segmented-group .ant-segmented-item-label {
-  padding: 0 var(--spacing-4);
+  padding: 0 1rem;
 }
 .ant-segmented .ant-segmented-group .ant-segmented-item:not(.ant-segmented-item-disabled):hover {
   color: var(--gray-90);
@@ -1518,15 +1663,15 @@ input.ant-input.ant-input-sm {
 .ant-segmented .ant-segmented-group .ant-segmented-item.ant-segmented-item-disabled {
   color: var(--gray-20);
 }
-.ant-segmented .ant-segmented-group .ant-segmented-item-selected-text {
+.ant-segmented .ant-segmented-group .ant-segmented-item-selected {
   color: var(--gray-0);
   background: var(--brand-50);
 }
-.ant-segmented .ant-segmented-group .ant-segmented-item-selected-text:not(.ant-segmented-item-disabled):hover {
+.ant-segmented .ant-segmented-group .ant-segmented-item-selected:not(.ant-segmented-item-disabled):hover {
   color: var(--gray-0);
   background: var(--brand-40);
 }
-.ant-segmented .ant-segmented-group .ant-segmented-item-selected-text.ant-segmented-item-disabled {
+.ant-segmented .ant-segmented-group .ant-segmented-item-selected.ant-segmented-item-disabled {
   color: var(--gray-0);
   background: var(--brand-20);
 }
@@ -1545,22 +1690,22 @@ input.ant-input.ant-input-sm {
 .dark .ant-segmented-group .ant-segmented-item.ant-segmented-item-disabled .ant-segmented-item-icon {
   color: var(--gray-40);
 }
-.dark .ant-segmented-group .ant-segmented-item-selected-text {
+.dark .ant-segmented-group .ant-segmented-item-selected {
   color: var(--gray-0);
   background: var(--brand-50);
 }
-.dark .ant-segmented-group .ant-segmented-item-selected-text .ant-segmented-item-icon {
+.dark .ant-segmented-group .ant-segmented-item-selected .ant-segmented-item-icon {
   color: var(--gray-0);
 }
-.dark .ant-segmented-group .ant-segmented-item-selected-text:not(.ant-segmented-item-disabled):hover {
+.dark .ant-segmented-group .ant-segmented-item-selected:not(.ant-segmented-item-disabled):hover {
   color: var(--gray-0);
   background: var(--brand-40);
 }
-.dark .ant-segmented-group .ant-segmented-item-selected-text.ant-segmented-item-disabled {
+.dark .ant-segmented-group .ant-segmented-item-selected.ant-segmented-item-disabled {
   color: var(--color-text-inverse-disabled);
   background: var(--brand-70);
 }
-.dark .ant-segmented-group .ant-segmented-item-selected-text.ant-segmented-item-disabled .ant-segmented-item-icon {
+.dark .ant-segmented-group .ant-segmented-item-selected.ant-segmented-item-disabled .ant-segmented-item-icon {
   color: var(--color-text-inverse-disabled);
 }
 
@@ -1569,7 +1714,7 @@ input.ant-input.ant-input-sm {
   box-shadow: var(--shadow-l-base);
 }
 .ant-drawer .ant-drawer-content-wrapper .ant-drawer-section .ant-drawer-header {
-  padding: 20px 24px 16px;
+  padding: 1.25rem 1.5rem 1rem;
   border-bottom: none;
 }
 .ant-drawer .ant-drawer-content-wrapper .ant-drawer-section .ant-drawer-header .ant-drawer-header-title .ant-drawer-title {
@@ -1582,117 +1727,91 @@ input.ant-input.ant-input-sm {
   margin-inline-start: auto;
 }
 .ant-drawer .ant-drawer-content-wrapper .ant-drawer-section .ant-drawer-header .ant-drawer-header-title .ant-drawer-close .anticon {
-  font-size: 14px;
+  font-size: var(--font-size-md);
 }
 .ant-drawer .ant-drawer-content-wrapper .ant-drawer-section .ant-drawer-header .ant-drawer-header-title .ant-drawer-close .anticon svg {
-  width: 14px;
-  height: 14px;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 .ant-drawer .ant-drawer-content-wrapper .ant-drawer-section .ant-drawer-body {
-  padding: 0 24px 24px;
+  padding: 0 1.5rem 1.5rem;
 }
 .dark .ant-drawer .ant-drawer-content-wrapper .ant-drawer-section {
   background-color: var(--gray-80);
 }
 
 /* Modal 组件样式（占位，待填充 token 映射） */
-.ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container {
+.ant-modal .ant-modal-title {
+  font-size: var(--font-size-2xl);
+  color: var(--gray-90);
+}
+.ant-modal .ant-modal-content {
+  background-color: #ffffff;
   position: relative;
   background-clip: padding-box;
   border: 0;
   border-radius: var(--radius-lg);
   pointer-events: auto;
-  padding: var(--spacing-6);
+  padding: var(--spacing-6) !important;
 }
-.ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-header {
+.ant-modal .ant-modal-header {
   color: var(--gray-90);
-  margin-bottom: var();
-  padding: var(--ant-modal-header-padding);
   border-bottom: var(--spacing-4);
 }
-.ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-header .ant-modal-title {
-  font-size: 20px;
+.ant-modal .ant-modal-header .ant-modal-title {
+  font-size: var(--font-size-2xl);
   color: var(--gray-90);
 }
-.ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-body .ant-typography.ant-typography-secondary,
-.ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-body .ant-typography.ant-typography-link.ant-typography-secondary {
+.ant-modal .ant-modal-body .ant-typography.ant-typography-secondary,
+.ant-modal .ant-modal-body .ant-typography.ant-typography-link.ant-typography-secondary {
   color: var(--gray-90);
 }
-.ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn {
+.ant-btn.ant-btn-color-default {
   border-radius: var(--radius-base);
-  height: 36px;
-  line-height: 36px;
-  border: 1px solid var(--gray-20);
-  color: var(--gray-90);
 }
-.ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn span {
-  font-size: 14px;
-}
-.ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn-default:hover {
-  border: 1px solid var(--gray-90);
-}
-.ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn-default:active {
-  border: 1px solid var(--brand-50);
-}
-.ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn-primary {
+.ant-btn.ant-btn-color-primary {
   background-color: var(--brand-50);
+  border-radius: var(--radius-base);
   color: var(--gray-0);
 }
-.ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn-primary:hover {
-  background-color: var(--brand-40);
-  color: var(--gray-0);
-}
-.ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn-primary:active {
+.ant-btn.ant-btn-color-primary:not(:disabled):hover {
   background-color: var(--brand-60);
   color: var(--gray-0);
 }
-.dark .ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container {
-  position: relative;
-  background-clip: padding-box;
-  border: 0;
+.dark .ant-modal {
+  background-color: color-mix(in srgb, #000000 70%, transparent) !important;
+}
+.dark .ant-modal .ant-modal-title {
+  color: var(--gray-0);
+}
+.dark .ant-modal .ant-modal-content {
+  background-color: var(--gray-70);
   border-radius: var(--radius-lg);
-  pointer-events: auto;
-  padding: var(--spacing-6);
-}
-.dark .ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-header {
+  padding: var(--spacing-6) !important;
   color: var(--gray-0);
-  margin-bottom: var();
-  padding: var(--ant-modal-header-padding);
+}
+.dark .ant-modal .ant-modal-content .ant-modal-body .ant-typography.ant-typography-secondary,
+.dark .ant-modal .ant-modal-content .dark .ant-modal .ant-modal-body .ant-typography.ant-typography-link.ant-typography-secondary {
+  color: var(--gray-0);
+}
+.dark .ant-modal .ant-modal-header {
+  color: var(--gray-0);
   border-bottom: var(--spacing-4);
+  background-color: var(--gray-70);
 }
-.dark .ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-header .ant-modal-title {
-  font-size: 20px;
-  color: var(--gray-0);
+.dark .ant-modal .ant-modal-body .ant-typography.ant-typography-secondary,
+.dark .ant-modal .ant-modal-body .ant-typography.ant-typography-link.ant-typography-secondary {
+  color: var(--gray-90);
 }
-.dark .ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-body .ant-typography.ant-typography-secondary,
-.dark .ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-body .ant-typography.ant-typography-link.ant-typography-secondary {
-  color: var(--gray-0);
-}
-.dark .ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn {
+.dark .ant-btn.ant-btn-color-default {
   border-radius: var(--radius-base);
-  height: 36px;
-  line-height: 36px;
-  border: 1px solid var(--gray-50);
-  color: var(--gray-0);
 }
-.dark .ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn span {
-  font-size: 14px;
-}
-.dark .ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn-default:hover {
-  border: 1px solid var(--gray-05);
-}
-.dark .ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn-default:active {
-  border: 1px solid var(--brand-40);
-}
-.dark .ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn-primary {
+.dark .ant-btn.ant-btn-color-primary {
   background-color: var(--brand-50);
+  border-radius: var(--radius-base);
   color: var(--gray-0);
 }
-.dark .ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn-primary:hover {
-  background-color: var(--brand-40);
-  color: var(--gray-0);
-}
-.dark .ant-modal-root .ant-modal-wrap .ant-modal .ant-modal-container .ant-modal-footer .ant-btn-primary:active {
+.dark .ant-btn.ant-btn-color-primary:not(:disabled):hover {
   background-color: var(--brand-60);
   color: var(--gray-0);
 }
@@ -1700,28 +1819,25 @@ input.ant-input.ant-input-sm {
 /* Breadcrumb 组件样式（占位，待填充 token 映射） */
 .ant-breadcrumb .ant-breadcrumb-item {
   color: var(--gray-50);
-  font-size: 14px;
+  font-size: var(--font-size-md);
 }
 .ant-breadcrumb .ant-breadcrumb-item:last-child {
   color: var(--gray-90);
 }
 .ant-breadcrumb .ant-breadcrumb-separator {
-  width: 12px;
+  width: 0.75rem;
   text-align: center;
-  margin-inline: var(--spacing-1);
+  margin-inline: 0.25rem;
   color: var(--gray-20);
 }
 .dark .ant-breadcrumb .ant-breadcrumb-item {
   color: var(--gray-20);
-  font-size: 14px;
+  font-size: var(--font-size-md);
 }
 .dark .ant-breadcrumb .ant-breadcrumb-item:last-child {
   color: var(--gray-0);
 }
 .dark .ant-breadcrumb .ant-breadcrumb-separator {
-  width: 12px;
-  text-align: center;
-  margin-inline: var(--spacing-1);
   color: var(--gray-40);
 }
 
@@ -1731,17 +1847,17 @@ input.ant-input.ant-input-sm {
   border-radius: var(--radius-md);
 }
 .ant-dropdown .ant-dropdown-menu .ant-dropdown-menu-item {
-  padding: var(--spacing-1) var(--spacing-2);
+  padding: 0.25rem 0.5rem;
   color: var(--color-text-primary);
   border-radius: var(--radius-base);
-  line-height: 32px;
+  line-height: 2rem;
 }
 .ant-dropdown .ant-dropdown-menu .ant-dropdown-menu-item:hover {
   background-color: rgb(from var(--gray-90) r g b / 0.05);
 }
 .ant-dropdown .ant-dropdown-menu .ant-dropdown-menu-item-icon {
   font-size: var(--font-size-md);
-  margin-right: var(--spacing-1);
+  margin-right: 0.25rem;
 }
 .dark .ant-dropdown .ant-dropdown-menu .ant-dropdown-menu-item:hover {
   background-color: var(--gray-70);
@@ -1749,10 +1865,10 @@ input.ant-input.ant-input-sm {
 
 /* Menu 导航菜单样式（占位，待填充 token 映射） */
 .ant-menu-inline .ant-menu-submenu .ant-menu-submenu-title {
-  padding-left: var(--spacing-3);
-  padding-right: var(--spacing-3);
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
   color: var(--gray-90);
-  font-size: 14px;
+  font-size: var(--font-size-md);
 }
 .ant-menu-inline .ant-menu-submenu .ant-menu-submenu-title:active {
   color: var(--brand-50);
@@ -1763,7 +1879,7 @@ input.ant-input.ant-input-sm {
   background-color: var(--brand-05) !important;
 }
 .ant-menu-item {
-  font-size: 14px;
+  font-size: var(--font-size-md);
 }
 .ant-menu-light .ant-menu-item-selected,
 .ant-menu-light > .ant-menu .ant-menu-item-selected {
@@ -1779,10 +1895,7 @@ input.ant-input.ant-input-sm {
   background-color: color-mix(in srgb, var(--gray-90) 5%, transparent);
 }
 .dark .ant-menu-inline .ant-menu-submenu .ant-menu-submenu-title {
-  padding-left: var(--spacing-3);
-  padding-right: var(--spacing-3);
   color: var(--gray-0);
-  font-size: 14px;
   background-color: var(--gray-90);
 }
 .dark .ant-menu-inline .ant-menu-submenu .ant-menu-submenu-title .ant-menu-item-icon {
@@ -1795,9 +1908,6 @@ input.ant-input.ant-input-sm {
 .dark .ant-menu-inline .ant-menu-submenu-selecte {
   color: var(--gray-0) !important;
   background-color: color-mix(in srgb, var(--brand-50) 40%, transparent) !important;
-}
-.dark .ant-menu-item {
-  font-size: 14px;
 }
 .dark .ant-menu-light .ant-menu-item-selected,
 .dark .ant-menu-light > .ant-menu .ant-menu-item-selected {
@@ -1813,15 +1923,15 @@ input.ant-input.ant-input-sm {
   background-color: color-mix(in srgb, var(--gray-05) 20%, transparent);
 }
 .ant-menu-vertical .ant-menu-item {
-  width: 48px;
-  height: 48px;
+  width: 3rem;
+  height: 3rem;
   text-align: center;
   display: flex;
   justify-content: center;
 }
 .ant-menu-horizontal .ant-menu-item {
   color: var(--gray-50);
-  font-size: 16px;
+  font-size: var(--font-size-lg);
 }
 .ant-menu-horizontal .ant-menu-item::after {
   border-bottom: 0 !important;
@@ -1841,12 +1951,11 @@ input.ant-input.ant-input-sm {
 .ant-menu-horizontal .ant-menu-item-selected::after {
   border-bottom: 2px solid var(--brand-50) !important;
 }
+.ant-menu-inline-collapsed > .ant-menu-item .ant-menu-item-icon + span {
+  position: absolute;
+}
 .dark .ant-menu-horizontal .ant-menu-item {
   color: var(--gray-20);
-  font-size: 16px;
-}
-.dark .ant-menu-horizontal .ant-menu-item::after {
-  border-bottom: 0 !important;
 }
 .dark .ant-menu-horizontal .ant-menu-item:hover {
   color: var(--gray-0);
@@ -1854,9 +1963,6 @@ input.ant-input.ant-input-sm {
 .dark .ant-menu-horizontal .ant-menu-item:active {
   color: var(--brand-30);
   background-color: transparent !important;
-}
-.dark .ant-menu-horizontal .ant-menu-item:hover::after {
-  border-bottom: 0;
 }
 .dark .ant-menu-horizontal .ant-menu-item-selected {
   color: var(--brand-30) !important;
