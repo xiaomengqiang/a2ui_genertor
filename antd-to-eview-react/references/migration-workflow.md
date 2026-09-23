@@ -366,14 +366,15 @@ export const policyTemplates = [
 3. 读 components/<组件>.md 查每个组件完整 API
 4. 读 component-mapping.md 查"关键 API 差异"列
 5. 导入路径改为 import X from '@nce/eview-react/X'
-6. 遵守 SKILL.md 的"eview-react 硬约束"11 条
+6. 读 <skill目录>/SKILL.md 的"eview-react 硬约束"章节（11 条），严格遵守（<skill目录> 是本 skill 的安装路径，例如 ~/.opencode/skills/antd-to-eview-react）
 
 输出：改了哪些文件 + 每个文件改了哪些组件 + 遗留问题（如某组件无对应标记 TODO）
 ```
 
 - **子 agent 读**：自己那组 reference + 源文件
 - **子 agent 输出**：改动清单 + 遗留问题
-- **主 agent**：合并各子 agent 结果，决定是否追加子 agent 轮次修复遗留问题
+- **主 agent**：从每个子 agent 的最终回复提取 `task_id`（记为 GEN_A_ID / GEN_B_ID / GEN_C_ID）并记录；合并各子 agent 改动清单，决定是否续接修复
+- **续接修复**：若某子 agent 有遗留问题需继续修，**必须传对应 `task_id` 续接同一 session**（如 GEN_A_ID），不要另起新 session——新 agent 丢失之前的产物结构与改动上下文。把遗留问题逐条原样传给该子 agent
 
 ## 步骤 4：提取 CSS token
 
@@ -484,7 +485,11 @@ npm run dev
 
 ### 5.6 派发子 agent：验证
 
-步骤 5 的脚本输出 + npm install/dev 日志可能几百行，主 agent 只需 pass/fail + 问题列表。用 Task 工具派发 general 子 agent：
+步骤 5 的脚本输出 + npm install/dev 日志可能几百行，主 agent 只需 pass/fail + 问题列表。用 Task 工具派发 general 子 agent。
+
+**测试结果文件**（主 agent 判定依据）：`<目标工程根>/.migration-result.json`。验证子 agent 每轮覆盖写入，主 agent 用 `read` 工具读其 `status` 字段判定（**不信子 agent 口头结论**）。
+
+**循环上限**：默认 5 轮（round 1 首次验证，round 2~5 修复后重测）。第 5 轮仍 FAIL 必须停止，向用户报告失败项 + 建议人工介入。用户可在消息里指定别的上限。
 
 **任务描述模板：**
 
@@ -496,14 +501,28 @@ npm run dev
 4. npm run dev，报告是否启动成功（失败贴报错）
 5. 按 <skill目录>/references/migration-workflow.md §5.4 功能验证清单逐项检查
 
-输出：
-- check-relative-imports: PASS / FAIL（附问题列表）
-- check-i18n-keys: PASS / FAIL（附问题列表）
-- npm install: PASS / FAIL
-- npm run dev: PASS / FAIL
-- 功能验证清单: X/Y 项通过（附未通过项）
+完成后必须：
+1. 把结果写入 <目标工程根>/.migration-result.json（覆盖写），JSON 结构：
+   {
+     "status": "PASS" 或 "FAIL",
+     "round": {round},
+     "failures": ["失败点 1", "失败点 2", ...],
+     "checks": {
+       "relative-imports": "PASS/FAIL",
+       "i18n-keys": "PASS/FAIL",
+       "npm-install": "PASS/FAIL",
+       "npm-run-dev": "PASS/FAIL",
+       "functional": "X/Y"
+     },
+     "notes": "可选说明"
+   }
+   - 所有验收项全过 → status="PASS"，failures=[]
+   - 任一不过 → status="FAIL"，failures 逐条写清具体失败点（要可操作，让修复 agent 知道改哪、怎么改）
+2. 在最终回复返回 PASS/FAIL。
+
+本轮轮号：{round}
 ```
 
 - **子 agent 读**：migration-workflow.md §5.4
-- **子 agent 输出**：验证结果摘要
-- **主 agent**：若 FAIL 则回到步骤 3 派子 agent 续接修复，再回到 §5.6 重测
+- **子 agent 输出**：把结果写入 `<目标工程根>/.migration-result.json`（覆盖写）并在最终回复返回 PASS/FAIL
+- **主 agent**：用 `read` 工具读 `.migration-result.json` 的 `status` 字段判定（不信子 agent 口头结论）。若 FAIL，取 `failures` 数组，回到步骤 3 续接对应组件类别的子 agent 修复（**传其 task_id 续接同一 session**），再回到 §5.6 续接验证子 agent 重测（**传验证子 agent 的 task_id**，round = 上轮 + 1）。达 5 轮上限仍 FAIL 必须停止

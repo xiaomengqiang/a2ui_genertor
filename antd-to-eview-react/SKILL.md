@@ -3,6 +3,7 @@ name: antd-to-eview-react
 description: >-
   将基于 antd 的 React 项目迁移到 @nce/eview-react（HUI Eview React，ICT 3.1）的专项 Skill。
   提供组件映射总表、Form 模式转换、未覆盖组件手写模板、CSS token 映射、命名异常速查及五步迁移工作流。
+  工作流为混合编排：主 agent 亲自执行骨架搭建与 Provider 切换（步骤 1-2），派发 explore/general 子 agent 执行评估、逐组件替换、验证（步骤 0/3/4/5）；子 agent 续接修复必须传 task_id 保持 session，验证结果写入文件供主 agent 判定。
   务必在以下场景使用：将 antd 项目迁移到 eview-react、把 antd 组件改写为 eview-react、
   评估迁移可行性、遇到 Form/Steps/Modal 等模式转换问题、
   需要将 Layout/Menu/Breadcrumb/Avatar/Descriptions 等组件替换为 eview-react 等价实现。
@@ -41,6 +42,23 @@ description: >-
 | **3. 逐组件替换** | 按映射总表替换每个 antd 组件；Form 模式单独按 [form-migration.md](references/form-migration.md) 转换；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写 | 组件代码全部替换 | 按组件类别派发 2-3 个 general 子 agent 并行（[§3.6](references/migration-workflow.md)） |
 | **4. 提取 CSS token** | 将源项目内联 token 填入骨架的 `src/styles/tokens.css`、`.dark` 覆盖填入 `src/styles/theme-dark.css`（见 [css-token-mapping.md](references/css-token-mapping.md)），布局 CSS 不改 | 样式跟随主题 | 派发 general 子 agent（可选） |
 | **5. 验证** | `npm install` / `npm run dev` 前先跑两个静态检查：相对导入解析（`scripts/check-relative-imports.cjs`）与 i18n 动态 key（`scripts/check-i18n-keys.cjs`，两种调用方式见 [migration-workflow.md](references/migration-workflow.md) §5.1/§5.2）；再做构建与功能验证 | import/i18n/构建/功能通过 | 派发 general 子 agent（[§5.6](references/migration-workflow.md)） |
+
+### 编排边界（主 agent 亲自做 vs 派发子 agent）
+
+本 skill 为**混合编排**：主 agent 亲自执行步骤 1-2（跑脚本、换 Provider），派发子 agent 执行步骤 0/3/4/5（评估扫描、组件替换、CSS 提取、验证）。边界如下：
+
+**主 agent 亲自执行**（步骤 1-2 及步骤间的衔接决策）：
+- 跑 `init-scaffold.cjs` 拷贝骨架、改 Provider/入口、切暗色类名
+- 从子 agent 回复提取 `task_id` 并记录、合并各子 agent 改动清单、决定下一步
+- 读验证结果文件（`.migration-result.json`）的 `status` 字段判定 pass/fail（**不信子 agent 口头结论**）
+
+**派发子 agent 执行**（步骤 0/3/4/5）：
+- 步骤 0：派发 `explore` 子 agent 扫描源项目 antd 导入 → 输出迁移清单（[§0.5](references/migration-workflow.md)）
+- 步骤 3：派发 2-3 个 `general` 子 agent 并行逐组件替换（[§3.6](references/migration-workflow.md)）
+- 步骤 4：派发 `general` 子 agent 提取 CSS token（可选）
+- 步骤 5：派发 `general` 子 agent 跑脚本 + 构建验证 → 把结果写入 `<目标工程根>/.migration-result.json`（[§5.6](references/migration-workflow.md)）
+
+**续接硬约束**：步骤 5 验证 FAIL 回到步骤 3 修复时，**必须传 `task_id` 续接同一 session**（不另起新 session），否则子 agent 丢失之前的产物结构与改动上下文。主 agent 每轮派发后从子 agent 回复提取 `task_id` 并记录，修复轮续接时传入。
 
 ### scaffold/ 预制骨架（步骤 1 可直接拷贝）
 
