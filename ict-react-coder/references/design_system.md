@@ -96,7 +96,7 @@ Usage: solid state chip → bg `--error` + text `--on-error`; soft badge → tex
 | `--spacing-section` | 16px | Gap between page sections |
 | `--spacing-page` | 32px | Page edge padding |
 
-Numeric scale: `--spacing-0` … `--spacing-20` (0–80px, N×4px; `-0-5` suffix = half step, e.g. `--spacing-2-5` = 10px).
+Numeric scale: `--spacing-0` … `--spacing-20` (rem-based, scales with viewport; at design canvas rem=16px: 0–80px, 0.125rem step = half of 0.25rem grid).
 
 ### Shadows
 
