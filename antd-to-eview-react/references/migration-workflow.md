@@ -361,7 +361,7 @@ export const policyTemplates = [
 3. 读 components/<组件>.md 查每个组件完整 API
 4. 读 component-mapping.md 查"关键 API 差异"列
 5. 导入路径改为 import X from '@nce/eview-react/X'
-6. 读 <skill目录>/SKILL.md 的"eview-react 硬约束"章节（11 条），严格遵守（<skill目录> 是本 skill 的安装路径，例如 ~/.opencode/skills/antd-to-eview-react）
+6. 读 <skill目录>/SKILL.md 的"eview-react 硬约束"章节（12 条），严格遵守（<skill目录> 是本 skill 的安装路径，例如 ~/.opencode/skills/antd-to-eview-react）
 
 输出：改了哪些文件 + 每个文件改了哪些组件 + 遗留问题（如某组件无对应标记 TODO）
 ```

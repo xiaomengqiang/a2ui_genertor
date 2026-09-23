@@ -194,7 +194,7 @@ const GET_ICON = `${ICON_API_BASE}/assetRepository/iconPlus/getIcon`;
 
 组件渲染时：
 1. 先 `fetch(getConfig)` 探测 icon-plus 服务是否可用
-2. 如果可用，按图标名 `fetch(getIconInfo?keyword=xxx)` 查找匹配图标
+2. 如果可用，按图标名 `fetch(getIconInfo?keyword=xxx&topK=2&source_id=6)` 查找匹配图标（完整 URL 与参数见 §3.3）
 3. 再 `fetch(getIcon?url=xxx&size=16&style=border&color=xxx&fileType=svg)` 获取 SVG 文本
 4. 把 SVG 文本 `dangerouslySetInnerHTML` 注入 DOM
 5. 如果 icon-plus 不可用，回退到 Lucide nodes 表

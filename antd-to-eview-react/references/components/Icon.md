@@ -3,8 +3,17 @@
 > **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Icon/Icon`、`IconButton/IconButton`；官网组件页 Icon 及示例 `IconBasic.jsx` / `IconPlusBasic.jsx` / `IconPlusType.jsx` / `IconPlusSize.jsx`、IconButton 及示例 `Basic.tsx` / `IconPlus.tsx` / `BubbleDirection.tsx` / `Disabled.tsx` / `Event.tsx`
 >
 > ⚠️ 官网首推 **icon+ 图标库**：`import { IconPlusIcPublicSearch } from '@nce/icon-plus'`，按需引入，2000+ 图标，`type="filled"` 换风格、`iconColor={['red']}` 换色、`iconSize` 换尺寸（只能取 12/14/16/20/24/32/36/40/48/60）。
-> ⚠️ 内置 `Icon name="ict_xxx"` 组件**已被 icon+ 替代、不再推荐**；下文示例统一用 icon+ 组件。真实 icon+ 名迁移时用 icon-plus 接口（`getIconInfo`）按 antd/Lucide 名 keyword 查得（见 antd-to-eview-react/source-project-guidelines §3.3），本文示例的 icon+ 组件名仅为示意。
+> ⚠️ **两种渲染方式**（详见下方「渲染方式」段）：**A. scaffold 自定义 `<Icon>` 组件**（`src/shared/icon.jsx`，运行时 fetch icon-plus，迁移期默认、调用点零改动）；**B. icon+ 静态 import**（`import { IconPlusIcXxx } from '@nce/icon-plus'`，可选目标范式）。eview-react 内置 `Icon name="ict_*"` 已下线；scaffold 的同名自定义 `<Icon>` 是源项目契约保留件（A 范式），底层走 icon-plus 在线，**两者不同**。真实 icon+ 名迁移时用 icon-plus 接口（`getIconInfo`）按 antd/Lucide 名 keyword 查得（见 [source-project-guidelines §3.3](../source-project-guidelines.md)），本文示例的 icon+ 组件名仅为示意。icon+ 组件名由下划线名按分段大写 + 前加 `IconPlus` 得到（如 `ic_public_search` → `IconPlusIcPublicSearch`），规则见 [source-project-guidelines §3.3](../source-project-guidelines.md)。
 > ⚠️ 只有图标、要点击、要气泡提示 → 用 **`IconButton`**，不要给图标组件挂 onClick 再自己写 title。
+
+## 渲染方式（两种）
+
+| 方式 | 是什么 | 迁移成本 | 何时用 |
+|------|--------|---------|--------|
+| **A. 自定义 `<Icon>` 组件**（scaffold 默认） | scaffold `src/shared/icon.jsx`，保留源项目 `<Icon name="search" size={14} />` 契约；运行时 fetch icon-plus（getConfig 探测 → getIconInfo 查名 → getIcon 取 SVG 注入）；dev 下 vite `icon-api-base-transform` 插件 + `/assetRepository` 反代解决跨域；probe 失败渲染 `null`（内网恒可达，无 Lucide 兜底）。props：`name`/`src`/`size`(默认 16)/`color`/`variant`(`lined`/`filled`/`two-tone`/`circle`/`square`)/`className`/`style` | **最低**：调用点零改动，只改 import 路径 `./assets/shared/icon.jsx` → `./shared/icon.jsx` | 迁移期默认；见 [source-project-guidelines §3.2](../source-project-guidelines.md) |
+| **B. icon+ 静态 import**（可选目标范式） | `import { IconPlusIcXxx } from '@nce/icon-plus'`（scaffold 已预置依赖），按需引入、彻底离线；`type="filled"` 换风格、`iconColor` 换色、`iconSize` 换尺寸（只能取 12/14/16/20/24/32/36/40/48/60） | **中**：逐个查名替换调用点（getIconInfo 名发现 → PascalCase） | 要消除运行时 fetch / 走 eview-react 惯用范式时；见 [source-project-guidelines §3.3](../source-project-guidelines.md)。名查不到/接口不可用时用占位 `IconPlusIcPublicTransverseRectangleTemplate` 保证编译通过 |
+
+> 本文 §1 起的 icon+ / IconButton 用法是 **B 范式**（目标态）。迁移期默认用 **A 范式**即可（调用点零改动），不必逐个替换为 icon+ 静态 import；若要切 B，按 [source-project-guidelines §3.3](../source-project-guidelines.md) 的名发现流程逐个查名替换。
 
 ## 1. 功能定位
 
@@ -152,4 +161,4 @@ import { EditOutlined } from '@ant-design/icons';
 | `IconButton.enableClickHideTip` | `boolean`，默认 `false` | 点击后隐藏气泡 |
 | `IconButton.disabled` / `size` | `boolean` / `any` | 禁用 / 尺寸（数字、rem、px） |
 | `IconButton.onClick` / `onKeyDown` / `onMouseEnter` / `onMouseLeave` / `onFocus` / `onBlur` | `(event) => void` | 事件 |
-| icon+ 组件 `type` / `iconColor` / `iconSize` | `'filled' …` / `string[]` / `12…60` | 风格 / 颜色数组 / 尺寸 |
+| icon+ 组件 `type` / `iconColor` / `iconSize` | `'filled' …` / `string[]` / `12/14/16/20/24/32/36/40/48/60` | 风格 / 颜色数组 / 尺寸 |

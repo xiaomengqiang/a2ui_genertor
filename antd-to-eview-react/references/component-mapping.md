@@ -103,3 +103,5 @@
 |------|-----------|---------|
 | `@ant-design/icons` | `@nce/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 只能取 12/14/16/20/24/32/36/40/48/60；icon+ 名迁移时用 icon-plus 接口（`getIconInfo`）按 antd/Lucide 名 keyword 查得（见 [source-project-guidelines §3.3](source-project-guidelines.md)） |
 | 可点击图标 | `IconButton` | `iconName={<IconPlusIc* />}`+`tipText`；不要给图标组件挂 onClick |
+
+> 迁移期默认复用 scaffold 自定义 `<Icon>` shim（`<Icon name="...">` 调用点零改动，只改 import 路径，见 [source-project-guidelines §3.2](source-project-guidelines.md)）；上表 icon+ 静态 import 为可选目标范式（§3.3），非迁移必做。

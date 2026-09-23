@@ -58,6 +58,24 @@ const treeSelectRef = useRef<any>(null);   // demo 用到 ref，但未演示方�
 <TreeSelect label="权限范围" treeData={orgTree} nodeKey="id" enableCheckbox onChange={(nodes) => setScopes(nodes)} />
 ```
 
+### 三态图标：iconLeaf / iconExpanded / iconCollapsed 用 icon+
+
+> 同 Tree / TreeTable，节点三态图标收 `string | ReactNode`，默认用 icon+ 组件（需成套设置）。也可在 `treeData` 单节点上覆盖。
+
+```tsx
+import { IconPlusIcPublicFile, IconPlusIcPublicFolderOpen, IconPlusIcPublicFolder } from '@nce/icon-plus';
+<TreeSelect
+  label="所属部门"
+  treeData={orgTree}
+  nodeKey="id"
+  enableMultiSelect={false}
+  iconLeaf={<IconPlusIcPublicFile />}
+  iconExpanded={<IconPlusIcPublicFolderOpen />}
+  iconCollapsed={<IconPlusIcPublicFolder />}
+  onChange={(nodes) => setDept(nodes)}
+/>
+```
+
 ### 在 Form 内
 
 ```tsx
@@ -75,7 +93,7 @@ interface TreeNode {
   text: string;
   children?: TreeNode[];
   isLeaf?: boolean;
-  iconLeaf?: string; iconExpanded?: string; iconCollapsed?: string;
+  iconLeaf?: string | ReactNode; iconExpanded?: string | ReactNode; iconCollapsed?: string | ReactNode;
 }
 // onChange 回传项
 interface SelectedNode {

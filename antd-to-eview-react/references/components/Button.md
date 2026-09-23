@@ -81,6 +81,8 @@ const groupData = [
 
 ### 图标：leftIcon / rightIcon 用 icon+
 
+> 迁移期若源项目用 `<Icon name="...">` shim（自定义 `<Icon>` 组件，A 范式），调用点零改动即可；下例 `leftIcon`/`rightIcon` 用 icon+ 静态组件为 B 目标范式（可选，见 [source-project-guidelines §3.3](../source-project-guidelines.md)）。
+
 ```tsx
 import { IconPlusIcPublicSave, IconPlusIcPublicArrowRight } from '@nce/icon-plus';
 <Button status="primary" text="保存" leftIcon={<IconPlusIcPublicSave />} onClick={handleSave} />
