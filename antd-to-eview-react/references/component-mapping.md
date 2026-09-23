@@ -52,7 +52,7 @@
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Table` | `Table` | `dataSource`→`dataset`；`rowKey`→`keyIndex`；`columns[].dataIndex`→`key`；`columns[].fixed: 'left'/'right'`→列 `freezeCol: true` + 表 `freezeColPosition`（取值待实测确认，见 [Table.md](components/Table.md) §9）；`pagination`→`enablePagination`+`pagingProps`+`onPageChange`；`rowSelection`→`enableCheckBox`+`onRowCheck`；`emptyText`→`emptyTableMsg`；**render 函数保留——行对象取第 4 参 `row`（不是第 2 参 `rowData`，见 [Table.md](components/Table.md) 顶部）；并需检查 i18n key 对齐**（见 [migration-workflow.md](migration-workflow.md) §3.5） |
+| `Table` | `Table` | `dataSource`→`dataset`；`rowKey`→`keyIndex`；`columns[].dataIndex`→`key`；`columns[].fixed: 'left'/'right'`→列 `freezeCol: true` + 表 `freezeColPosition`（取值待实测确认，见 [Table.md](components/Table.md) §9）；`pagination`→`enablePagination`+`pagingProps`+`onPageChange`；`rowSelection`→`enableCheckBox`+`onRowCheck`；`emptyText`→`emptyTableMsg`；**render 函数保留——行数据取第 4 参 `row.rawData`（不是第 2 参 `rowData`，且 `row.rawData` 可能为 undefined，访问字段写 `row.rawData?.xxx`，见 [Table.md](components/Table.md) 顶部）；并需检查 i18n key 对齐**（见 [migration-workflow.md](migration-workflow.md) §3.5） |
 | `Tabs` / `TabPane` | `Tab` / `TabItem` | children 驱动（`<TabItem title>`）；切换回调是 `onClick(index,title,event)`（不是 `onChange`）；`draggable` 默认 true 需关；`items` 不存在 |
 | `Collapse` / `Panel` | `Panel` / `PanelItem` | `selectedIndex` 数组；`enableMultiExpand` 手风琴；`closable` 默认 true 要关 |
 | `List` | 手写或 `Table` | 无导出 |
