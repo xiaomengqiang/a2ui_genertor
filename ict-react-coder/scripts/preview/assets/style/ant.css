@@ -911,9 +911,8 @@ input.ant-input.ant-input-sm {
   margin-inline-end: 0;
 }
 .ant-table .ant-table-content .ant-table-thead > tr > th {
-  height: 32px;
-  line-height: 32px;
-  padding: 0 8px;
+  padding: 0.5625rem 8px;
+  line-height: 1.5714;
   color: var(--color-text-primary);
   background-color: var(--gray-05);
   border-top: none !important;
@@ -930,11 +929,20 @@ input.ant-input.ant-input-sm {
   border-start-end-radius: 0 !important;
 }
 .ant-table .ant-table-content .ant-table-tbody > tr > td {
-  height: 40px;
-  line-height: 40px;
-  padding: 0 8px;
+  padding: 0.5625rem 8px;
+  line-height: 1.5714;
   color: var(--color-text-primary);
   border-bottom: 1px solid var(--gray-05);
+}
+/* middle 档 32/32 */
+.ant-table.ant-table-middle .ant-table-content .ant-table-thead > tr > th,
+.ant-table.ant-table-middle .ant-table-content .ant-table-tbody > tr > td {
+  padding-block: 0.3125rem;
+}
+/* small 档 28/28 */
+.ant-table.ant-table-small .ant-table-content .ant-table-thead > tr > th,
+.ant-table.ant-table-small .ant-table-content .ant-table-tbody > tr > td {
+  padding-block: 0.1875rem;
 }
 .ant-table .ant-table-content .ant-table-tbody .ant-table-row > .ant-table-cell-row-hover {
   background-color: var(--brand-10);
