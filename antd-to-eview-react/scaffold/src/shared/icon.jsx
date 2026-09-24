@@ -12,8 +12,10 @@ let plusState = null; // null = probing, true = ready, false = probe failed
 let plusPromise = null; // singleton getConfig probe promise
 let iconConfig = null;
 let defaultColorId = "";
-const iconInfoMap = {}; // name -> { name, url }
-const svgCache = new Map(); // "name&variant&color" -> svg text
+const iconInfoMap = {}; // name -> { name, url } (结果缓存)
+const iconInfoPromiseMap = {}; // name -> 进行中 Promise (in-flight 去重)
+const svgCache = new Map(); // "name&variant&color" -> svg text (结果缓存)
+const svgPromiseMap = new Map(); // "name&variant&color" -> 进行中 Promise (in-flight 去重)
 
 // variant prop -> getConfig style key (matches previewpc's shapeToStyleKey)
 const STYLE_KEY = {
@@ -78,44 +80,68 @@ function selectBestIcon(icons, keyword) {
   );
 }
 
-// name -> { name, url } via getIconInfo (cached in iconInfoMap)
+// name -> { name, url } via getIconInfo (结果缓存在 iconInfoMap；并发去重靠 iconInfoPromiseMap)
 async function resolveIconInfo(name) {
   if (iconInfoMap[name]) return iconInfoMap[name];
-  try {
-    const resp = await fetch(
-      `${GET_ICON_INFO}?keyword=${encodeURIComponent(name)}&topK=2&source_id=6`
-    );
-    const data = await resp.json(); // [{ keyword, icons: [{ icon_id, name, category, group[], url }] }]
-    const entry = (Array.isArray(data) ? data : [data]).find(
-      (d) => d.icons?.length
-    );
-    const selected = selectBestIcon(entry?.icons || [], name);
-    if (!selected?.url) return null;
-    iconInfoMap[name] = { name: selected.name, url: selected.url };
-    return iconInfoMap[name];
-  } catch (e) {
-    return null;
-  }
+  // 同 name 并发请求共享同一个进行中 Promise，避免 N 个相同图标各发一次 getIconInfo
+  if (iconInfoPromiseMap[name]) return iconInfoPromiseMap[name];
+  const p = (async () => {
+    try {
+      const resp = await fetch(
+        `${GET_ICON_INFO}?keyword=${encodeURIComponent(name)}&topK=2&source_id=6`
+      );
+      const data = await resp.json(); // [{ keyword, icons: [{ icon_id, name, category, group[], url }] }]
+      const entry = (Array.isArray(data) ? data : [data]).find(
+        (d) => d.icons?.length
+      );
+      const selected = selectBestIcon(entry?.icons || [], name);
+      if (!selected?.url) return null;
+      iconInfoMap[name] = { name: selected.name, url: selected.url };
+      return iconInfoMap[name];
+    } catch (e) {
+      return null;
+    }
+  })();
+  iconInfoPromiseMap[name] = p;
+  // 落定后清除 in-flight 条目（失败也清除，允许下次重试，不永久缓存 rejected 结果）
+  p.finally(() => {
+    delete iconInfoPromiseMap[name];
+  });
+  return p;
 }
 
 // fetch the SVG text for a name via getIcon (url + size + variant + colorId + fileType=svg)
-async function fetchSvg(name, variant, colorHex) {
-  const info = await resolveIconInfo(name);
-  if (!info) return "";
-  const styleValue = getStyleValue(STYLE_KEY[variant] || "border");
-  const colorId = resolveColorId(variant, colorHex);
-  try {
-    const resp = await fetch(
-      `${GET_ICON}?url=${encodeURIComponent(info.url)}&size=16&style=${encodeURIComponent(
-        styleValue
-      )}&color=${encodeURIComponent(colorId)}&fileType=svg`
-    );
-    const data = await resp.json(); // { url, name, data } or array
-    const item = Array.isArray(data) ? data[0] : data;
-    return item?.data || ""; // raw SVG text, injected as-is
-  } catch (e) {
-    return "";
-  }
+// 结果缓存在 svgCache；并发去重靠 svgPromiseMap，相同 key 共享同一进行中 Promise
+function fetchSvg(name, variant, colorHex) {
+  const key = `${name}&${variant}&${colorHex}`;
+  if (svgCache.has(key)) return Promise.resolve(svgCache.get(key));
+  if (svgPromiseMap.has(key)) return svgPromiseMap.get(key);
+  const p = (async () => {
+    const info = await resolveIconInfo(name);
+    if (!info) return "";
+    const styleValue = getStyleValue(STYLE_KEY[variant] || "border");
+    const colorId = resolveColorId(variant, colorHex);
+    try {
+      const resp = await fetch(
+        `${GET_ICON}?url=${encodeURIComponent(info.url)}&size=16&style=${encodeURIComponent(
+          styleValue
+        )}&color=${encodeURIComponent(colorId)}&fileType=svg`
+      );
+      const data = await resp.json(); // { url, name, data } or array
+      const item = Array.isArray(data) ? data[0] : data;
+      return item?.data || ""; // raw SVG text, injected as-is
+    } catch (e) {
+      return "";
+    }
+  })();
+  svgPromiseMap.set(key, p);
+  // 落定后写入结果缓存并清除 in-flight 条目（失败也清除，允许下次重试）
+  p.then((s) => {
+    svgCache.set(key, s);
+  }).finally(() => {
+    svgPromiseMap.delete(key);
+  });
+  return p;
 }
 
 export function Icon({
