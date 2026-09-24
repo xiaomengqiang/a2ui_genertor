@@ -472,18 +472,20 @@ input.ant-input.ant-input-sm {
   background: var(--color-hover);
 }
 
+.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  border-color: var(--color-border);
+}
 .ant-tree-select-dropdown {
-  padding: var(--spacing-1);
+  padding: 0.25rem;
 }
 .ant-tree-select-dropdown .ant-select-tree {
   color: var(--color-text-primary);
   background-color: var(--color-bg-4);
 }
 .ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode {
-  line-height: 22px;
   align-items: center;
   margin-bottom: unset;
-  padding: 4px 0;
+  padding: 0.25rem 0;
 }
 .ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-checkbox {
   margin-block-start: unset;
@@ -492,6 +494,9 @@ input.ant-input.ant-input-sm {
   border-radius: var(--radius-xs);
   background-color: var(--color-fill-subtle);
   color: var(--color-text-primary);
+}
+.ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-checkbox .ant-select-tree-checkbox-inner {
+  border: none;
 }
 .ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-checkbox.ant-select-tree-checkbox-checked {
   background-color: var(--color-brand);
@@ -534,27 +539,27 @@ input.ant-input.ant-input-sm {
 .ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-node-content-wrapper {
   min-height: unset;
   border-radius: var(--radius-base);
-  padding: 3px 8px 3px 4px;
+  padding: 0.1875rem 0.5rem 0.1875rem 0.25rem;
 }
 .ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-node-content-wrapper .ant-select-tree-iconEle {
-  width: 14px;
-  height: 14px;
+  width: 0.875rem;
+  height: 0.875rem;
   vertical-align: baseline;
-  margin-right: 8px;
+  margin-right: 0.5rem;
 }
 .ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode::before {
   display: none;
 }
 .ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-switcher {
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
   display: inline-flex;
   justify-content: center;
   align-self: unset;
-  margin-inline-end: 8px;
+  margin-inline-end: 0.5rem;
 }
 .ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-switcher .ant-select-tree-switcher-icon {
-  height: 10px;
+  height: 0.625rem;
   margin: auto;
 }
 .ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode .ant-select-tree-switcher:before {
@@ -859,14 +864,14 @@ input.ant-input.ant-input-sm {
   position: absolute;
   inset-block-start: 0;
   inset-inline-start: 0;
-  font-size: 14px;
+  font-size: var(--font-size-md);
   box-shadow: 0 0 0 2px var(--brand-50);
   outline: 0px solid transparent;
   border-radius: 50%;
   cursor: pointer;
 }
 .ant-slider .ant-slider-mark .ant-slider-mark-text {
-  font-size: 14px;
+  font-size: var(--font-size-md);
   color: var(--gray-100);
 }
 .ant-slider:hover .ant-slider-rail {
@@ -897,7 +902,6 @@ input.ant-input.ant-input-sm {
   position: absolute;
   inset-block-start: 0;
   inset-inline-start: 0;
-  font-size: 14px;
   background-color: var(--gray-0);
   box-shadow: 0 0 0 2px var(--brand-70);
   outline: 0px solid transparent;
@@ -905,8 +909,11 @@ input.ant-input.ant-input-sm {
   cursor: pointer;
 }
 .dark .ant-slider .ant-slider-mark .ant-slider-mark-text {
-  font-size: 14px;
   color: var(--gray-0);
+}
+.dark .ant-slider .ant-slider-step .ant-slider-dot-active {
+  background-color: var(--gray-0);
+  border: 1px solid var(--brand-70);
 }
 .dark .ant-slider:hover .ant-slider-rail {
   background-color: color-mix(in srgb, var(--gray-05) 15%, transparent);
@@ -916,7 +923,6 @@ input.ant-input.ant-input-sm {
   position: absolute;
   inset-block-start: 0;
   inset-inline-start: 0;
-  font-size: 14px;
   box-shadow: 0 0 0 2px var(--brand-50);
   outline: 0px solid transparent;
   border-radius: 50%;
@@ -1296,6 +1302,31 @@ input.ant-input.ant-input-sm {
   stroke: var(--mint-40);
 }
 
+/* Spin 组件样式（自定义指示符：loading.svg，由 ConfigProvider spin.indicator 全局注入） */
+.ant-spin {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.ant-spin.ant-spin-sm {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+.ant-spin.ant-spin-lg {
+  width: 3rem;
+  height: 3rem;
+}
+.ant-spin .custom-spin-indicator {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: custom-spin-rotate 1.5s linear infinite;
+}
+@keyframes custom-spin-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Steps 组件样式（占位，待填充 token 映射） */
 .ant-steps .ant-steps-item.ant-steps-item-process.ant-steps-item-active .ant-steps-item-container .ant-steps-item-icon {
   border-color: var(--color-border-focus);
@@ -1575,6 +1606,11 @@ input.ant-input.ant-input-sm {
   background-color: var(--color-bg-4);
   border-radius: var(--radius-md);
 }
+.ant-tooltip .ant-tooltip-inner {
+  background-color: var(--color-bg-4);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+}
 .ant-tooltip .ant-tooltip-arrow:before {
   background-color: var(--color-bg-4);
 }
@@ -1591,6 +1627,25 @@ input.ant-input.ant-input-sm {
 .ant-popover .ant-popover-content {
   color: var(--color-text-secondary);
   font-size: var(--font-size-md);
+}
+
+/* Empty 组件样式（占位，待填充 token 映射） */
+.ant-empty {
+  width: 100%;
+  margin-inline: 0;
+}
+.ant-empty .ant-empty-image {
+  height: auto;
+  margin-bottom: 0.75rem;
+  line-height: 1;
+}
+.ant-empty .ant-empty-image > img {
+  width: 4.875rem;
+  height: 4.5rem;
+}
+.ant-empty .ant-empty-description {
+  font-size: var(--font-size-base);
+  color: var(--color-text-placeholder);
 }
 
 /* Timeline 组件样式（占位，待填充 token 映射） */
@@ -1707,6 +1762,60 @@ input.ant-input.ant-input-sm {
 }
 .dark .ant-segmented-group .ant-segmented-item-selected.ant-segmented-item-disabled .ant-segmented-item-icon {
   color: var(--color-text-inverse-disabled);
+}
+
+/* ColorPicker 组件样式（占位，待填充 token 映射） */
+.ant-color-picker-trigger {
+  min-width: 2rem;
+  min-height: 2rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-20);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gray-0);
+}
+.ant-color-picker-trigger .ant-color-picker-color-block {
+  position: relative;
+  border-radius: var(--radius-base);
+  width: var(--font-size-3xl);
+  height: var(--font-size-3xl);
+}
+.ant-color-picker-trigger:hover {
+  border-color: var(--gray-90);
+}
+.ant-color-picker-trigger.ant-color-picker-trigger-active {
+  /* 1. 设置实线的主边框（内边框/整体边框）颜色 */
+  border-color: var(--brand-50);
+  border-inline-end-width: 1px;
+  /* 2. 外边框（外发光晕）颜色，将 #B8D9F9 转换为带透明度的 rgba，效果更自然 */
+  box-shadow: 0 0 0 2px #B8D9F9;
+  outline: 0;
+}
+.ant-color-picker-trigger-disabled {
+  border-color: var(--gray-20) !important;
+  background-color: color-mix(in srgb, #191919 5%, transparent) !important;
+}
+.dark {
+  /* ColorPicker 组件样式（占位，待填充 token 映射） */
+}
+.dark .ant-color-picker-trigger {
+  border: 1px solid var(--gray-50);
+  background: transparent;
+}
+.dark .ant-color-picker-trigger:hover {
+  border-color: var(--gray-05);
+}
+.dark .ant-color-picker-trigger.ant-color-picker-trigger-active {
+  /* 1. 设置实线的主边框（内边框/整体边框）颜色 */
+  border-color: var(--brand-40);
+  /* 2. 外边框（外发光晕）颜色，将 #B8D9F9 转换为带透明度的 rgba，效果更自然 */
+  box-shadow: 0 0 0 2px var(--brand-80);
+}
+.dark .ant-color-picker-trigger-disabled {
+  border-color: var(--gray-40) !important;
+  background-color: color-mix(in srgb, var(--gray-05) 20%, transparent) !important;
 }
 
 /* Drawer 组件样式（占位，待填充 token 映射） */
@@ -2011,4 +2120,97 @@ input.ant-input.ant-input-sm {
 }
 .dark .ant-form-item-explain-warning {
   color: var(--orange-50);
+}
+
+.ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor {
+  line-height: 1.5rem;
+}
+.ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor::before {
+  border-color: var(--color-border-separator);
+  border-radius: 1px;
+}
+.ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor .ant-anchor-ink {
+  background-color: var(--border-primary);
+  border-radius: 1px;
+}
+.ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor .ant-anchor-link.ant-anchor-link-active .ant-anchor-link-title.ant-anchor-link-title-active:hover {
+  color: var(--color-link);
+}
+.ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor .ant-anchor-link.ant-anchor-link-active .ant-anchor-link-title.ant-anchor-link-title-active {
+  color: var(--color-link);
+}
+.ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor .ant-anchor-link .ant-anchor-link-title {
+  color: var(--color-text-secondary);
+}
+.ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor .ant-anchor-link .ant-anchor-link-title:hover {
+  color: var(--color-text-primary);
+}
+
+/* Message 组件样式（占位，待填充 token 映射） */
+.ant-message {
+  color: var(--color-text-primary);
+}
+.ant-message .ant-message-notice-wrapper .ant-message-notice-content {
+  padding: 0.75rem 1rem;
+}
+.ant-message .ant-message-notice-wrapper .ant-message-notice-content .anticon {
+  font-size: var(--font-size-md);
+}
+
+/* Notification 组件样式（占位，待填充 token 映射） */
+.ant-notification .ant-notification-notice-wrapper .ant-notification-notice {
+  padding: var(--spacing-3) var(--spacing-4);
+  width: 24rem;
+  max-width: calc(100vw - 3rem);
+  word-wrap: break-word;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.ant-notification .ant-notification-notice-wrapper .ant-notification-notice-description {
+  color: var(--gray-50);
+  margin-top: var(--spacing-2);
+}
+.ant-notification .ant-notification-notice-wrapper .ant-notification-notice-with-icon .ant-notification-notice-message {
+  margin-inline-start: 36px;
+  font-size: var(--spacing-4);
+}
+.ant-notification .ant-notification-notice-wrapper .ant-notification-notice-message {
+  color: var(--gray-90);
+}
+.ant-notification .ant-notification-notice-wrapper .ant-notification-notice-description {
+  color: var(--gray-50);
+  margin-top: var(--spacing-2);
+}
+.ant-notification .ant-notification-notice-wrapper .ant-notification-notice-icon {
+  font-size: var(--font-size-lg);
+}
+.ant-notification .ant-notification-notice-wrapper .ant-notification-notice-icon-success.anticon {
+  color: var(--mint-50);
+}
+.ant-notification .ant-notification-notice-wrapper .ant-notification-notice-icon-info.anticon {
+  color: var(--blue-50);
+}
+.ant-notification .ant-notification-notice-wrapper .ant-notification-notice-icon-warning.anticon {
+  color: var(--yellow-50);
+}
+.ant-notification .ant-notification-notice-wrapper .ant-notification-notice-icon-error.anticon {
+  color: var(--red-50);
+}
+.ant-notification .ant-notification-notice-wrapper .ant-notification-notice-close {
+  color: var(--gray-90);
+}
+.dark .ant-notification .ant-notification-notice-wrapper {
+  background-color: var(--gray-70);
+}
+.dark .ant-notification .ant-notification-notice-wrapper .ant-notification-notice-description {
+  color: var(--gray-20);
+}
+.dark .ant-notification .ant-notification-notice-wrapper .ant-notification-notice-message {
+  color: var(--gray-0);
+}
+.dark .ant-notification .ant-notification-notice-wrapper .ant-notification-notice-description {
+  color: var(--gray-20);
+}
+.dark .ant-notification .ant-notification-notice-wrapper .ant-notification-notice-close {
+  color: var(--gray-0);
 }
