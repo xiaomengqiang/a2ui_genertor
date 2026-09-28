@@ -85,6 +85,7 @@
 | `notification` | `DivMessage` | 同上 |
 | `Spin` | `Loading` | `isOpen`；`type="global"/"local"/"micro"`；local 需父容器 `position:relative`；`Loader` 是同一组件 |
 | `Result` | `Empty type="success"` + 手写 | `description` 放标题+副标题+按钮 |
+| `Progress` | 手写 | 无导出；见 [handwrite-templates.md](handwrite-templates.md) §9 |
 
 ## 布局与导航
 

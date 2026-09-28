@@ -3,7 +3,6 @@ name: antd-to-eview-react
 description: >-
   将基于 antd 的 React 项目迁移到 @nce/eview-react（HUI Eview React，ICT 3.1）的专项 Skill。
   提供组件映射总表、Form 模式转换、未覆盖组件手写模板、CSS token 映射、命名异常速查及五步迁移工作流。
-  工作流为混合编排：主 agent 亲自执行骨架搭建与 Provider 切换（步骤 1-2），派发 explore/general 子 agent 执行评估、逐组件替换、验证（步骤 0/3/4/5）；子 agent 续接修复必须传 task_id 保持 session，验证结果写入文件供主 agent 判定。
   务必在以下场景使用：将 antd 项目迁移到 eview-react、把 antd 组件改写为 eview-react、
   评估迁移可行性、遇到 Form/Steps/Modal 等模式转换问题、
   需要将 Layout/Menu/Breadcrumb/Avatar/Descriptions 等组件替换为 eview-react 等价实现。
@@ -11,24 +10,10 @@ description: >-
 
 # antd → eview-react 迁移 Skill
 
-## 核心问题
-
-从 antd 迁移到 eview-react 时的典型失败模式（每条详情见对应 reference）：
-
-- **API 名称猜错**：`type`→`status`、`placeholder`→`defaultLabel`、`checked`→`toggled` 等；完整对照见 [naming-quirks.md](references/naming-quirks.md)
-- **Form 模式不兼容**：`useForm()`+Promise → `useRef`+`onSuccess` 回调，控制流从同步变异步；见 [form-migration.md](references/form-migration.md)
-- **组件无对应**：Layout/Menu/Avatar/Descriptions/Result/Space 无直接对应，需手写补位；见 [handwrite-templates.md](references/handwrite-templates.md)
-- **CSS token 丢失**：源项目 token 内联在 HTML，迁移到 Vite 后丢失；提取到独立 CSS 与 `aui3_1.css` 并存；见 [css-token-mapping.md](references/css-token-mapping.md)
-- **IntlProvider 放错位置**：必须在 `main.jsx` 作为 `ConfigProvider` 直接子级，locale 用 `"zh"` 不是 `"zh-CN"`；见 [i18n-migration.md](references/i18n-migration.md) §4
-- **Table render i18n key 不对齐**：`t(cellValue, cellValue)` 取不到带前缀的 key，需 `t("deviceType." + value, value)`；脚本 `scripts/check-i18n-keys.cjs` 自动排查；见 [migration-workflow.md](references/migration-workflow.md) §3.5
-- **命名拼写异常**：`seprator`/`taggledChildren`/`disable` 等官方拼错；见 [naming-quirks.md](references/naming-quirks.md)
-- **import 路径失效**：scaffold 后 `app.jsx` 在 `src/`，`./src/context.jsx` 须改 `./context.jsx`；脚本 `scripts/check-relative-imports.cjs` 排查；见步骤 5
-
 ## 前置条件
 
-1. **网络**：`@nce/eview-react` 及其 peer 依赖托管在华为内网 npm 源（`cmc.centralrepo.rnd.huawei.com`，见 `scaffold/.npmrc`）。步骤 1 执行 `npm install` 前须确认内网/VPN 可达，如果不可达仍继续执行转换，在最后提示用户需要到内网安装依赖。
-2. **运行时**：Node.js ≥ 16（Vite 5 要求），`npm` 可正常解析 `.npmrc` 中的 `@nce` scope。
-3. **源项目**：须为 React 项目（非 Vue/Angular）。典型源项目为 `ict-react-coder` skill 的产物——UMD 单 HTML 工程（`index.page.html` + `src/` 双份代码、内联 token CSS、Lucide 图标、禁用 Layout/Grid/Space/Card），其结构特征及迁移成本评估见 [source-project-guidelines.md](references/source-project-guidelines.md)。
+1. **运行时**：Node.js ≥ 16（Vite 5 要求），`npm` 可正常解析 `.npmrc` 中的 `@nce` scope。
+2. **源项目工程形态**：源项目**必须是** `umd-to-antd-vite` skill 的产物——标准 Vite + npm 工程，附带 `.umd-conversion.json` 交接文件。步骤 0 读交接文件的 `antdComponents` 作为迁移清单，步骤 1 用 `--upgrade` 模式（保留 token），步骤 4 跳过（token 已外置），步骤 5 跳过 `check-relative-imports.cjs`（路径已修正）。本 skill 不处理 UMD 单 HTML 工程——如需处理，先跑 `umd-to-antd-vite`。详见 [migration-workflow.md](references/migration-workflow.md) §0.1 / §1.1。
 
 ## 迁移工作流（评估 + 5 步）
 
@@ -36,60 +21,20 @@ description: >-
 
 | 步骤 | 做什么 | 产出 | 执行方式 |
 |------|--------|------|---------|
-| **0. 评估** | 扫描 antd 项目用到的组件，对照组件映射总表标注"有对应/无对应需手写" | 组件迁移清单 | 派发 explore 子 agent（[§0.5](references/migration-workflow.md)） |
-| **1. 建工程骨架** | 若源项目非 Vite + npm 工程：跑 `init-scaffold.cjs` 拷贝 scaffold 骨架，`npm install` + `npm run dev` 即空壳可跑。详见 [migration-workflow.md](references/migration-workflow.md) 步骤 1 | 可运行的空壳工程 | 主 agent 跑脚本 |
+| **0. 评估** | 读 `.umd-conversion.json` 的 `antdComponents` 作为迁移清单（由 `umd-to-antd-vite` 生成，跳过扫描）。对照组件映射总表标注"有对应/无对应需手写" | 组件迁移清单 | 主 agent（[§0.1](references/migration-workflow.md)） |
+| **1. 建工程骨架** | 跑 `init-scaffold.cjs --force --upgrade`（覆盖骨架为 eview-react，保留 styles 里的 token CSS）。详见 [migration-workflow.md](references/migration-workflow.md) 步骤 1 | 可运行的空壳工程 | 主 agent 跑脚本 |
 | **2. 换 Provider 与入口** | 移除 antd `ConfigProvider` + `theme.darkAlgorithm`；eview-react 用 `ConfigProvider` + `IntlProvider` + `<body>` 加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `<body>`） | Provider 就绪 | 主 agent |
-| **3. 逐组件替换** | 按映射总表替换每个 antd 组件；Form 模式单独按 [form-migration.md](references/form-migration.md) 转换；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写 | 组件代码全部替换 | 按组件类别派发 2-3 个 general 子 agent 并行（[§3.6](references/migration-workflow.md)） |
-| **4. 提取 CSS token** | 将源项目内联 token 填入骨架的 `src/styles/tokens.css`、`.dark` 覆盖填入 `src/styles/theme-dark.css`（见 [css-token-mapping.md](references/css-token-mapping.md)），布局 CSS 不改 | 样式跟随主题 | 派发 general 子 agent（可选） |
-| **5. 验证** | `npm install` / `npm run dev` 前先跑两个静态检查：相对导入解析（`scripts/check-relative-imports.cjs`）与 i18n 动态 key（`scripts/check-i18n-keys.cjs`，两种调用方式见 [migration-workflow.md](references/migration-workflow.md) §5.1/§5.2）；再做构建与功能验证 | import/i18n/构建/功能通过 | 派发 general 子 agent（[§5.6](references/migration-workflow.md)） |
+| **3. 逐组件替换** | 按映射总表替换每个 antd 组件；Form 模式单独按 [form-migration.md](references/form-migration.md) 转换；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写 | 组件代码全部替换 | 主 agent（[§3.6](references/migration-workflow.md)） |
+| **4. 提取 CSS token** | **跳过**（token 已由 `umd-to-antd-vite` 外置到 `src/styles/tokens.css` + `theme-dark.css`，`--upgrade` 已保留） | 样式跟随主题 | 跳过 |
+| **5. 验证** | `check-relative-imports.cjs` 跳过（路径已由 `umd-to-antd-vite` 修正）。`check-i18n-keys.cjs` 必跑。`npm install` + `npm run dev` 构建与功能验证 | i18n/构建/功能通过 | 主 agent（[§5.6](references/migration-workflow.md)） |
 
-### 编排边界（主 agent 亲自做 vs 派发子 agent）
+### 编排说明
 
-本 skill 为**混合编排**：主 agent 亲自执行步骤 1-2（跑脚本、换 Provider），派发子 agent 执行步骤 0/3/4/5（评估扫描、组件替换、CSS 提取、验证）。边界如下：
+本 skill **不派发子 agent**：主 agent 亲自执行全部步骤（评估、骨架搭建、Provider 切换、逐组件替换、验证）。步骤 0 读交接文件获取迁移清单、步骤 3 用 read/edit 逐组件替换、步骤 5 用 bash 跑脚本 + 构建检查。步骤 4（token 提取）和步骤 5 的相对导入检查已由 `umd-to-antd-vite` 完成，跳过。
 
-**主 agent 亲自执行**（步骤 1-2 及步骤间的衔接决策）：
-- 跑 `init-scaffold.cjs` 拷贝骨架、改 Provider/入口、切暗色类名
-- 从子 agent 回复提取 `task_id` 并记录、合并各子 agent 改动清单、决定下一步
-- 读验证结果文件（`.migration-result.json`）的 `status` 字段判定 pass/fail（**不信子 agent 口头结论**）
+验证失败时，主 agent 直接读 `.migration-result.json` 的 `failures` 字段，回到步骤 3 自己修复后重新验证，循环至通过或达 5 轮上限。
 
-**派发子 agent 执行**（步骤 0/3/4/5）：
-- 步骤 0：派发 `explore` 子 agent 扫描源项目 antd 导入 → 输出迁移清单（[§0.5](references/migration-workflow.md)）
-- 步骤 3：派发 2-3 个 `general` 子 agent 并行逐组件替换（[§3.6](references/migration-workflow.md)）
-- 步骤 4：派发 `general` 子 agent 提取 CSS token（可选）
-- 步骤 5：派发 `general` 子 agent 跑脚本 + 构建验证 → 把结果写入 `<目标工程根>/.migration-result.json`（[§5.6](references/migration-workflow.md)）
-
-**续接硬约束**：步骤 5 验证 FAIL 回到步骤 3 修复时，**必须传 `task_id` 续接同一 session**（不另起新 session），否则子 agent 丢失之前的产物结构与改动上下文。主 agent 每轮派发后从子 agent 回复提取 `task_id` 并记录，修复轮续接时传入。
-
-### scaffold/ 预制骨架（步骤 1 可直接拷贝）
-
-`scaffold/` 是预制的可运行空壳工程，步骤 1 不必逐文件手写，整目录拷贝即可：
-
-```
-scaffold/
-├── package.json        # 依赖已含 @nce/eview-react / react-intl / dayjs / horizon peer / lodash / icon-plus 等
-├── .npmrc              # 华为内网源（@nce scope）
-├── vite.config.js      # Vite + @vitejs/plugin-react
-├── index.html          # <body class="ev_no_wcag aui3_1"> + /src/main.jsx
-├── public/
-│   └── font/           # HarmonyOS Sans SC 字体（Bold/Light/Medium/Regular .woff2），font.css @font-face 引用
-│       └── HarmonyOS_SansSC/
-└── src/
-    ├── main.jsx        # ConfigProvider + IntlProvider + 六处 css import（aui3_1 / aui3_1_dark / base / font / tokens / theme-dark）
-    ├── app.jsx         # 空壳 App（根 div class="root"；aui3_1 挂 <body>），步骤 3 往里填 AppShell
-    ├── shared/         # 预制图标组件，迁移时直接复用、调用点零改动（只改 import 路径）
-    │   └── icon.jsx              # <Icon name="..."> 契约保留（icon-plus 在线，内网恒可达，无离线兜底）
-    └── styles/
-        ├── base.css          # 骨架自带全局重置（ev_no_wcag 焦点轮廓），开箱即用不用改
-        ├── font.css          # HarmonyOS Sans SC @font-face（预制，不用改）；--font-family 仍由 tokens.css 定义
-        ├── tokens.css        # 空壳占位，步骤 4 填原始 :root 变量（含 --font-family）
-        └── theme-dark.css    # 空壳占位，步骤 4 填 .dark 覆盖
-```
-
-scaffold 预制了 `src/shared/icon.jsx`。源项目（`ict-react-coder` 产物）用 `<Icon name="search" />` / `<Chart name="BarChart" option={...} />`，迁移时**调用点零改动**：图标只把 import 从 `./assets/shared/icon.jsx` 改成 `./shared/icon.jsx`（或 `../shared/icon.jsx`）；图表直接 `import Chart from '@nce/eview-react/Chart'`（契约同源项目，见下方「图表」段）。icon.jsx 走 icon-plus 在线（`octo.hdesign.huawei.com`），内网恒可达，不带 Lucide 兜底与 763KB JSON。
-
-用法：`node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标题] [--force]`（自动拷贝 scaffold/、改 `package.json` name、改 `index.html` title；目标非空时加 `--force`），然后 `npm install` + `npm run dev`。两条注意事项（app.jsx 导入路径修正、暗色切换 useEffect 迁移）见 [migration-workflow.md](references/migration-workflow.md) §1.3 / §2.2。
-
-> 若源项目是 UMD 单 HTML 工程 / 内联 token CSS / 运行时 fetch 图标，迁移前先读 [source-project-guidelines.md](references/source-project-guidelines.md) 了解这些结构如何影响迁移成本，以及在源项目侧可以做什么来降低成本。
+> scaffold 目录结构与各文件用途详见 [migration-workflow.md](references/migration-workflow.md) §1.2。
 
 ## 组件映射总表
 
@@ -107,7 +52,9 @@ scaffold 预制了 `src/shared/icon.jsx`。源项目（`ict-react-coder` 产物�
 
 ### 无对应需手写（见 [handwrite-templates.md](references/handwrite-templates.md)）
 
-Layout/Header/Sider/Content、Menu、Avatar、Descriptions、Space、Statistic、Skeleton、Card、List、Typography、Carousel、Timeline、Transfer、Mentions、Comment、Image、Affix、BackTop
+Layout/Header/Sider/Content、Menu、Avatar、Descriptions、Space、Statistic、Skeleton、Card、List、Typography、Mentions、Comment、Image、Affix、BackTop、Progress
+
+> 以上均为 eview-react 无导出或无 Reference，一律手写。另有 `Carousel`/`Timeline`/`Transfer`：eview-react 存在导出名（分别为 `Carousel`/`TimeLine`/`DoubleSelect`）但无 Reference（无 API 文档），仍按手写处理——硬约束 7"查不到的 props 一律不写"，无文档的导出组件无法可靠使用。详见 [component-mapping.md](references/component-mapping.md)。
 
 > 若源项目为 `ict-react-coder` 产出：Layout/Space/Card/Skeleton 已被生成端禁用并改写为 H5（纯 `<div>` + CSS 变量），迁移时**保留已有 H5 结构即可**，无需再查 antd 组件或套 handwrite 模板。仅 Menu/Avatar/Descriptions 等生成端未覆盖的组件才需要手写补位。
 
@@ -145,7 +92,7 @@ scaffold 已预制 `src/shared/icon.jsx`（保留 `<Icon name="search" />` 契�
 9. **Form 内不允许用 `<div>` 做栅格**：多列布局用 Form 级 `itemCol` 设默认宽度（24 栅格制）；**单项覆盖用 `Form.Item.col`**（不拆 Form、不用 div/Row/Col 包裹）；删掉 antd 的 Row/Col 或 div+CSS grid 包裹
 10. **Form `initialValues` 必须传对象**：动态/异步/向导多步场景一律 `initialValues={x || {}}`。传 `undefined` 会让 `submit()` → `onSuccess(values)` 收到**空对象**（"托管没生效、确认页没数据"的根因，已真机确认）。控件自带 `validator` 要在 `submit()` 时跑需 Form 上加 `validateAllChildComponent={true}`（Form rules `required`/`email`/`range` 默认就跑）。详见 [form-migration.md](references/form-migration.md) 顶部"运行时已验证"段
 11. **Toggle / Switch 在 Form 内 `data` 必须用布尔值**：`valuePropName="toggled"` 时，`Switch data={[false, true]}`。不要用 `data={['false', 'true']}`（字符串），否则 `toggled` 收到字符串 `'false'`（JS 中为 truthy，`!!'false' === true`），导致开关无法关闭。推荐 `import Switch from '@nce/eview-react/Switch'` 而非 `Toggle`（两者相同，但 Switch 语义更明确）。
-12. **迁移后必须验证相对导入解析**：尤其检查 `src/**/*.jsx` 中是否残留 `./src/...`。这是 Vite import-analysis 阶段才会报的错误，不能只做 Babel/TypeScript 语法检查。
+12. **相对导入解析**：路径已由 `umd-to-antd-vite` 修正并验证通过（`.umd-conversion.json` 的 `verification.relativeImports=PASS`），步骤 5 **跳过** `check-relative-imports.cjs`。步骤 3 替换组件时新增的 import 不要写 `./src/...`（同级用 `./`、上层用 `../`）；兜底靠步骤 5 的 `npm run dev`——Vite import-analysis 阶段会报残留的 `./src/...`，不能只做 Babel/TypeScript 语法检查。
 13. **图标**：迁移期默认复用 scaffold 自定义 `<Icon>` shim（`src/shared/icon.jsx`，运行时 fetch icon-plus，调用点零改动，见 [source-project-guidelines.md](references/source-project-guidelines.md) §3.2）；eview-react 内置 `Icon name="ict_*"` 已下线不要用；不要用 `@ant-design/icons`；可点击图标用 `IconButton iconName={<IconPlusIc* />} tipText`，不给图标组件挂 onClick；**antd 纯图标按钮（`Button type="text" shape="circle" icon={...}` 无 children）用 `IconButton`，禁止退化为原生 `<button>+<Icon>`**（见 [component-mapping.md](references/component-mapping.md) 图标行）。
 
 ## 命名异常速查
@@ -166,3 +113,28 @@ scaffold 已预制 `src/shared/icon.jsx`（保留 `<Icon name="search" />` 契�
 | **表单提交页** | `Form onFinish`→`onSuccess`；`rules message` 删掉；Toggle 配 `valuePropName`+`updateTrigger` |
 | **侧边详情/编辑** | `Drawer`→`Drawer`（`open`→`visible`）；底部按钮自写；`Descriptions`→手写 KeyValueList |
 | **布局骨架** | `Layout`/`Menu`/`Avatar` 全部手写；`Breadcrumb`→`Crumbs`；`Input.Search`→`SearchInput` |
+
+## 前置 skill：umd-to-antd-vite
+
+完整 pipeline 链：`ict-react-coder`（生成 UMD 单 HTML 原型）→ `umd-to-antd-vite`（UMD → 标准 antd Vite 工程 + 外置 token + 修路径 + 扫描组件，产出 `.umd-conversion.json`）→ **`antd-to-eview-react`（本 skill，antd → eview-react）**。本 skill 的直接输入是 `umd-to-antd-vite` 的产物（标准 antd Vite 工程 + `.umd-conversion.json` 交接文件），不直接消费 UMD 单 HTML。`ict-react-coder` 产物的特征（Layout/Space/Card/Skeleton 已改 H5、`<Icon>`/`<Chart>` 调用点契约）由 `umd-to-antd-vite` 透传到本 skill 的输入工程中，详见 [source-project-guidelines.md](references/source-project-guidelines.md)——该文档是给**上游生成端**（`ict-react-coder`）的规范建议，描述的是 UMD 源项目形态，不是本 skill 直接输入（Vite 工程）的描述。
+
+| 步骤 | umd-to-antd-vite（前置） | antd-to-eview-react（本 skill） |
+|------|--------------------------|--------------------------------|
+| 工程标准化 | UMD → antd Vite + 外置 token + 修路径 + 扫描 antd 组件 | — |
+| 组件库替换 | — | antd → eview-react（步骤 2-3） |
+| 验证 | check-relative-imports + npm run dev | check-i18n-keys + npm run dev |
+
+本 skill 跳过的步骤（已由前置 skill 完成）：步骤 0 扫描（读交接文件）、步骤 4 token 提取（已外置）、步骤 5 相对导入检查（已修正）。主 agent 只做：步骤 1 `--upgrade` 换骨架、步骤 2 换 Provider、步骤 3 逐组件替换、步骤 5 构建验证。
+
+## 核心问题
+
+从 antd 迁移到 eview-react 时的典型失败模式（每条详情见对应 reference）：
+
+- **API 名称猜错**：`type`→`status`、`placeholder`→`defaultLabel`、`checked`→`toggled` 等；完整对照见 [naming-quirks.md](references/naming-quirks.md)
+- **Form 模式不兼容**：`useForm()`+Promise → `useRef`+`onSuccess` 回调，控制流从同步变异步；见 [form-migration.md](references/form-migration.md)
+- **组件无对应**：Layout/Menu/Avatar/Descriptions/Result/Space 无直接对应，需手写补位；见 [handwrite-templates.md](references/handwrite-templates.md)
+- **CSS token 丢失**：源项目 token 内联在 HTML，迁移到 Vite 后丢失；提取到独立 CSS 与 `aui3_1.css` 并存；见 [css-token-mapping.md](references/css-token-mapping.md)
+- **IntlProvider 放错位置**：必须在 `main.jsx` 作为 `ConfigProvider` 直接子级，locale 用 `"zh"` 不是 `"zh-CN"`；见 [i18n-migration.md](references/i18n-migration.md) §4
+- **Table render i18n key 不对齐**：`t(cellValue, cellValue)` 取不到带前缀的 key，需 `t("deviceType." + value, value)`；脚本 `scripts/check-i18n-keys.cjs` 自动排查；见 [migration-workflow.md](references/migration-workflow.md) §3.5
+- **命名拼写异常**：`seprator`/`taggledChildren`/`disable` 等官方拼错；见 [naming-quirks.md](references/naming-quirks.md)
+- **import 路径失效**：scaffold 后 `app.jsx` 在 `src/`，`./src/context.jsx` 须改 `./context.jsx`；脚本 `scripts/check-relative-imports.cjs` 按需排查（见 [§5.1](references/migration-workflow.md)）；步骤 5 默认跳过（路径已由前置 skill 修正）

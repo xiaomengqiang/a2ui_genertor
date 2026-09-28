@@ -4,19 +4,15 @@
 
 ## 步骤 0：评估迁移可行性
 
-### 0.1 扫描源项目组件清单
+### 0.1 读交接文件获取迁移清单
 
-用 grep / 人工审查源项目 `src/`，列出所有 antd 组件导入：
+源项目是 `umd-to-antd-vite` 产物，目标工程根必有 `.umd-conversion.json` 交接文件。主 agent 直接读其中的 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，同时读 `antdIcons` 获取图标清单。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。
 
-```bash
-# 查找所有 antd 导入
-grep -rn "from 'antd'" src/ --include="*.jsx" --include="*.tsx"
-grep -rn "from \"antd\"" src/ --include="*.jsx" --include="*.tsx"
-```
+> 不需要手动 grep 扫描 `src/`——组件清单已由 `umd-to-antd-vite` 生成并写入交接文件。读完后进入 §0.2 对照组件映射总表分类。
 
 ### 0.2 对照组件映射总表分类
 
-将扫描到的组件分为三类：
+将交接文件中读取到的组件分为三类：
 
 | 分类 | 含义 | 处理 |
 |------|------|------|
@@ -40,33 +36,11 @@ grep -rn "from \"antd\"" src/ --include="*.jsx" --include="*.tsx"
 | Layout | B | 手写 | AppShell.jsx | 无对应 |
 | ... | | | | |
 
-### 0.5 派发子 agent：评估扫描
-
-步骤 0 要读源项目所有含 antd 导入的文件（可能几十个），但主 agent 只需迁移清单。用 Task 工具派发 explore 子 agent：
-
-**任务描述模板：**
-
-```
-扫描 <源项目路径>/src/ 下所有 .jsx/.tsx 文件的 antd 导入（from 'antd'、from "@ant-design/icons"），
-对照 <skill目录>/references/component-mapping.md 分三类：
-- A 有对应：eview-react 有直接对应组件
-- B 无对应需手写：eview-react 无对应
-- C 模式转换：有对应但 API 模式不同（Form / Steps / Modal）
-
-输出迁移清单表格（markdown）：
-| antd 组件 | 分类 | eview-react 替换 | 涉及文件 |
-```
-
-- **子 agent 读**：源项目 src/ + references/component-mapping.md
-- **子 agent 输出**：迁移清单表格
-- **主 agent 用清单**：规划步骤 3 的子 agent 拆分（按分类和涉及文件分组）
-
 ## 步骤 1：建工程骨架
 
-### 1.1 判断是否需要新建
+### 1.1 前置条件
 
-- 源项目已有 `package.json` + Vite → 跳到步骤 2
-- 源项目是 UMD/单 HTML/无构建 → 执行 1.2（拷贝 `scaffold/` 预制骨架）
+源项目是 `umd-to-antd-vite` 产物（标准 Vite 工程 + `.umd-conversion.json`），直接执行 1.2a（`--upgrade` 模式）。
 
 ### 1.2 拷贝预制骨架
 
@@ -120,34 +94,26 @@ scaffold/
 
 > `main.jsx` 已把 `aui3_1.css` + `aui3_1_dark.css` + `base.css` + `font.css` + `tokens.css` + `theme-dark.css` 六处 import 都写好，步骤 4 填充 token 后无需再改入口。`src/shared/icon.jsx` 的图标 shim、`public/font/` 的字体已预置；图表直接用 `@nce/eview-react/Chart`（见 §3.0）。源项目用到的 `<Icon>` / `<Chart>` 迁移时调用点零改动。
 
-### 1.3 文件位置变化与相对路径
+### 1.2a 升级模式（源项目已是标准 Vite 工程）
 
-UMD/单 HTML 源项目经常同时有根目录 `app.jsx` 和 `src/` 目录。根目录 `app.jsx` 中的导入通常长这样：
+若源项目已是标准 Vite + npm 工程（如 `umd-to-antd-vite` skill 产物——有 `package.json` + `vite.config.js` + 外置 `src/styles/tokens.css` + `theme-dark.css`），用 `--upgrade` 模式拷贝骨架：
 
-```jsx
-import { AppProvider } from './src/context.jsx';
-import AppShell from './src/views/AppShell.jsx';
+```bash
+node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标题] --force --upgrade
 ```
 
-拷贝 scaffold 后，目标工程入口组件是 `src/app.jsx`。如果把根目录 `app.jsx` 的 import 原样搬进 `src/app.jsx`，Vite 会把 `./src/context.jsx` 解析成 `src/src/context.jsx` 并报错：
+`--upgrade` 模式跳过 `src/styles/` 目录的拷贝，保留已有的 `tokens.css` / `theme-dark.css` / `base.css` / `font.css`，只覆盖骨架文件（`package.json` / `.npmrc` / `vite.config.js` / `index.html` / `src/main.jsx` / `src/app.jsx` / `src/shared/icon.jsx` / `public/font/`）。token CSS 不丢失，步骤 4 可跳过。
 
-```text
-[plugin:vite:import-analysis] Failed to resolve import "./src/context.jsx" from "src/app.jsx"
-```
+> **注意**：`--upgrade` 会覆盖 `src/app.jsx` 为空壳。如果源项目的 `app.jsx` 有业务逻辑（暗色切换等），步骤 2 需重新配。`src/` 下的其他业务文件（views/、context.jsx 等）不受影响（scaffold 没有这些文件，不会覆盖）。
 
-正确写法：
+### 1.3 相对路径（已由 umd-to-antd-vite 修正）
 
-```jsx
-// src/app.jsx
-import { AppProvider } from './context.jsx';
-import AppShell from './views/AppShell.jsx';
-```
+路径已由 `umd-to-antd-vite` 步骤 3 修正（`./src/...` → `./...`）并验证通过。本步骤无需操作。步骤 3 组件替换时如新增 import，遵循以下规则：
 
-规则：
 - `src/app.jsx` 导入同级模块用 `./context.jsx`、`./data.js`
 - `src/app.jsx` 导入视图用 `./views/X.jsx`
 - `src/views/X.jsx` 导入上层数据用 `../data.js`、`../context.jsx`
-- `src/` 内文件禁止残留 `./src/...` 导入
+- `src/` 内文件禁止写 `./src/...` 导入
 
 ### 1.4 依赖说明
 
@@ -210,9 +176,9 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 
 ### 2.4 删除 antd 相关依赖
 
-- 删除 `antd` 导入
-- 删除 `antd-zh-cn.js` 等语言包
-- 删除 UMD 库引用（`antd.min.js` 等）
+- 删除 `antd` 导入（改为 `@nce/eview-react/X`）
+- 删除 `antd/locale/zh_CN` 导入（改为 IntlProvider）
+- 删除 `@ant-design/icons` 导入（改为 scaffold 预制 `Icon` shim 或 `@nce/icon-plus`）
 
 ### 2.5 IntlProvider 放在 main.jsx（不要跟着 AppShell 搬）
 
@@ -335,64 +301,35 @@ export const policyTemplates = [
 
 > **规则：** 凡是 `render: (value) => t(value, ...)` 且 `data.js` 中该字段的 `value ≠ msgId`，必须补前缀。`value === msgId` 的无需改。StatusTag 等自定义组件如果内部已做 `"status." + status` 拼接，则无需在 render 里再拼。
 
-### 3.6 派发子 agent：逐组件替换
+### 3.6 主 agent 逐组件替换
 
-步骤 3 上下文消耗最高（form-migration.md 423 行 + handwrite-templates.md 270 行 + 涉及的 components/*.md ~200KB）。按组件类别拆成 2-3 个 general 子 agent 并行，每个只加载自己负责的 reference 子集。
+步骤 3 上下文消耗最高（form-migration.md + handwrite-templates.md + components/*.md）。主 agent 按以下顺序替换，每次只读当前需要的 reference：
 
-**分组建议：**
+**替换顺序**（叶子先、容器后、布局最后）：
+1. **叶子组件**（Button / TextField / Select 等）—— 改动小、验证快
+2. **容器组件**（Form / Dialog / Table）—— 模式变化大
+3. **布局组件**（Layout / Menu / Breadcrumb）—— 影响全局
 
-| 子 agent | 负责类别 | 读哪些 reference | 源文件（来自步骤 0 清单） |
-|---------|---------|-----------------|------------------------|
-| A 表单类 | Input/Select/Form/Upload 等表单组件 + Form 模式转换 | form-migration.md + components/ 下 TextField/Select/Form/Spinner/Toggle/DatePicker/FileUpload/MultipleSelect/Cascader/Checkbox/Radio/SelectCard/SearchInput/TextArea/Rating/DragInput + naming-quirks.md | 分类 A/C 的表单类涉及文件 |
-| B 展示反馈类 | Table/Tab/Dialog/Drawer/Loading 等展示反馈组件 | component-mapping.md + components/ 下 Table/Tab/Dialog/Drawer/DivMessage/Loading/Tag/Badge/TipBox/Empty/Panel/Steps/Crumbs + naming-quirks.md | 分类 A 的展示/反馈涉及文件 |
-| C 无对应手写 | Layout/Menu/Avatar/Descriptions 等无对应组件 | handwrite-templates.md | 分类 B 的涉及文件 |
+**每个组件替换时读**：
+- [naming-quirks.md](naming-quirks.md) — 逐项替换命名差异
+- [components/<组件>.md](components/INDEX.md) — 查完整 API
+- [component-mapping.md](component-mapping.md) — 查"关键 API 差异"列
+- Form 组件额外读 [form-migration.md](form-migration.md) — 模式转换（useForm→useRef、Promise→onSuccess 回调）
+- 无对应组件读 [handwrite-templates.md](handwrite-templates.md) — 手写模板
 
-> 源文件分组依据步骤 0 的迁移清单。某文件同时含表单和展示组件时，归到组件数多的那组。
+**硬约束**：严格遵守 SKILL.md 的"eview-react 硬约束"章节（13 条）。导入路径改为 `import X from '@nce/eview-react/X'`。
 
-**任务描述模板（以子 agent A 为例）：**
+替换完一类组件后，可先跑 `npm run dev` 快速验证该类是否编译通过，再继续下一类。全部替换完后进入步骤 5 验证。
 
-```
-将以下文件中的 antd 组件替换为 eview-react 组件：
-<源文件列表>
+## 步骤 4：CSS token（已由 umd-to-antd-vite 外置，跳过）
 
-规则（严格遵守 <skill目录>/references/ 下文档）：
-1. 读 form-migration.md 处理 Form 模式转换（useForm→useRef、Promise→onSuccess 回调）
-2. 读 naming-quirks.md 逐项替换命名差异
-3. 读 components/<组件>.md 查每个组件完整 API
-4. 读 component-mapping.md 查"关键 API 差异"列
-5. 导入路径改为 import X from '@nce/eview-react/X'
-6. 读 <skill目录>/SKILL.md 的"eview-react 硬约束"章节（12 条），严格遵守（<skill目录> 是本 skill 的安装路径，例如 ~/.opencode/skills/antd-to-eview-react）
-
-输出：改了哪些文件 + 每个文件改了哪些组件 + 遗留问题（如某组件无对应标记 TODO）
-```
-
-- **子 agent 读**：自己那组 reference + 源文件
-- **子 agent 输出**：改动清单 + 遗留问题
-- **主 agent**：从每个子 agent 的最终回复提取 `task_id`（记为 GEN_A_ID / GEN_B_ID / GEN_C_ID）并记录；合并各子 agent 改动清单，决定是否续接修复
-- **续接修复**：若某子 agent 有遗留问题需继续修，**必须传对应 `task_id` 续接同一 session**（如 GEN_A_ID），不要另起新 session——新 agent 丢失之前的产物结构与改动上下文。把遗留问题逐条原样传给该子 agent
-
-## 步骤 4：提取 CSS token
-
-> 详见 [css-token-mapping.md](css-token-mapping.md)
-
-迁移时保留源项目的 token 体系，不做变量名替换。操作：
-
-1. 从源项目的 `index.page.html`（或内联 `<style>`）提取 `:root` 变量定义到 `src/styles/tokens.css`
-2. 提取 `.dark` 暗色覆盖到 `src/styles/theme-dark.css`（有的话）
-3. 在入口同时引入：`import '@nce/eview-react/styles/aui3_1.css'` + `import '@nce/eview-react/styles/aui3_1_dark.css'` + `import './styles/tokens.css'` + `import './styles/theme-dark.css'`
-4. 布局/手写 CSS 不改（继续引用 `var(--surface)` 等原始变量名）
-5. 暗色模式同时切 `<body>` 上的 `aui3_1` / `aui3_1_dark` 和 `<html>` 上的 `.dark`
-
-通用规则：
-- 不写死色值，用 CSS 变量（源项目的原始 token）
-- 类名用业务前缀（`app-`）不用 `ev_`
-- 可点击元素用 `<button type="button">`（仅限无 eview-react 对应组件时；图标按钮用 `IconButton`，不手写原生 button）
+token CSS 已由 `umd-to-antd-vite` 提取到 `src/styles/tokens.css` + `theme-dark.css`，步骤 1 的 `--upgrade` 模式已保留。无需操作。`main.jsx` 的六处 CSS import（scaffold 已预置）已包含 `tokens.css` + `theme-dark.css`。
 
 ## 步骤 5：验证
 
-### 5.1 相对导入解析检查（必跑）
+### 5.1 相对导入解析检查（已由 umd-to-antd-vite 验证，跳过）
 
-语法检查只能发现 JSX/JS 写法错误，发现不了 `src/app.jsx` 中 `./src/context.jsx` 这类路径错误。迁移后、`npm run dev` 前必须跑：
+路径已由 `umd-to-antd-vite` 修正并验证通过（`.umd-conversion.json` 的 `verification.relativeImports = "PASS"`）。本步骤跳过。如步骤 3 组件替换时改了 import 路径，可按需重跑确认：
 
 脚本位于本 skill 的 `scripts/check-relative-imports.cjs`，两种调用方式任选其一：
 
@@ -478,46 +415,36 @@ npm run dev
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 翻译单元格值，但 `data.js` 里 value 是短代码（`"gateway"`），i18n key 带前缀（`"deviceType.gateway"`），`t("gateway", ...)` 找不到消息 | 在 render 里补 i18n 命名空间前缀：`t("deviceType." + value, value)`；对照 `data.js` 选项字典的 `value` vs `msgId`，`value ≠ msgId` 的都要补。详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 5.6 派发子 agent：验证
+### 5.6 主 agent 验证
 
-步骤 5 的脚本输出 + npm install/dev 日志可能几百行，主 agent 只需 pass/fail + 问题列表。用 Task 工具派发 general 子 agent。
+主 agent 自己跑验证脚本 + 构建检查，把结果写入 `<目标工程根>/.migration-result.json`。
 
-**测试结果文件**（主 agent 判定依据）：`<目标工程根>/.migration-result.json`。验证子 agent 每轮覆盖写入，主 agent 用 `read` 工具读其 `status` 字段判定（**不信子 agent 口头结论**）。
+**验证步骤**：
+1. 相对导入检查**跳过**（路径已由 `umd-to-antd-vite` 修正，`.umd-conversion.json` 的 `verification.relativeImports=PASS`）；步骤 3 替换组件时若新增 import，靠第 4 步 `npm run dev` 的 Vite import-analysis 兜底
+2. 跑 `node <skill目录>/scripts/check-i18n-keys.cjs <目标工程根>`
+3. `cd <目标工程根> && npm install`
+4. `npm run dev` 确认启动成功
+5. 按 §5.4 功能验证清单逐项检查
 
-**循环上限**：默认 5 轮（round 1 首次验证，round 2~5 修复后重测）。第 5 轮仍 FAIL 必须停止，向用户报告失败项 + 建议人工介入。用户可在消息里指定别的上限。
+**结果文件**：把结果写入 `<目标工程根>/.migration-result.json`（覆盖写），JSON 结构：
 
-**任务描述模板：**
-
-```
-对 <目标工程根> 执行迁移验证：
-1. 跑 node <skill目录>/scripts/check-relative-imports.cjs <目标工程根>，报告 unresolved imports
-2. 跑 node <skill目录>/scripts/check-i18n-keys.cjs <目标工程根>，报告高危 i18n key
-3. cd <目标工程根> && npm install，报告是否成功（失败贴报错）
-4. npm run dev，报告是否启动成功（失败贴报错）
-5. 按 <skill目录>/references/migration-workflow.md §5.4 功能验证清单逐项检查
-
-完成后必须：
-1. 把结果写入 <目标工程根>/.migration-result.json（覆盖写），JSON 结构：
-   {
-     "status": "PASS" 或 "FAIL",
-     "round": {round},
-     "failures": ["失败点 1", "失败点 2", ...],
-     "checks": {
-       "relative-imports": "PASS/FAIL",
-       "i18n-keys": "PASS/FAIL",
-       "npm-install": "PASS/FAIL",
-       "npm-run-dev": "PASS/FAIL",
-       "functional": "X/Y"
-     },
-     "notes": "可选说明"
-   }
-   - 所有验收项全过 → status="PASS"，failures=[]
-   - 任一不过 → status="FAIL"，failures 逐条写清具体失败点（要可操作，让修复 agent 知道改哪、怎么改）
-2. 在最终回复返回 PASS/FAIL。
-
-本轮轮号：{round}
+```json
+{
+  "status": "PASS" 或 "FAIL",
+  "round": {round},
+  "failures": ["失败点 1", ...],
+  "checks": {
+    "relative-imports": "PASS/FAIL",
+    "i18n-keys": "PASS/FAIL",
+    "npm-install": "PASS/FAIL",
+    "npm-run-dev": "PASS/FAIL",
+    "functional": "X/Y"
+  },
+  "notes": "可选说明"
+}
 ```
 
-- **子 agent 读**：migration-workflow.md §5.4
-- **子 agent 输出**：把结果写入 `<目标工程根>/.migration-result.json`（覆盖写）并在最终回复返回 PASS/FAIL
-- **主 agent**：用 `read` 工具读 `.migration-result.json` 的 `status` 字段判定（不信子 agent 口头结论）。若 FAIL，取 `failures` 数组，回到步骤 3 续接对应组件类别的子 agent 修复（**传其 task_id 续接同一 session**），再回到 §5.6 续接验证子 agent 重测（**传验证子 agent 的 task_id**，round = 上轮 + 1）。达 5 轮上限仍 FAIL 必须停止
+- 所有验收项全过 → status="PASS"，failures=[]
+- 任一不过 → status="FAIL"，failures 逐条写清具体失败点
+
+**循环上限**：默认 5 轮（round 1 首次验证，round 2~5 修复后重测）。验证 FAIL 时主 agent 直接读 `.migration-result.json` 的 `failures` 字段，回到步骤 3 自己修复，再重新验证（round + 1）。第 5 轮仍 FAIL 必须停止，向用户报告失败项 + 建议人工介入。

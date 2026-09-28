@@ -1,7 +1,9 @@
 # 源项目迁移前规范建议
 
-> 以下建议针对**被转换的 antd 源项目**。如果源项目在生成时就遵循这些规范，
+> 以下建议针对**被转换的 antd 源项目**（pipeline 最上游的 UMD 单 HTML 原型，由 `ict-react-coder` 生成）。如果源项目在生成时就遵循这些规范，
 > 迁移到 eview-react 时可以跳过"重建基础设施"阶段，直接聚焦于组件库替换。
+>
+> **本文定位**：这是给**上游生成端**（`ict-react-coder`）的规范建议，描述的是 UMD 单 HTML 源项目的形态与痛点。`antd-to-eview-react` skill 的**直接输入不是本文描述的 UMD 工程**，而是 `umd-to-antd-vite` 处理后的标准 Vite 工程（`package.json` + `vite.config.js` + 外置 `src/styles/tokens.css` + `.umd-conversion.json` 交接文件）。完整 pipeline 链：`ict-react-coder`（生成 UMD 原型）→ `umd-to-antd-vite`（UMD → antd Vite + 外置 token + 修路径 + 扫描组件）→ `antd-to-eview-react`（antd → eview-react）。本文的价值在于解释 `umd-to-antd-vite` 为什么要做那些"工程标准化"工作（外置 token、修路径、扫组件），以及上游生成端如何改进才能减少整条 pipeline 的迁移成本。
 >
 > 每条建议基于一次真实迁移任务（device-access-wizard 项目）中遇到的实际问题。
 >
@@ -97,7 +99,7 @@ import { menuItems } from '../data.js';
 import { AppProvider } from './src/context.jsx';
 ```
 
-迁移后必须跑相对导入解析检查，避免 Vite import-analysis 阶段才暴露问题：
+源项目应保证相对导入路径正确（同级 `./`、上层 `../`，不写 `./src/...`），这样下游 `umd-to-antd-vite` 的 `verification.relativeImports` 能 PASS，`antd-to-eview-react` 步骤 5 可跳过 `check-relative-imports.cjs`。如需按需排查，脚本位于本 skill 的 `scripts/check-relative-imports.cjs`：
 
 ```bash
 # 脚本位于本 skill 的 scripts/check-relative-imports.cjs，两种调用方式任选其一：
