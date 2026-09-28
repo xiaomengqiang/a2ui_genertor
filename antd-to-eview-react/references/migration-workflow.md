@@ -207,20 +207,17 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 
 > 按组件映射总表替换，Form 模式单独处理。
 
-### 3.0 预制件复用 / 包导入（图标 / 图表，零调用点改动）
+### 3.0 图标（方案 C 离线匹配 + 静态 import）/ 图表（包导入）
 
-图标仍走 scaffold 预制 shim（`src/shared/icon.jsx`），图表改为直接从 eview-react 包导入。源项目（`ict-react-coder` 产物）的 `<Icon name="..." />` / `<Chart name="..." option={...} />` **调用点零改动**，只改 import 路径：
+**图标默认走方案 C**：读 skill 自带的 `icons/icon-plus-names.json`（按领域划分的 icon+ 名目录，`Public`/`Ict` 为通用主力域）离线匹配源项目（`ict-react-coder` 产物）的 Lucide/antd 图标名 → 命中即 `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import，把 `<Icon name="search" />` 调用点替换为 `<IconPlusIcPublicSearch ... />`（**无网络依赖、彻底离线**）。组件名合成 = `"IconPlusIc" + Domain + Name`；无 `color` 时 `iconColor={['currentcolor']}`；`size`→`iconSize`（支持rem、px、数字）；未匹配名用占位 `IconPlusIcPublicTransverseRectangleTemplate`。完整算法见 [source-project-guidelines.md](source-project-guidelines.md) §3.2。
 
-| 组件 | 源项目 import | 迁移后 import | 适用位置 |
-|------|---------------|--------------|---------|
-| Icon | `./assets/shared/icon.jsx` | `./shared/icon.jsx` | `src/` 下文件 |
-| Icon | `./assets/shared/icon.jsx` | `../shared/icon.jsx` | `src/views/<name>/index.jsx` |
-| Chart | `../../../assets/shared/chart.jsx` | `@nce/eview-react/Chart` | 任意位置（包导入，不受相对深度影响） |
+| 组件 | 源项目用法 | 迁移后（方案 C） |
+|------|-----------|------------------|
+| Icon | `<Icon name="search" size={14} />`（`./assets/shared/icon.jsx`） | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'` + `<IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />`（名由 catalog 匹配） |
+| Chart | `<Chart name="BarChart" option={...} />`（`../../../assets/shared/chart.jsx`） | `import Chart from '@nce/eview-react/Chart'`（任意位置，包导入） |
 
-跑 `scripts/check-relative-imports.cjs`（§5.1）会一并扫出残留的 `./assets/shared/...` 旧路径。
-
+> **备选 A**（内网运行时 fetch 兜底）：scaffold `src/shared/icon.jsx`，`<Icon name="...">` 调用点零改动，只改 import 路径 `./assets/shared/icon.jsx` → `./shared/icon.jsx`（src/ 下）或 `../shared/icon.jsx`（views/ 下），见 [source-project-guidelines.md](source-project-guidelines.md) §3.3。跑 `scripts/check-relative-imports.cjs`（§5.1）扫残留 `./assets/shared/...` 旧路径。
 > 图表契约（`<Chart name option />`、`.dark` 自动切主题、ResizeObserver 自适应、ref 方法）由 `@nce/eview-react/Chart` 原生提供，与源项目一致，详见 [components/Chart.md](components/Chart.md)。
-> 若要切到 icon+ 静态 import（`import { IconPlusIcXxx } from '@nce/icon-plus'`）才需逐个查名替换调用点，见 [source-project-guidelines.md](source-project-guidelines.md) §3.3。默认走预制件复用即可。
 
 ### 3.1 A 类（有对应）：改 props
 

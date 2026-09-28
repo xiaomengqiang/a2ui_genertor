@@ -175,9 +175,14 @@ src/styles/
 
 ---
 
-## 3. 图标方案：scaffold 预制 Icon shim（默认零改动），icon+ 静态为可选
+## 3. 图标方案：方案 C（catalog 离线匹配 + icon+ 静态 import）为优选默认，A/B 为备选
 
-> scaffold 已把源项目的 `<Icon>` 组件预制为 `src/shared/icon.jsx`（剥离 Lucide 兜底，内网 icon-plus 恒可达）。迁移时**默认走预制件复用**（调用点零改动，只改 import 路径，见 [migration-workflow.md](migration-workflow.md) §3.0）；若要消除运行时 fetch / 走 eview-react 惯用范式，再按 §3.3 把 shim 换成 icon+ 静态 import（可选）。
+> 三套方案，渲染范式分两类：**A 是 scaffold 自定义 `<Icon>` shim**（运行时 fetch icon-plus 在线取 SVG，不依赖 `@nce/icon-plus` 包、不写静态 import）；**B/C 是 icon+ 静态 import**（`import { IconPlusIcXxx } from '@nce/icon-plus'`），二者仅「名发现」方式不同——C 离线 catalog 匹配、B 在线接口查得。
+> - **C（优选默认）**：读 skill 自带的 `icons/icon-plus-names.json`（按领域划分的 icon+ PascalCase 名目录）**离线匹配**源 Lucide/antd 名 → 命中即 `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import。**无网络依赖、无运行时 fetch**，迁移期默认走这条。
+> - **A（备选）**：scaffold 预制 `<Icon>` shim（`src/shared/icon.jsx`），保留源项目 `<Icon name="..."/>` 契约，运行时 fetch icon-plus 在线取 SVG 注入；调用点零改动、只改 import 路径。不引入 `@nce/icon-plus` 静态 import。内网兜底用。
+> - **B（备选）**：在线 `getIconInfo?keyword=...` 名发现 → `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import。外网/接口不便时**不用**，改用 C 的 catalog 离线匹配。
+>
+> 完整规格见 §3.2（C）/ §3.3（A）/ §3.4（B）。
 
 ### 3.1 源项目 Icon 组件结构
 
@@ -196,14 +201,82 @@ const GET_ICON = `${ICON_API_BASE}/assetRepository/iconPlus/getIcon`;
 
 组件渲染时：
 1. 先 `fetch(getConfig)` 探测 icon-plus 服务是否可用
-2. 如果可用，按图标名 `fetch(getIconInfo?keyword=xxx&topK=2&source_id=6)` 查找匹配图标（完整 URL 与参数见 §3.3）
+2. 如果可用，按图标名 `fetch(getIconInfo?keyword=xxx&topK=2&source_id=6)` 查找匹配图标（完整 URL 与参数见 §3.4）
 3. 再 `fetch(getIcon?url=xxx&size=16&style=border&color=xxx&fileType=svg)` 获取 SVG 文本
 4. 把 SVG 文本 `dangerouslySetInnerHTML` 注入 DOM
 5. 如果 icon-plus 不可用，回退到 Lucide nodes 表
 
 **第三层：缓存 + 状态管理**——`plusState`（探测状态）、`iconInfoMap`（name→{name,url}）、`svgCache`（"name&variant&color"→svg text）。每个 `<Icon name="search" />` 内部用 `useState` + `useEffect` 管理 SVG 异步加载。
 
-### 3.2 默认路径：scaffold 预制 Icon shim 复用
+### 3.2 优选路径：方案 C — catalog 离线匹配 + icon+ 静态 import
+
+用 skill 自带的 icon+ 名目录**离线匹配**源项目的 Lucide/antd 图标名，命中后 `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import（scaffold 已预置 `@nce/icon-plus` 依赖）。**无网络依赖、无运行时 fetch**——既消除 A 的运行时 fetch，又免掉 B 的在线名发现，外网环境下同样可用。迁移期默认走这条。
+
+#### 数据源
+
+`icons/icon-plus-names.json` —— `{ "<Domain>": ["<PascalCaseName>", ...] }`，按领域划分的 icon+ 组件「短名」目录（19 个域，`Public`/`Ict` 为通用主力域，其余为业务域）。迁移期由 agent 读此文件做名匹配，**不随 scaffold 打进目标工程、不参与运行时**。
+
+> 组件名合成规则（已核实）：JSON 中 `Public` 域下的 `TransverseRectangleTemplate`，对应既有占位组件名 `IconPlusIcPublicTransverseRectangleTemplate`。故 icon+ 组件名 = **`"IconPlusIc" + Domain + Name`**（如 `Public` + `Search` → `IconPlusIcPublicSearch`，与 §3.4 既有示例一致）。
+
+#### 名匹配算法（源 Lucide/antd 名 → icon+ 名）
+
+1. **归一化源名**为 PascalCase base：
+   - antd `@ant-design/icons`：剥尾部 `Outlined` / `Filled` / `TwoTone`。如 `SearchOutlined`→`Search`、`ArrowLeftOutlined`→`ArrowLeft`、`CaretUpFilled`→`CaretUp`。
+   - Lucide：kebab-case 转 PascalCase。如 `arrow-left`→`ArrowLeft`、`chevron-down`→`ChevronDown`、`x`→`X`、`pencil`→`Pencil`、`trash`→`Trash`、`sun`→`Sun`。
+   - 保留 base 的全小写形式与按大写拆分的 token 集合（如 `ArrowLeft` → tokens `{arrow, left}`）。
+   > 注意：名归一化只处理**名字**；antd 图标尺寸经由 `style.fontSize` 表达，**须单独抽取**（见下 props 映射表 → `iconSize`），不要因名归一化遗漏尺寸。
+
+2. **建索引**：遍历 JSON 每个 `(domain, name)`，记录 `name.toLowerCase()` 全名、`name` 按大写拆分的 token 集合；候选名额外剥 `Textured` / `\d+Textured` 后缀生成「裸名」变体（如 `BellClockTextured`→`bellclock`）作为次级候选。
+
+3. **匹配优先级**（命中即停，多域/多名时按 **`Public` > `Ict` > 其余** 裁决，其次取最短名）：
+   - **L1 全名精确**（大小写无关）：`name.toLowerCase() === base.toLowerCase()`。如 `search`→`Search`、`sun`→`Sun`。
+   - **L2 token 集合相等**（忽略顺序）：捕获 `ArrowLeft` ↔ `LeftArrow` 这类倒序命名。
+   - **L3 前缀匹配**：base 是候选名前缀（如 `check` 是 `Checkbox`/`Checkmark` 前缀、`lock` 是 `Locked` 前缀、`refresh` 是 `RefreshClockwise` 前缀）。
+   - **L4 裸名变体**：剥 `Textured` / `\d+Textured` 后缀后再走 L1。
+   - **未命中** → 占位图标 `IconPlusIcPublicTransverseRectangleTemplate`（保证编译通过、不阻塞迁移，后续人工替换）。
+
+   > 常见同义提示（可选，辅助人工判断；多域同名一律按 `Public` > `Ict` > 其余 裁决）：算法给 `Checkbox`（☑ 复选框），若需 ✓ 对勾改用 `Checkmark`；lucide `x`（关闭图标）算法给 `Ict/X`，若需关闭用 `Close`；`Delete` 算法给 `DigitalPower/Delete`，若需垃圾桶用 `Trash`。仅作提示，不强制。
+
+#### 组件名合成
+
+命中 `(domain, name)` → 组件名 = `"IconPlusIc" + Domain + Name`：
+- `Public` + `Search` → `IconPlusIcPublicSearch`
+- `Public` + `LeftArrow` → `IconPlusIcPublicLeftArrow`
+- `Public` + `Checkmark` → `IconPlusIcPublicCheckmark`
+- `Dev` + `Branch` → `IconPlusIcDevBranch`
+- `Car` + `User` → `IconPlusIcCarUser`
+- 未命中 → `IconPlusIcPublicTransverseRectangleTemplate`
+
+#### 调用点改写（`<Icon>` 契约 → icon+ 静态 import）
+
+源 `<Icon name="search" size={14} variant="lined" className="x" style={s} />`（无 color，继承容器）→
+```jsx
+import { IconPlusIcPublicSearch } from '@nce/icon-plus';
+<IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} className="x" style={s} />
+```
+源 `<Icon name="search" size={14} color="#fff" variant="filled" className="x" style={s} />` →
+```jsx
+<IconPlusIcPublicSearch iconSize={14} iconColor={['#fff']} type="filled" className="x" style={s} />
+```
+
+props 映射：
+
+| 源 `<Icon>` prop | icon+ 组件 prop | 备注 |
+|-----------------|----------------|------|
+| `name` | 解析为具体 `IconPlusIcXxx` 组件 | 走上面匹配算法 |
+| `size`（默认 16） | `iconSize` | 支持rem、px、数字；源值不在集合内就近吸附（默认 16）。**Button / IconButton 的 `leftIcon`/`rightIcon`/`iconName` 内层 `<IconPlusIc* />` 同样适用——尺寸写内层 `iconSize`，不是按钮的 `size`** |
+| antd `@ant-design/icons` 的 `style.fontSize` | `iconSize` | antd 图标组件**无 `size` prop**，尺寸靠 `style={{ fontSize: 14 }}` 或 `'14px'`；剥 `px` 取数字后按同样规则吸附到 `iconSize`。**这是 antd 图标尺寸的常见来源，勿漏** |
+| `color`（hex） | `iconColor={['#hex']}` | **无 color 时默认 `iconColor={['currentcolor']}`**（继承容器文字色）；有 hex 用 `['#hex']` |
+| `variant="filled"` | `type="filled"` | `lined`（默认）省略 `type`；`two-tone`/`circle`/`square` icon+ 支持度有限，按需 `type` |
+| `className` / `style` | 原样透传 | icon+ 收 `className`/`style`；但 `style.fontSize` **须先提升为 `iconSize` 并从透传的 `style` 里剔除**（icon+ 是 SVG，`fontSize` 无效） |
+| `src`（自定义图片） | 内联 `<img src={src} width={size} height={size} aria-hidden alt="" />` | shim 的 src 分支等价改写，无需库 |
+| `strokeWidth` | 丢弃 | icon+ 不支持（与 A 一致） |
+
+可点击图标用 `IconButton`：`<IconButton iconName={<IconPlusIcPublicEdit />} tipText="..." onClick={...} />`，名匹配同上（见 [components/Icon.md](components/Icon.md)）。
+
+> 切完 C 后 **保留 `src/shared/icon.jsx`**（A 作为运行时 fetch 兜底随时可回退，不删）。接口在此不参与——名发现靠 catalog 离线匹配，渲染靠 icon+ 静态 import。
+
+### 3.3 备选 A：scaffold 预制 Icon shim 复用（运行时 fetch）
 
 scaffold 的 `src/shared/icon.jsx` 保留源项目 Icon 组件的 icon-plus 在线层（§3.1 第二层 + 第三层：getConfig 探测、getIconInfo 查名、getIcon 取 SVG、缓存），**剥离第一层 Lucide 兜底**（内网环境 icon-plus 恒可达，不需要离线兜底，连带去掉 `lucide-icon-nodes.json` 的 763KB）。契约、props（`name`/`src`/`size`/`color`/`className`/`style`/`variant`）、运行时机制不变；`<Icon>` 在 icon-plus 探测中 / 探测失败时渲染 `null`（内网下探测失败属异常态，不退化到 Lucide）。
 
@@ -220,9 +293,9 @@ scaffold 的 `src/shared/icon.jsx` 保留源项目 Icon 组件的 icon-plus 在�
 
 > 之前版本的迁移因"运行时 fetch 与静态 import 范式不兼容"把所有图标退化为纯文字 / CSS 色块（搜索框→SearchInput 自带图标、深浅切换→纯文字 Button、上一步/下一步→无 leftIcon、侧导航→无图标、品牌 logo→色块）。预制 shim 后这条退化路径不再需要——图标全部保留。
 
-### 3.3 可选路径：切到 icon+ 静态 import（消除运行时 fetch）
+### 3.4 备选 B：在线 getIconInfo 名发现（外网不便时不用）
 
-若要彻底离线、走 eview-react 惯用范式，可把预制 shim 换成 `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import（scaffold 已预置 `@nce/icon-plus` 依赖）。需做一次名发现——icon+ 全量目录不随 skill 打包，用源项目的 icon-plus 在线接口按 Lucide/antd 名 keyword 查得 icon+ 名。
+与 C 共用「icon+ 静态 import」范式，**仅名发现方式不同**：C 靠 skill 自带 catalog 离线匹配（§3.2，默认），B 靠在线 `getIconInfo` 接口按 Lucide/antd 名 keyword 查得 icon+ 名。**外网 / 接口不便时不用 B，改用 C**。仅当 catalog 未命中、且能联通内网接口时，用 B 做在线名发现兜底。
 
 **接口调用**：`GET https://octo.hdesign.huawei.com/assetRepository/iconPlus/getIconInfo?keyword=<keyword>&topK=2&source_id=6`
 - 迁移期一次性查询：收集源项目所有图标名（Lucide/antd 名），`keyword` 传逗号拼接的全部名，一次请求拿回每个名对应的 icon+ 名
@@ -243,7 +316,7 @@ import { IconPlusIcPublicSearch, IconPlusIcPublicSun } from '@nce/icon-plus';
 <Button leftIcon={<IconPlusIcPublicSun />} onClick={toggleDark} />
 ```
 
-接口在此只做迁移期一次的名发现，不参与运行时渲染。切完后可删 `src/shared/icon.jsx`（shim 不再被引用）。
+接口在此只做迁移期一次的名发现，不参与运行时渲染。切完后 **保留 `src/shared/icon.jsx`**（A 兜底，不删）。
 
 名映射示意（icon+ 组件名为示意，真实值靠接口查得 + PascalCase 转换）：
 
@@ -254,7 +327,7 @@ import { IconPlusIcPublicSearch, IconPlusIcPublicSun } from '@nce/icon-plus';
 | `arrow-left` / `ArrowLeftOutlined` | `ic_public_arrow_left` | `Button leftIcon={<IconPlusIcPublicArrowLeft />}` |
 | `edit` / `EditOutlined` | `ic_public_edit` | `IconButton iconName={<IconPlusIcPublicEdit />}` |
 
-### 3.4 其他备选（icon+ 名查不到时兜底）
+### 3.5 其他备选（icon+ 名查不到时兜底）
 
 **备选 A：直接用 `@ant-design/icons`**
 
@@ -273,7 +346,7 @@ import { SearchOutlined, SunOutlined, MoonOutlined,
 function SearchIcon({ size = 14 }) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" strokeWidth={2}>
+             stroke="currentcolor" strokeWidth={2}>
             <path d="m21 21-4.34-4.34" />
             <circle cx="11" cy="11" r="8" />
         </svg>
@@ -283,15 +356,16 @@ function SearchIcon({ size = 14 }) {
 
 迁移时：eview-react 的图标 prop 多收 ReactElement，可直接塞内联 SVG 组件或静态 SVG 文件；不依赖任何图标库，不需要网络、不需要构建时 import、不需要猜名字。
 
-### 3.5 成本对比
+### 3.6 成本对比
 
-| 方面 | 预制 shim 复用（默认） | icon+ 静态（可选 §3.3） | @ant-design/icons（备选 A） | 内联 SVG（备选 B） |
-|------|----------------------|------------------------|---------------------------|-------------------|
-| 迁移时图标名映射 | 不需要（调用点零改动） | 接口按 keyword 查得 icon+ 名 | 可查 antd 官网目录，推断 intent | 不需要映射，SVG 直接用 |
-| 网络依赖 | 运行时 fetch icon-plus（内网恒可达，无 Lucide 兜底） | 迁移期一次性查询（可选） | 无 | 无 |
-| 迁移后调用点改动 | 仅改 import 路径 | 逐个改调用点为静态 import | 逐个改调用点 | 逐个改调用点 |
-| bundle 体积 | 仅用到的 SVG（无 lucide JSON） | 只打包用到的 icon+ | 用到的 antd 图标 | 用到的 SVG |
-| 迁移额外成本 | 最低 | 中（查名 + 逐点替换） | 中（名字可查 + 逐点替换） | 中（逐点替换） |
+| 方面 | **方案 C（优选默认 §3.2）** | 预制 shim A（备选 §3.3） | 在线名发现 B（备选 §3.4） | @ant-design/icons（§3.5 备选 A） | 内联 SVG（§3.5 备选 B） |
+|------|---------------------------|-------------------------|--------------------------|--------------------------------|-----------------------|
+| 迁移时图标名映射 | catalog 离线匹配（`icons/icon-plus-names.json`，`Public`>`Ict` 优先） | 不需要（调用点零改动） | 接口按 keyword 查得 icon+ 名 | 可查 antd 官网目录，推断 intent | 不需要映射，SVG 直接用 |
+| 网络依赖 | **无**（离线 catalog + 静态 import） | 运行时 fetch icon-plus（内网恒可达，无 Lucide 兜底） | 迁移期一次性查询（可选） | 无 | 无 |
+| 迁移后调用点改动 | 逐个改调用点为静态 import | 仅改 import 路径 | 逐个改调用点为静态 import | 逐个改调用点 | 逐个改调用点 |
+| bundle 体积 | 只打包用到的 icon+ | 仅用到的 SVG（无 lucide JSON） | 只打包用到的 icon+ | 用到的 antd 图标 | 用到的 SVG |
+| 迁移额外成本 | 低-中（查名靠 catalog，离线；无网络） | 最低 | 中（查名 + 逐点替换） | 中（名字可查 + 逐点替换） | 中（逐点替换） |
+| 未匹配回退 | 占位 `IconPlusIcPublicTransverseRectangleTemplate` | 探测失败渲染 `null` | 占位 `IconPlusIcPublicTransverseRectangleTemplate` | — | — |
 
 ---
 
@@ -303,7 +377,7 @@ function SearchIcon({ size = 14 }) {
 |----|-----------|--------------|--------|
 | 构建工具 | UMD + Babel-standalone | 全套 Vite 工程 | 已有 Vite |
 | Token 定义 | 666 个变量内联在 HTML | 全部丢失 | 独立 CSS 文件，与 `aui3_1.css` 并存，布局 CSS 不改 |
-| 图标加载 | 230 行运行时 fetch 组件（icon-plus 在线 + Lucide 兜底） | scaffold 预制 shim 复用（默认零改动，仅改 import 路径） | 预制 shim 复用（默认，剥离 Lucide）；可选切 icon+ 静态 import（§3.3） |
+| 图标加载 | 230 行运行时 fetch 组件（icon-plus 在线 + Lucide 兜底） | 方案 C：catalog 离线匹配 → icon+ 静态 import（§3.2，默认，无网络）；备选 A 预制 shim 复用（§3.3，运行时 fetch） | 方案 C 离线静态 import 为默认；A 预制 shim 复用兜底（剥离 Lucide，切到 C 后保留不删） |
 | 应用代码 | 内联在 HTML + src/ 两份 | 需判断以哪份为准 | 只有一份 |
 
-改进后，迁移的工作量从"重建基础设施 + 替换组件"缩减为**纯组件替换**——图标与图表（HUI Charts）连组件替换都省了：图标走 scaffold 预制 `src/shared/icon.jsx`，图表直接 `import Chart from '@nce/eview-react/Chart'`，源项目的 `<Icon>` / `<Chart>` 调用点零改动，只改 import 路径。icon-plus 在线恒可达（内网），shim 不带 Lucide 兜底与 lucide JSON。
+改进后，迁移的工作量从"重建基础设施 + 替换组件"缩减为**纯组件替换**——图标与图表（HUI Charts）连组件替换都省了：图标默认走方案 C（读 `icons/icon-plus-names.json` 离线匹配 → icon+ 静态 import，无网络依赖），图表直接 `import Chart from '@nce/eview-react/Chart'`。备选 A 的 scaffold 预制 `src/shared/icon.jsx`（运行时 fetch，内网恒可达，不带 Lucide 兜底与 lucide JSON）作兜底，切到 C 后保留不删。
