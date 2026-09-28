@@ -1,0 +1,16 @@
+/* base.css - 全局基础重置（开箱即用，不用改）
+   步骤 3 搬入源项目代码后，源项目的 base 样式会从 index.page.html 提取追加到本文件末尾。 */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body, #root {
+    height: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}

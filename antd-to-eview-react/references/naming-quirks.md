@@ -22,8 +22,8 @@
 | Button | `danger` | `status="risk"` | 危险操作 |
 | Button | `loading` | 无（用 `disabled` + 文案切换） | 处理中表达 |
 | Button | `htmlType="submit"` | 无（用 `onClick`） | Button 没有 type 属性 |
-| Button | `icon` | `leftIcon` / `rightIcon` | 分左右 |
-| Button | `type="text"` + `shape="circle"` + `icon`（无 children） | `IconButton iconName tipText` | 纯图标按钮走 IconButton |
+| Button | `icon` | `leftIcon` / `rightIcon` | 分左右；**`icon` 的尺寸（`<Icon size>` / antd `style.fontSize`）落到内层 `<IconPlusIc* iconSize={N} />`（就近吸附、默认 14），不是 Button 的 `size`** |
+| Button | `type="text"` + `shape="circle"` + `icon`（无 children） | `IconButton iconName tipText` | 纯图标按钮走 IconButton；**图标尺寸同样写内层 `<IconPlusIc* iconSize={N} />`，不是 IconButton 的 `size`** |
 | Select | `placeholder` | `defaultLabel` | 占位文案 |
 | Select | `options=[{label,value}]` | `options=[{text,value}]` | 字段名 label→text |
 | Select | `<Select.Option>` | 无（用 `options` 数组） | 不支持 children 写法 |

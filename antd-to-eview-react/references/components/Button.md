@@ -81,13 +81,24 @@ const groupData = [
 
 ### 图标：leftIcon / rightIcon 用 icon+
 
-> 迁移期若源项目用 `<Icon name="...">` shim（自定义 `<Icon>` 组件，A 范式），调用点零改动即可；下例 `leftIcon`/`rightIcon` 用 icon+ 静态组件为 B 目标范式（可选，见 [source-project-guidelines §3.3](../source-project-guidelines.md)）。
+> 图标统一走 skill 的图标方案（默认 C：catalog 离线匹配 → icon+ 静态 import）。完整规格见 [Icon.md](Icon.md) 与 [source-project-guidelines §3.2](../source-project-guidelines.md)。下例为静态 import 范式。
 
 ```tsx
 import { IconPlusIcPublicSave, IconPlusIcPublicArrowRight } from '@nce/icon-plus';
-<Button status="primary" text="保存" leftIcon={<IconPlusIcPublicSave />} onClick={handleSave} />
-<Button text="下一步" rightIcon={<IconPlusIcPublicArrowRight />} onClick={handleNext} />
+<Button status="primary" text="保存" leftIcon={<IconPlusIcPublicSave iconColor={['currentcolor']} iconSize={14} />} onClick={handleSave} />
+<Button text="下一步" rightIcon={<IconPlusIcPublicArrowRight iconColor={['currentcolor']} iconSize={14} />} onClick={handleNext} />
 ```
+
+> **图标尺寸落在内层 `<IconPlusIc* />` 的 `iconSize`，不是 Button 的 `size`**（`size` 是按钮尺寸 normal/large/small）。源 antd `icon={<.../>}` 带尺寸时，把尺寸吸附到 `iconSize`（就近吸附、默认写14）写到内层 icon+ 元素上：
+>
+> ```tsx
+> // antd 源：<Button icon={<Icon name="save" size={14} />} ...>保存</Button>
+> <Button status="primary" text="保存" leftIcon={<IconPlusIcPublicSave iconSize={14} iconColor={['currentcolor']} />} onClick={handleSave} />
+> // antd @ant-design/icons 尺寸走 style.fontSize（无 size prop）：icon={<SaveOutlined style={{ fontSize: 14 }} />}
+> <Button status="primary" text="保存" leftIcon={<IconPlusIcPublicSave iconSize={14} iconColor={['currentcolor']} />} onClick={handleSave} />
+> ```
+>
+> 完整图标迁移规格见 [Icon.md](Icon.md) 与 [source-project-guidelines §3.2](../source-project-guidelines.md)。
 
 ### 纯图标按钮：antd `Button type="text" shape="circle" icon` → `IconButton`
 
@@ -100,10 +111,12 @@ antd 把 Button 当纯图标按钮用（有 `icon`、`type="text"`、`shape="cir
 // eview-react 迁移（IconButton + icon+；提示文案移到 tipText）
 import { IconPlusIcPublicRefresh } from '@nce/icon-plus';
 import IconButton from '@nce/eview-react/IconButton';
-<IconButton iconName={<IconPlusIcPublicRefresh />} tipText="刷新" size="small" onClick={handleRefresh} />
+<IconButton iconName={<IconPlusIcPublicRefresh iconSize={14} iconColor={['currentcolor']} />} tipText="刷新" size="small" onClick={handleRefresh} />
 ```
 
-> 判定信号：antd `Button` 同时有 `icon` 且无文字 children（常见 `type="text"` + `shape="circle"`）→ 走 `IconButton`。
+> **图标尺寸别丢**：源 `size={15}` 不是丢掉，而是吸附到 `iconSize={14}` 写到**内层 `<IconPlusIcPublicRefresh />`** 上（就近吸附、默认写14）。`IconButton` 自身的 `size="small"` 是**按钮**尺寸，与图标尺寸是两回事，**不要**把图标尺寸塞到 IconButton 的 `size` 上。antd `@ant-design/icons` 没有 `size` prop、尺寸走 `style.fontSize`，同样剥 `px` 取数字吸附到内层 `iconSize`。
+
+> 判定信号：antd `Button` 同时有 `icon` 且无文字 children（常见 `type="text"` + `shape="circle"`）→ 走 `IconButton`。源 `icon` 的尺寸（`<Icon size>` 或 antd `style.fontSize`）吸附后写到内层 `<IconPlusIc* iconSize={N} />`，**不**用 IconButton 的 `size`。
 
 ## 5. 数据结构
 

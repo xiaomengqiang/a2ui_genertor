@@ -3,7 +3,7 @@
 > **资料来源**（eview-react 官方资料，不随 skill 打包）：源码接口 `Table/interfaces/TableProps.ts`、`Table/interfaces/ColumnProps.ts`（TypeDoc 表由此生成）；官网组件页 Table 及示例 `TableBasic.jsx` / `TableEmpty.jsx` / `TableObjectData.jsx` / `TablePaging.jsx` / `TablePagingAuto.jsx` / `TableSort.jsx` / `TableLoading.jsx` / `TableRowExpand.jsx` / `TableScrollPagination.jsx` / `TableEdit.jsx`（共 40 个 demo，本文只覆盖列表页高频能力）
 >
 > ⚠️ `dataset` 是**行数组**：既可以是二维数组（顺序与 `columns` 一致），也可以是对象数组（key 对应 `columns[].key`）；不是 antd 的 `dataSource + rowKey`。
-> ⚠️ 勾选回调 `onRowCheck(row, checkedRows, e)` 的 `checkedRows` 是**主键数组**：设了 `keyIndex` 就是该列的值，没设就是行序号。
+> ⚠️ 勾选回调 `onRowCheck(row, checkedRows, e)` 的 `checkedRows` 是**行序号数组**；需要整行数据时用 `tableRef.current.getCheckedRowsData()`。
 > ⚠️ 分页有两种：`enableAutoPaging` 前台分页（`dataset` 传全量）；后台分页（默认）`dataset` 只传当前页，`recordCount` 传总数，`onPageChange` 里去请求。
 > ⚠️ 排序默认组件自己排（前台）；后台排序要 `disableEviewSort` + `onColumnSort(sortColumn, sortType)` 自己请求再换 `dataset`。
 > ⚠️ **`render(cellValue, rowData, options, row, isEdit)` 的行数据在第 4 参 `row.rawData`**；第 2 参 `rowData` 类型是 `any[]`（数组，**不是行对象**），第 4 参 `row` 是表格内部包装对象，**真正的行数据在 `row.rawData`**（可能为 `undefined`）。单元格内要取行字段（文本+图标来自不同字段、取 `row.rawData?.id` 等）一律写 `row.rawData?.xxx`；只用本格值的用第 1 参 `cell`。误用 `rowData` 当行对象、或误用 `row.xxx` 直接取字段 → 均为 undefined、整列空白（主值用 `cell` 的列看似正常，容易漏判）。
@@ -38,8 +38,8 @@ const [pageSize, setPageSize] = useState<number>(10);
 const [total, setTotal] = useState<number>(0);
 const [sort, setSort] = useState<{ column: string; type: string } | null>(null);
 
-// 勾选：存主键数组（配合 keyIndex 指向 id 列），跨页保留用 preserveCheckedRows
-const [checkedIds, setCheckedIds] = useState<Array<string | number>>([]);
+// 勾选：存行序号数组，跨页保留用 preserveCheckedRows
+const [checkedIndexes, setCheckedIndexes] = useState<number[]>([]);
 
 const tableRef = useRef<any>(null);   // 需要 getCheckedRowsData() / setCheckedRows() 时用
 ```
@@ -50,7 +50,7 @@ const tableRef = useRef<any>(null);   // 需要 getCheckedRowsData() / setChecke
 
 ```tsx
 const columns = [
-  { title: 'ID', key: 'id', width: 80, display: false },                 // 隐藏列也参与 keyIndex
+  { title: 'ID', key: 'id', width: 80, display: false },                 // 隐藏列（display: false）
   { title: '名称', key: 'name', width: '30%', ellipsis: true },
   { title: '状态', key: 'state', allowSort: false, render: (cell: string) => <Tag color={STATE_COLOR[cell]}>{cell}</Tag> },
   { title: 'IP', key: 'ip' },
@@ -77,7 +77,6 @@ const rows = list.map((d) => ({ id: d.id, name: d.name, state: d.state, ip: d.ip
 <Table
   columns={columns}
   dataset={rows}
-  keyIndex={0}                                   // 第 0 列（id）作为行主键
   enableLoading={loading}
   emptyTableMsg="暂无设备"
   enablePagination
@@ -97,11 +96,11 @@ const rows = list.map((d) => ({ id: d.id, name: d.name, state: d.state, ip: d.ip
   enableCheckBox
   checkType="multi"
   preserveCheckedRows                            // 跨页保留勾选（3.5.12）
-  checkedRows={checkedIds}
-  onRowCheck={(row: any, checkedRows: Array<string | number>) => setCheckedIds(checkedRows)}
-  onHeaderCheck={(checkedRows: Array<string | number>) => setCheckedIds(checkedRows)}
+  checkedRows={checkedIndexes}
+  onRowCheck={(row: any, checkedRows: number[]) => setCheckedIndexes(checkedRows)}
+  onHeaderCheck={(checkedRows: number[]) => setCheckedIndexes(checkedRows)}
 />
-<Button status="risk" text={`删除所选（${checkedIds.length}）`} disabled={checkedIds.length === 0} onClick={askBatchDelete} />
+<Button status="risk" text={`删除所选（${checkedIndexes.length}）`} disabled={checkedIndexes.length === 0} onClick={askBatchDelete} />
 // 需要整行数据时：tableRef.current.getCheckedRowsData()
 ```
 
@@ -145,7 +144,7 @@ type TableRow = any[] | Record<string, any>;
 ## 6. 联动说明
 
 - 筛选 / 排序 / 翻页 / 改每页条数 → 合并到同一个请求（筛选与排序变化时 `page = 1`），版本号丢弃过期响应，请求期间 `enableLoading`
-- 勾选数量 → 批量按钮 `disabled` 与文案；批量操作成功后 `setCheckedIds([])` 并刷新；删光当前页且 `page > 1` 则 `page - 1`
+- 勾选数量 → 批量按钮 `disabled` 与文案；批量操作成功后 `setCheckedIndexes([])` 并刷新；删光当前页且 `page > 1` 则 `page - 1`
 - 操作列按钮 → `Dialog`（编辑表单）/ `MessageDialog`（删除确认），成功后刷新
 
 ## 7. 完整代码示例
@@ -197,9 +196,10 @@ export default function DeviceTablePage() {
   const [pageSize, setPageSize] = useState<number>(10);
   const [sort, setSort] = useState<{ column: string; type: string } | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [checkedIds, setCheckedIds] = useState<Array<string | number>>([]);
+  const [checkedIndexes, setCheckedIndexes] = useState<number[]>([]);
   const [reload, setReload] = useState<number>(0);          // 删除等操作后强制重新请求
   const versionRef = useRef<number>(0);
+  const tableRef = useRef<any>(null);          // 勾选批量操作时取整行数据：getCheckedRowsData()
 
   const columns = [
     { title: 'ID', key: 'id', display: false },
@@ -222,12 +222,14 @@ export default function DeviceTablePage() {
 
   const handleBatchDelete = async () => {
     // 真实项目：先用 MessageDialog 二次确认（见 MessageDialog.md），再调删除接口
+    const checkedData: DeviceRow[] = tableRef.current?.getCheckedRowsData() ?? [];   // 行序号→整行数据
     await new Promise((resolve) => setTimeout(resolve, 200));
-    const remain = ALL.filter((d) => !checkedIds.includes(d.id));
+    const checkedIdSet = new Set(checkedData.map((d) => d.id));
+    const remain = ALL.filter((d) => !checkedIdSet.has(d.id));
     ALL.length = 0;
     ALL.push(...remain);                                     // 模拟服务端已删除
-    setCheckedIds([]);
-    if (rows.length === checkedIds.length && page > 1) setPage(page - 1);   // 删光当前页则回退一页
+    setCheckedIndexes([]);
+    if (rows.length === checkedIndexes.length && page > 1) setPage(page - 1);   // 删光当前页则回退一页
     else setReload((n) => n + 1);                                            // 否则刷新当前页
   };
 
@@ -235,19 +237,19 @@ export default function DeviceTablePage() {
     <div style={{ padding: 24 }}>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
         <SearchInput placeholder="名称 / IP" value={keyword} onChange={(v: string) => setKeyword(v)} onSearch={(v: string) => { setKeyword(v); setPage(1); }} onClear={() => { setKeyword(''); setPage(1); }} />
-        <Button status="risk" text={`删除所选（${checkedIds.length}）`} disabled={checkedIds.length === 0 || loading} onClick={handleBatchDelete} />
+        <Button status="risk" text={`删除所选（${checkedIndexes.length}）`} disabled={checkedIndexes.length === 0 || loading} onClick={handleBatchDelete} />
       </div>
       <Table
+        ref={tableRef}
         columns={columns}
         dataset={rows.map((d) => ({ id: d.id, name: d.name, state: d.state, ip: d.ip }))}
-        keyIndex={0}
         enableLoading={loading}
         emptyTableMsg="暂无设备"
         enableCheckBox
         preserveCheckedRows
-        checkedRows={checkedIds}
-        onRowCheck={(row: any, checkedRows: Array<string | number>) => setCheckedIds(checkedRows)}
-        onHeaderCheck={(checkedRows: Array<string | number>) => setCheckedIds(checkedRows)}
+        checkedRows={checkedIndexes}
+        onRowCheck={(row: any, checkedRows: number[]) => setCheckedIndexes(checkedRows)}
+        onHeaderCheck={(checkedRows: number[]) => setCheckedIndexes(checkedRows)}
         enablePagination
         pagingProps={{ pageSize, currentPage: page, recordCount: total, pageSizeOptions: [10, 20, 50], onPageSizeChange: (size: number) => { setPageSize(size); setPage(1); } }}
         onPageChange={(currentPage: number) => setPage(currentPage)}
@@ -285,7 +287,7 @@ columns=[{ title: '名称', key: 'name' }]  dataset=[{ deviceName: 'a' }]
 // ❌ 想后台排序却没关前台排序：组件先把当前页排一遍，再触发请求，界面闪两次
 <Table onColumnSort={fetchSorted} />   // 少了 disableEviewSort
 
-// ❌ 勾选存整行对象、翻页即丢；应存主键数组 + keyIndex + preserveCheckedRows
+// ❌ 勾选存整行对象、翻页即丢；应存行序号数组 + preserveCheckedRows（需整行数据用 tableRef.getCheckedRowsData()）
 onRowCheck={(row) => setChecked([...checked, row])}
 ```
 
@@ -297,11 +299,10 @@ onRowCheck={(row) => setChecked([...checked, row])}
 |-----|--------------|------|
 | `columns` | `ColumnProps[]` | 列定义（见 §5） |
 | `dataset` | `any[]`，**必填** | 行数组：二维数组或对象数组 |
-| `keyIndex` | `number` | 行主键所在列序号；不设则用行号 |
 | `enableCheckBox` / `checkType` | `boolean`（默认 false）/ `'multi' \| 'single'` | 勾选列 / 单多选 |
-| `checkedRows` / `preserveCheckedRows` / `disableCheckboxIds` | `(string \| number)[]` / `boolean`（3.5.12）/ `(string \| number)[]` | 受控勾选 / 跨页保留 / 禁勾行 |
-| `onRowCheck` | `(row, checkedRows, e) => void` | 行勾选；`checkedRows` 为主键数组 |
-| `onHeaderCheck` | `(checkedRows, checked, checkedRowsData) => void` | 表头勾选 |
+| `checkedRows` / `preserveCheckedRows` / `disableCheckboxIds` | `number[]` / `boolean`（3.5.12）/ `(string \| number)[]` | 受控勾选（行序号）/ 跨页保留 / 禁勾行 |
+| `onRowCheck` | `(row, checkedRows, e) => void` | 行勾选；`checkedRows` 为行序号数组 |
+| `onHeaderCheck` | `(checkedRows, checked, checkedRowsData) => void` | 表头勾选；`checkedRows` 为行序号数组 |
 | `onRowClick` / `onDoubleClick` / `onRowRightClick` | `(row, event)` / `(evtRow, evtCell, e)` / `(event, row)` | 行事件（注意参数顺序各不相同） |
 | `selectedRowIndex` | `number \| number[]` | 受控选中行 |
 | `enablePagination` | `boolean`，默认 `false` | 显示分页 |
@@ -320,4 +321,4 @@ onRowCheck={(row) => setChecked([...checked, row])}
 | `enableColumnDrag` / `enableColumnWidthFit` / `freezeColPosition` / `virtualScroll` / `virtualShowNum` | — | 列宽拖拽（默认开）/ 自适应 / 冻结列位置 / 虚拟滚动（3.5.10） |
 | `freezeCol`（列级）/ `freezeColPosition`（表级） | `boolean` / `string` | 冻结列：列上设 `freezeCol: true` 标记冻结，表上 `freezeColPosition` 设位置。映射 antd `columns[].fixed: 'left'/'right'`：列 `fixed:'right'` → `freezeCol:true` + 表 `freezeColPosition="right"`，`fixed:'left'` → `freezeCol:true` + `freezeColPosition="left"`。示例：`<Table freezeColPosition="right" />` + 操作列 `{ ..., freezeCol: true }`。 |
 | `isRequiredToUpdateColumns` / `enableColumnCompareUpdate` | `boolean` | 更新 columns 是否生效 / 比较后再更新 |
-| `ref.getCheckedRowsData()` / `getCheckedRowsIndexes()` / `getSelectedRowData()` / `getSelectedRowIndex()` / `setCheckedRows(keys)` / `getDataset()` / `setRowEditable(id, columns)` | 命令式方法 | 取勾选 / 选中 / 设勾选 / 取数据 / 设行可编辑 |
+| `ref.getCheckedRowsData()` / `getCheckedRowsIndexes()` / `getSelectedRowData()` / `getSelectedRowIndex()` / `setCheckedRows(indexes)` / `getDataset()` / `setRowEditable(id, columns)` | 命令式方法 | 取勾选 / 选中 / 设勾选 / 取数据 / 设行可编辑 |

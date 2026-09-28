@@ -1,0 +1,9 @@
+/* tokens.css - 原始 token 定义占位
+   步骤 2: 跑 extract-umd.cjs 从源项目 index.page.html 的 <style> 块提取 :root 变量定义到此文件。
+   只放变量定义，不放任何选择器规则；布局 CSS 引用 var(--xxx) 但不在此定义。 */
+
+/* :root {
+    --brand-50: #0067D1;
+    --surface: #f3f3f3;
+    ...
+} */
