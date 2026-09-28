@@ -6,7 +6,7 @@
 
 - 数字类右对齐，其余优先左对齐，操作列必须左对齐。
 - 操作列使用纯图标 Button：设置 `icon`、`shape=circle`、`size=small`，不设置 `value`。
-- 数据列中的链接式操作（如点击名称查看详情）使用 `Button types=link`，与表格文字一致。
+- 数据列中的链接式操作（如点击名称查看详情）使用 `<a>` 标签 + `var(--interactive-link)` + `cursor: pointer`。**不使用 `<Button type="link">`**。
 - 状态使用文本、图标或 Tag，不使用 Badge。
 
 ## 布局

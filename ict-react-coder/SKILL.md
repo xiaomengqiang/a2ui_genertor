@@ -121,6 +121,7 @@ When multilingual is required, use react-intl (bundled offline, `import ... from
    - Do NOT define bare `:root` / `.dark` selectors (without a descendant suffix) — global tokens already live in `assets/style/`
    - Per-mode values that tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override
 4. Do NOT create page-level antd component override styles (e.g., `antd.css`/`ant-override.css`). antd component skinning and visual gaps go into the shared `assets/style/ant.css` (including `.dark` rules) — single source, all pages benefit.
+5. Link-style actions (clickable text, e.g. table data cell links, card header actions, form auxiliary links, help links, inline text links) use `<a>` + `var(--interactive-link)` + `cursor: pointer` — NOT `<Button type="link">`.
 
 ### Content Guidelines
 
