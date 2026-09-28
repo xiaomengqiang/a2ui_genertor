@@ -251,6 +251,22 @@ if (bannedHits.length) {
   process.exit(1);
 }
 
+// --- Icon size format check: must be rem string, not number ---
+const iconSizeWarnings = [];
+for (const mod of modules) {
+  const sizeNumRe = /<Icon\b[^>]*?\bsize=\{(\d+(?:\.\d+)?)\}/gs;
+  let ism;
+  while ((ism = sizeNumRe.exec(mod.code)) !== null) {
+    const px = parseFloat(ism[1]);
+    const rem = `${parseFloat((px / 16).toFixed(4))}rem`;
+    iconSizeWarnings.push(`  ${mod.label}: size={${px}} → use size="${rem}"`);
+  }
+}
+if (iconSizeWarnings.length) {
+  console.log("WARN  Icon size should be rem string, not number:");
+  console.log(iconSizeWarnings.join("\n"));
+}
+
 // --- Lucide icon extraction & validation ---
 const lucideRaw = JSON.parse(await readFile(LUCIDE_JSON, "utf8"));
 const iconTableEntries = [];
