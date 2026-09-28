@@ -1,13 +1,8 @@
-# RadioGroup
-
-## 设计规范
-
 # RadioGroup 单选框使用规范
 
 用于从少量互斥选项中选择一项。
 
 ## 使用规则
-
 
 - 选项短且数量少时使用 `orientation=horizontal`；标签长或需要说明时使用 `orientation=vertical`。
 - 常规页面使用 `size=medium`；同组 RadioGroup 尺寸一致。

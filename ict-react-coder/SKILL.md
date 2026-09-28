@@ -54,6 +54,10 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 > - Root-level files (context.jsx / i18n.js) and entry (app.jsx / app.css) stay flat, no folders
 > - Use relative import paths within component folders
 
+### Component Specs
+
+Before using any antd component, check if `references/component/{Name}.md` exists. If it does, read it and follow its rules (usage rules + Don't) — the spec overrides general antd API knowledge.
+
 ### Import contract (ES Modules, build-time bundled)
 
 Supported — write **standard ES Module imports**; the bundler maps them to runtime globals:
@@ -184,7 +188,7 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 - No bare `:root`/`.dark` selectors in component CSS — see Styling rule 3
 - No page-level antd override CSS — see Styling rule 4
 - No antd darkAlgorithm or React-state theme switching — see Styling rule 3
-- No inventing antd component props — use standard Ant Design 5.29.3 API; complex components must follow `references/component/{Name}.md` specs
+- No inventing antd component props — use standard Ant Design 5.29.3 API; any component must follow `references/component/{Name}.md` specs
 
 ---
 
@@ -193,7 +197,8 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 1. build `OK` + verify `OK index.page.html verified`
 2. app.jsx: `export default function App()` present
 3. Mock data complete (row count, status diversity, semantic keys)
-4. `<artifact>` link output
+4. Every used antd component follows `references/component/{Name}.md`
+5. `<artifact>` link output
 
 ## References
 
