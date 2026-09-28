@@ -1,8 +1,8 @@
 # 图表（Chart）功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：`@nce/eview-react/Chart`；契约与 ict-react-coder 源项目的 `<Chart>` 一致（`name` + `option`）。完整 API 以官方 TypeDoc 为准。
+> **资料来源**（eview-react 官方资料，不随 skill 打包）：`@nce/eview-react/Chart`；契约与源项目的 `<Chart>` 一致（`name` + `option`）。完整 API 以官方 TypeDoc 为准。
 >
-> ⚠️ 迁移自 ict-react-coder 源项目时**调用点零改动**，只改 import 路径：`./assets/shared/chart.jsx` → `@nce/eview-react/Chart`。无需 UMD `<script>` 注入或自写封装。
+> ⚠️ 迁移时**调用点零改动**，只改 import 路径：`./assets/shared/chart.jsx` → `@nce/eview-react/Chart`。无需 UMD `<script>` 注入或自写封装。
 > ⚠️ 旧 scaffold 的 `src/shared/chart.jsx` + `public/library/`（`echarts.min.js` + `hui-charts.umd.js`）方案已废弃，改用 `@nce/eview-react/Chart` 原生组件。
 
 ## 1. 功能定位
@@ -103,4 +103,4 @@ const chart = echarts.init(dom);
 | ref `getEchartsInstance()` | `() => echartsInstance \| null` | 取底层 echarts 实例 |
 | ref `resizeHandler()` | `() => void` | 手动触发 resize |
 
-> 上述 API 基于源项目（ict-react-coder）的 `<Chart>` 契约与旧 scaffold 封装的行为对齐；`@nce/eview-react/Chart` 原生组件的完整 prop 列表以官方 TypeDoc 为准，未列出的 props 一律不写。
+> 上述 API 基于源项目的 `<Chart>` 契约与旧 scaffold 封装的行为对齐；`@nce/eview-react/Chart` 原生组件的完整 prop 列表以官方 TypeDoc 为准，未列出的 props 一律不写。

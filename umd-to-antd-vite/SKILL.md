@@ -1,7 +1,7 @@
 ---
 name: umd-to-antd-vite
 description: >-
-  把 ict-react-coder 产出的 UMD 单 HTML 工程（index.page.html + 内联 token CSS + Babel-standalone 转译 + 双份代码）转换为标准 antd Vite + npm 工程的专项 Skill。提供 scaffold 预制骨架（一键拷贝 antd Vite 空壳）、extract-umd.cjs 自动提取内联 token CSS（:root/.dark/@font-face 分类外置到独立文件）、check-relative-imports.cjs 排查路径错误。工作流为混合编排：主 agent 亲自跑脚本搭骨架+提取内容（步骤 1-2），派发 general 子 agent 搬代码修路径+验证（步骤 3-4）；验证结果写入 .conversion-result.json 供主 agent 判定。产出的标准 antd Vite 工程可直接衔接 antd-to-eview-react skill 继续迁移到 eview-react（跳过其步骤 1）。务必在以下场景使用：把 ict-react-coder 产物的 UMD 单 HTML 转成标准 React 工程、需要外置内联 token CSS 到独立文件、想标准化工程结构以降低后续组件库迁移成本、用户提供了 index.page.html 并要求转成 React 项目、需要为 antd-to-eview-react 迁移做前置工程标准化、想把 UMD 内联的 666+ 个 CSS 变量提取到 tokens.css + theme-dark.css。
+  把 ict-react-coder 产出的 UMD 单 HTML 工程（index.page.html + 内联 token CSS + Babel-standalone 转译 + 双份代码）转换为标准 antd Vite + npm 工程的专项 Skill。提供 scaffold 预制骨架（一键拷贝 antd Vite 空壳）、extract-umd.cjs 自动提取内联 token CSS（:root/.dark/@font-face 分类外置到独立文件）、check-relative-imports.cjs 排查路径错误。工作流为混合编排：主 agent 亲自跑脚本搭骨架+提取内容（步骤 1-2），派发 general 子 agent 搬代码修路径+验证（步骤 3-4）；验证结果写入 .conversion-result.json 供主 agent 判定。产出的标准 antd Vite 工程可直接衔接 antd-to-eview-react skill 继续迁移到 eview-react（下游步骤 1 以 `--upgrade` 模式把骨架从 antd 换成 eview-react，保留本 skill 外置的 token CSS）。务必在以下场景使用：把 ict-react-coder 产物的 UMD 单 HTML 转成标准 React 工程、需要外置内联 token CSS 到独立文件、想标准化工程结构以降低后续组件库迁移成本、用户提供了 index.page.html 并要求转成 React 项目、需要为 antd-to-eview-react 迁移做前置工程标准化、想把 UMD 内联的 666+ 个 CSS 变量提取到 tokens.css + theme-dark.css。
 ---
 
 # UMD → antd Vite 工程标准化 Skill
@@ -210,10 +210,10 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 
 衔接要点：
 
-1. **antd-to-eview-react 步骤 1（建骨架）跳过**：已有 Vite 工程，不需要跑 `init-scaffold.cjs`
-2. **antd-to-eview-react 步骤 2 开始**：直接换 Provider（antd ConfigProvider → eview-react ConfigProvider + IntlProvider）
-3. **token CSS 已外置**：`tokens.css` + `theme-dark.css` 已在步骤 2 提取好，antd-to-eview-react 步骤 4 可跳过（或用 `extract-umd.cjs` 重新提取确保一致）
-4. **相对导入已修正**：`check-relative-imports.cjs` 已跑过，路径正确
+1. **antd-to-eview-react 步骤 1 跑 `--upgrade` 模式（不跳过）**：产出的是 antd Vite 骨架（antd 依赖 + antd `ConfigProvider`），下游需用 `init-scaffold.cjs --force --upgrade` 把骨架换成 eview-react（换依赖 / Provider / `aui3_1` body 类 / 字体），`--upgrade` 保留本 skill 已外置到 `src/styles/` 的 token CSS
+2. **步骤 2 换 Provider**：移除源项目 `app.jsx` 里的 antd `ConfigProvider` + `theme.darkAlgorithm`，换 eview-react `ConfigProvider` + `IntlProvider` + `<body>` 的 `aui3_1` / `aui3_1_dark` 类
+3. **token CSS 已外置、无需重提**：`tokens.css` + `theme-dark.css` 已在步骤 2 提取好，下游步骤 1 的 `--upgrade` 会原样保留（不重新跑 `extract-umd.cjs`）
+4. **相对导入已修正**：`check-relative-imports.cjs` 已跑过，路径正确——下游步骤 4 验证里此子项跳过（但 `check-i18n-keys.cjs` + `npm install` + `npm run dev` 仍照跑）
 5. **代码只有一份**：双份代码已在步骤 3 归一
 
 向用户报告时说明：本 skill 完成的是"工程标准化"，后续 antd-to-eview-react 完成"组件库替换"。两步法的好处是 antd-to-eview-react 的步骤 3（逐组件替换）可以纯聚焦于组件替换，不用同时处理基础设施问题。

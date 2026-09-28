@@ -123,7 +123,7 @@ node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标�
 |------|------|---------|
 | `react` / `react-dom` | React 运行时 | 必需 |
 | `react-intl` | eview-react 组件内置文案的 i18n（`IntlProvider`） | 必需 |
-| `dayjs` | 日期格式化；ict-react-coder 源项目普遍 `import dayjs from "dayjs"` 做格式化，缺则报 `Failed to resolve "dayjs"` | 必需 |
+| `dayjs` | 日期格式化；输入工程普遍 `import dayjs from "dayjs"` 做格式化，缺则报 `Failed to resolve "dayjs"` | 必需 |
 | `@nce/eview-react` | 组件库本体 | 必需 |
 | `@nce/icon-plus` | 图标库（`IconPlusIc*` 按需引入） | 用图标时必需 |
 | `@cloudsop/horizon` | eview-react 的 peer 依赖；缺失报 `Element type is invalid` | 必需（peer） |
@@ -209,7 +209,7 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 
 ### 3.0 预制件复用 / 包导入（图标 / 图表，零调用点改动）
 
-图标仍走 scaffold 预制 shim（`src/shared/icon.jsx`），图表改为直接从 eview-react 包导入。源项目（`ict-react-coder` 产物）的 `<Icon name="..." />` / `<Chart name="..." option={...} />` **调用点零改动**，只改 import 路径：
+图标仍走 scaffold 预制 shim（`src/shared/icon.jsx`），图表改为直接从 eview-react 包导入。源项目的 `<Icon name="..." />` / `<Chart name="..." option={...} />` **调用点零改动**，只改 import 路径：
 
 | 组件 | 源项目 import | 迁移后 import | 适用位置 |
 |------|---------------|--------------|---------|
@@ -220,7 +220,7 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 跑 `scripts/check-relative-imports.cjs`（§5.1）会一并扫出残留的 `./assets/shared/...` 旧路径。
 
 > 图表契约（`<Chart name option />`、`.dark` 自动切主题、ResizeObserver 自适应、ref 方法）由 `@nce/eview-react/Chart` 原生提供，与源项目一致，详见 [components/Chart.md](components/Chart.md)。
-> 若要切到 icon+ 静态 import（`import { IconPlusIcXxx } from '@nce/icon-plus'`）才需逐个查名替换调用点，见 [source-project-guidelines.md](source-project-guidelines.md) §3.3。默认走预制件复用即可。
+> 若要切到 icon+ 静态 import（`import { IconPlusIcXxx } from '@nce/icon-plus'`）才需逐个查名替换调用点，见 [components/Icon.md](components/Icon.md)「切到 B 范式」。默认走预制件复用即可。
 
 ### 3.1 A 类（有对应）：改 props
 
@@ -301,9 +301,9 @@ export const policyTemplates = [
 
 > **规则：** 凡是 `render: (value) => t(value, ...)` 且 `data.js` 中该字段的 `value ≠ msgId`，必须补前缀。`value === msgId` 的无需改。StatusTag 等自定义组件如果内部已做 `"status." + status` 拼接，则无需在 render 里再拼。
 
-### 3.6 主 agent 逐组件替换
+### 3.6 逐组件替换
 
-步骤 3 上下文消耗最高（form-migration.md + handwrite-templates.md + components/*.md）。主 agent 按以下顺序替换，每次只读当前需要的 reference：
+步骤 3 上下文消耗最高（form-migration.md + handwrite-templates.md + components/*.md）。按以下顺序替换，每次只读当前需要的 reference：
 
 **替换顺序**（叶子先、容器后、布局最后）：
 1. **叶子组件**（Button / TextField / Select 等）—— 改动小、验证快
@@ -321,13 +321,10 @@ export const policyTemplates = [
 
 替换完一类组件后，可先跑 `npm run dev` 快速验证该类是否编译通过，再继续下一类。全部替换完后进入步骤 5 验证。
 
-## 步骤 4：CSS token（已由 umd-to-antd-vite 外置，跳过）
 
-token CSS 已由 `umd-to-antd-vite` 提取到 `src/styles/tokens.css` + `theme-dark.css`，步骤 1 的 `--upgrade` 模式已保留。无需操作。`main.jsx` 的六处 CSS import（scaffold 已预置）已包含 `tokens.css` + `theme-dark.css`。
+## 步骤 4：验证
 
-## 步骤 5：验证
-
-### 5.1 相对导入解析检查（已由 umd-to-antd-vite 验证，跳过）
+### 4.1 相对导入解析检查（已由 umd-to-antd-vite 验证，跳过）
 
 路径已由 `umd-to-antd-vite` 修正并验证通过（`.umd-conversion.json` 的 `verification.relativeImports = "PASS"`）。本步骤跳过。如步骤 3 组件替换时改了 import 路径，可按需重跑确认：
 
@@ -357,7 +354,7 @@ node scripts/check-relative-imports.cjs .
 | `./src/views/AppShell.jsx` | `src/app.jsx` | `./views/AppShell.jsx` |
 | `./src/data.js` | `src/app.jsx` | `./data.js` |
 
-### 5.2 i18n 动态 key 检查（必跑）
+### 4.2 i18n 动态 key 检查（必跑）
 
 > 针对 §3.5 的高频 bug（`t(value, value)` 缺命名空间前缀 → `MISSING_TRANSLATION`）。人工逐列核对容易漏，迁移后、`npm run dev` 前必须跑脚本。
 
@@ -380,14 +377,14 @@ node scripts/check-i18n-keys.cjs .
 
 脚本默认 advisory（退出码 0，输出报告供人工核对）；加 `--strict` 时发现高危调用退出码 1，可接入 CI。
 
-### 5.3 编译检查
+### 4.3 编译检查
 
 ```bash
 npm install
 npm run dev
 ```
 
-### 5.4 功能验证清单
+### 4.4 功能验证清单
 
 - [ ] 页面能渲染（无 `Element type is invalid` → 检查 peer 依赖）
 - [ ] 组件有 ICT 3.1 样式（无样式 → 检查 `aui3_1.css` 导入和 `<body>` 上的 `aui3_1` 类名）
@@ -402,7 +399,7 @@ npm run dev
 - [ ] 暗色模式切换（`<body>` 上 `aui3_1` / `aui3_1_dark` + `<html>` 上 `.dark` 都切）
 - [ ] 手写补位组件样式跟随主题（用了 CSS 变量，不写死色值）
 
-### 5.5 常见报错对照
+### 4.5 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -415,16 +412,16 @@ npm run dev
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 翻译单元格值，但 `data.js` 里 value 是短代码（`"gateway"`），i18n key 带前缀（`"deviceType.gateway"`），`t("gateway", ...)` 找不到消息 | 在 render 里补 i18n 命名空间前缀：`t("deviceType." + value, value)`；对照 `data.js` 选项字典的 `value` vs `msgId`，`value ≠ msgId` 的都要补。详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 5.6 主 agent 验证
+### 4.6 验证
 
-主 agent 自己跑验证脚本 + 构建检查，把结果写入 `<目标工程根>/.migration-result.json`。
+跑验证脚本 + 构建检查，把结果写入 `<目标工程根>/.migration-result.json`。
 
 **验证步骤**：
 1. 相对导入检查**跳过**（路径已由 `umd-to-antd-vite` 修正，`.umd-conversion.json` 的 `verification.relativeImports=PASS`）；步骤 3 替换组件时若新增 import，靠第 4 步 `npm run dev` 的 Vite import-analysis 兜底
 2. 跑 `node <skill目录>/scripts/check-i18n-keys.cjs <目标工程根>`
 3. `cd <目标工程根> && npm install`
 4. `npm run dev` 确认启动成功
-5. 按 §5.4 功能验证清单逐项检查
+5. 按 §4.4 功能验证清单逐项检查
 
 **结果文件**：把结果写入 `<目标工程根>/.migration-result.json`（覆盖写），JSON 结构：
 
