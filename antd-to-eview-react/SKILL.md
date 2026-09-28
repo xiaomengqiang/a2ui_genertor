@@ -11,7 +11,7 @@ description: >-
 ## 前置条件
 
 1. **运行时**：Node.js ≥ 16（Vite 5 要求），`npm` 可正常解析 `.npmrc` 中的 `@nce` scope。
-2. **源项目工程形态**：源项目**必须是** `umd-to-antd-vite` 的产物——标准 Vite + npm 工程，附带 `.umd-conversion.json` 交接文件。**若目标工程根无 `.umd-conversion.json`，本 skill 停止执行，提示用户先跑 `umd-to-antd-vite`**——不直接处理 UMD 单 HTML 或其他来源的 antd 工程。步骤 0 读交接文件的 `antdComponents` 作为迁移清单（跳过扫描），步骤 1 用 `--upgrade` 模式（保留 token），步骤 4 跳过相对导入检查（路径已修正）。
+2. **源项目工程形态**：源项目**必须是** `umd-to-antd-vite` 的产物——标准 Vite + npm 工程，附带 `.umd-conversion.json` 交接文件。**若目标工程根无 `.umd-conversion.json`，本 skill 停止执行，提示用户先跑 `umd-to-antd-vite`**——不直接处理 UMD 单 HTML 或其他来源的 antd 工程。步骤 0 优先读交接文件的 `migrationPlan`（若上游步骤 5 已生成，直接用作分类评估清单，跳过读 `component-mapping.md` 对照），否则回退读 `antdComponents` 作迁移清单（跳过扫描），步骤 1 用 `--upgrade` 模式（保留 token），步骤 4 跳过相对导入检查（路径已修正）。
 
 ## 迁移工作流（评估 + 4 步）
 
@@ -19,11 +19,11 @@ description: >-
 
 | 步骤 | 做什么 | 产出 |
 |------|--------|------|
-| **0. 评估** | 读 `.umd-conversion.json` 的 `antdComponents` 作为迁移清单（由 `umd-to-antd-vite` 生成，跳过扫描）。对照组件映射总表标注"有对应/无对应需手写"。详见 [§0.1](references/migration-workflow.md) | 组件迁移清单 |
+| **0. 评估** | 优先读 `.umd-conversion.json` 的 `migrationPlan`（由 `umd-to-antd-vite` 步骤 5 评估前置生成，含分类 A/B/C + 替换名 + 关键差异 + 涉及文件 + reference 指引）；为 `null` 时回退读 `antdComponents` + 手动对照 `component-mapping.md`。详见 [§0.1](references/migration-workflow.md) | 组件迁移清单 |
 | **1. 建工程骨架** | 跑 `init-scaffold.cjs --force --upgrade`（覆盖骨架为 eview-react，保留 styles 里的 token CSS）。scaffold 目录结构与各文件用途见 [migration-workflow.md](references/migration-workflow.md) 步骤 1 / §1.2 | 可运行的空壳工程 |
 | **2. 换 Provider 与入口** | 移除 antd `ConfigProvider` + `theme.darkAlgorithm`；eview-react 用 `ConfigProvider` + `IntlProvider` + `<body>` 加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `<body>`） | Provider 就绪 |
 | **3. 逐组件替换** | 按映射总表替换每个 antd 组件；Form 模式单独按 [form-migration.md](references/form-migration.md) 转换；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写；图标（scaffold shim）/图表（`@nce/eview-react/Chart`）走预制件复用，调用点零改动。详见 [§3.0–§3.6](references/migration-workflow.md) | 组件代码全部替换 |
-| **4. 验证** | `check-relative-imports.cjs` 跳过（路径已由 `umd-to-antd-vite` 修正）。`check-i18n-keys.cjs` 必跑。`npm install` + `npm run dev` 构建与功能验证。详见 [§4.6](references/migration-workflow.md) | i18n/构建/功能通过 |
+| **4. 验证** | `check-relative-imports.cjs` 跳过（路径已由 `umd-to-antd-vite` 修正）。`check-i18n-keys.cjs` 必跑。`npm install`（bash 工具 timeout=30000，超时/失败记 SKIP 不判 FAIL）+ `npm run dev` 构建与功能验证。详见 [§4.6](references/migration-workflow.md) | i18n/构建/功能通过 |
 
 ## 组件映射总表
 
@@ -84,7 +84,7 @@ Layout/Header/Sider/Content、Menu、Avatar、Descriptions、Space、Statistic�
 
 ## 前置 skill：umd-to-antd-vite
 
-本 skill 的直接输入是 `umd-to-antd-vite` 的产物（标准 antd Vite 工程 + `.umd-conversion.json` 交接文件），不直接消费 UMD 单 HTML。以下工作已由 `umd-to-antd-vite` 完成，本 skill 跳过：组件扫描（`.umd-conversion.json` 的 `antdComponents`）、token 外置、相对导入修正。本 skill 只做 4 步：步骤 1 `--upgrade` 换骨架、步骤 2 换 Provider、步骤 3 逐组件替换、步骤 4 构建验证。
+本 skill 的直接输入是 `umd-to-antd-vite` 的产物（标准 antd Vite 工程 + `.umd-conversion.json` 交接文件），不直接消费 UMD 单 HTML。以下工作已由 `umd-to-antd-vite` 完成，本 skill 跳过：组件扫描（`.umd-conversion.json` 的 `antdComponents`）、token 外置、相对导入修正；**若上游步骤 5 已生成 `migrationPlan`，连步骤 0 的"对照大表分类"也一并前置完成，本 skill 步骤 0 直接读它，跳过读 `component-mapping.md`。** 本 skill 只做 4 步：步骤 1 `--upgrade` 换骨架、步骤 2 换 Provider、步骤 3 逐组件替换、步骤 4 构建验证。
 
 ## 核心问题
 

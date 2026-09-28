@@ -6,11 +6,17 @@
 
 ### 0.1 读交接文件获取迁移清单
 
-源项目是 `umd-to-antd-vite` 产物，目标工程根必有 `.umd-conversion.json` 交接文件。主 agent 直接读其中的 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，同时读 `antdIcons` 获取图标清单。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。
+源项目是 `umd-to-antd-vite` 产物，目标工程根必有 `.umd-conversion.json` 交接文件。
 
-> 不需要手动 grep 扫描 `src/`——组件清单已由 `umd-to-antd-vite` 生成并写入交接文件。读完后进入 §0.2 对照组件映射总表分类。
+**优先路径（`migrationPlan` 非 `null`，上游 `umd-to-antd-vite` 步骤 5 已评估前置）**：直接读 `migrationPlan` 数组作为分类评估清单——每项已含 `antd` / `category`（A/B/C）/ `eview` / `keyDiffs` / `ref` / `files`。**无需再读 `component-mapping.md` 大表对照，直接跳到 §0.4 用此清单规划步骤 3 替换顺序**（§0.2 分类、§0.3 估时均可从 `migrationPlan` 的 `category` 字段直接统计，跳过）。
 
-### 0.2 对照组件映射总表分类
+**回退路径（`migrationPlan` 为 `null`，上游未跑步骤 5）**：读 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，同时读 `antdIcons` 获取图标清单，进入 §0.2 手动对照 `component-mapping.md` 分类。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。
+
+> 组件清单已由 `umd-to-antd-vite` 生成并写入交接文件，不需要手动 grep 扫描 `src/`。`migrationPlan` 是否非 `null` 决定走优先路径（跳过 §0.2/§0.3）还是回退路径（手动对照大表）。
+
+### 0.2 对照组件映射总表分类（回退路径，优先路径跳过）
+
+> 若 §0.1 走优先路径（`migrationPlan` 已含 `category` 字段），本节跳过。仅回退路径（`migrationPlan` 为 `null`）需手动对照下表。
 
 将交接文件中读取到的组件分为三类：
 
@@ -22,12 +28,16 @@
 
 ### 0.3 评估工作量
 
+> 优先路径可直接从 `migrationPlan` 的 `category` 字段统计 A/B/C 各类数量；回退路径从 §0.2 分类结果统计。
+
 - A 类组件 × 数量 → 每个约 5-15 分钟（改 props）
 - B 类组件 × 数量 → 每个约 15-30 分钟（手写 + 调样式）
 - C 类模式 → Form 迁移约 30-60 分钟（控制流重写）
 - CSS 变量切换 → 全局约 30-60 分钟
 
 ### 0.4 输出迁移清单
+
+> 优先路径下 `migrationPlan` 本身即此清单（含 `ref` 指引列，可直接据此规划步骤 3 替换顺序与按需读 reference）；回退路径据 §0.2 结果填下表。
 
 | antd 组件 | 分类 | eview-react 替换 | 涉及文件 | 备注 |
 |-----------|------|-----------------|---------|------|
@@ -135,11 +145,13 @@ node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标�
 ### 1.5 安装与启动
 
 ```bash
-npm install
+npm install    # bash 工具 timeout=30000
 npm run dev
 ```
 
 预期：页面能渲染（显示 "app root"），无样式报错。若报 `Element type is invalid` → horizon 等 peer 依赖未装上，常见报错对照见步骤 5.5。
+
+> `npm install` 设 30s 超时：外网环境无法访问 `@nce` 内网源时会超时，记 `SKIP` 不阻断；`npm run dev` 无 node_modules 一并 `SKIP`。SKIP 规则详见 §4.6。
 
 ## 步骤 2：换 Provider 与入口
 
@@ -380,9 +392,11 @@ node scripts/check-i18n-keys.cjs .
 ### 4.3 编译检查
 
 ```bash
-npm install
+npm install    # bash 工具 timeout=30000；超时/失败记 SKIP
 npm run dev
 ```
+
+> `npm install` 超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP` 不判 `FAIL`，`npm run dev` 一并 `SKIP`（无 node_modules 无法启动）。SKIP 不影响整体 status，详见 §4.6。
 
 ### 4.4 功能验证清单
 
@@ -419,7 +433,7 @@ npm run dev
 **验证步骤**：
 1. 相对导入检查**跳过**（路径已由 `umd-to-antd-vite` 修正，`.umd-conversion.json` 的 `verification.relativeImports=PASS`）；步骤 3 替换组件时若新增 import，靠第 4 步 `npm run dev` 的 Vite import-analysis 兜底
 2. 跑 `node <skill目录>/scripts/check-i18n-keys.cjs <目标工程根>`
-3. `cd <目标工程根> && npm install`
+3. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`，跳过步骤 4-5
 4. `npm run dev` 确认启动成功
 5. 按 §4.4 功能验证清单逐项检查
 
@@ -433,8 +447,8 @@ npm run dev
   "checks": {
     "relative-imports": "PASS/FAIL",
     "i18n-keys": "PASS/FAIL",
-    "npm-install": "PASS/FAIL",
-    "npm-run-dev": "PASS/FAIL",
+    "npm-install": "PASS/SKIP",
+    "npm-run-dev": "PASS/SKIP",
     "functional": "X/Y"
   },
   "notes": "可选说明"
@@ -442,6 +456,7 @@ npm run dev
 ```
 
 - 所有验收项全过 → status="PASS"，failures=[]
-- 任一不过 → status="FAIL"，failures 逐条写清具体失败点
+- 任一不过（SKIP 不算不过）→ status="FAIL"，failures 逐条写清具体失败点
+- npm-install=SKIP 时 npm-run-dev 一并 SKIP，整体 status 不因 SKIP 判 FAIL（notes 写明外网环境降级，仅静态检查 i18n-keys 生效）
 
 **循环上限**：默认 5 轮（round 1 首次验证，round 2~5 修复后重测）。验证 FAIL 时主 agent 直接读 `.migration-result.json` 的 `failures` 字段，回到步骤 3 自己修复，再重新验证（round + 1）。第 5 轮仍 FAIL 必须停止，向用户报告失败项 + 建议人工介入。

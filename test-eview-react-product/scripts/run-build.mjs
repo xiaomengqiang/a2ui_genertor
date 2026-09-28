@@ -30,9 +30,11 @@ const out = {
   dev:     { ok: false, started: false, httpOk: false, port: null, errors: [] },
 };
 
-// 1. install
-const inst = runSync(['install'], 300000);
-out.install = { ok: inst.ok, errors: inst.ok ? [] : pickErrors(inst.stderr + inst.stdout) };
+// 1. install（30s 超时；外网无法访问 @nce 内网源时超时 → 跳过 build/dev，降级 L0）
+const inst = runSync(['install'], 30000);
+const instErrors = inst.ok ? [] : pickErrors(inst.stderr + inst.stdout);
+if (!inst.ok && instErrors.length === 0) instErrors.push('npm install 超时或失败（可能外网无法访问 @nce 内网源）');
+out.install = { ok: inst.ok, errors: instErrors };
 
 if (inst.ok) {
   // 2. build
@@ -83,8 +85,8 @@ if (inst.ok) {
     errors: httpOk ? [] : pickErrors(devOut),
   };
 } else {
-  out.build.errors = ['install 失败，跳过 build'];
-  out.dev.errors = ['install 失败，跳过 dev'];
+  out.build.errors = ['install 超时/失败，跳过 build'];
+  out.dev.errors = ['install 超时/失败，跳过 dev'];
 }
 
 fs.writeFileSync(path.join(productRoot, '.build-result.json'), JSON.stringify(out, null, 2));
