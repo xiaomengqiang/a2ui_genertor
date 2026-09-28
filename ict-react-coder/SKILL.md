@@ -56,7 +56,7 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 
 ### Component Specs
 
-Before using any antd component, check if `references/component/{Name}.md` exists. If it does, read it and follow its rules (usage rules + Don't) — the spec overrides general antd API knowledge.
+Read and follow `references/component/{Name}.md` before using any antd component — the spec overrides general API knowledge.
 
 ### Import contract (ES Modules, build-time bundled)
 
@@ -83,7 +83,7 @@ NOT supported:
 - `export default` must be a named function declaration (`export default function App()`)
 - Page entry file must be `app.jsx`
 - Relative imports must include file extensions (`./src/views/device-table/index.jsx`, no omitting `.jsx`/`.js`/`.css`)
-- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` `Typography` `List` `Listy` `QRCode` `Tour` `Statistic` `FloatButton` `Mentions` `Descriptions` `Affix` `Avatar` `Transfer` `Result` `Upload` `Alert` `AutoComplete` `Splitter`. If needed, use pure H5 or existing component combinations instead.
+- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` `Typography` `List` `Listy` `QRCode` `Tour` `Statistic` `FloatButton` `Mentions` `Descriptions` `Affix` `Avatar` `Transfer` `Result` `Upload` `Alert` `AutoComplete` `Splitter` `Image` `Calendar`. If needed, use pure H5 or existing component combinations instead.
 
 ### Icon usage
 
@@ -182,13 +182,13 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 - No `import * as`, no aliased imports (`{ a as b }`) — see Import contract
 - No npm packages beyond react/react-dom/antd/dayjs/react-intl — see Import contract
 - No `@ant-design/icons` — use Lucide Icon — see Import contract
-- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` `Typography` `List` `Listy` `QRCode` `Tour` `Statistic` `FloatButton` `Mentions` `Descriptions` `Affix` `Avatar` `Transfer` `Result` `Upload` `Alert` `AutoComplete` `Splitter` — use H5 or existing components when needed — see Import contract
+- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` `Typography` `List` `Listy` `QRCode` `Tour` `Statistic` `FloatButton` `Mentions` `Descriptions` `Affix` `Avatar` `Transfer` `Result` `Upload` `Alert` `AutoComplete` `Splitter` `Image` `Calendar` — use H5 or existing components when needed — see Import contract
 - `export default` must be a named function declaration; page entry must be `app.jsx` — see Import contract
 - Relative imports must include file extensions (`.jsx`/`.js`/`.css`) — see Import contract
 - No bare `:root`/`.dark` selectors in component CSS — see Styling rule 3
 - No page-level antd override CSS — see Styling rule 4
 - No antd darkAlgorithm or React-state theme switching — see Styling rule 3
-- No inventing antd component props — use standard Ant Design 5.29.3 API; any component must follow `references/component/{Name}.md` specs
+- No inventing antd component props — use standard Ant Design 5.29.3 API; every component must follow `references/component/{Name}.md` specs
 
 ---
 
@@ -197,7 +197,7 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 1. build `OK` + verify `OK index.page.html verified`
 2. app.jsx: `export default function App()` present
 3. Mock data complete (row count, status diversity, semantic keys)
-4. Every used antd component follows `references/component/{Name}.md`
+4. Every used antd component follows `references/component/{Name}.md` specs
 5. `<artifact>` link output
 
 ## References
