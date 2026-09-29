@@ -9,10 +9,10 @@ Select 是单选下拉框：`options` 数组驱动，每项 `text` 显示、`val
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
 | 单选下拉 | `Select` + `options` | antd 的 `<Select><Option>` children、`mode` |
-| 多选下拉 | `MultipleSelect`（第二批） | `Select` 加 `multiple` |
-| 可输入 + 下拉建议 | `InputSelect`（第二批） | `Select` 加 `showSearch` |
-| 树形下拉 | `TreeSelect`（第二批） | — |
-| 级联 | `Cascader`（第二批） | — |
+| 多选下拉 | `MultipleSelect`（[MultipleSelect.md](MultipleSelect.md)） | `Select` 加 `multiple` |
+| 可输入 + 下拉建议 | `InputSelect`（[InputSelect.md](InputSelect.md)） | `Select` 加 `showSearch` |
+| 树形下拉 | `TreeSelect`（[TreeSelect.md](TreeSelect.md)） | — |
+| 级联 | `Cascader`（[Cascader.md](Cascader.md)） | — |
 
 ## 2. 典型场景
 
@@ -75,15 +75,7 @@ statusRef.current.clear();
 
 ### 联动下拉：父级变化 → 清空子级并重新加载
 
-```tsx
-const handleProvinceChange = async (value) => {
-  setProvince(value);
-  setCity(null);                         // 先清子级，避免残留无效值
-  setCityOptions(await api.getCities(value));
-};
-<Select label="省" options={provinceOptions} value={province} onChange={handleProvinceChange} />
-<Select label="市" options={cityOptions} value={city} disabled={cityOptions.length === 0} onChange={(v) => setCity(v)} />
-```
+父级 `onChange` 里先清子级选中值，再按父级值重新加载子级 `options`；加载要带取消标记防串数据，加载中重置要结束加载态，失败给出重试。完整写法见 §7。
 
 ### 选项图标：icon / iconActive 用 icon+
 
@@ -147,22 +139,29 @@ export default function SiteFilter() {
   const [site, setSite] = useState<string | null>(null);
   const [siteOptions, setSiteOptions] = useState<SelectOption[]>([]);
   const [loadingSites, setLoadingSites] = useState<boolean>(false);
+  const [siteError, setSiteError] = useState<string>('');
+  const [reloadKey, setReloadKey] = useState<number>(0);
   const [result, setResult] = useState<string>('');
 
   const regionRef = useRef<any>(null);
   const siteRef = useRef<any>(null);
 
-  // 区域变化：清空站点，重新加载站点列表
+  // 区域变化：先清掉旧站点，再重新加载
   useEffect(() => {
+    setSiteOptions([]);
+    setSiteError('');
     if (!region) {
-      setSiteOptions([]);
+      setLoadingSites(false);      // 加载途中被重置时也要结束加载态
       return;
     }
-    let cancelled = false;       // 防止快速切换时旧请求覆盖新结果
+    let cancelled = false;         // 防止快速切换时旧请求覆盖新结果
     setLoadingSites(true);
     fetchSites(region)
       .then((list) => {
         if (!cancelled) setSiteOptions(list);
+      })
+      .catch(() => {
+        if (!cancelled) setSiteError('站点加载失败');
       })
       .finally(() => {
         if (!cancelled) setLoadingSites(false);
@@ -170,17 +169,24 @@ export default function SiteFilter() {
     return () => {
       cancelled = true;
     };
-  }, [region]);
+  }, [region, reloadKey]);
 
-  const handleRegionChange = (value: string) => {
+  // 清空时 value 为 null（API 表：value 可以为 null）
+  const handleRegionChange = (value: string | null) => {
     setRegion(value);
     setSite(null);               // 父级变了，子级选择作废
     setResult('');
   };
 
   const handleQuery = () => {
-    const ok = regionRef.current.validate() && siteRef.current.validate();
-    if (!ok) return;
+    // 两个都执行校验再判断，让错误同时显示（&& 会在第一个失败时短路）
+    const refs = [regionRef, siteRef];
+    const results = refs.map((r) => r.current.validate());
+    const firstBadIndex = results.indexOf(false);
+    if (firstBadIndex !== -1) {
+      refs[firstBadIndex].current.focus();
+      return;
+    }
     setResult(`查询：region=${region}, site=${site}`);
   };
 
@@ -214,8 +220,14 @@ export default function SiteFilter() {
         defaultLabel={loadingSites ? '加载中...' : '-请选择-'}
         disabled={!region || loadingSites}
         value={site}
-        onChange={(value: string) => setSite(value)}
+        onChange={(value: string | null) => setSite(value)}
       />
+      {siteError ? (
+        <span>
+          {siteError}
+          <Button text="重试" onClick={() => setReloadKey((key) => key + 1)} />
+        </span>
+      ) : null}
       <Button status="primary" text="查询" onClick={handleQuery} />
       <Button text="重置" onClick={handleReset} />
       {result ? <span>{result}</span> : null}

@@ -11,7 +11,7 @@ Divider 是内容分割线：水平（默认）或垂直，可虚线，可带标
 | 区块之间的横线 | `<Divider />` | `<hr>` / 手写 border |
 | 带小标题的分组线（"基本信息" / "高级配置"） | `<Divider orientation="left">基本信息</Divider>` | Divider + 单独的标题 div |
 | 行内操作之间的竖线（编辑 \| 删除） | `<Divider type="vertical" />` | 文字 `\|` |
-| 表单分组带折叠 | `Panel` / `Accordion`（后续批次） | Divider |
+| 表单分组带折叠 | `Panel`（[Panel.md](Panel.md)） | Divider、`Accordion`（侧边导航菜单） |
 
 ## 2. 典型场景
 

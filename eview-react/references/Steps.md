@@ -13,7 +13,7 @@ Steps 是多步骤任务的步骤条，`data` 驱动，`currentStep` 指向当�
 |-----------|--------|--------|
 | 向导 / 多步表单顶部的进度指示 | `Steps` | antd 的 `<Steps><Step>` children、`current` 下标 |
 | 旧工程已在用 | `Wizards`（同 API，旧名） | 新代码不要再用 |
-| 纯展示的时间轴 | `TimeLine`（第二批） | Steps 竖排硬凑 |
+| 纯展示的时间轴 | `TimeLine`（未覆盖） | Steps 竖排硬凑 |
 
 ## 2. 典型场景
 

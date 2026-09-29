@@ -15,7 +15,7 @@ MultipleSelect 是多选下拉：输入框内预览已选项，支持全选、�
 | 从固定选项里选多个（标签、区域、角色） | `MultipleSelect` | antd `Select mode="multiple"` |
 | 只选一个 | `Select`（[Select.md](Select.md)） | MultipleSelect 限一项 |
 | 选项少于 5 个、希望一眼看全 | `CheckboxGroup`（[Checkbox.md](Checkbox.md)） | MultipleSelect |
-| 树形多选 | `TreeSelect`（后续批次） | — |
+| 树形多选 | `TreeSelect`（[TreeSelect.md](TreeSelect.md)） | — |
 
 ## 2. 典型场景
 

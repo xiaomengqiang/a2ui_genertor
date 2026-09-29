@@ -15,7 +15,7 @@ Tab 是页面内平级版块切换容器：一级页签 `type="main"`（默认�
 | 详情页多版块切换 | `Tab` + `TabItem` | antd `<Tabs items={[...]}>` / `<TabPane>` |
 | 卡片式 / 可关闭的工作区页签 | `Tab type="sub"` + `TabItem closable` | 自己拼按钮 |
 | 顶部导航切换整页 | 路由 + `Tab` 受控 `selectedIndex` | Tab 内塞整个页面 |
-| 表单里的分组 | `Panel` / `Accordion`（第二批） | Tab |
+| 表单里的分组 | `Panel`（[Panel.md](Panel.md)） | Tab、`Accordion`（侧边导航菜单，见 [Accordion.md](Accordion.md)） |
 
 ## 2. 典型场景
 
@@ -107,7 +107,7 @@ interface WorkTab {
 - 页签切换 → 首次进入的版块发请求，其后复用；请求中的版块显示 loading
 - 列表行"打开"按钮 → 往 `tabs` 数组 push 新页签并把 `activeIndex` 指到它
 - 关闭页签 → 数组移除 + 修正 `activeIndex`（关掉的是当前或前面的页签时下标减一）
-- 表单有未保存修改时关闭页签 → 先弹确认（`MessageDialog`，第二批），确认后再移除
+- 表单有未保存修改时关闭页签 → 先弹确认（[MessageDialog](MessageDialog.md)），确认后再移除
 - 页签内的 Table / Form 各自独立状态，切换不重置（默认非 `lazyLoad` 时内容全部保留在 DOM）
 
 ## 7. 完整代码示例

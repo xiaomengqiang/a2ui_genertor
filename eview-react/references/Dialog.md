@@ -14,7 +14,7 @@ Dialog 是通用对话框：标题 + 任意内容 + 按钮区，模态 / 非模�
 |-----------|--------|--------|
 | 新建 / 编辑表单弹窗 | `Dialog` + `Form`（[Form.md](Form.md)） | antd `Modal` + `onOk` |
 | 删除确认 / 成功失败提示 | `MessageDialog`（有类型图标、`ok/cancel` 语义） | Dialog 自己拼 |
-| 侧滑面板 | `Drawer`（后续批次） | Dialog |
+| 侧滑面板 | `Drawer`（[Drawer.md](Drawer.md)） | Dialog |
 | 弹窗里放表格 | `Dialog size={[w, h]}` + `Table`（demo DialogTableSample） | — |
 
 ## 2. 典型场景
@@ -35,7 +35,7 @@ const formRef = useRef<any>(null);
 
 ## 4. 事件与交互逻辑
 
-### 基本：isOpen 受控，onClose 与按钮都要自己关
+完整的"新建 / 编辑表单弹窗"见 §7，要点：
 
 ```tsx
 <Button status="primary" text="新建" onClick={() => { setEditing(null); setOpen(true); }} />
@@ -162,10 +162,7 @@ interface Device {
 type DeviceForm = Omit<Device, 'id'>;
 
 const EMPTY: DeviceForm = { name: '', region: '' };
-const REGIONS = [
-  { text: '华东', value: 'east' },
-  { text: '华南', value: 'south' },
-];
+const REGIONS = [{ text: '华东', value: 'east' }, { text: '华南', value: 'south' }];
 
 // 设备列表 + 新建 / 编辑弹窗（Dialog 内 Form），保存成功才关窗并刷新
 export default function DeviceDialogPage() {
@@ -260,14 +257,13 @@ buttons={[{ text: '确定', onClick: () => { setOpen(false); save(); } }]}
 
 ## 9. API 速查
 
-> 压缩自 `Dialog/types`。
+> 压缩自 `Dialog/types`，少用的合并在最后一行。
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
 | `isOpen` | `boolean`，默认 `false` | 显隐（受控） |
 | `onClose` | `(event) => void` | 关闭按钮 / ESC；需自行置 `isOpen=false` |
 | `title` / `titleTip` | `any` / `string` | 标题 / 标题提示 |
-| `children` | `any` | 内容（React 或原生标签） |
 | `buttons` | `Array<ButtonProps>` | 按钮区，如 `[{ text, status: 'primary', onClick }]` |
 | `buttonStyle` / `contentStyle` / `maskStyle` / `style` | `CSSProperties` | 按钮区 / 内容区 / 蒙层 / 整体样式 |
 | `size` | `[w, h]`，可 `null` / `'auto'` / 百分比 | 大小；**高传 `'auto'` 自适应内容 + `style={{ maxHeight: '80vh' }}` 限高**，宽按场景设（见 §4），勿定死 |

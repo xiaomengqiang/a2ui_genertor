@@ -15,7 +15,7 @@ MessageDialog 是带类型图标的信息提示框：`content` 一句话结论 +
 |-----------|--------|--------|
 | 删除 / 停用等二次确认 | `type="confirm"`，危险操作 `type="risk"` / `"highRisk"`（+ `hasChecked`） | antd `Modal.confirm()` |
 | 操作结果反馈（成功 / 失败 / 警告） | `type="success" \| "error" \| "warn"`，只传 `ok` | `alert()`、Dialog |
-| 页面内非阻断提示条 | `DivMessage` / `PageMessage`（后续批次） | MessageDialog |
+| 页面内非阻断提示条 | `DivMessage`（[DivMessage.md](DivMessage.md)）；`PageMessage` 未覆盖 | MessageDialog |
 | 带表单的弹窗 | `Dialog`（[Dialog.md](Dialog.md)） | MessageDialog 塞表单 |
 
 ## 2. 典型场景
@@ -39,67 +39,20 @@ const [result, setResult] = useState<{ type: 'success' | 'error'; content: strin
 
 ## 4. 事件与交互逻辑
 
-### 确认类：ok 里做事，成功才关
+三种用法的完整写法见 §7，要点：
+
+- **确认类**（`type="confirm"`）：在 `ok.onClick` 里请求，成功才关窗并刷新；`ok.focused: true` 让焦点默认落在确认按钮；处理中把 ok 文案切成"删除中..."，并在 `onClick` 开头 `if (working) return` 防重复
+- **高危**（`type="highRisk"` / `"risk"`）：`hasChecked={agreed}` + `onCheckChange={(isChecked) => setAgreed(isChecked)}`；组件不会自动禁用 ok，`ok.onClick` 里未勾选直接 return；关窗时把 `agreed` 复位
+- **结果反馈**（`success` / `error` / `warn`）：只传 `buttons={{ ok: { onClick: close } }}`；失败原因放 `detail`，技术详情放可折叠的 `detailMessage`
 
 ```tsx
+// 失败反馈带可折叠的技术详情
 <MessageDialog
-  type="confirm"
-  isOpen={pending?.type === 'delete'}
-  iconLocation="title"
-  content={`确定删除 ${pending?.row.name}？`}
-  detail="删除后不可恢复"
-  onClose={() => setPending(null)}                                   // × 关闭
-  buttons={{
-    cancel: { text: '取消', onClick: () => setPending(null) },
-    ok: {
-      text: working ? '删除中...' : '删除',
-      focused: true,                                                  // 焦点默认落在 ok
-      onClick: async () => {
-        if (working || !pending) return;
-        setWorking(true);
-        try {
-          await api.remove(pending.row.id);
-          setPending(null);
-          setResult({ type: 'success', content: '删除成功' });
-          reload();
-        } catch (e: any) {
-          setResult({ type: 'error', content: '删除失败', detail: e.message });
-        } finally {
-          setWorking(false);
-        }
-      },
-    },
-  }}
-/>
-```
-
-### 高危：highRisk + hasChecked，未勾选不放行
-
-```tsx
-<MessageDialog
-  type="highRisk"
-  isOpen={pending?.type === 'reset'}
-  hasChecked={agreed}
-  onCheckChange={(isChecked: boolean) => setAgreed(isChecked)}
-  content="重置将清除全部配置"
-  detail="请勾选以确认你已了解影响"
-  onClose={() => { setPending(null); setAgreed(false); }}
-  buttons={{
-    cancel: { onClick: () => { setPending(null); setAgreed(false); } },
-    ok: { text: '重置', onClick: () => { if (!agreed) return; doReset(); } },   // 组件不会自动禁用 ok，业务拦
-  }}
-/>
-```
-
-### 结果反馈：单按钮
-
-```tsx
-<MessageDialog
-  type={result?.type ?? 'info'}
+  type="error"
   isOpen={!!result}
   content={result?.content}
   detail={result?.detail}
-  detailMessage={result?.raw}                     // 可折叠的技术详情（可选）
+  detailMessage={result?.raw}
   detailMessageTitle="详情"
   onClose={() => setResult(null)}
   buttons={{ ok: { onClick: () => setResult(null) } }}
@@ -251,7 +204,7 @@ buttons={{ ok: { onClick: doReset } }}
 
 ## 9. API 速查
 
-> 压缩自 `MessageDialog/types`。
+> 压缩自 `MessageDialog/types`，少用的合并在最后一行。
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
@@ -259,15 +212,7 @@ buttons={{ ok: { onClick: doReset } }}
 | `isOpen` | `boolean`，默认 `false` | 显隐（受控） |
 | `onClose` | `(event) => void` | 关闭按钮；需自行置 `isOpen=false` |
 | `content` / `detail` | `string` / `any` | 一句话结论 / 详细说明（可 ReactNode） |
-| `title` | `string` | 覆盖类型默认标题 |
 | `buttons` | `{ ok?: { text?, onClick, focused? }, cancel?: { text?, onClick } }` | 按钮**对象**；`focused` 设默认焦点 |
 | `hasChecked` / `onCheckChange` | `boolean` / `(isChecked, event) => void` | `risk` / `highRisk` 的确认勾选 |
-| `detailMessage` / `detailMessageTitle` / `detailMessageShow` | `object` / `string`（默认"详情"）/ `boolean`（默认 false） | 可折叠详情 |
 | `iconLocation` | `'content' \| 'title'`，默认 `content` | 图标位置（demo 统一用 `title`） |
-| `modal` / `closable` | `boolean`，默认 `true` | 模态 / 关闭按钮 |
-| `size` / `position` | `[w, h]` / `[x, y]`，可 `'auto'` | 最小 350×240 |
-| `maxContHeight` | `number` | 内容区最大高 |
-| `zindex` | `string`，默认 `9993` | 层级 |
-| `mountId` | `string`，默认 `body` | 挂载节点 |
-| `animationOff` / `autoSetPosition` | `boolean`，默认 `false` | 关动画 / 自动定位 |
-| `detailStyle` / `style` / `className` / `id` | — | 样式与标识 |
+| 其余 | — | `title` 覆盖类型默认标题 / `detailMessage`（`object`）`detailMessageTitle`（默认"详情"）`detailMessageShow`（默认 false）可折叠详情 / `modal` `closable`（默认 true）模态与关闭按钮 / `size` `position`（`[w, h]` / `[x, y]`，可 `'auto'`，最小 350×240）/ `maxContHeight` 内容区最大高 / `zindex`（`string`，默认 `9993`）/ `mountId`（默认 `body`）挂载节点 / `animationOff` `autoSetPosition`（默认 false）/ `detailStyle` `style` `className` `id` |

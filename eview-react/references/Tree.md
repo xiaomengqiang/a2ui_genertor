@@ -13,6 +13,7 @@ Tree 是层级数据展示与选择：选中 / 勾选 / 展开三套受控状态
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
 | 左侧组织 / 区域导航树 | `Tree` 单选（`enableMultiSelect={false}`）+ `onSelect` | antd `Tree treeData` |
+| 页面 / 功能的多级侧边导航菜单 | `Accordion`（[Accordion.md](Accordion.md)） | Tree |
 | 权限 / 资源勾选树 | `Tree enableCheckbox` + `checkedKeys` + `onCheck` | 自己递归渲染 Checkbox |
 | 表单里选树节点 | `TreeSelect`（[TreeSelect.md](TreeSelect.md)） | Tree 塞进下拉 |
 | 层级数据 + 多列 | `TreeTable`（[TreeTable.md](TreeTable.md)） | Tree 拼列 |

@@ -14,7 +14,7 @@ FileUpload 是"选择文件 + 文件列表 + 上传按钮 + 进度 / 状态"的�
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
 | 表单里选文件并上传 | `FileUpload` | antd `<Upload action="/api">`（eview 没有 `action`，不会自己发请求） |
-| 只是选一个路径填到输入框 | `BrowseButton`（第二批） | FileUpload |
+| 只是选一个路径填到输入框 | `BrowseButton`（未覆盖） | FileUpload |
 | 选完立刻自动上传 | `FileUpload` + `hideUploadButton` + `onChange` 里调 `ref.handleSubmit()` | 自己监听 input |
 
 ## 2. 典型场景

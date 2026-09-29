@@ -48,7 +48,7 @@ EVIEW_FORBIDDEN = [
 
 # SKILL.md 里用反引号标出、但不是组件（不需要 Reference）的词
 NON_COMPONENTS = {"IntlProvider", "ConfigProvider", "Set", "TextButton", "ScrollTable", "Option",
-                  "Wizards", "BrowseButton", "Accordion", "TimeLine", "TabPane", "Step", "Upload",
+                  "Wizards", "BrowseButton", "TimeLine", "TabPane", "Step", "Upload",
                   "Input", "TimePicker", "TimeRangeSelector", "CheckableTag", "Modal", "Tabs", "Transfer",
                   "Chart", "ChartCard", "HexField", "PagingTree", "TreeSelector", "PageMessage", "Card",
                   "ProgressBar", "Carousel", "PopUpMenu", "DropDown", "ButtonMenu", "AutoComplete",

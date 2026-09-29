@@ -28,6 +28,7 @@
         { "text": "异步加载站点有取消/版本标记，防止快速切换时旧结果覆盖新结果", "type": "behavioral" },
         { "text": "查询按钮 onClick 触发请求且有 loading 防重复", "type": "behavioral" },
         { "text": "重置按钮把所有筛选状态恢复为初始值", "type": "behavioral" },
+        { "text": "站点加载途中点重置或清空区域，站点下拉不会残留「加载中」状态；站点接口失败有提示并可重试", "type": "behavioral" },
         { "text": "没有从 antd 导入任何组件", "type": "eview_compliance" }
       ]
     },
@@ -42,6 +43,7 @@
         { "text": "选中集合更新时创建新 Set / 数组，不直接 mutate", "type": "behavioral" },
         { "text": "批量删除按钮在无选中项时 disabled，文案包含选中数量", "type": "behavioral" },
         { "text": "删除成功后从列表移除已选项并清空选中集合", "type": "behavioral" },
+        { "text": "批量删除先经 MessageDialog 二次确认，取消后数据不变；删除失败保持确认框打开并提示", "type": "behavioral" },
         { "text": "列表为空时有空状态提示", "type": "behavioral" },
         { "text": "危险操作按钮使用 status=\"risk\"", "type": "eview_compliance" }
       ]
@@ -70,6 +72,7 @@
         { "text": "安装了 @cloudsop/horizon、@cloudsop/horizon-intl、@cloudsop/htimezone、@baize/wdk、@hui/design-token 等 peer 依赖", "type": "contains_pattern" },
         { "text": "锁定 vite@^5.4.0 与 @vitejs/plugin-react@^4.3.0", "type": "contains_pattern" },
         { "text": "入口引入 @nce/eview-react/styles/aui3_1.css", "type": "contains_pattern" },
+        { "text": "入口给 DOM 加上 aui3_1 类名（如 document.body.classList.add('aui3_1') 或在根容器上设置 className），否则 3.x 下 ICT 3.1 样式不生效", "type": "contains_pattern" },
         { "text": "根节点用 ConfigProvider 和 IntlProvider 包裹，messages 使用 @nce/eview-react/locales 的语言包", "type": "contains_pattern" },
         { "text": "组件导入使用 @nce/eview-react/<组件> 路径", "type": "eview_compliance" }
       ]
@@ -83,7 +86,8 @@
         { "text": "邮箱使用 TextField.defaultValidator.email()，端口使用 defaultValidator.range 或 min/max", "type": "contains_pattern" },
         { "text": "端口输入框设置 format=\"number\"", "type": "contains_pattern" },
         { "text": "必填字段设置 required", "type": "contains_pattern" },
-        { "text": "提交前通过 ref.current.validate() 逐个校验，首个失败项调用 focus()", "type": "behavioral" },
+        { "text": "提交前对所有字段都执行 ref.current.validate() 并收集结果，不在第一个失败处中断（所有错误同时显示），之后再对第一个失败项调用 focus()", "type": "behavioral" },
+        { "text": "端口校验拒绝小数（如 443.5）、0 和 65536；整数判断可用自定义 validator 实现，不依赖待实测的 defaultValidator.integer()", "type": "behavioral" },
         { "text": "级别 Select 使用 options=[{text,value}] 并设置 required", "type": "eview_compliance" },
         { "text": "提交按钮有 submitting 防重复且请求后复位", "type": "behavioral" },
         { "text": "没有使用 antd 的 rules 属性在 TextField 上", "type": "eview_compliance" },
@@ -114,7 +118,7 @@
         { "text": "切换回调使用 onClick 而不是 onChange", "type": "eview_compliance" },
         { "text": "设置了 draggable={false}", "type": "contains_pattern" },
         { "text": "动态页签用业务 id 作为 key，而不是数组下标", "type": "behavioral" },
-        { "text": "onClose 后从页签数组移除，并在关闭当前或前面页签时把 selectedIndex 减一", "type": "behavioral" },
+        { "text": "关闭页签后从页签数组移除，且激活页签正确：关闭当前页签时切到相邻页签，关闭其前面的页签时仍停留在原页签。Tab.md 用受控 selectedIndex 修正下标；selectedIndex 能否外部受控待实测，用 key 重挂载等方式达到同样效果也算通过", "type": "behavioral" },
         { "text": "记录已加载页签集合，只在首次切换到某页签时请求数据", "type": "behavioral" },
         { "text": "可关闭页签使用 type=\"sub\" 与 TabItem closable", "type": "contains_pattern" }
       ]
@@ -236,7 +240,7 @@
       "prompt": "用 eview-react 写一个设备管理页：设备表格（后台分页、后台排序、可跨页勾选），新建 / 编辑用弹窗表单（名称必填、区域下拉必填、启用开关），删除和批量删除要二次确认，批量删除是高危操作要勾选确认",
       "expected_output": "Table dataset/columns/keyIndex + enablePagination + pagingProps + onPageChange + disableEviewSort + onColumnSort + enableCheckBox + preserveCheckedRows + onRowCheck/onHeaderCheck；Dialog isOpen 受控 + buttons 数组，内嵌 Form（Form.Item name + rules，Toggle 配 valuePropName=\"toggled\" updateTrigger=\"onToggle\"），确定调 formRef.current.submit()，onSuccess 请求成功才关窗刷新，编辑用 setFieldsValue 回填；单删 MessageDialog type=\"confirm\"，批量 type=\"highRisk\" + hasChecked，ok.onClick 里判断勾选并成功后关窗",
       "assertions": [
-        { "text": "Table 使用 dataset / columns / keyIndex，后台分页通过 enablePagination + pagingProps + onPageChange，后台排序通过 disableEviewSort + onColumnSort", "type": "eview_compliance" },
+        { "text": "Table 使用 dataset / columns，并用 keyIndex 指定主键列（对象行下 keyIndex 按列序号取值的方式待实测，写成数组行 + keyIndex 也算通过）；后台分页通过 enablePagination + pagingProps + onPageChange，后台排序通过 disableEviewSort + onColumnSort", "type": "eview_compliance" },
         { "text": "跨页勾选使用 enableCheckBox + preserveCheckedRows + checkedRows，onRowCheck / onHeaderCheck 存主键数组", "type": "eview_compliance" },
         { "text": "弹窗使用 Dialog isOpen + buttons 数组，确定按钮调用 formRef.current.submit()，没有 antd Modal / onOk", "type": "eview_compliance" },
         { "text": "Form 使用 Form.Item name + rules，Toggle 配 valuePropName=\"toggled\" updateTrigger=\"onToggle\"，没有 useForm / onFinish", "type": "eview_compliance" },
@@ -244,7 +248,8 @@
         { "text": "编辑回填使用 formRef.current.setFieldsValue 而不是 initialValues", "type": "behavioral" },
         { "text": "单条删除用 MessageDialog type=\"confirm\"，批量删除用 type=\"highRisk\" + hasChecked，ok.onClick 里未勾选不执行", "type": "eview_compliance" },
         { "text": "MessageDialog 的 buttons 为 { ok, cancel } 对象，Dialog 的 buttons 为数组，两者没有混用", "type": "eview_compliance" },
-        { "text": "删光当前页且 page > 1 时页码减一再请求；批量删除成功后清空勾选", "type": "behavioral" }
+        { "text": "删光当前页且 page > 1 时页码减一再请求；批量删除成功后清空勾选", "type": "behavioral" },
+        { "text": "列表请求失败时有错误提示和重试入口，不会一直停在加载态", "type": "behavioral" }
       ]
     },
     {
@@ -281,11 +286,11 @@
       "assertions": [
         { "text": "Tree 使用 data / nodeKey / enableMultiSelect={false}，selectedKeys 与 expandedKeys 都配了对应回调写回", "type": "eview_compliance" },
         { "text": "树搜索使用 ref.findLevelNodes 并把结果 id 写回 expandedKeys", "type": "contains_pattern" },
-        { "text": "回调里取节点主键用 keys 数组或 node.props.eventKey，没有用 node.id", "type": "eview_compliance" },
+        { "text": "选中 / 展开回调优先用回调参数里的 keys 数组确定节点主键；从 node 对象取主键时，node.props.eventKey（Tree.md 按 demo 的写法）与 node.id 的取舍待实测，不作为判定依据", "type": "eview_compliance" },
         { "text": "面包屑使用 Crumbs data，最后一项不传 url，且随选中组织派生", "type": "eview_compliance" },
         { "text": "选中组织变化后表格 page 归 1 并重新请求，请求中 enableLoading", "type": "behavioral" },
         { "text": "新建抽屉使用 Drawer visible + onClose 自行置 false，底部按钮自写并调用 formRef.current.submit()，没有 antd Drawer footer", "type": "eview_compliance" },
-        { "text": "保存成功后关抽屉、刷新表格，并用 DivMessage（换 key 或先置 null）显示成功提示", "type": "behavioral" }
+        { "text": "保存成功后关抽屉、刷新表格，并用 DivMessage 显示成功提示；连续保存两次时第二次提示也能重新出现（DivMessage.md 用换 key 重挂实现；自动消失后是否回调 onClose 待实测，其他能保证重新出现的写法也算通过）", "type": "behavioral" }
       ]
     },
     {
@@ -314,6 +319,20 @@
         { "text": "没有使用 antd 的 Spin / Empty image / Tooltip，也没有把 Spinner 当 loading", "type": "eview_compliance" },
         { "text": "各卡片的 loading 状态相互独立，刷新一张不影响其他卡片", "type": "behavioral" },
         { "text": "图标用 icon+ 组件，自定义颜色用 iconColor（不再用内置 Icon name/isStandard）", "type": "eview_compliance" }
+      ]
+    },
+    {
+      "id": 23,
+      "prompt": "用 eview-react 写一个配置中心页面：左侧是可收起的多级侧边导航（一级菜单带图标，二级为具体页面，默认选中「安全策略 / 访问控制」），点击叶子菜单时右侧显示对应页面标题和路径；菜单数据从接口加载，加载失败可重试，点「刷新菜单」后保持用户已展开的层级",
+      "expected_output": "Accordion 数据驱动侧边导航：data 每项 title / value / icon / children，selectedValue 为单个叶子 value，onClick 只在叶子节点更新选中；可收起面板按遗留语义处理 expanded / onExpand（flag 取反）；刷新菜单设置 keepExpandState，选中项不存在时回退到第一个可选叶子；菜单加载有加载中、失败重试与空态",
+      "assertions": [
+        { "text": "侧边导航使用 Accordion 的 data（每项 title / value，子级 children），没有使用 antd Menu 的 items / key / label / selectedKeys，也没有用 Panel 或 antd Collapse 充当导航", "type": "eview_compliance" },
+        { "text": "selectedValue 是单个 string（叶子节点的 value），不是数组", "type": "eview_compliance" },
+        { "text": "onClick(node) 只在叶子节点（没有 children）时更新 selectedValue，点击父节点不切换右侧内容", "type": "behavioral" },
+        { "text": "面板收起按遗留语义处理：expanded 传入的是「是否收起」，onExpand(flag) 回调里写回 !flag；没有出现 API 表之外的 expand 属性", "type": "eview_compliance" },
+        { "text": "一级菜单项都配置了 icon（面板收起后以图标呈现）", "type": "contains_pattern" },
+        { "text": "刷新菜单时设置 keepExpandState，保留用户展开的层级", "type": "contains_pattern" },
+        { "text": "菜单接口有加载中、失败重试与空态；刷新后若当前 selectedValue 已不在新数据中，回退到第一个可选叶子", "type": "behavioral" }
       ]
     }
   ]

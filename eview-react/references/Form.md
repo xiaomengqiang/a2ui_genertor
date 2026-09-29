@@ -45,37 +45,11 @@ const initialValues: ResourceForm = { name: '', region: null, port: '', agree: f
 
 ## 4. 事件与交互逻辑
 
-### 基本骨架：Form.Item name + rules，按钮调 ref.submit()
+完整骨架见 §7，要点：
 
-```tsx
-<Form
-  ref={formRef}
-  initialValues={initialValues}
-  layout="horizontal"
-  labelCol={6}
-  validateErrorType="tip"
-  onSuccess={(values: ResourceForm) => save(values)}                 // 全部规则通过
-  onFailed={(errorFields, values) => setMessage('请修正标红字段')}     // 有规则失败
-  onValuesChange={(changed, allNew, allPrev) => { /* 字段变化联动 */ }}
->
-  <Form.Item label="名称" name="name" rules={[{ required: true }]}>
-    <TextField placeholder="请输入" maxLength={32} />  {/* 不传 value / onChange，Form 托管；长度限制用控件自己的 maxLength */}
-  </Form.Item>
-  <Form.Item label="邮箱" name="email" rules={[{ required: true }, { email: true }]}>
-    <TextField />
-  </Form.Item>
-  <Form.Item label="端口" name="port" rules={[{ range: true, args: [1, 65535] }]}>
-    <TextField format="number" />
-  </Form.Item>
-  <Form.Item label="区域" name="region" rules={[{ required: true }]}>
-    <Select options={regionOptions} defaultLabel="-请选择-" />
-  </Form.Item>
-  <Form.Item colon={false}>
-    <Button status="primary" text="提交" onClick={() => formRef.current.submit()} />
-    <Button text="重置" onClick={() => formRef.current.resetFields()} />
-  </Form.Item>
-</Form>
-```
+- **提交**：按钮 `onClick={() => formRef.current.submit()}` 触发全量校验，通过走 `onSuccess(values)`，失败走 `onFailed(errorFields, values)`；`onValuesChange(changed, allNew, allPrev)` 监听字段变化做联动
+- **托管**：`Form.Item` 写 `name` + `rules`，内部控件不传 `value` / `onChange`；长度限制仍用控件自己的 `maxLength`，控件自带的 `validator` 可叠加（FormPro.jsx）
+- **布局**：`layout="horizontal"`（默认）配 `labelCol`；多列用 `itemCol={12}`；错误提示形式用 `validateErrorType`
 
 ### 多列布局：itemCol 设在 Form 上，Form.Item 保持直接子级
 
@@ -144,7 +118,7 @@ formRef.current.getErrors();                   // 当前错误
 
 ### 内置规则（demo FormRule.jsx 出现过的）
 
-`required` · `min` / `max` / `range` / `rangeAndInteger`（配 `args`）· `digit` · `integer` · `url` · `email` · `alpha` · `postfix`（`args: ['后缀']`）· `ipv4` · `ipv6` · `creditCard`；写法 `rules={[{ required: true }, { range: true, args: [5, 15] }]}`。控件自己的 `validator` 仍可叠加使用（FormPro.jsx）。
+`required` · `min` / `max` / `range` / `rangeAndInteger`（配 `args`）· `digit` · `integer` · `url` · `email` · `alpha` · `postfix`（`args: ['后缀']`）· `ipv4` · `ipv6` · `creditCard`；写法 `rules={[{ required: true }, { range: true, args: [5, 15] }]}`。整数范围（如端口）用 `rangeAndInteger`，`range` 不拦小数。
 
 ## 5. 数据结构
 
@@ -175,7 +149,7 @@ type FormRule = { required?: true; email?: true; range?: true; postfix?: true; a
 ## 7. 完整代码示例
 
 ```tsx
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Form from '@nce/eview-react/Form';
 import TextField from '@nce/eview-react/TextField';
 import Select from '@nce/eview-react/Select';
@@ -193,10 +167,7 @@ interface ResourceForm {
 }
 
 const INITIAL: ResourceForm = { name: '', email: '', port: '', region: null, agree: false, enabled: true };
-const REGION_OPTIONS = [
-  { text: '华东', value: 'east' },
-  { text: '华南', value: 'south' },
-];
+const REGION_OPTIONS = [{ text: '华东', value: 'east' }, { text: '华南', value: 'south' }];
 
 // 新建资源表单：Form 托管值与校验，提交防重复，编辑态回填，启用开关联动端口必填
 export default function ResourceFormPage({ record }: { record?: ResourceForm }) {
@@ -206,7 +177,7 @@ export default function ResourceFormPage({ record }: { record?: ResourceForm }) 
   const [message, setMessage] = useState<string>('');
 
   // 编辑态：异步数据到达后用方法回填（initialValues 只在初始化生效）
-  React.useEffect(() => {
+  useEffect(() => {
     if (record) {
       formRef.current?.setFieldsValue(record);
       setEnabled(record.enabled);
@@ -254,7 +225,7 @@ export default function ResourceFormPage({ record }: { record?: ResourceForm }) 
         <Form.Item label="启用" name="enabled" valuePropName="toggled" updateTrigger="onToggle">
           <Toggle data={[false, true]} />
         </Form.Item>
-        <Form.Item label="端口" name="port" rules={enabled ? [{ required: true }, { range: true, args: [1, 65535] }] : []}>
+        <Form.Item label="端口" name="port" rules={enabled ? [{ required: true }, { rangeAndInteger: true, args: [1, 65535] }] : []}>
           <TextField format="number" placeholder="1-65535" disabled={!enabled} />
         </Form.Item>
         <Form.Item name="agree" valuePropName="checked" updateTriggerIndex={1} rules={[{ required: true }]}>
@@ -322,7 +293,7 @@ rules={[{ required: true, message: '必填' }, { type: 'email' }]}
 
 ## 9. API 速查
 
-> 压缩自 `Form/Form`、`Form/FormItem`；ref 方法仅列 demo 出现的。
+> 压缩自 `Form/Form`、`Form/FormItem`，少用的合并在最后一行；ref 方法仅列 demo 出现的。
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
@@ -333,8 +304,6 @@ rules={[{ required: true, message: '必填' }, { type: 'email' }]}
 | `layout` | `'horizontal' \| 'vertical'`，默认 `horizontal` | 不支持 inline |
 | `itemCol` | `24 \| 12 \| 8 \| 6`，默认 `24` | 多列表单，每项占栅格；只作用于**直接子级** `Form.Item` |
 | `labelCol` / `wrapperCol` | `number \| { span, offset }` | 仅水平布局；`labelCol + wrapperCol <= 24` |
-| `labelAlign` / `colon` | `'left' \| 'right'`（默认 right）/ `boolean`（默认 true） | 标签对齐 / 冒号 |
-| `validateTrigger` / `updateTrigger` | `string`，默认 `onChange` | 校验 / 取值的回调名 |
 | `validateErrorType` | `'div' \| 'tip' \| 'none'` | 错误提示形式 |
 | `validateAllChildComponent` | `boolean`，默认 `false` | 是否同时执行子控件自带校验；**控件 `validator` 要在 `submit()` 时跑必须设 `true`**（待实测确认，但官方 API 表语义如此） |
 | `component` | `any`，默认 `form` | 渲染的 HTML 元素；`false` 不创建 DOM |
@@ -344,5 +313,7 @@ rules={[{ required: true, message: '必填' }, { type: 'email' }]}
 | `Form.Item.rules` | `Array<{ 规则名: true, args? }>` | `required` `min` `max` `range` `rangeAndInteger` `digit` `integer` `url` `email` `alpha` `postfix` `ipv4` `ipv6` `creditCard` |
 | `Form.Item.valuePropName` | `string` | 控件值属性名（Checkbox `checked`、Toggle `toggled`） |
 | `Form.Item.updateTrigger` / `updateTriggerIndex` | `string` / `number` | 取值回调名（Toggle `onToggle`）/ 值在回调第几个参数（Checkbox 为 1） |
-| `Form.Item.col` / `colon` / `layout` / `labelCol` / `wrapperCol` / `validateErrorType` | — | 单项覆盖 Form 的布局与提示设置 |
 | `ref.submit()` / `resetFields()` / `setFieldsValue(obj)` / `getFieldsValue()` / `getFieldValue(name)` / `getErrors()` | 命令式方法 | demo FormFunction.jsx |
+| `labelAlign` / `colon` | `'left' \| 'right'`（默认 right）/ `boolean`（默认 true） | 标签对齐 / 冒号 |
+| `validateTrigger` / `updateTrigger` | `string`，默认 `onChange` | 校验 / 取值的回调名 |
+| `Form.Item.col` / `colon` / `layout` / `labelCol` / `wrapperCol` / `validateErrorType` | — | 单项覆盖 Form 的布局与提示设置 |

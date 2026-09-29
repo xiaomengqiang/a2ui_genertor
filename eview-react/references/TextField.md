@@ -11,10 +11,10 @@ TextField 是自带 label、必填星号、内置校验与错误提示的单行�
 | 想要的效果 | 用什么 |
 |-----------|--------|
 | 单行文本 / 密码 / 数字 | `TextField` |
-| 多行文本 | `TextArea`（第二批） |
-| 带搜索图标、回车触发搜索 | `SearchInput`（第二批） |
-| 可输入也可下拉选 | `InputSelect`（第二批） |
-| IP 地址 | `IPInput`（第二批） |
+| 多行文本 | `TextArea`（[TextArea.md](TextArea.md)） |
+| 带搜索图标、回车触发搜索 | `SearchInput`（[SearchInput.md](SearchInput.md)） |
+| 可输入也可下拉选 | `InputSelect`（[InputSelect.md](InputSelect.md)） |
+| IP 地址 | `IPInput`（[IPInput.md](IPInput.md)） |
 
 ## 2. 典型场景
 
@@ -140,11 +140,12 @@ export default function CreateUserForm() {
   });
 
   const handleSubmit = async () => {
-    // 逐个触发校验，聚焦到第一个失败项
+    // 先对全部字段执行校验，让所有错误同时显示，再聚焦第一个失败项（不要用 find / && 短路）
     const refs = [accountRef, emailRef, portRef];
-    const firstBad = refs.find((r) => !r.current.validate());
-    if (firstBad) {
-      firstBad.current.focus();
+    const results = refs.map((r) => r.current.validate());
+    const firstBadIndex = results.indexOf(false);
+    if (firstBadIndex !== -1) {
+      refs[firstBadIndex].current.focus();
       return;
     }
     if (submitting) return;
@@ -191,6 +192,7 @@ export default function CreateUserForm() {
         label="端口"
         placeholder="1-65535"
         format="number"
+        isCharacterAllowed={(value: string) => /^\d*$/.test(value)}   // 只允许整数，挡住小数点；range 不拦小数
         validator={TextField.defaultValidator.range(1, 65535)}
         hintType="tip"
         value={port}

@@ -15,7 +15,7 @@ SearchInput 是带搜索图标、清除按钮、可选建议下拉的搜索框�
 | 关键字搜索（回车 / 点图标触发） | `SearchInput` |
 | 带建议列表的搜索 | `SearchInput` + `popItems` / `onSuggest` |
 | 普通文本输入、有 label 的表单字段 | `TextField`（[TextField.md](TextField.md)） |
-| 可输入 + 固定选项的下拉 | `InputSelect`（第二批） |
+| 可输入 + 固定选项的下拉 | `InputSelect`（[InputSelect.md](InputSelect.md)） |
 
 ## 2. 典型场景
 
