@@ -6,7 +6,13 @@
  *   - confirmed（--apply 自动改写）：SEMANTIC_MAP + L1/L2/L4 命中（唯一或多桶同名，多桶按最短完整名 tie-break，非 domainRank）。
  *   - residual（带 top-K 候选，交 LLM 选，不自动 apply）：L3 prefix、L5-L7 fuzzy、UNMATCHED、
  *     链式/嵌套三元、常量传播未命中的变量。UNMATCHED 不再直接落占位，而是带候选交 LLM。
- *   - 方案A（保留 src/shared/icon.jsx shim）：仅留给"name 由运行时后端数据决定"的调用点（如 name={row.iconField}）。
+ *   - 方案A（保留 src/shared/icon.jsx shim）：仅留给"name 由真运行时后端数据决定"的调用点
+ *     （如 name={row.iconField}，row 来自接口/props，迁移时值不可预知）。
+ *   - 动态名（数组字段 name={t.icon} / 变量 / 链式三元）**不在脚本自动解析范围**，交 LLM 在 residual
+ *     阶段按 references/components/Icon.md 的 recipe 解析。静态数组字段名（t 来自同文件静态数组字面量
+ *     [{icon:'server'}]，取值为封闭字面量集合）= **静态可解析**，不许默认退方案A——recipe：把匹配到的
+ *     icon+ 组件直接塞进 data 数组、render 站点 <t.icon .../>；仅真运行时数据（接口/props）退 A。
+ *     常量传播未命中的标识符 name={x} 亦交 LLM 跨组件追源，追到静态字面量则解析、追不到才 A。
  *
  * iconSize：源 size 原样透传（icon+ 静态 import 支持 rem/px/数字，不转换；仅方案A shim 的 getIcon API 需转数字）。
  *
@@ -709,12 +715,14 @@ function reportConsole(scan, byName) {
     }
   }
 
-  // 变量名（常量传播未命中）→ 带 expr 交 LLM 追源；追不到源（运行时数据）保留 src/shared/icon.jsx shim
+  // 变量名（常量传播未命中）→ 带 expr 交 LLM 追源；静态数组字段名/局部变量持字面量可静态解析（recipe 见 Icon.md，不落 A），追不到源（真运行时数据）才保留 shim=方案A
   if (scan.variableSites && scan.variableSites.length) {
     console.log('');
-    console.log(`变量 name（交 LLM 追源；追不到源则保留 shim=方案A）: ${scan.variableSites.length} 处`);
+    console.log(`变量 name（交 LLM 追源；静态数组字段/字面量变量可解析塞进 data，追不到源=真运行时数据才保留 shim=方案A）: ${scan.variableSites.length} 处`);
     for (const v of scan.variableSites) {
-      const hint = v.isMember ? '成员表达式，疑似运行时数据' : `标识符 ${v.expr}`;
+      const hint = v.isMember
+        ? `成员表达式 ${v.expr}：若 X 是循环变量取同文件静态数组字段→可解析（按 Icon.md recipe 把 icon+ 塞进 data，非运行时）；若 X 来自接口/props→方案A`
+        : `标识符 ${v.expr}：常量传播未命中，LLM 跨组件追源；追到静态字面量则解析、追不到才方案A`;
       console.log(`  ${rel(v.file)}:${v.line}  name={${v.expr}}  [${hint}]`);
       console.log(`    - ${v.original.trim()}`);
     }

@@ -12,6 +12,12 @@
 
 **回退路径（`migrationPlan` 为 `null`，上游未跑步骤 5）**：读 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，同时读 `antdIcons` 获取图标清单，进入 §0.2 手动对照 `component-mapping.md` 分类。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。
 
+**`antdIcons` 只统计 `@ant-design/icons` 命名导入，不代表有无图标**。ict-react-coder 产物普遍用**自定义 `<Icon name="...">` 运行时 shim**（`assets/shared/icon.jsx`，源码里的"方案A形式"组件）、不用 `@ant-design/icons`，故 `antdIcons` **恒为 `[]`**——但实际有大量 `<Icon name>` 调用点（复杂页面 31 处、preview3 20+ 处），**正是方案 C/B 要扫描改写的目标**。**判断是否有图标看 `<Icon name` 调用点，不看 `antdIcons`**：
+> ```bash
+> grep -rl "<Icon\b" <目标工程>/src/
+> ```
+> 输出非空即有图标站点，**必须走 §3.0 图标步骤**（C 跑 `match-icons.cjs` / B 在线匹配），**禁止因 `antdIcons: []` 跳过 `match-icons.cjs`**。源码 `<Icon name>` shim ≠ 产物方案A，其字面量站点必须转 C/B。
+
 > 组件清单已由 `umd-to-antd-vite` 生成并写入交接文件，不需要手动 grep 扫描 `src/`。`migrationPlan` 是否非 `null` 决定走优先路径（跳过 §0.2/§0.3）还是回退路径（手动对照大表）。
 
 ### 0.2 对照组件映射总表分类（回退路径，优先路径跳过）
@@ -218,6 +224,10 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 
 ### 3.0 图标（方案 B/C 名匹配 + 静态 import）/ 图表（包导入）
 
+> **图标步骤触发条件 = `src/` 下存在 `<Icon name` 调用点（`grep -rl "<Icon\b" src/` 非空）或 `@ant-design/icons` 用法，与 `.umd-conversion.json` 的 `antdIcons` 是否为空无关**。源项目的 `<Icon name="...">` 运行时 shim（`assets/shared/icon.jsx`）是源码里的"方案A形式"组件，但**不等于产物方案A**：其 `<Icon name="字面量">` 调用点是方案 C/B 的**主要目标**，必须跑 `match-icons.cjs`（C）或在线匹配（B）转为 `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import；只有真动态名（`name={row.iconField}` 类运行时数据）才落产物方案A shim。**`antdIcons: []` 时只要 src/ 有 `<Icon name` 站点就必跑图标步骤，禁止跳过**（ict-react-coder 产物 `antdIcons` 恒 `[]` 但有大量 `<Icon name>` 站点——见 §0.1 警告）。
+>
+> **已落方案A的产物可原地补救**：若产物调用点仍为 `<Icon name="字面量" .../>`（前次迁移漏跑图标步骤），直接 `node scripts/match-icons.cjs <工程根> --apply` 即可把字面量站点转为 C/B（脚本幂等：已含 `IconPlusIc` 的站点自动跳过）。
+
 **项目级先选 B 还是 C**：迁移开始先探测 `https://octo.hdesign.huawei.com/` 可达性（如 `curl -sI https://octo.hdesign.huawei.com/` / WebFetch），全项目统一一种：
 - **可达（内网）→ 方案 B**：LLM 调在线 `getIconInfo?keyword=<名>&topK=2&source_id=6` 接口匹配图标名 → `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import。
 - **不可达（外网）→ 方案 C**：跑 `node scripts/match-icons.cjs <目标工程根>` 自动扫描 `src/` 下 `<Icon name="..." />`/`<Icon name={...}/>`（含常量传播、三元、变量分流）与 `@ant-design/icons` 调用点，按 [match-icons.cjs](../scripts/match-icons.cjs) 的 `matchOne` 离线匹配 `icons/icon-plus-names.json`（顶层 key 是按图标名前置词分的桶，**非语义领域**；候选打分用 token 重叠+子串，不按桶优先）。输出 `.icon-match.json` 报告：**confirmed**（SEMANTIC/L1-L4 命中，含多桶同名按最短完整名 tie-break）`--apply` 自动改写；**residual**（前缀/fuzzy/未命中/链式三元/未追源变量）带 top-K 候选交 LLM 选，**不自动 apply**——LLM 只看短名单复核，不必扫整本 66KB catalog（候选都不对再查 catalog）；UNMATCHED 不再落占位而是带候选交 LLM。iconSize：源 `size` 原样透传（icon+ 静态 import 支持 rem/px/数字，不转换；仅方案A shim 的 getIcon API 转数字）。 **方案 A/B/C 的选择只由图标名决定**：size/color/variant 是独立 props（透传或 shim 内部处理），不影响方案选择——尺寸/颜色异常不因此退方案A，名匹配命中即落对应方案。报告写 **OS 临时目录**（不进产物根），`--apply` 仅落 confirmed、结束清理临时报告；**residual 由 LLM 在会话内逐条复核，禁止因 residual 整体放弃方案C**。`--topk N` 控候选数（默认 5）。**无网络依赖、彻底离线。**
@@ -229,7 +239,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 | Icon | `<Icon name="search" size={14} />`（`./assets/shared/icon.jsx`） | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'` + `<IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />`（名由 B 在线 / C catalog 匹配；C 的 confirmed 自动落、residual 交 LLM 从候选选） |
 | Chart | `<Chart name="BarChart" option={...} />`（`../../../assets/shared/chart.jsx`） | `import Chart from '@nce/eview-react/Chart'`（任意位置，包导入） |
 
-> **方案 A（B/C 兜底，仅留真运行时数据）**：经脚本常量传播 + LLM 跨组件追源仍无法确定 icon+ 名的调用点（典型：`name={row.iconField}` 类**后端运行时数据**，迁移时点值不可预知），保留 scaffold `src/shared/icon.jsx` 的 `<Icon name="...">` 契约、调用点零改动，只改 import 路径 `./assets/shared/icon.jsx` → `./shared/icon.jsx`（src/ 下）或 `../shared/icon.jsx`（views/ 下）；转换后代码运行于内网，运行时 fetch icon-plus 恒可达——**这是 A 的正确用途，非遗憾兜底**。链式/嵌套三元、局部变量持字面量等均已在脚本+LLM 链路静态解析，不落 A。见 [components/Icon.md](components/Icon.md) 渲染方式段。跑 `scripts/check-relative-imports.cjs`（§5.1）扫残留 `./assets/shared/...` 旧路径。
+> **方案 A（B/C 兜底，仅留真运行时数据）**：经脚本常量传播 + LLM 跨组件追源仍无法确定 icon+ 名的调用点（典型：`name={row.iconField}` 类**后端运行时数据**，row 来自接口/props、迁移时值不可预知），保留 scaffold `src/shared/icon.jsx` 的 `<Icon name="...">` 契约、调用点零改动，只改 import 路径 `./assets/shared/icon.jsx` → `./shared/icon.jsx`（src/ 下）或 `../shared/icon.jsx`（views/ 下）；转换后代码运行于内网，运行时 fetch icon-plus 恒可达——**这是 A 的正确用途，非遗憾兜底**。链式/嵌套三元、局部变量持字面量、**静态数组字段名 `name={t.icon}`**（`t` 来自同文件静态数组字面量、取值为封闭字面量集合）均由 LLM 在 residual 阶段静态解析（recipe 见 [Icon.md](components/Icon.md)「动态名」段，把 icon+ 组件塞进 data 数组、render `<t.icon .../>`），**不落 A**；**仅真运行时数据（接口返回值/props 单元格）才退方案A**。见 [components/Icon.md](components/Icon.md) 渲染方式段。跑 `scripts/check-relative-imports.cjs`（§5.1）扫残留 `./assets/shared/...` 旧路径。
 > 图表契约（`<Chart name option />`、`.dark` 自动切主题、ResizeObserver 自适应、ref 方法）由 `@nce/eview-react/Chart` 原生提供，与源项目一致，详见 [components/Chart.md](components/Chart.md)。
 
 ### 3.1 A 类（有对应）：改 props

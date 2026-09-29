@@ -17,6 +17,37 @@
 >
 > **方案 A/B/C 的选择只由图标名决定**：`size`/`color`/`variant` 是独立 props（B/C 原样透传 icon+，A 由 shim 内部处理），**不影响方案选择**——尺寸/颜色异常不因此退方案A，名匹配命中即落对应方案。
 
+### 动态名：数组循环 `name={t.icon}`
+
+> 动态名（数组字段 `name={t.icon}` / 变量 / 链式三元）**不在 match-icons.cjs 自动解析范围**，交 LLM 在 residual 阶段按本段 recipe 解析。关键判定：`t.icon` 是循环变量取数组字段——若数组是**同文件静态字面量**（封闭集合），可静态解析、**不许默认退方案A**；若数组来自接口/props（真运行时），才退方案A。
+
+**recipe（首选：icon+ 组件直接塞进 data 数组）**：
+
+```tsx
+// 前：t.icon 是循环变量取数组字段
+const data = [
+  { key: 'device', icon: 'server' },
+  { key: 'user',   icon: 'user' },
+];
+{data.map((t) => <Icon name={t.icon} size={16} />)}
+
+// 后：icon+ 组件塞进 data（封闭字面量集合 → 静态可解析，非方案A）
+import { IconPlusIcPublicServer, IconPlusIcPublicUser } from '@nce/icon-plus';
+const data = [
+  { key: 'device', icon: IconPlusIcPublicServer },
+  { key: 'user',   icon: IconPlusIcPublicUser },
+];
+{data.map((t) => <t.icon iconSize={16} />)}   // 成员表达式 JSX 恒当组件，不分大小写
+```
+
+判定三条：
+
+- `t` 来自**同文件静态数组字面量**（封闭字面量集合）→ 可解析，按上面 recipe 塞进 data。先把数组里每个 `icon` 字面量匹配成 icon+ 名（用脚本 residual 候选/catalog/方案B 在线），再整体替换。
+- `data` 来自**接口/props**（运行时，值迁移时不可预知）→ **方案A shim**，`<Icon name={t.icon} />` 保留、只改 import 路径。
+- 数组字面量里**部分名未命中** → 该条先按候选/catalog 补齐再塞；补不齐的可退 name→组件 map + fallback（`const Ic = ICON_MAP[t.icon]; return Ic ? <Ic iconSize={16} /> : <Icon name={t.icon} />;`，`<Icon>` 即方案A shim 兜底未知 key）。
+
+> `size`/`color`/`variant` 同字面量场景一样按 [§3.0](../migration-workflow.md) 透传（`iconSize` 支持 rem/px/数字，B/C 不转换；塞进 data 后 `<t.icon iconSize={...} />` 用法不变）。
+
 ## 1. 功能定位
 
 icon+（`@nce/icon-plus`）是组件库首推的图标方案，按需引入、2000+ 图标，可换风格 / 颜色 / 尺寸；IconButton 是"纯图标按钮 + 气泡提示"，用于表格操作列、卡片角落等小面积区域。内置 `Icon` 组件已被 icon+ 替代、不再推荐。
