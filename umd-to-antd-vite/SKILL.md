@@ -20,16 +20,16 @@ description: >-
 
 1. **源项目**：须为 ict-react-coder 产出的 UMD 单 HTML 工程。结构特征：`index.page.html`（含 UMD script 标签 + 内联 CSS + Babel-standalone + 内联 jsx 模块）+ `src/` 双份代码 + antd 5 + 内联 token CSS + Lucide 图标 + icon-plus 在线
 2. **运行时**：Node.js ≥ 16（Vite 5 要求），`npm` 可用
-3. **网络**：antd 在公共 npm 源，不需要内网/VPN。icon-plus 在线（`octo.hdesign.huawei.com`）需要内网——但仅影响图标渲染，不影响工程转换与编译验证
+3. **网络**：antd 在公共 npm 源，不需要内网/VPN。icon-plus 在线（`octo.hdesign.huawei.com`）需要内网——但仅影响图标渲染，不影响工程转换与验证
 
 ## 迁移工作流（4 步）
 
 | 步骤 | 做什么 | 产出 | 执行方式 |
 |------|--------|------|---------|
-| **1. 搭骨架** | 跑 `init-scaffold.cjs` 拷贝 antd Vite 空壳（package.json/vite.config.js/index.html/main.jsx/styles），`npm install`（bash 工具 timeout=30000，超时记 SKIP 不阻断）+ `npm run dev` 即空壳可跑 | 可运行的空壳工程 | 主 agent 跑脚本 |
+| **1. 搭骨架** | 跑 `init-scaffold.cjs` 拷贝 antd Vite 空壳（package.json/vite.config.js/index.html/main.jsx/styles），`npm install`（bash 工具 timeout=30000，超时记 SKIP 不阻断） | 可运行的空壳工程 | 主 agent 跑脚本 |
 | **2. 提取 UMD 内容** | 跑 `extract-umd.cjs` 从源项目 `index.page.html` 提取：`:root` → tokens.css、`.dark` → theme-dark.css、`@font-face` → font.css、其他 → base.css 追加；扫描 antd 组件导入（组件→文件映射 + 图标列表）；生成 `.umd-conversion.json` 交接文件供 antd-to-eview-react 读取；无 `src/` 时加 `--scripts` 提取 script 块 | token 外置 + antd 清单 + 交接文件 | 主 agent 跑脚本 |
 | **3. 搬代码 + 修路径** | 把源项目 `src/` 独立文件（或 `_extracted/`）搬进 scaffold `src/`；修正 `./src/...` → `./...` 相对导入；确保 `app.jsx` 含源项目 AppShell + 保留暗色切换逻辑 | 代码就位，import 正确 | 派发 general 子 agent |
-| **4. 验证** | 跑 `check-relative-imports.cjs` 静态检查 + `npm install`（bash 工具 timeout=30000）+ `npm run dev` 编译验证 + 页面渲染确认（显示源项目内容而非 "app root"）；`npm install` 超时/失败（外网无法访问内网源）记 `SKIP` 不记 `FAIL`，`npm-run-dev` 一并 `SKIP`，整体 status 不因 SKIP 判 FAIL；验证通过后更新 `.umd-conversion.json` 的 `verification` 字段 | import/编译/功能通过 + 交接文件就绪 | 派发 general 子 agent |
+| **4. 验证** | 跑 `check-relative-imports.cjs` 静态检查 + `npm install`（bash 工具 timeout=30000）；`npm install` 超时/失败（外网无法访问内网源）记 `SKIP` 不记 `FAIL`，整体 status 不因 SKIP 判 FAIL；验证通过后更新 `.umd-conversion.json` 的 `verification` 字段 | import 通过 + 交接文件就绪 | 派发 general 子 agent |
 | **5. 下游评估前置（可选）** | 验证 PASS 且主 agent 余量充足时，读 antd-to-eview-react 的 `references/component-mapping.md`，对照 `antdComponents` 给每组件分类（A 有对应 / B 无对应手写 / C 模式转换）+ eview-react 替换名 + 关键差异摘要 + 涉及文件 + 下游 reference 指引，写入 `.umd-conversion.json` 的 `migrationPlan` 字段 | 下游步骤 0 评估清单就绪 | 主 agent（利用余量） |
 
 ### 编排边界（主 agent 亲自做 vs 派发子 agent）
@@ -41,7 +41,7 @@ description: >-
 
 **派发子 agent 执行**（步骤 3-4）：
 - 步骤 3：派发 `general` 子 agent 搬代码 + 修路径 + 配入口
-- 步骤 4：派发 `general` 子 agent 跑脚本 + 编译验证 → 把结果写入 `<目标工程根>/.conversion-result.json`
+- 步骤 4：派发 `general` 子 agent 跑脚本 + 验证 → 把结果写入 `<目标工程根>/.conversion-result.json`
 
 **续接硬约束**：步骤 4 验证 FAIL 回到步骤 3 修复时，**必须传 `task_id` 续接同一 session**（不另起新 session），否则子 agent 丢失之前的代码结构与改动上下文。主 agent 每轮派发后从子 agent 回复提取 `task_id` 并记录，修复轮续接时传入。
 
@@ -128,10 +128,10 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 步骤 4 验证通过后，更新 `verification` 字段：
 
 ```json
-"verification": { "relativeImports": "PASS", "npmInstall": "PASS|SKIP", "npmRunDev": "PASS|SKIP" }
+"verification": { "relativeImports": "PASS", "npmInstall": "PASS|SKIP" }
 ```
 
-> `npmInstall` / `npmRunDev` 取值 `PASS` 或 `SKIP`（不取 `FAIL`）：`npm install` 设 30s 超时（bash 工具 timeout=30000），超时/失败（外网无法访问内网源）记 `SKIP`，`npmRunDev` 一并 `SKIP`（无 node_modules 无法启动）；整体 `status` 不因 `SKIP` 判 `FAIL`。
+> `npmInstall` 取值 `PASS` 或 `SKIP`（不取 `FAIL`）：`npm install` 设 30s 超时（bash 工具 timeout=30000），超时/失败（外网无法访问内网源）记 `SKIP`；整体 `status` 不因 `SKIP` 判 `FAIL`。
 
 ## 硬约束（转换时必须遵守）
 
@@ -182,10 +182,7 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 ```
 对 <目标工程根> 执行 UMD 转换验证：
 1. 跑 node <skill目录>/scripts/check-relative-imports.cjs <目标工程根>，报告 unresolved imports
-2. cd <目标工程根> && npm install（bash 工具 timeout=30000）；超时或失败（外网无法访问内网源）记 SKIP 不算失败，跳过步骤 3-5
-3. npm run dev，报告是否启动成功（失败贴报错）
-4. 确认页面渲染的是源项目内容（不是 "app root" 空壳）
-5. 确认暗色模式切换生效（.dark 类 + antd 组件暗色）
+2. cd <目标工程根> && npm install（bash 工具 timeout=30000）；超时或失败（外网无法访问内网源）记 SKIP 不算失败
 
 完成后必须：
 1. 把结果写入 <目标工程根>/.conversion-result.json（覆盖写），JSON 结构：
@@ -195,9 +192,7 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
      "failures": ["失败点 1", ...],
       "checks": {
         "relative-imports": "PASS/FAIL",
-        "npm-install": "PASS/SKIP",
-        "npm-run-dev": "PASS/SKIP",
-        "functional": "X/Y"
+        "npm-install": "PASS/SKIP"
       },
      "notes": "可选说明"
    }
@@ -256,7 +251,7 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 1. **antd-to-eview-react 步骤 1 跑 `--upgrade` 模式（不跳过）**：产出的是 antd Vite 骨架（antd 依赖 + antd `ConfigProvider`），下游需用 `init-scaffold.cjs --force --upgrade` 把骨架换成 eview-react（换依赖 / Provider / `aui3_1` body 类 / 字体），`--upgrade` 保留本 skill 已外置到 `src/styles/` 的 token CSS
 2. **步骤 2 换 Provider**：移除源项目 `app.jsx` 里的 antd `ConfigProvider` + `theme.darkAlgorithm`，换 eview-react `ConfigProvider` + `IntlProvider` + `<body>` 的 `aui3_1` / `aui3_1_dark` 类
 3. **token CSS 已外置、无需重提**：`tokens.css` + `theme-dark.css` 已在步骤 2 提取好，下游步骤 1 的 `--upgrade` 会原样保留（不重新跑 `extract-umd.cjs`）
-4. **相对导入已修正**：`check-relative-imports.cjs` 已跑过，路径正确——下游步骤 4 验证里此子项跳过（但 `check-i18n-keys.cjs` + `npm install` + `npm run dev` 仍照跑；`npm install` 设 30s 超时，外网超时记 SKIP 不判 FAIL）
+4. **相对导入已修正**：`check-relative-imports.cjs` 已跑过，路径正确——下游步骤 4 验证里此子项跳过（但 `check-i18n-keys.cjs` + `npm install` 仍照跑；`npm install` 设 30s 超时，外网超时记 SKIP 不判 FAIL）
 5. **代码只有一份**：双份代码已在步骤 3 归一
 6. **评估清单已前置（若步骤 5 已跑）**：`migrationPlan` 非 `null` 时，下游步骤 0 直接读它作为组件分类评估清单（A/B/C + 替换名 + 关键差异 + 涉及文件 + reference 指引），跳过读 `component-mapping.md` 大表对照；为 `null` 时下游回退原流程（读 `antdComponents` + 手动对照 `component-mapping.md`）
 

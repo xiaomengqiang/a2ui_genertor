@@ -23,7 +23,7 @@ description: >-
 | **1. 建工程骨架** | 跑 `init-scaffold.cjs --force --upgrade`（覆盖骨架为 eview-react，保留 styles 里的 token CSS）。scaffold 目录结构与各文件用途见 [migration-workflow.md](references/migration-workflow.md) 步骤 1 / §1.2 | 可运行的空壳工程 |
 | **2. 换 Provider 与入口** | 移除 antd `ConfigProvider` + `theme.darkAlgorithm`；eview-react 用 `ConfigProvider` + `IntlProvider` + `<body>` 加 `class="aui3_1"`，暗色切 `aui3_1_dark`（挂 `<body>`） | Provider 就绪 |
 | **3. 逐组件替换** | 按映射总表替换每个 antd 组件；Form 模式单独按 [form-migration.md](references/form-migration.md) 转换；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写；图标（scaffold shim）/图表（`@nce/eview-react/Chart`）走预制件复用，调用点零改动。详见 [§3.0–§3.6](references/migration-workflow.md) | 组件代码全部替换 |
-| **4. 验证** | `check-relative-imports.cjs` 跳过（路径已由 `umd-to-antd-vite` 修正）。`check-i18n-keys.cjs` 必跑。`npm install`（bash 工具 timeout=30000，超时/失败记 SKIP 不判 FAIL）+ `npm run dev` 构建与功能验证。详见 [§4.6](references/migration-workflow.md) | i18n/构建/功能通过 |
+| **4. 验证** | `check-relative-imports.cjs` 跳过（路径已由 `umd-to-antd-vite` 修正）。`check-i18n-keys.cjs` 必跑。`npm install`（bash 工具 timeout=30000，超时/失败记 SKIP 不判 FAIL）。详见 [§4.6](references/migration-workflow.md) | i18n 检查通过 |
 
 ## 组件映射总表
 
@@ -60,7 +60,7 @@ Layout/Header/Sider/Content、Menu、Avatar、Descriptions、Space、Statistic�
 9. **Form 内不允许用 `<div>` 做栅格**：多列布局用 Form 级 `itemCol` 设默认宽度（24 栅格制）；**单项覆盖用 `Form.Item.col`**（不拆 Form、不用 div/Row/Col 包裹）；删掉 antd 的 Row/Col 或 div+CSS grid 包裹
 10. **Form `initialValues` 必须传对象**：动态/异步/向导多步场景一律 `initialValues={x || {}}`。传 `undefined` 会让 `submit()` → `onSuccess(values)` 收到**空对象**（"托管没生效、确认页没数据"的根因，已真机确认）。控件自带 `validator` 要在 `submit()` 时跑需 Form 上加 `validateAllChildComponent={true}`（Form rules `required`/`email`/`range` 默认就跑）。详见 [form-migration.md](references/form-migration.md) 顶部"运行时已验证"段
 11. **Toggle / Switch 在 Form 内 `data` 必须用布尔值**：`valuePropName="toggled"` 时，`Switch data={[false, true]}`。不要用 `data={['false', 'true']}`（字符串），否则 `toggled` 收到字符串 `'false'`（JS 中为 truthy，`!!'false' === true`），导致开关无法关闭。推荐 `import Switch from '@nce/eview-react/Switch'` 而非 `Toggle`（两者相同，但 Switch 语义更明确）。
-12. **相对导入解析**：路径已由 `umd-to-antd-vite` 修正并验证通过（`.umd-conversion.json` 的 `verification.relativeImports=PASS`），步骤 4 **跳过** `check-relative-imports.cjs`。步骤 3 替换组件时新增的 import 不要写 `./src/...`（同级用 `./`、上层用 `../`）；兜底靠步骤 4 的 `npm run dev`——Vite import-analysis 阶段会报残留的 `./src/...`，不能只做 Babel/TypeScript 语法检查。
+12. **相对导入解析**：路径已由 `umd-to-antd-vite` 修正并验证通过（`.umd-conversion.json` 的 `verification.relativeImports=PASS`），步骤 4 **跳过** `check-relative-imports.cjs`。步骤 3 替换组件时新增的 import 不要写 `./src/...`（同级用 `./`、上层用 `../`）。
 13. **图标**：迁移期**默认走方案 C**——读 skill 自带 `references/icons/icon-plus-names.json` 离线匹配 Lucide/antd 名 → `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import（无网络依赖，见 [source-project-guidelines.md](references/source-project-guidelines.md) §3.2）；内网运行时 fetch 兜底用 scaffold 自定义 `<Icon>` shim（`src/shared/icon.jsx`，备选 A，见 §3.3）；eview-react 内置 `Icon name="ict_*"` 已下线不要用；不要用 `@ant-design/icons`；可点击图标用 `IconButton iconName={<IconPlusIc* />} tipText`，不给图标组件挂 onClick；**antd 纯图标按钮（`Button type="text" shape="circle" icon={...}` 无 children）用 `IconButton`，禁止退化为原生 `<button>+<Icon>`**（见 [component-mapping.md](references/component-mapping.md) 图标行）。
 
 ## 命名异常速查

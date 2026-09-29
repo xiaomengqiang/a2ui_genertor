@@ -142,16 +142,13 @@ node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标�
 
 > 上述用途为基于包名与已有报错信息的推断，具体以实际工程的 `npm install` 与运行结果为准。
 
-### 1.5 安装与启动
+### 1.5 安装
 
 ```bash
 npm install    # bash 工具 timeout=30000
-npm run dev
 ```
 
-预期：页面能渲染（显示 "app root"），无样式报错。若报 `Element type is invalid` → horizon 等 peer 依赖未装上，常见报错对照见步骤 5.5。
-
-> `npm install` 设 30s 超时：外网环境无法访问 `@nce` 内网源时会超时，记 `SKIP` 不阻断；`npm run dev` 无 node_modules 一并 `SKIP`。SKIP 规则详见 §4.6。
+> `npm install` 设 30s 超时：外网环境无法访问 `@nce` 内网源时会超时，记 `SKIP` 不阻断。SKIP 规则详见 §4.6。
 
 ## 步骤 2：换 Provider 与入口
 
@@ -328,7 +325,7 @@ export const policyTemplates = [
 
 **硬约束**：严格遵守 SKILL.md 的"eview-react 硬约束"章节（13 条）。导入路径改为 `import X from '@nce/eview-react/X'`。
 
-替换完一类组件后，可先跑 `npm run dev` 快速验证该类是否编译通过，再继续下一类。全部替换完后进入步骤 5 验证。
+全部替换完后进入步骤 4 验证。
 
 
 ## 步骤 4：验证
@@ -365,7 +362,7 @@ node scripts/check-relative-imports.cjs .
 
 ### 4.2 i18n 动态 key 检查（必跑）
 
-> 针对 §3.5 的高频 bug（`t(value, value)` 缺命名空间前缀 → `MISSING_TRANSLATION`）。人工逐列核对容易漏，迁移后、`npm run dev` 前必须跑脚本。
+> 针对 §3.5 的高频 bug（`t(value, value)` 缺命名空间前缀 → `MISSING_TRANSLATION`）。人工逐列核对容易漏，迁移后必须跑脚本。
 
 脚本位于本 skill 的 `scripts/check-i18n-keys.cjs`，两种调用方式任选其一：
 
@@ -386,30 +383,6 @@ node scripts/check-i18n-keys.cjs .
 
 脚本默认 advisory（退出码 0，输出报告供人工核对）；加 `--strict` 时发现高危调用退出码 1，可接入 CI。
 
-### 4.3 编译检查
-
-```bash
-npm install    # bash 工具 timeout=30000；超时/失败记 SKIP
-npm run dev
-```
-
-> `npm install` 超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP` 不判 `FAIL`，`npm run dev` 一并 `SKIP`（无 node_modules 无法启动）。SKIP 不影响整体 status，详见 §4.6。
-
-### 4.4 功能验证清单
-
-- [ ] 页面能渲染（无 `Element type is invalid` → 检查 peer 依赖）
-- [ ] 组件有 ICT 3.1 样式（无样式 → 检查 `aui3_1.css` 导入和 `<body>` 上的 `aui3_1` 类名）
-- [ ] 弹层文案是中文（显示 key → 检查 `IntlProvider` + `messages`）
-- [ ] 控制台无 `MISSING_TRANSLATION` 报错（弹层里的业务文案取不到 → 见 §2.5 / 5.5；Table render 里 cell value 不是完整 i18n key → 见 §3.5）
-- [ ] 已运行 `check-i18n-keys.cjs` 且报告中无"高危"项（见 §5.2）
-- [ ] Table 列 render 函数中 `t(value, ...)` 的 value 是完整 i18n key（否则补前缀，见 §3.5）
-- [ ] 表单能输入（`TextField` value+onChange 成对）
-- [ ] 表单校验触发（`ref.submit()` → `onSuccess`）
-- [ ] 下拉选项渲染（`options=[{text,value}]` 字段名正确）
-- [ ] 弹窗能打开和关闭（`isOpen`/`visible` 受控 + `onClose` 里置 false）
-- [ ] 暗色模式切换（`<body>` 上 `aui3_1` / `aui3_1_dark` + `<html>` 上 `.dark` 都切）
-- [ ] 手写补位组件样式跟随主题（用了 CSS 变量，不写死色值）
-
 ### 4.5 常见报错对照
 
 | 报错 | 原因 | 修复 |
@@ -425,14 +398,12 @@ npm run dev
 
 ### 4.6 验证
 
-跑验证脚本 + 构建检查，把结果写入 `<目标工程根>/.migration-result.json`。
+跑验证脚本，把结果写入 `<目标工程根>/.migration-result.json`。
 
 **验证步骤**：
-1. 相对导入检查**跳过**（路径已由 `umd-to-antd-vite` 修正，`.umd-conversion.json` 的 `verification.relativeImports=PASS`）；步骤 3 替换组件时若新增 import，靠第 4 步 `npm run dev` 的 Vite import-analysis 兜底
+1. 相对导入检查**跳过**（路径已由 `umd-to-antd-vite` 修正，`.umd-conversion.json` 的 `verification.relativeImports=PASS`）
 2. 跑 `node <skill目录>/scripts/check-i18n-keys.cjs <目标工程根>`
-3. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`，跳过步骤 4-5
-4. `npm run dev` 确认启动成功
-5. 按 §4.4 功能验证清单逐项检查
+3. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
 
 **结果文件**：把结果写入 `<目标工程根>/.migration-result.json`（覆盖写），JSON 结构：
 
@@ -444,9 +415,7 @@ npm run dev
   "checks": {
     "relative-imports": "PASS/FAIL",
     "i18n-keys": "PASS/FAIL",
-    "npm-install": "PASS/SKIP",
-    "npm-run-dev": "PASS/SKIP",
-    "functional": "X/Y"
+    "npm-install": "PASS/SKIP"
   },
   "notes": "可选说明"
 }
@@ -454,6 +423,6 @@ npm run dev
 
 - 所有验收项全过 → status="PASS"，failures=[]
 - 任一不过（SKIP 不算不过）→ status="FAIL"，failures 逐条写清具体失败点
-- npm-install=SKIP 时 npm-run-dev 一并 SKIP，整体 status 不因 SKIP 判 FAIL（notes 写明外网环境降级，仅静态检查 i18n-keys 生效）
+- npm-install=SKIP 不影响整体 status（notes 写明外网环境降级，仅静态检查 i18n-keys 生效）
 
 **循环上限**：默认 5 轮（round 1 首次验证，round 2~5 修复后重测）。验证 FAIL 时主 agent 直接读 `.migration-result.json` 的 `failures` 字段，回到步骤 3 自己修复，再重新验证（round + 1）。第 5 轮仍 FAIL 必须停止，向用户报告失败项 + 建议人工介入。

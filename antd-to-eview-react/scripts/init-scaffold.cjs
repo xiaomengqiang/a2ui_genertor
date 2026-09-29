@@ -106,5 +106,4 @@ console.log('');
 console.log('后续步骤:');
 const cdPath = path.relative(process.cwd(), resolvedTarget) || '.';
 console.log(`  cd ${cdPath}`);
-console.log('  npm install');
-console.log('  npm run dev');
+  console.log('  npm install');
