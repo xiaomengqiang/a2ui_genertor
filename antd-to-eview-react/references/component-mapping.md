@@ -8,10 +8,10 @@
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Button type="primary"` | `Button status="primary"` | `type`→`status`（default/primary/risk/text）；无 `loading`/`htmlType`/`danger`；文字用 `text` 或 children；处理中用 `disabled`+文案切换 |
+| `Button type="primary"` | `Button status="primary"` | `type`→`status`（default/primary/risk/text）；无 `loading`/`htmlType`/`danger`；文字用 `text`（**带 `leftIcon`/`rightIcon`/`icon` 时必须用 `text`，不能用 children，否则图标不渲染**；无图标时可等价用 children）；处理中用 `disabled`+文案切换 |
 | `Button danger` | `Button status="risk"` | 同上 |
-| `Button type="text" shape="circle" icon={<Icon/>}`（无 children，纯图标按钮） | `IconButton iconName tipText` | antd `shape="circle"`/`type="text"`+`icon`+无 children 是纯图标按钮信号；**不要**退化为原生 `<button>+<Icon>`；`onClick`→`onClick`、antd 的 `message.success` 提示文案移到 `tipText`；**`icon` 的尺寸（`<Icon size>` / antd `style.fontSize`）吸附后写到内层 `<IconPlusIc* iconSize={N} />`（就近吸附、默认 14），不是 IconButton 的 `size`** |
-| `Button icon={...}`（有文字 children） | `Button leftIcon` / `rightIcon` | 仅当有文字 children 时；无 children 的纯图标按钮走 IconButton（见上行）；**`icon` 的尺寸同样落到内层 `<IconPlusIc* iconSize={N} />`** |
+| `Button type="text" shape="circle" icon={<Icon/>}`（无 children，纯图标按钮） | `IconButton iconName tipText` | antd `shape="circle"`/`type="text"`+`icon`+无 children 是纯图标按钮信号；**不要**退化为原生 `<button>+<Icon>`；`onClick`→`onClick`、antd 的 `message.success` 提示文案移到 `tipText`；**`icon` 的尺寸（`<Icon size>` / antd `style.fontSize`）吸附后写到内层 `<IconPlusIc* iconSize={N} />`（默认 14；吸附规则见 [match-icons.cjs](../scripts/match-icons.cjs)），不是 IconButton 的 `size`** |
+| `Button icon={...}`（有文字 children） | `Button leftIcon` / `rightIcon` | 仅当有文字 children 时；无 children 的纯图标按钮走 IconButton（见上行）；**`icon` 的尺寸同样落到内层 `<IconPlusIc* iconSize={N} />`；文字搬 `text=`，不要保留 children（children 与 leftIcon/rightIcon 同时存在会让图标不渲染）** |
 | `Space` | flex div + `gap` | 无对应组件；用 `<div style={{ display:'flex', gap:'0.75rem' }}>` |
 | `Typography.Link` | `Button status="text"` | 或手写 `<a>` |
 | `Typography.Title` | 手写 `<h1>`~`<h6>` | 用 `--fontSizeLarge` / `--titleFontSize` 变量 |
@@ -101,38 +101,7 @@
 
 | antd | eview-react | 关键差异 |
 |------|-----------|---------|
-| `@ant-design/icons` | `@nce/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 尺寸（支持rem、px、数字）；icon+ 名**默认靠 skill 自带 `icons/icon-plus-names.json` 离线匹配**（方案 C；见 [components/Icon.md](components/Icon.md) §1.1）；在线 `getIconInfo` 名发现为备选 B（见 [components/Icon.md](components/Icon.md) §1，外网不便时不用） |
+| `@ant-design/icons` | `@nce/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 尺寸（支持rem、px、数字）；icon+ 名**按迁移环境二选一匹配**：内网（`https://octo.hdesign.huawei.com/` 可达）走方案 B 的 `getIconInfo` 在线匹配，外网（octo 不可达）走方案 C 的 `icons/icon-plus-names.json` 离线匹配；**命中后均静态 import**。见 [Icon.md 渲染方式](components/Icon.md)；C 算法见 [match-icons.cjs](../scripts/match-icons.cjs) |
 | 可点击图标 | `IconButton` | `iconName={<IconPlusIc* />}`+`tipText`；不要给图标组件挂 onClick |
 
-> 迁移期**默认走方案 C**（catalog 离线匹配 → icon+ 静态 import，见 [components/Icon.md](components/Icon.md) §1.1）；scaffold 自定义 `<Icon>` shim 为备选 A（运行时 fetch，调用点零改动，见 [components/Icon.md](components/Icon.md) §1.2，切到 C 后保留不删）；在线名发现为备选 B（见 [components/Icon.md](components/Icon.md) §1）。
-
-## 属性拼写异常（官方即如此，照抄）
-
-> eview-react 部分 API 官方就拼错了，迁移时必须照抄，不能用"正确英文"。
-
-| 组件 | 正确拼写 | 常见错误 | 说明 |
-|------|---------|---------|------|
-| Crumbs | `seprator` | `separator` | 分隔符属性，官方拼错为 seprator |
-| Toggle | `taggledChildren` | `toggledChildren` | 开态开关内文字，官方拼错为 taggled |
-| Toggle | `unTaggledChildren` | `unToggledChildren` | 关态开关内文字 |
-| SelectCard | `disable` | `disabled` | 整体禁用，不是 disabled |
-| SelectCard | 选项级 `disable` | 选项级 `disabled` | 选项级禁用也是 disable |
-| FileUpload | `disable` | `disabled` | 禁用上传 |
-
-## 回调签名差异（首参是值不是 event）
-
-> eview-react 回调第一个参数通常是**值**不是 event（与 antd 相反）。迁移时容易把 `e.target.value` 写法照搬导致取不到值。
-
-| 组件 | antd 签名 | eview-react 签名 |
-|------|----------|-------------------|
-| TextField.onChange | `(e) => e.target.value` | `(value, oldValue, event)` |
-| TextField.onBlur | `(e)` | `(event, value)` — 注意顺序反了 |
-| TextArea.onChange | `(e) => e.target.value` | `(targetValue, value, event)` |
-| TextArea.onBlur | `(e)` | `(event)` — 只有 event，无 value |
-| Select.onChange | `(value, option)` | `(value, oldValue, text, oldText, event)` — 五参 |
-| Checkbox.onChange | `(e) => e.target.checked` | `(value, checked, event, additionalData)` |
-| Switch.onChange | `(checked)` | `onToggle(value)` — 回调名不同 |
-| Rating | `onChange(value)` | `onClick(value)` — 没有 onChange |
-| Steps | `onChange(current)` | `onClick(index)` — 参数是下标不是 value |
-| Tab | `onChange(key)` | `onClick(index, title, event)` — 参数顺序不同 |
-| Button.onClick | `(e)` | `(event, additionalData)` — 第二个参数是业务数据 |
+> 迁移期**先探测 `https://octo.hdesign.huawei.com/` 可达性定项目级方案**：内网（可达）→ B（`getIconInfo` 在线名匹配 → icon+ 静态 import）；外网（不可达）→ C（catalog 离线匹配 → icon+ 静态 import，跑 `scripts/match-icons.cjs`）。B/C 仅名匹配方式不同，命中后均静态 import。scaffold 自定义 `<Icon>` shim 为**方案 A**，作 B 与 C 的兜底：当 LLM（B）或本地算法（C）实在识别不出 icon+ 名的调用点零改动保留；切定后 `src/shared/icon.jsx` 保留不删。详见 [Icon.md 渲染方式](components/Icon.md)。

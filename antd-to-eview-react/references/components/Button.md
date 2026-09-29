@@ -58,7 +58,7 @@ import IconButton from '@nce/eview-react/IconButton';
 <IconButton iconName={<IconPlusIcPublicRefresh iconSize={14} iconColor={['currentcolor']} />} tipText="刷新" size="small" onClick={handleRefresh} />
 ```
 
-> **图标尺寸吸附到内层 `iconSize`（默认 14），不是 Button 的 `size`**（`size` 是按钮尺寸 normal/large/small）。源 antd `<Icon size={N}>` 或 `@ant-design/icons` 的 `style.fontSize` 都剥 px 取数字写到内层 `iconSize`。判定信号：antd Button 同时有 `icon` 且无文字 children → 走 IconButton。详见 [Icon.md](Icon.md)。
+> **图标尺寸别丢**：源 `size={15}` 不是丢掉，而是吸附到 `iconSize={14}` 写到**内层 `<IconPlusIcPublicRefresh />`** 上（默认 14；吸附规则见 [match-icons.cjs](../../scripts/match-icons.cjs)）。`IconButton` 自身的 `size="small"` 是**按钮**尺寸，与图标尺寸是两回事，**不要**把图标尺寸塞到 IconButton 的 `size` 上。antd `@ant-design/icons` 没有 `size` prop、尺寸走 `style.fontSize`，同样剥 `px` 取数字吸附到内层 `iconSize`。
 
 ## 3. 联动说明
 
@@ -93,15 +93,15 @@ import IconButton from '@nce/eview-react/IconButton';
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
-| `text` / `children` | `any` / `ReactNode` | 按钮文字，二者等价 |
-| `status` | `'default' \| 'primary' \| 'risk' \| 'text'`，默认 `default` | 主/次/危险/纯文字；**不是 `type`** |
-| `size` | `'normal' \| 'large' \| 'small'`，默认 `normal` | 按钮尺寸 |
-| `disabled` | `boolean`，默认 `false` | 灰化；处理中也用它表达（无 loading） |
-| `focused` | `boolean`，默认 `false` | 默认聚焦 |
-| `leftIcon` / `rightIcon` | `string \| ReactElement` | icon+ 组件 |
-| `leftIconProps` / `rightIconProps` | `{ leftHoverIcon, leftDisabledIcon, leftIconClass, leftIconDisabledClass }` | 悬浮/禁用态图标 |
-| `onClick` | `(event, additionalData) => void` | **第二个参数**是 `additionalData` |
-| `additionalData` | `object` | 透传给 onClick 的业务数据 |
+| `text` / `children` | `any` / `React.ReactNode` | 按钮文字；**带 `leftIcon`/`rightIcon`/`icon` 时必须用 `text`，不能用 children——children 会让图标不渲染**（无图标时二者等价） |
+| `status` | `'default' \| 'primary' \| 'risk' \| 'text'`，默认 `default` | 主 / 次 / 危险 / 纯文字；**不是 `type`** |
+| `size` | `'normal' \| 'large' \| 'small'`，默认 `normal` | 尺寸 |
+| `disabled` | `boolean`，默认 `false` | 灰化；处理中也用它表达 |
+| `focused` | `boolean`，默认 `false` | 是否默认聚焦 |
+| `leftIcon` / `rightIcon` | `string \| React.ReactElement` | 图标路径或 icon+ 组件（`IconPlus.tsx`） |
+| `leftIconProps` / `rightIconProps` | `{ leftHoverIcon, leftDisabledIcon, leftIconClass, leftIconDisabledClass }` | 悬浮 / 禁用态图标 |
+| `onClick` | `(event: object, additionalData: any) => void` | **第二个参数**是 `additionalData` |
+| `additionalData` | `object` | 透传给 `onClick` 的业务数据 |
 | `onFocus` / `onBlur` / `onKeyDown` / `onMouseLeave` | 回调 | 原生事件透传 |
 | `tipType` | `'title' \| 'tipbox'`，默认 `title` | 提示形式 |
 | `tipShow` | `'always' \| 'never' \| 'overflow'`，默认 `never` | 何时显示 |
