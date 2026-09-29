@@ -81,7 +81,18 @@ const groupData = [
 
 ### 图标：leftIcon / rightIcon 用 icon+
 
-> 图标统一走 skill 的图标方案（默认 C：catalog 离线匹配 → icon+ 静态 import）。完整规格见 [Icon.md](Icon.md) 与 [source-project-guidelines §3.2](../source-project-guidelines.md)。下例为静态 import 范式。
+> 图标统一走 skill 的图标方案（项目级先探测 `https://octo.hdesign.huawei.com/`：内网→方案 B 在线名匹配，外网→方案 C catalog 离线名匹配；命中后均 icon+ 静态 import）。完整规格见 [Icon.md](Icon.md) 渲染方式段；名匹配算法见 [match-icons.cjs](../../scripts/match-icons.cjs)。下例为静态 import 范式。
+
+> ⚠️ **带图标时文字必须用 `text=`，不能用 children**：`leftIcon`/`rightIcon` 与 children 同时存在时图标不渲染。源 antd `<Button icon={...}>保存</Button>` 的文字必须搬到 `text="保存"`。
+>
+> ❌ 不生效（图标不渲染）：
+> ```tsx
+> <Button status="primary" leftIcon={<IconPlusIcPublicSave iconSize={14} iconColor={['currentcolor']} />}>保存</Button>
+> ```
+> ✅ 生效：
+> ```tsx
+> <Button status="primary" text="保存" leftIcon={<IconPlusIcPublicSave iconSize={14} iconColor={['currentcolor']} />} onClick={handleSave} />
+> ```
 
 ```tsx
 import { IconPlusIcPublicSave, IconPlusIcPublicArrowRight } from '@nce/icon-plus';
@@ -89,7 +100,7 @@ import { IconPlusIcPublicSave, IconPlusIcPublicArrowRight } from '@nce/icon-plus
 <Button text="下一步" rightIcon={<IconPlusIcPublicArrowRight iconColor={['currentcolor']} iconSize={14} />} onClick={handleNext} />
 ```
 
-> **图标尺寸落在内层 `<IconPlusIc* />` 的 `iconSize`，不是 Button 的 `size`**（`size` 是按钮尺寸 normal/large/small）。源 antd `icon={<.../>}` 带尺寸时，把尺寸吸附到 `iconSize`（就近吸附、默认写14）写到内层 icon+ 元素上：
+> **图标尺寸落在内层 `<IconPlusIc* />` 的 `iconSize`，不是 Button 的 `size`**（`size` 是按钮尺寸 normal/large/small）。源 antd `icon={<.../>}` 带尺寸时，把尺寸吸附到 `iconSize`（默认 14；吸附规则见 [match-icons.cjs](../../scripts/match-icons.cjs)）写到内层 icon+ 元素上：
 >
 > ```tsx
 > // antd 源：<Button icon={<Icon name="save" size={14} />} ...>保存</Button>
@@ -98,7 +109,7 @@ import { IconPlusIcPublicSave, IconPlusIcPublicArrowRight } from '@nce/icon-plus
 > <Button status="primary" text="保存" leftIcon={<IconPlusIcPublicSave iconSize={14} iconColor={['currentcolor']} />} onClick={handleSave} />
 > ```
 >
-> 完整图标迁移规格见 [Icon.md](Icon.md) 与 [source-project-guidelines §3.2](../source-project-guidelines.md)。
+> 完整图标迁移规格见 [Icon.md](Icon.md) 渲染方式段；名匹配算法见 [match-icons.cjs](../../scripts/match-icons.cjs)。
 
 ### 纯图标按钮：antd `Button type="text" shape="circle" icon` → `IconButton`
 
@@ -114,7 +125,7 @@ import IconButton from '@nce/eview-react/IconButton';
 <IconButton iconName={<IconPlusIcPublicRefresh iconSize={14} iconColor={['currentcolor']} />} tipText="刷新" size="small" onClick={handleRefresh} />
 ```
 
-> **图标尺寸别丢**：源 `size={15}` 不是丢掉，而是吸附到 `iconSize={14}` 写到**内层 `<IconPlusIcPublicRefresh />`** 上（就近吸附、默认写14）。`IconButton` 自身的 `size="small"` 是**按钮**尺寸，与图标尺寸是两回事，**不要**把图标尺寸塞到 IconButton 的 `size` 上。antd `@ant-design/icons` 没有 `size` prop、尺寸走 `style.fontSize`，同样剥 `px` 取数字吸附到内层 `iconSize`。
+> **图标尺寸别丢**：源 `size={15}` 不是丢掉，而是吸附到 `iconSize={14}` 写到**内层 `<IconPlusIcPublicRefresh />`** 上（默认 14；吸附规则见 [match-icons.cjs](../../scripts/match-icons.cjs)）。`IconButton` 自身的 `size="small"` 是**按钮**尺寸，与图标尺寸是两回事，**不要**把图标尺寸塞到 IconButton 的 `size` 上。antd `@ant-design/icons` 没有 `size` prop、尺寸走 `style.fontSize`，同样剥 `px` 取数字吸附到内层 `iconSize`。
 
 > 判定信号：antd `Button` 同时有 `icon` 且无文字 children（常见 `type="text"` + `shape="circle"`）→ 走 `IconButton`。源 `icon` 的尺寸（`<Icon size>` 或 antd `style.fontSize`）吸附后写到内层 `<IconPlusIc* iconSize={N} />`，**不**用 IconButton 的 `size`。
 
@@ -244,7 +255,7 @@ export default function LoginPage() {
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
-| `text` / `children` | `any` / `React.ReactNode` | 按钮文字，二者等价 |
+| `text` / `children` | `any` / `React.ReactNode` | 按钮文字；**带 `leftIcon`/`rightIcon`/`icon` 时必须用 `text`，不能用 children——children 会让图标不渲染**（无图标时二者等价） |
 | `status` | `'default' \| 'primary' \| 'risk' \| 'text'`，默认 `default` | 主 / 次 / 危险 / 纯文字；**不是 `type`** |
 | `size` | `'normal' \| 'large' \| 'small'`，默认 `normal` | 尺寸 |
 | `disabled` | `boolean`，默认 `false` | 灰化；处理中也用它表达 |

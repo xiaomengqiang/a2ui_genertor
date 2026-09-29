@@ -8,6 +8,27 @@ const GET_CONFIG = `${ICON_API_BASE}/assetRepository/iconPlus/getConfig`;
 const GET_ICON_INFO = `${ICON_API_BASE}/assetRepository/iconPlus/getIconInfo`;
 const GET_ICON = `${ICON_API_BASE}/assetRepository/iconPlus/getIcon`;
 
+// 方案A：getIcon 接口的 size 参数需数字 px。源 size 可能是 rem/px/数字，转 px 后吸附到 icon+ 标准尺寸。
+// （icon+ 静态 import 的 iconSize 支持 rem，无需转换；仅此 shim 的 API 调用要数字）
+const API_SIZES = [12, 14, 16, 20, 24, 32, 36, 40, 48, 60];
+function toApiSize(size) {
+  let n = null;
+  if (size != null) {
+    const m = String(size).trim().match(/(-?\d+(?:\.\d+)?)\s*(rem|px)?/i);
+    if (m) {
+      n = Number(m[1]);
+      if (m[2] && m[2].toLowerCase() === "rem") n = n * 16;
+    }
+  }
+  if (n == null || Number.isNaN(n)) return 16;
+  let best = API_SIZES[0], bestDiff = Math.abs(n - best);
+  for (const s of API_SIZES) {
+    const d = Math.abs(n - s);
+    if (d < bestDiff) { bestDiff = d; best = s; }
+  }
+  return best;
+}
+
 let plusState = null; // null = probing, true = ready, false = probe failed
 let plusPromise = null; // singleton getConfig probe promise
 let iconConfig = null;
@@ -112,8 +133,9 @@ async function resolveIconInfo(name) {
 
 // fetch the SVG text for a name via getIcon (url + size + variant + colorId + fileType=svg)
 // 结果缓存在 svgCache；并发去重靠 svgPromiseMap，相同 key 共享同一进行中 Promise
-function fetchSvg(name, variant, colorHex) {
-  const key = `${name}&${variant}&${colorHex}`;
+// key 含 size：不同尺寸取回的 SVG 不同，不可复用
+function fetchSvg(name, variant, colorHex, size) {
+  const key = `${name}&${variant}&${colorHex}&${size}`;
   if (svgCache.has(key)) return Promise.resolve(svgCache.get(key));
   if (svgPromiseMap.has(key)) return svgPromiseMap.get(key);
   const p = (async () => {
@@ -123,7 +145,7 @@ function fetchSvg(name, variant, colorHex) {
     const colorId = resolveColorId(variant, colorHex);
     try {
       const resp = await fetch(
-        `${GET_ICON}?url=${encodeURIComponent(info.url)}&size=16&style=${encodeURIComponent(
+        `${GET_ICON}?url=${encodeURIComponent(info.url)}&size=${toApiSize(size)}&style=${encodeURIComponent(
           styleValue
         )}&color=${encodeURIComponent(colorId)}&fileType=svg`
       );
@@ -135,9 +157,9 @@ function fetchSvg(name, variant, colorHex) {
     }
   })();
   svgPromiseMap.set(key, p);
-  // 落定后写入结果缓存并清除 in-flight 条目（失败也清除，允许下次重试）
+  // 落定后写入结果缓存并清除 in-flight 条目；空结果（失败）不缓存，允许下次重试
   p.then((s) => {
-    svgCache.set(key, s);
+    if (s) svgCache.set(key, s);
   }).finally(() => {
     svgPromiseMap.delete(key);
   });
@@ -155,7 +177,7 @@ export function Icon({
 }) {
   const [plus, setPlus] = useState(plusState); // reuse already-probed result
   const [svg, setSvg] = useState(
-    () => svgCache.get(`${name}&${variant}&${color}`) || ""
+    () => svgCache.get(`${name}&${variant}&${color}&${size}`) || ""
   );
 
   useEffect(() => {
@@ -165,21 +187,20 @@ export function Icon({
       if (!alive) return;
       setPlus(ok);
       if (!ok) return; // probe failed → render nothing (internal network assumed)
-      const key = `${name}&${variant}&${color}`;
+      const key = `${name}&${variant}&${color}&${size}`;
       if (svgCache.has(key)) {
         setSvg(svgCache.get(key));
         return;
       }
-      fetchSvg(name, variant, color).then((s) => {
-        if (!alive) return;
-        svgCache.set(key, s);
+      fetchSvg(name, variant, color, size).then((s) => {
+        if (!alive || !s) return; // 空结果（失败）不写入 state，允许下次重试
         setSvg(s);
       });
     });
     return () => {
       alive = false;
     };
-  }, [src, name, variant, color]);
+  }, [src, name, variant, color, size]);
 
   // user-provided asset (svg/png/jpg) via relative path — overrides name when both are set
   if (src) {

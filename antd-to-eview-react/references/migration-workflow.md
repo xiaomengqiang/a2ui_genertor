@@ -77,8 +77,8 @@ scaffold/
 └── src/
     ├── main.jsx        # ConfigProvider + IntlProvider + aui3_1.css + aui3_1_dark.css + base.css + font.css + tokens.css + theme-dark.css
     ├── app.jsx         # 空壳 App（<div className="root">；aui3_1 挂 <body>），步骤 3 替换为 AppShell
-    ├── shared/         # 预制图标组件，迁移时调用点零改动（只改 import 路径）
-    │   └── icon.jsx              # <Icon name="..."> 契约保留（icon-plus 在线，内网恒可达，无离线兜底）
+    ├── shared/         # 预制图标组件，方案 A 兜底时调用点零改动（只改 import 路径）
+    │   └── icon.jsx              # <Icon name="..."> 契约保留（方案 A 兜底 shim：B/C 识别不出名时零改动保留；转换后代码运行内网，运行时 fetch icon-plus 恒可达）
     └── styles/
         ├── base.css          # 骨架自带全局重置（ev_no_wcag 焦点轮廓），开箱即用不用改
         ├── font.css          # HarmonyOS Sans SC @font-face（预制，不用改）
@@ -97,12 +97,12 @@ scaffold/
 | `public/font/*` | HarmonyOS Sans SC 字体（4 个 .woff2） | 不改（font.css 引用） |
 | `src/main.jsx` | Provider 组装 + 六处 css import（含 font.css） | import 不用改；步骤 2 切暗色时加类名切换逻辑 |
 | `src/app.jsx` | 空壳 App | 步骤 3 替换为源项目 AppShell |
-| `src/shared/icon.jsx` | 预制 `<Icon name=...>` shim（icon-plus 在线，无 Lucide 兜底） | 不改；源项目 `<Icon>` 调用点只改 import 路径（见 §3.0） |
+| `src/shared/icon.jsx` | 预制 `<Icon name=...>` shim（方案 A 兜底：B/C 识别不出名时零改动保留；运行时 fetch icon-plus，转换后代码运行内网恒可达） | 不改；源项目 `<Icon>` 调用点只改 import 路径（见 §3.0） |
 | `src/styles/font.css` | HarmonyOS Sans SC @font-face（4 个权重） | 不改；`--font-family` 由 tokens.css 步骤 4 填 |
 | `src/styles/tokens.css` | 空壳占位 | 步骤 4 填（含 `--font-family: 'HarmonyOS Sans', ...`） |
 | `src/styles/theme-dark.css` | 空壳占位 | 步骤 4 填 |
 
-> `main.jsx` 已把 `aui3_1.css` + `aui3_1_dark.css` + `base.css` + `font.css` + `tokens.css` + `theme-dark.css` 六处 import 都写好，步骤 4 填充 token 后无需再改入口。`src/shared/icon.jsx` 的图标 shim、`public/font/` 的字体已预置；图表直接用 `@nce/eview-react/Chart`（见 §3.0）。源项目用到的 `<Icon>` / `<Chart>` 迁移时调用点零改动。
+> `main.jsx` 已把 `aui3_1.css` + `aui3_1_dark.css` + `base.css` + `font.css` + `tokens.css` + `theme-dark.css` 六处 import 都写好，步骤 4 填充 token 后无需再改入口。`src/shared/icon.jsx` 的图标 shim（方案 A 兜底）、`public/font/` 的字体已预置；图表直接用 `@nce/eview-react/Chart`（见 §3.0）。源项目用到的 `<Chart>` 迁移时调用点零改动；`<Icon>` 调用点按 §3.0 选 B/C 静态 import，识别不出名者保留 shim 走 A。
 
 ### 1.2a 升级模式（源项目已是标准 Vite 工程）
 
@@ -216,16 +216,20 @@ eview-react 用类名切换代替 antd 的 `theme.darkAlgorithm`：`aui3_1_dark`
 
 > 按组件映射总表替换，Form 模式单独处理。
 
-### 3.0 图标（方案 C 离线匹配 + 静态 import）/ 图表（包导入）
+### 3.0 图标（方案 B/C 名匹配 + 静态 import）/ 图表（包导入）
 
-**图标默认走方案 C**：读 skill 自带的 `icons/icon-plus-names.json`（按领域划分的 icon+ 名目录，`Public`/`Ict` 为通用主力域）离线匹配源项目（`ict-react-coder` 产物）的 Lucide/antd 图标名 → 命中即 `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import，把 `<Icon name="search" />` 调用点替换为 `<IconPlusIcPublicSearch ... />`（**无网络依赖、彻底离线**）。组件名合成 = `"IconPlusIc" + Domain + Name`；无 `color` 时 `iconColor={['currentcolor']}`；`size`→`iconSize`（支持rem、px、数字）；未匹配名用占位 `IconPlusIcPublicTransverseRectangleTemplate`。完整算法见 [source-project-guidelines.md](source-project-guidelines.md) §3.2。
+**项目级先选 B 还是 C**：迁移开始先探测 `https://octo.hdesign.huawei.com/` 可达性（如 `curl -sI https://octo.hdesign.huawei.com/` / WebFetch），全项目统一一种：
+- **可达（内网）→ 方案 B**：LLM 调在线 `getIconInfo?keyword=<名>&topK=2&source_id=6` 接口匹配图标名 → `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import。
+- **不可达（外网）→ 方案 C**：跑 `node scripts/match-icons.cjs <目标工程根>` 自动扫描 `src/` 下 `<Icon name="..." />`/`<Icon name={...}/>`（含常量传播、三元、变量分流）与 `@ant-design/icons` 调用点，按 [match-icons.cjs](../scripts/match-icons.cjs) 的 `matchOne` 离线匹配 `icons/icon-plus-names.json`（顶层 key 是按图标名前置词分的桶，**非语义领域**；候选打分用 token 重叠+子串，不按桶优先）。输出 `.icon-match.json` 报告：**confirmed**（SEMANTIC/L1-L4 命中，含多桶同名按最短完整名 tie-break）`--apply` 自动改写；**residual**（前缀/fuzzy/未命中/链式三元/未追源变量）带 top-K 候选交 LLM 选，**不自动 apply**——LLM 只看短名单复核，不必扫整本 66KB catalog（候选都不对再查 catalog）；UNMATCHED 不再落占位而是带候选交 LLM。iconSize：源 `size` 原样透传（icon+ 静态 import 支持 rem/px/数字，不转换；仅方案A shim 的 getIcon API 转数字）。 **方案 A/B/C 的选择只由图标名决定**：size/color/variant 是独立 props（透传或 shim 内部处理），不影响方案选择——尺寸/颜色异常不因此退方案A，名匹配命中即落对应方案。报告写 **OS 临时目录**（不进产物根），`--apply` 仅落 confirmed、结束清理临时报告；**residual 由 LLM 在会话内逐条复核，禁止因 residual 整体放弃方案C**。`--topk N` 控候选数（默认 5）。**无网络依赖、彻底离线。**
 
-| 组件 | 源项目用法 | 迁移后（方案 C） |
+B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import，把 `<Icon name="search" />` 替换为 `<IconPlusIcPublicSearch ... />`。组件名合成 = `"IconPlusIc" + Domain + Name`；无 `color` 时 `iconColor={['currentcolor']}`；`size`→`iconSize`（支持rem、px、数字）。C 的 confirmed = SEMANTIC + L1/L2/L4 命中（含多桶同名，按最短完整名 tie-break）；其余（L3 前缀、L5-L7 fuzzy、UNMATCHED、链式三元、未追源变量）一律 residual 带 top-K 候选交 LLM，**UNMATCHED 不再直接落占位**。
+
+| 组件 | 源项目用法 | 迁移后（B/C 静态 import） |
 |------|-----------|------------------|
-| Icon | `<Icon name="search" size={14} />`（`./assets/shared/icon.jsx`） | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'` + `<IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />`（名由 catalog 匹配） |
+| Icon | `<Icon name="search" size={14} />`（`./assets/shared/icon.jsx`） | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'` + `<IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />`（名由 B 在线 / C catalog 匹配；C 的 confirmed 自动落、residual 交 LLM 从候选选） |
 | Chart | `<Chart name="BarChart" option={...} />`（`../../../assets/shared/chart.jsx`） | `import Chart from '@nce/eview-react/Chart'`（任意位置，包导入） |
 
-> **备选 A**（内网运行时 fetch 兜底）：scaffold `src/shared/icon.jsx`，`<Icon name="...">` 调用点零改动，只改 import 路径 `./assets/shared/icon.jsx` → `./shared/icon.jsx`（src/ 下）或 `../shared/icon.jsx`（views/ 下），见 [source-project-guidelines.md](source-project-guidelines.md) §3.3。跑 `scripts/check-relative-imports.cjs`（§5.1）扫残留 `./assets/shared/...` 旧路径。
+> **方案 A（B/C 兜底，仅留真运行时数据）**：经脚本常量传播 + LLM 跨组件追源仍无法确定 icon+ 名的调用点（典型：`name={row.iconField}` 类**后端运行时数据**，迁移时点值不可预知），保留 scaffold `src/shared/icon.jsx` 的 `<Icon name="...">` 契约、调用点零改动，只改 import 路径 `./assets/shared/icon.jsx` → `./shared/icon.jsx`（src/ 下）或 `../shared/icon.jsx`（views/ 下）；转换后代码运行于内网，运行时 fetch icon-plus 恒可达——**这是 A 的正确用途，非遗憾兜底**。链式/嵌套三元、局部变量持字面量等均已在脚本+LLM 链路静态解析，不落 A。见 [components/Icon.md](components/Icon.md) 渲染方式段。跑 `scripts/check-relative-imports.cjs`（§5.1）扫残留 `./assets/shared/...` 旧路径。
 > 图表契约（`<Chart name option />`、`.dark` 自动切主题、ResizeObserver 自适应、ref 方法）由 `@nce/eview-react/Chart` 原生提供，与源项目一致，详见 [components/Chart.md](components/Chart.md)。
 
 ### 3.1 A 类（有对应）：改 props
