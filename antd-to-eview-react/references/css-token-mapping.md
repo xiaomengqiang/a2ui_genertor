@@ -4,18 +4,9 @@
 > 源项目 token 定义提取到独立 CSS 文件，与 eview-react 的 `aui3_1.css` 并存。
 > 两套变量名不冲突，布局/手写 CSS 一行不用改。
 
-## ict-react-coder 源项目 token 结构
+## token 现状（已由上游外置）
 
-典型源项目（`ict-react-coder` 产出）的 token 采用四层架构，构建后内联在 `index.page.html` 的 `<style>` 块中。迁移时无需逐行扫描源 CSS——按下表直接知道哪些进 `tokens.css`、哪些进 `theme-dark.css`：
-
-| 源层级 | 源文件 | 选择器 | 内容 | 迁移目标 |
-|--------|--------|--------|------|---------|
-| Primitive | `assets/style/base.css` | `:root` + `.dark` | 原始色阶、字号、间距、圆角 | `tokens.css`（:root）+ `theme-dark.css`（.dark）|
-| Semantic (light) | `assets/style/light.css` | `:root` | `--color-*` 角色变量 → primitive 引用 | `tokens.css` |
-| Theme (AI-facing) | `assets/style/theme.css` | `:root` | 语义别名（`--primary`、`--surface` 等） | `tokens.css` |
-| Semantic (dark) | `assets/style/dark.css` | `.dark` | 暗色覆盖 | `theme-dark.css` |
-
-提取规则：将内联 `<style>` 中所有 `:root { ... }` 变量定义合并到 `tokens.css`，所有 `.dark { ... }` 覆盖合并到 `theme-dark.css`。无需区分原始层级——四层在 `:root` 下是叠加引用关系（CSS 变量惰性求值），合并后行为不变。
+本 skill 的输入是 `umd-to-antd-vite` 产物——token 已由其 `extract-umd.cjs` 从源 UMD 内联 `<style>` 外置到 `src/styles/`：`:root` 全部变量（原始色阶 + 语义层 + 角色层，叠加引用、惰性求值）合并进 `tokens.css`，`.dark` 覆盖合并进 `theme-dark.css`。本 skill 步骤 1 的 `--upgrade` 原样保留，不重新提取。
 
 常见 token 变量名（布局/手写 CSS 引用这些，迁移时一行不改）：
 
@@ -32,23 +23,9 @@
 
 ## 操作步骤
 
-### 1. 提取 token 定义到独立 CSS 文件
+> token 提取已由 `umd-to-antd-vite` 的 `extract-umd.cjs` 完成：`:root` → `tokens.css`、`.dark` → `theme-dark.css`、`@font-face` → `font.css`、其余选择器规则 → `base.css`。本 skill 步骤 1 的 `--upgrade` 原样保留这些文件；若源项目字体与 scaffold 预制的 HarmonyOS Sans SC 同名则直接复用，不同名则把源项目的 `@font-face` 追加到 `font.css`。
 
-从源项目的 `index.page.html`（或内联 `<style>`）中提取 `:root` 和 `.dark` 的变量定义：
-
-```
-src/styles/
-├── tokens.css          # :root { --primary: #0067D1; --on-surface: #191919; --surface: #F3F3F3; ... } 全部原始色阶 + 语义层 + 角色层
-└── theme-dark.css      # .dark { --color-text-primary: #FFFFFF; ... } 暗色覆盖
-```
-
-提取原则：
-- `:root { ... }` 里的所有 `--xxx` 变量定义 → 放进 `tokens.css`
-- `.dark { ... }` 里的所有 `--xxx` 变量覆盖 → 放进 `theme-dark.css`
-- 不带变量定义的选择器规则（如 `body { ... }`、`#root { ... }`）→ 按需放进 `app.css` 或对应组件 CSS
-- `@font-face` 定义 → scaffold 已预制在 `src/styles/font.css`（HarmonyOS Sans SC，4 个权重），字体文件在 `public/font/HarmonyOS_SansSC/`；源项目若用同名字体直接复用，不同字体再追加到 `font.css`
-
-### 2. 在入口同时引入两套 CSS
+### 1. 在入口同时引入两套 CSS
 
 入口的以下 import 已在 `scaffold/src/main.jsx` 写好（拷贝骨架即有），无需手写：
 
@@ -61,7 +38,7 @@ src/styles/
 
 引入顺序：先 `aui3_1.css` 再 `aui3_1_dark.css` 再 `base.css` 再 `font.css` 再 `tokens.css` 再 `theme-dark.css`——如果两边有同名变量（实际不会），后者覆盖前者。`.dark` 选择器在 `theme-dark.css` 中、位于 `tokens.css` 的 `:root` 之后，确保暗色覆盖生效。
 
-### 3. 布局/手写 CSS 保持原样
+### 2. 布局/手写 CSS 保持原样
 
 `app-shell.css`、`step-flow.css` 等组件 CSS 文件继续引用原始变量名，一行不改：
 
@@ -78,7 +55,7 @@ src/styles/
 }
 ```
 
-### 4. 暗色模式同时切 `<body>` 和 `<html>` 类名
+### 3. 暗色模式同时切 `<body>` 和 `<html>` 类名
 
 `aui3_1`（浅色基础）常驻 `<body>`（已在 `index.html` 写死：`<body class="ev_no_wcag aui3_1">`），暗色时叠 `aui3_1_dark`；`.dark` 挂 `<html>`：
 
@@ -140,10 +117,6 @@ aui3_1.css → aui3_1_dark.css → base.css → font.css → tokens.css → them
 - 不写死色值（如 `#191919`），用 CSS 变量（原始 token）
 
 ## 常见问题
-
-### 源项目 token 是内联在 HTML 里的怎么办？
-
-从 `index.page.html` 的 `<style>` 块里复制 `:root` 和 `.dark` 的内容到独立 CSS 文件。详见 [source-project-guidelines.md](source-project-guidelines.md) §2。
 
 ### 源项目没有暗色 token 怎么办？
 

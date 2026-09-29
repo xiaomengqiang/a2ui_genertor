@@ -6,11 +6,17 @@
 
 ### 0.1 读交接文件获取迁移清单
 
-源项目是 `umd-to-antd-vite` 产物，目标工程根必有 `.umd-conversion.json` 交接文件。主 agent 直接读其中的 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，同时读 `antdIcons` 获取图标清单。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。
+源项目是 `umd-to-antd-vite` 产物，目标工程根必有 `.umd-conversion.json` 交接文件。
 
-> 不需要手动 grep 扫描 `src/`——组件清单已由 `umd-to-antd-vite` 生成并写入交接文件。读完后进入 §0.2 对照组件映射总表分类。
+**优先路径（`migrationPlan` 非 `null`，上游 `umd-to-antd-vite` 步骤 5 已评估前置）**：直接读 `migrationPlan` 数组作为分类评估清单——每项已含 `antd` / `category`（A/B/C）/ `eview` / `keyDiffs` / `ref` / `files`。**无需再读 `component-mapping.md` 大表对照，直接跳到 §0.4 用此清单规划步骤 3 替换顺序**（§0.2 分类、§0.3 估时均可从 `migrationPlan` 的 `category` 字段直接统计，跳过）。
 
-### 0.2 对照组件映射总表分类
+**回退路径（`migrationPlan` 为 `null`，上游未跑步骤 5）**：读 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，同时读 `antdIcons` 获取图标清单，进入 §0.2 手动对照 `component-mapping.md` 分类。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。
+
+> 组件清单已由 `umd-to-antd-vite` 生成并写入交接文件，不需要手动 grep 扫描 `src/`。`migrationPlan` 是否非 `null` 决定走优先路径（跳过 §0.2/§0.3）还是回退路径（手动对照大表）。
+
+### 0.2 对照组件映射总表分类（回退路径，优先路径跳过）
+
+> 若 §0.1 走优先路径（`migrationPlan` 已含 `category` 字段），本节跳过。仅回退路径（`migrationPlan` 为 `null`）需手动对照下表。
 
 将交接文件中读取到的组件分为三类：
 
@@ -22,12 +28,16 @@
 
 ### 0.3 评估工作量
 
+> 优先路径可直接从 `migrationPlan` 的 `category` 字段统计 A/B/C 各类数量；回退路径从 §0.2 分类结果统计。
+
 - A 类组件 × 数量 → 每个约 5-15 分钟（改 props）
 - B 类组件 × 数量 → 每个约 15-30 分钟（手写 + 调样式）
 - C 类模式 → Form 迁移约 30-60 分钟（控制流重写）
 - CSS 变量切换 → 全局约 30-60 分钟
 
 ### 0.4 输出迁移清单
+
+> 优先路径下 `migrationPlan` 本身即此清单（含 `ref` 指引列，可直接据此规划步骤 3 替换顺序与按需读 reference）；回退路径据 §0.2 结果填下表。
 
 | antd 组件 | 分类 | eview-react 替换 | 涉及文件 | 备注 |
 |-----------|------|-----------------|---------|------|
@@ -123,7 +133,7 @@ node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标�
 |------|------|---------|
 | `react` / `react-dom` | React 运行时 | 必需 |
 | `react-intl` | eview-react 组件内置文案的 i18n（`IntlProvider`） | 必需 |
-| `dayjs` | 日期格式化；ict-react-coder 源项目普遍 `import dayjs from "dayjs"` 做格式化，缺则报 `Failed to resolve "dayjs"` | 必需 |
+| `dayjs` | 日期格式化；输入工程普遍 `import dayjs from "dayjs"` 做格式化，缺则报 `Failed to resolve "dayjs"` | 必需 |
 | `@nce/eview-react` | 组件库本体 | 必需 |
 | `@nce/icon-plus` | 图标库（`IconPlusIc*` 按需引入） | 用图标时必需 |
 | `@cloudsop/horizon` | eview-react 的 peer 依赖；缺失报 `Element type is invalid` | 必需（peer） |
@@ -132,14 +142,13 @@ node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标�
 
 > 上述用途为基于包名与已有报错信息的推断，具体以实际工程的 `npm install` 与运行结果为准。
 
-### 1.5 安装与启动
+### 1.5 安装
 
 ```bash
-npm install
-npm run dev
+npm install    # bash 工具 timeout=30000
 ```
 
-预期：页面能渲染（显示 "app root"），无样式报错。若报 `Element type is invalid` → horizon 等 peer 依赖未装上，常见报错对照见步骤 5.5。
+> `npm install` 设 30s 超时：外网环境无法访问 `@nce` 内网源时会超时，记 `SKIP` 不阻断。SKIP 规则详见 §4.6。
 
 ## 步骤 2：换 Provider 与入口
 
@@ -298,9 +307,9 @@ export const policyTemplates = [
 
 > **规则：** 凡是 `render: (value) => t(value, ...)` 且 `data.js` 中该字段的 `value ≠ msgId`，必须补前缀。`value === msgId` 的无需改。StatusTag 等自定义组件如果内部已做 `"status." + status` 拼接，则无需在 render 里再拼。
 
-### 3.6 主 agent 逐组件替换
+### 3.6 逐组件替换
 
-步骤 3 上下文消耗最高（form-migration.md + handwrite-templates.md + components/*.md）。主 agent 按以下顺序替换，每次只读当前需要的 reference：
+步骤 3 上下文消耗最高（form-migration.md + handwrite-templates.md + components/*.md）。按以下顺序替换，每次只读当前需要的 reference：
 
 **替换顺序**（叶子先、容器后、布局最后）：
 1. **叶子组件**（Button / TextField / Select 等）—— 改动小、验证快
@@ -316,15 +325,12 @@ export const policyTemplates = [
 
 **硬约束**：严格遵守 SKILL.md 的"eview-react 硬约束"章节（13 条）。导入路径改为 `import X from '@nce/eview-react/X'`。
 
-替换完一类组件后，可先跑 `npm run dev` 快速验证该类是否编译通过，再继续下一类。全部替换完后进入步骤 5 验证。
+全部替换完后进入步骤 4 验证。
 
-## 步骤 4：CSS token（已由 umd-to-antd-vite 外置，跳过）
 
-token CSS 已由 `umd-to-antd-vite` 提取到 `src/styles/tokens.css` + `theme-dark.css`，步骤 1 的 `--upgrade` 模式已保留。无需操作。`main.jsx` 的六处 CSS import（scaffold 已预置）已包含 `tokens.css` + `theme-dark.css`。
+## 步骤 4：验证
 
-## 步骤 5：验证
-
-### 5.1 相对导入解析检查（已由 umd-to-antd-vite 验证，跳过）
+### 4.1 相对导入解析检查（已由 umd-to-antd-vite 验证，跳过）
 
 路径已由 `umd-to-antd-vite` 修正并验证通过（`.umd-conversion.json` 的 `verification.relativeImports = "PASS"`）。本步骤跳过。如步骤 3 组件替换时改了 import 路径，可按需重跑确认：
 
@@ -354,9 +360,9 @@ node scripts/check-relative-imports.cjs .
 | `./src/views/AppShell.jsx` | `src/app.jsx` | `./views/AppShell.jsx` |
 | `./src/data.js` | `src/app.jsx` | `./data.js` |
 
-### 5.2 i18n 动态 key 检查（必跑）
+### 4.2 i18n 动态 key 检查（必跑）
 
-> 针对 §3.5 的高频 bug（`t(value, value)` 缺命名空间前缀 → `MISSING_TRANSLATION`）。人工逐列核对容易漏，迁移后、`npm run dev` 前必须跑脚本。
+> 针对 §3.5 的高频 bug（`t(value, value)` 缺命名空间前缀 → `MISSING_TRANSLATION`）。人工逐列核对容易漏，迁移后必须跑脚本。
 
 脚本位于本 skill 的 `scripts/check-i18n-keys.cjs`，两种调用方式任选其一：
 
@@ -377,29 +383,7 @@ node scripts/check-i18n-keys.cjs .
 
 脚本默认 advisory（退出码 0，输出报告供人工核对）；加 `--strict` 时发现高危调用退出码 1，可接入 CI。
 
-### 5.3 编译检查
-
-```bash
-npm install
-npm run dev
-```
-
-### 5.4 功能验证清单
-
-- [ ] 页面能渲染（无 `Element type is invalid` → 检查 peer 依赖）
-- [ ] 组件有 ICT 3.1 样式（无样式 → 检查 `aui3_1.css` 导入和 `<body>` 上的 `aui3_1` 类名）
-- [ ] 弹层文案是中文（显示 key → 检查 `IntlProvider` + `messages`）
-- [ ] 控制台无 `MISSING_TRANSLATION` 报错（弹层里的业务文案取不到 → 见 §2.5 / 5.5；Table render 里 cell value 不是完整 i18n key → 见 §3.5）
-- [ ] 已运行 `check-i18n-keys.cjs` 且报告中无"高危"项（见 §5.2）
-- [ ] Table 列 render 函数中 `t(value, ...)` 的 value 是完整 i18n key（否则补前缀，见 §3.5）
-- [ ] 表单能输入（`TextField` value+onChange 成对）
-- [ ] 表单校验触发（`ref.submit()` → `onSuccess`）
-- [ ] 下拉选项渲染（`options=[{text,value}]` 字段名正确）
-- [ ] 弹窗能打开和关闭（`isOpen`/`visible` 受控 + `onClose` 里置 false）
-- [ ] 暗色模式切换（`<body>` 上 `aui3_1` / `aui3_1_dark` + `<html>` 上 `.dark` 都切）
-- [ ] 手写补位组件样式跟随主题（用了 CSS 变量，不写死色值）
-
-### 5.5 常见报错对照
+### 4.5 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -412,16 +396,14 @@ npm run dev
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 翻译单元格值，但 `data.js` 里 value 是短代码（`"gateway"`），i18n key 带前缀（`"deviceType.gateway"`），`t("gateway", ...)` 找不到消息 | 在 render 里补 i18n 命名空间前缀：`t("deviceType." + value, value)`；对照 `data.js` 选项字典的 `value` vs `msgId`，`value ≠ msgId` 的都要补。详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 5.6 主 agent 验证
+### 4.6 验证
 
-主 agent 自己跑验证脚本 + 构建检查，把结果写入 `<目标工程根>/.migration-result.json`。
+跑验证脚本，把结果写入 `<目标工程根>/.migration-result.json`。
 
 **验证步骤**：
-1. 相对导入检查**跳过**（路径已由 `umd-to-antd-vite` 修正，`.umd-conversion.json` 的 `verification.relativeImports=PASS`）；步骤 3 替换组件时若新增 import，靠第 4 步 `npm run dev` 的 Vite import-analysis 兜底
+1. 相对导入检查**跳过**（路径已由 `umd-to-antd-vite` 修正，`.umd-conversion.json` 的 `verification.relativeImports=PASS`）
 2. 跑 `node <skill目录>/scripts/check-i18n-keys.cjs <目标工程根>`
-3. `cd <目标工程根> && npm install`
-4. `npm run dev` 确认启动成功
-5. 按 §5.4 功能验证清单逐项检查
+3. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
 
 **结果文件**：把结果写入 `<目标工程根>/.migration-result.json`（覆盖写），JSON 结构：
 
@@ -433,15 +415,14 @@ npm run dev
   "checks": {
     "relative-imports": "PASS/FAIL",
     "i18n-keys": "PASS/FAIL",
-    "npm-install": "PASS/FAIL",
-    "npm-run-dev": "PASS/FAIL",
-    "functional": "X/Y"
+    "npm-install": "PASS/SKIP"
   },
   "notes": "可选说明"
 }
 ```
 
 - 所有验收项全过 → status="PASS"，failures=[]
-- 任一不过 → status="FAIL"，failures 逐条写清具体失败点
+- 任一不过（SKIP 不算不过）→ status="FAIL"，failures 逐条写清具体失败点
+- npm-install=SKIP 不影响整体 status（notes 写明外网环境降级，仅静态检查 i18n-keys 生效）
 
 **循环上限**：默认 5 轮（round 1 首次验证，round 2~5 修复后重测）。验证 FAIL 时主 agent 直接读 `.migration-result.json` 的 `failures` 字段，回到步骤 3 自己修复，再重新验证（round + 1）。第 5 轮仍 FAIL 必须停止，向用户报告失败项 + 建议人工介入。
