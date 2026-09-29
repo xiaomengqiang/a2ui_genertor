@@ -84,6 +84,7 @@ interface PageResult<T> {
 import React, { useEffect, useRef, useState } from 'react';
 import Paging from '@nce/eview-react/Paging';
 import Checkbox from '@nce/eview-react/Checkbox';
+import Button from '@nce/eview-react/Button';
 
 interface Card {
   id: string;
@@ -102,20 +103,24 @@ export default function CardGridPage() {
   const [total, setTotal] = useState<number>(0);
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [reloadKey, setReloadKey] = useState<number>(0);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const versionRef = useRef<number>(0);
 
   useEffect(() => {
     const my = ++versionRef.current;
     setLoading(true);
+    setError('');
     fetchCards(page, pageSize)
       .then((res) => {
         if (my !== versionRef.current) return;
         setCards(res.list);
         setTotal(res.total);
       })
+      .catch(() => { if (my === versionRef.current) setError('卡片加载失败'); })
       .finally(() => { if (my === versionRef.current) setLoading(false); });
-  }, [page, pageSize]);
+  }, [page, pageSize, reloadKey]);
 
   const toggle = (id: string, on: boolean) =>
     setChecked((prev) => {
@@ -127,7 +132,12 @@ export default function CardGridPage() {
   return (
     <div style={{ padding: 24 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, minHeight: 240 }}>
-        {loading ? <div>加载中...</div> : cards.map((c) => (
+        {error ? (
+          <div>
+            {error}
+            <Button text="重试" onClick={() => setReloadKey((key) => key + 1)} />
+          </div>
+        ) : loading ? <div>加载中...</div> : cards.map((c) => (
           <div key={c.id} className="app-card" style={{ padding: 12 }}>
             <Checkbox label={c.title} value={c.id} checked={checked.has(c.id)} onChange={(v, on: boolean) => toggle(c.id, on)} />
           </div>

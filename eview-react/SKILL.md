@@ -26,7 +26,7 @@ description: >-
 
 ## 必须遵守
 
-- 导入用 `@nce/eview-react` 的命名导出或 `@nce/eview-react/组件名` 的默认导出；不能用源码别名 `eview-react/…` 或 antd 顶替。入口只引一次 `@nce/eview-react/styles/aui3_1.css`，确保 `ConfigProvider` / `IntlProvider` 与依赖已接入，版本与骨架见工程 Pattern。
+- 导入用 `@nce/eview-react` 的命名导出或 `@nce/eview-react/组件名` 的默认导出；不能用源码别名 `eview-react/…` 或 antd 顶替。入口只引一次 `@nce/eview-react/styles/aui3_1.css`，并给 `body` 加 `aui3_1` 类名（3.x 不加则样式不生效），确保 `ConfigProvider` / `IntlProvider` 与依赖已接入，版本与骨架见工程 Pattern。
 - **props、导出名、回调参数顺序和 ref 方法都以对应 Reference 为准，查不到不推断**；不按其他库 API 或原生 event 猜写法。资料冲突按文档兼容方案处理，保留待实测说明，不能擅自认定某一版正确。
 - 校验器 `validator` 返回 `{ result, message }`，`result === true` 表示通过；提交前触发文档支持的校验。不要给没有记录 ref 方法的组件虚构 `validate()` / `getValue()`。
 - 受控方式逐组件核对：尤其是 Radio 的 `isControlled`、密码回填、DatePicker 回写及 Spinner 程序化更新；具体规则在各 Reference。
@@ -36,7 +36,7 @@ description: >-
 
 ## 组件索引
 
-当前 39 份组件 Reference；每份保留 API、回调、状态、联动、完整示例与反例。
+当前 40 份组件 Reference；每份保留 API、回调、状态、联动、完整示例与反例。
 
 | 组件 / 场景 | 读取 |
 |-------------|------|
@@ -77,6 +77,7 @@ description: >-
 | `Empty` / 空态 / 无数据 | [references/Empty.md](references/Empty.md) |
 | `Crumbs` / 面包屑 | [references/Crumbs.md](references/Crumbs.md) |
 | `Panel` / `PanelItem` / 折叠面板 / 分组 | [references/Panel.md](references/Panel.md) |
+| `Accordion` / 手风琴导航 / 侧边多级菜单（内容折叠用 `Panel`） | [references/Accordion.md](references/Accordion.md) |
 | `Icon` / `IconButton` / 图标 / icon+ | [references/Icon.md](references/Icon.md) |
 | `TipBox` / 气泡 / 悬浮说明 | [references/TipBox.md](references/TipBox.md) |
 

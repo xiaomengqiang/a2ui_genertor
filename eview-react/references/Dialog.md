@@ -14,7 +14,7 @@ Dialog 是通用对话框：标题 + 任意内容 + 按钮区，模态 / 非模�
 |-----------|--------|--------|
 | 新建 / 编辑表单弹窗 | `Dialog` + `Form`（[Form.md](Form.md)） | antd `Modal` + `onOk` |
 | 删除确认 / 成功失败提示 | `MessageDialog`（有类型图标、`ok/cancel` 语义） | Dialog 自己拼 |
-| 侧滑面板 | `Drawer`（后续批次） | Dialog |
+| 侧滑面板 | `Drawer`（[Drawer.md](Drawer.md)） | Dialog |
 | 弹窗里放表格 | `Dialog size={[w, h]}` + `Table`（demo DialogTableSample） | — |
 
 ## 2. 典型场景
@@ -35,47 +35,12 @@ const formRef = useRef<any>(null);
 
 ## 4. 事件与交互逻辑
 
-### 基本：isOpen 受控，onClose 与按钮都要自己关
+完整的"新建 / 编辑表单弹窗"见 §7，要点：
 
-```tsx
-<Button status="primary" text="新建" onClick={() => { setEditing(null); setOpen(true); }} />
-
-<Dialog
-  title={editing ? '编辑设备' : '新建设备'}
-  isOpen={open}
-  onClose={() => setOpen(false)}                          // 右上角 × / ESC
-  size={[560, null]}                                      // 宽 560，高自适应
-  buttons={[
-    { text: '取消', disabled: saving, onClick: () => setOpen(false) },
-    { text: saving ? '保存中...' : '确定', status: 'primary', disabled: saving, onClick: () => formRef.current.submit() },
-  ]}
->
-  <Form ref={formRef} initialValues={EMPTY} onSuccess={handleSave}>…</Form>
-</Dialog>
-```
-
-### 表单弹窗完整链路
-
-```tsx
-const handleSave = async (values: DeviceForm) => {
-  if (saving) return;
-  setSaving(true);
-  try {
-    await api.save(editing ? { ...values, id: editing.id } : values);
-    setOpen(false);                                         // 成功才关
-    reloadList();
-  } catch (e) {
-    showError(e);                                           // 失败保持打开，让用户改
-  } finally {
-    setSaving(false);
-  }
-};
-
-// 编辑：打开后回填（Dialog 默认 destroyOnClose，每次打开表单是新的）
-useEffect(() => {
-  if (open && editing) formRef.current?.setFieldsValue(editing);
-}, [open, editing]);
-```
+- **显隐受控**：`isOpen` + `onClose`（右上角 × / ESC）里 `setOpen(false)`；取消按钮同样自己关
+- **按钮区**：确定按钮 `onClick: () => formRef.current.submit()` 只触发 Form 校验，关窗放在 `onSuccess` 里请求成功之后，失败保持打开；处理中两个按钮都置 `disabled`
+- **编辑回填**：打开后在 `useEffect` 里 `formRef.current.setFieldsValue(record)`；`destroyOnClose` 默认 true，每次打开表单都是新的
+- **尺寸**：`size={[560, null]}` 宽 560、高自适应；详情弹窗可用百分比
 
 ### 非模态 / 不可关闭 / 固定位置
 
@@ -127,10 +92,7 @@ interface Device {
 type DeviceForm = Omit<Device, 'id'>;
 
 const EMPTY: DeviceForm = { name: '', region: '' };
-const REGIONS = [
-  { text: '华东', value: 'east' },
-  { text: '华南', value: 'south' },
-];
+const REGIONS = [{ text: '华东', value: 'east' }, { text: '华南', value: 'south' }];
 
 // 设备列表 + 新建 / 编辑弹窗（Dialog 内 Form），保存成功才关窗并刷新
 export default function DeviceDialogPage() {
@@ -225,29 +187,17 @@ buttons={[{ text: '确定', onClick: () => { setOpen(false); save(); } }]}
 
 ## 9. API 速查
 
-> 压缩自 `Dialog/types`。
+> 压缩自 `Dialog/types`，少用的合并在最后一行。
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
 | `isOpen` | `boolean`，默认 `false` | 显隐（受控） |
 | `onClose` | `(event) => void` | 关闭按钮 / ESC；需自行置 `isOpen=false` |
 | `title` / `titleTip` | `any` / `string` | 标题 / 标题提示 |
-| `children` | `any` | 内容（React 或原生标签） |
 | `buttons` | `Array<ButtonProps>` | 按钮区，如 `[{ text, status: 'primary', onClick }]` |
-| `buttonStyle` / `contentStyle` / `maskStyle` / `style` | `CSSProperties` | 按钮区 / 内容区 / 蒙层 / 整体样式 |
-| `size` | `[w, h]`，可 `null` / 百分比 | 大小 |
-| `position` | `[x, y]`，可 `null` | 位置（左边距 / 上边距） |
-| `modal` | `boolean`，默认 `true` | 模态 |
-| `closable` | `boolean`，默认 `true` | 显示关闭按钮 |
-| `closeOnEscape` | `boolean`，默认 `true` | ESC 关闭 + 弹窗内焦点循环 |
-| `movable` / `resizable` / `onResize` | `boolean`（默认 true）/ `boolean`（默认 false）/ `(obj) => void` | 拖动 / 缩放 |
-| `minimizable` / `onMinimized` / `customMinimized` / `minimizModalEnable` | — | 最小化相关 |
+| `size` / `position` | `[w, h]` / `[x, y]`，可 `null` / 百分比 | 大小 / 位置（左边距 / 上边距） |
+| `modal` / `closable` / `closeOnEscape` | `boolean`，默认均为 `true` | 模态 / 显示关闭按钮 / ESC 关闭 + 弹窗内焦点循环 |
 | `destroyOnClose` | `boolean`，默认 `true` | 关闭时销毁内容 |
 | `zindex` | `any`，默认 `9999` | 层级，**不要超过 9999** |
-| `mountId` | `string` | 挂载节点 id，默认 body |
-| `focusOnClose` / `lastFocus` | `boolean`，默认 `true` | 打开时聚焦关闭按钮 / 关闭后回到原焦点 |
-| `customClose` | `boolean`，默认 `false` | 为 true 时默认关闭按钮不生效，自行处理 |
-| `boundary` / `isAllowedExceed` / `autoSetPosition` | `{ top, right, bottom, left }` / `boolean` / `boolean` | 拖拽范围 / 可拖出窗口 / 自动定位 |
-| `animationOff` | `boolean`，默认 `false` | 关闭动画 |
-| `customIcons` / `url` | `any` / `string` | 标题栏自定义图标 / 内嵌第三方页面 |
-| `id` / `className` | — | 最外层 |
+| `mountId` | `string` | 挂载节点 id，不传则挂在 body |
+| 其余 | — | `children` 内容（React 或原生标签）/ `buttonStyle` `contentStyle` `maskStyle` `style` 各区样式 / `movable`（默认 true）`resizable`（默认 false）`onResize(obj)` 拖动与缩放 / `minimizable` `onMinimized` `customMinimized` `minimizModalEnable` 最小化 / `focusOnClose` `lastFocus`（默认 true）打开聚焦关闭按钮、关闭后回原焦点 / `customClose`（默认 false，为 true 时默认关闭按钮不生效）/ `boundary`（`{ top, right, bottom, left }`）`isAllowedExceed` `autoSetPosition` 拖拽范围、可拖出窗口、自动定位 / `animationOff` 关闭动画 / `customIcons` `url` 标题栏自定义图标、内嵌第三方页面 / `id` `className` 最外层 |

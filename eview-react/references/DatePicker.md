@@ -15,8 +15,8 @@ DatePicker 是日期 / 日期时间 / 月 / 季 / 年 / 周选择器，支持范
 | 选一个日期 / 日期时间 | `DatePicker type="date" \| "datetime"` | antd `DatePicker` + `onChange` 回写 `value` |
 | 选起止时间段 | `DatePicker range={[]}`（同一个组件） | `RangePicker`（不存在） |
 | 选月 / 季 / 年 / 周 | `type="month" \| "quarter" \| "year" \| "week"` | `picker="month"` |
-| 只选时间点（hh:mm） | `Spinner type="time"`（[Spinner.md](Spinner.md)）或 `TimePicker`（后续批次） | DatePicker |
-| 相对时间范围（近 7 天） | `TimeRangeSelector`（后续批次）或 `SelectCard`（[SelectCard.md](SelectCard.md)） | 两个 DatePicker |
+| 只选时间点（hh:mm） | `Spinner type="time"`（[Spinner.md](Spinner.md)）或 `TimePicker`（未覆盖） | DatePicker |
+| 相对时间范围（近 7 天） | `SelectCard`（[SelectCard.md](SelectCard.md)）；`TimeRangeSelector` 未覆盖 | 两个 DatePicker |
 
 ## 2. 典型场景
 

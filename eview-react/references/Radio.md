@@ -12,8 +12,8 @@ Radio 是单个单选框；RadioGroup 是 `data` 驱动的互斥单选组，自�
 |-----------|--------|--------|
 | 表单里 2-6 个互斥选项 | `RadioGroup` + `data` | `<RadioGroup>` 里嵌 `<Radio>` children（**不支持**，component-use.md 明确） |
 | 选项很多（> 6） | `Select` | 一长串 Radio |
-| 二选一开关语义 | `Toggle` / `Switch`（第二批） | 两个 Radio |
-| 卡片式单选 | `SelectCard`（第二批） | — |
+| 二选一开关语义 | `Toggle` / `Switch`（[Toggle.md](Toggle.md)） | 两个 Radio |
+| 卡片式单选 | `SelectCard`（[SelectCard.md](SelectCard.md)） | — |
 
 ## 2. 典型场景
 

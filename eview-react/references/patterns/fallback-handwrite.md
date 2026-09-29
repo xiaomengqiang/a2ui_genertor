@@ -9,13 +9,13 @@
 
 - 设计稿 / 需求里出现了 SKILL.md 组件索引之外的控件（卡片、进度条、时间轴、轮播、穿梭框、键值详情……）
 - 用户说"用 eview-react 做"，但某个区块找不到对应 Reference
-- 生成结果里准备写 `import X from '@nce/eview-react/X'` 而 `X` 不在 39 个已覆盖组件里
+- 生成结果里准备写 `import X from '@nce/eview-react/X'` 而 `X` 不在 40 个已覆盖组件里
 
 ## 1. 三层判定（按顺序，命中即停）
 
 | 层 | 条件 | 做法 | 产出标记 |
 |----|------|------|---------|
-| **一：已覆盖组件** | 需求能用 39 个已覆盖组件（或其组合）表达 | 读对应 Reference 照规格写；优先用组合替代（见 §2） | 无 |
+| **一：已覆盖组件** | 需求能用 40 个已覆盖组件（或其组合）表达 | 读对应 Reference 照规格写；优先用组合替代（见 §2） | 无 |
 | **二：工程里已有用法** | 目标工程 `src/` 里已经 `import X from '@nce/eview-react/X'` 并在用 | **只照抄该工程里出现过的 props / 回调 / 数据结构**，不新增任何未出现过的属性；注释标出参考文件 | `// 用法参考：src/xxx/Yyy.tsx` |
 | **三：手写补位** | 前两层都不命中 | 用原生 HTML / JSX 自己实现，按 §3 接入业务项目样式；复杂组件只做最小可用版并标 TODO（§5） | `// TODO(eview-react): 建议替换为 <X>，本 Skill 暂无其规格` |
 
@@ -42,6 +42,7 @@
 | 确认 / 结果提示 | `MessageDialog`（[MessageDialog.md](../MessageDialog.md)）；区域内轻提示用 `DivMessage` |
 | 表单弹窗 / 侧边编辑 | `Dialog`（[Dialog.md](../Dialog.md)）/ `Drawer`（[Drawer.md](../Drawer.md)） |
 | 面包屑 / 折叠分组 / 空态 / 加载 | `Crumbs` / `Panel` / `Empty` / `Loading`（均已覆盖） |
+| 侧边多级导航菜单 | `Accordion`（[Accordion.md](../Accordion.md)）；内容折叠仍用 `Panel` |
 | 树 / 树选择 / 树表 / 级联 | `Tree` / `TreeSelect` / `TreeTable` / `Cascader`（均已覆盖） |
 | 状态列 / 分组标题 | `Badge status` / `Tag color` / `Divider orientation` |
 | 时间点选择 | `Spinner type="time"` 或 `DatePicker type="datetime"` |

@@ -12,8 +12,8 @@ Button 是发起命令并获取结果的按钮。页面上凡是"点一下要做
 |-----------|--------|--------|
 | 文字按钮（主/次/危险/纯文字） | `Button` + `status` | antd 的 `type="primary"` / `danger` |
 | 一排等宽按钮 | `ButtonGroup` + `data` | 手写多个 `Button` 再调 margin |
-| 只有图标的按钮 | `IconButton`（第二批） | `Button` 只塞 icon 不给文字 |
-| 文字链接样式 | `TextButton`（第二批）或 `status="text"` | `<a>` |
+| 只有图标的按钮 | `IconButton`（[Icon.md](Icon.md)） | `Button` 只塞 icon 不给文字 |
+| 文字链接样式 | `status="text"`（`TextButton` 未覆盖） | `<a>` |
 
 ## 2. 典型场景
 
@@ -59,7 +59,7 @@ const canSubmit = username.trim() !== '' && password.length >= 6 && !submitting;
 
 const handleRowAction = (event: object, data: any) => {   // 第二个参数就是 additionalData
   if (data.action === 'delete') {
-    setConfirmVisible(true);           // 危险操作先二次确认（MessageDialog，第二批）
+    setConfirmVisible(true);           // 危险操作先二次确认（见 MessageDialog.md）
     return;
   }
   openEditor(data.id);

@@ -14,6 +14,7 @@ Panel 是折叠面板：多个 `PanelItem` 可同时展开或手风琴互斥，�
 | 长表单按区块折叠 | `Panel enableMultiExpand` + `PanelItem closable={false}` | antd `Collapse items` |
 | 每次只展开一块（手风琴） | `Panel enableMultiExpand={false}` | 多个 Panel |
 | 平级内容切换 | `Tab`（[Tab.md](Tab.md)） | Panel |
+| 页面 / 功能的多级侧边导航菜单 | `Accordion`（[Accordion.md](Accordion.md)） | Panel |
 | 不折叠的卡片区块 | `Card`（未覆盖）或手写卡片（fallback-handwrite §4.1） | Panel |
 
 ## 2. 典型场景

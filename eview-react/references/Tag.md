@@ -2,7 +2,7 @@
 
 > **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Tag/types`（3.4.11 起）；官网组件页 Tag 及示例 `TagMessage.jsx` / `TagState.jsx` / `TagSize.jsx` / `TagBorder.jsx` / `TagRound.jsx` / `TagClassify.jsx` / `Tag.jsx`
 >
-> ⚠️ eview Tag **没有 `closable` / `onClose`**（antd 最常用的可关闭标签在这里不存在）。需要"可删除的标签列表"时，用业务数组 + `onClick` 或旁边放 `IconButton`（后续批次）自己实现。
+> ⚠️ eview Tag **没有 `closable` / `onClose`**（antd 最常用的可关闭标签在这里不存在）。需要"可删除的标签列表"时，用业务数组 + `onClick` 或旁边放 `IconButton`（[Icon.md](Icon.md)）自己实现。
 
 ## 1. 功能定位
 
