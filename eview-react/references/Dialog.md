@@ -37,10 +37,76 @@ const formRef = useRef<any>(null);
 
 完整的"新建 / 编辑表单弹窗"见 §7，要点：
 
-- **显隐受控**：`isOpen` + `onClose`（右上角 × / ESC）里 `setOpen(false)`；取消按钮同样自己关
-- **按钮区**：确定按钮 `onClick: () => formRef.current.submit()` 只触发 Form 校验，关窗放在 `onSuccess` 里请求成功之后，失败保持打开；处理中两个按钮都置 `disabled`
-- **编辑回填**：打开后在 `useEffect` 里 `formRef.current.setFieldsValue(record)`；`destroyOnClose` 默认 true，每次打开表单都是新的
-- **尺寸**：`size={[560, null]}` 宽 560、高自适应；详情弹窗可用百分比
+```tsx
+<Button status="primary" text="新建" onClick={() => { setEditing(null); setOpen(true); }} />
+
+<Dialog
+  title={editing ? '编辑设备' : '新建设备'}
+  isOpen={open}
+  onClose={() => setOpen(false)}                          // 右上角 × / ESC
+  size={[560, 'auto']}                                  // 宽 560，高自适应
+  buttons={[
+    { text: '取消', disabled: saving, onClick: () => setOpen(false) },
+    { text: saving ? '保存中...' : '确定', status: 'primary', disabled: saving, onClick: () => formRef.current.submit() },
+  ]}
+>
+  <Form ref={formRef} initialValues={EMPTY} onSuccess={handleSave}>…</Form>
+</Dialog>
+```
+
+### 表单弹窗完整链路
+
+### 弹窗尺寸：宽按场景设、高自适应 + 最大 80% 视口
+
+- **宽度**：按内容信息密度给固定值（表单 480–560、详情 640–800、内嵌表格 800–1200），或用百分比 `'60%'` 做响应式；窄弹窗别低于 360，超宽别超过 1200，避免内容拥挤或两侧大留白。
+- **高度**：`size` 第二项传 `'auto'` 让弹窗随内容自适应，再用 `style={{ maxHeight: '80vh' }}` 限整体上限，内容超出时内部滚动。**不要用 `size={[w, 固定高]}` 定死高度**——内容少时留大空隙，内容多时又被截断。
+
+```tsx
+<Dialog
+  title={editing ? '编辑设备' : '新建设备'}
+  isOpen={open}
+  onClose={() => setOpen(false)}
+  size={[560, 'auto']}                       // 宽 560，高随内容
+  style={{ maxHeight: '80vh' }}              // 整体最高 80% 视口，超出内部滚动
+  buttons={[…]}
+>
+  <Form ref={formRef} onSuccess={handleSave}>…</Form>
+</Dialog>
+```
+
+```tsx
+// ❌ 定死高度：内容少留大空隙，内容多被截断
+<Dialog size={[560, 480]} />
+
+// ❌ 只给 size 不限 maxHeight：长表单撑出屏幕底部，按钮区被推到视口外
+<Dialog size={[560, 'auto']} />
+
+// ❌ 宽度过窄/过宽：360 以下表单挤成一团，1200 以上两侧大留白
+<Dialog size={[300, 'auto']} />
+```
+
+### 表单弹窗完整链路
+
+```tsx
+const handleSave = async (values: DeviceForm) => {
+  if (saving) return;
+  setSaving(true);
+  try {
+    await api.save(editing ? { ...values, id: editing.id } : values);
+    setOpen(false);                                         // 成功才关
+    reloadList();
+  } catch (e) {
+    showError(e);                                           // 失败保持打开，让用户改
+  } finally {
+    setSaving(false);
+  }
+};
+
+// 编辑：打开后回填（Dialog 默认 destroyOnClose，每次打开表单是新的）
+useEffect(() => {
+  if (open && editing) formRef.current?.setFieldsValue(editing);
+}, [open, editing]);
+```
 
 ### 非模态 / 不可关闭 / 固定位置
 
@@ -48,6 +114,10 @@ const formRef = useRef<any>(null);
 <Dialog isOpen={open} modal={false} movable onClose={close}>…</Dialog>              // 非模态，可拖
 <Dialog isOpen={open} closable={false} closeOnEscape={false} buttons={[…]}>…</Dialog> // 只能走按钮
 <Dialog isOpen={open} position={[200, 120]} size={[400, 300]} resizable>…</Dialog>
+
+// 标题栏自定义图标用 icon+
+import { IconPlusIcPublicHelp } from '@nce/icon-plus';
+<Dialog isOpen={open} title="新建" customIcons={<IconPlusIcPublicHelp />} onClose={close}>…</Dialog>
 ```
 
 ## 5. 数据结构
@@ -195,9 +265,20 @@ buttons={[{ text: '确定', onClick: () => { setOpen(false); save(); } }]}
 | `onClose` | `(event) => void` | 关闭按钮 / ESC；需自行置 `isOpen=false` |
 | `title` / `titleTip` | `any` / `string` | 标题 / 标题提示 |
 | `buttons` | `Array<ButtonProps>` | 按钮区，如 `[{ text, status: 'primary', onClick }]` |
-| `size` / `position` | `[w, h]` / `[x, y]`，可 `null` / 百分比 | 大小 / 位置（左边距 / 上边距） |
-| `modal` / `closable` / `closeOnEscape` | `boolean`，默认均为 `true` | 模态 / 显示关闭按钮 / ESC 关闭 + 弹窗内焦点循环 |
+| `buttonStyle` / `contentStyle` / `maskStyle` / `style` | `CSSProperties` | 按钮区 / 内容区 / 蒙层 / 整体样式 |
+| `size` | `[w, h]`，可 `null` / `'auto'` / 百分比 | 大小；**高传 `'auto'` 自适应内容 + `style={{ maxHeight: '80vh' }}` 限高**，宽按场景设（见 §4），勿定死 |
+| `position` | `[x, y]`，可 `null` | 位置（左边距 / 上边距） |
+| `modal` | `boolean`，默认 `true` | 模态 |
+| `closable` | `boolean`，默认 `true` | 显示关闭按钮 |
+| `closeOnEscape` | `boolean`，默认 `true` | ESC 关闭 + 弹窗内焦点循环 |
+| `movable` / `resizable` / `onResize` | `boolean`（默认 true）/ `boolean`（默认 false）/ `(obj) => void` | 拖动 / 缩放 |
+| `minimizable` / `onMinimized` / `customMinimized` / `minimizModalEnable` | — | 最小化相关 |
 | `destroyOnClose` | `boolean`，默认 `true` | 关闭时销毁内容 |
 | `zindex` | `any`，默认 `9999` | 层级，**不要超过 9999** |
-| `mountId` | `string` | 挂载节点 id，不传则挂在 body |
-| 其余 | — | `children` 内容（React 或原生标签）/ `buttonStyle` `contentStyle` `maskStyle` `style` 各区样式 / `movable`（默认 true）`resizable`（默认 false）`onResize(obj)` 拖动与缩放 / `minimizable` `onMinimized` `customMinimized` `minimizModalEnable` 最小化 / `focusOnClose` `lastFocus`（默认 true）打开聚焦关闭按钮、关闭后回原焦点 / `customClose`（默认 false，为 true 时默认关闭按钮不生效）/ `boundary`（`{ top, right, bottom, left }`）`isAllowedExceed` `autoSetPosition` 拖拽范围、可拖出窗口、自动定位 / `animationOff` 关闭动画 / `customIcons` `url` 标题栏自定义图标、内嵌第三方页面 / `id` `className` 最外层 |
+| `mountId` | `string` | 挂载节点 id，默认 body |
+| `focusOnClose` / `lastFocus` | `boolean`，默认 `true` | 打开时聚焦关闭按钮 / 关闭后回到原焦点 |
+| `customClose` | `boolean`，默认 `false` | 为 true 时默认关闭按钮不生效，自行处理 |
+| `boundary` / `isAllowedExceed` / `autoSetPosition` | `{ top, right, bottom, left }` / `boolean` / `boolean` | 拖拽范围 / 可拖出窗口 / 自动定位 |
+| `animationOff` | `boolean`，默认 `false` | 关闭动画 |
+| `customIcons` / `url` | `any` / `string` | 标题栏自定义图标（默认用 `customIcons={<IconPlusIc* />}`）/ 内嵌第三方页面 |
+| `id` / `className` | — | 最外层 |

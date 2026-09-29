@@ -1,14 +1,13 @@
-# Table
-
-## 设计规范
-
 # Table 表格使用规范
 
 用于密集、可比较、基于行的企业数据。
 
 ## 使用规则
 
-- 行内操作使用 `Button types=link`；状态使用文本、图标或 Tag，不使用 Badge。
+- 数字类右对齐，其余优先左对齐，操作列必须左对齐。
+- 操作列使用纯图标 Button：设置 `icon`、`shape=circle`、`size=small`，不设置 `value`。
+- 数据列中的链接式操作（如点击名称查看详情）使用 `<a>` 标签 + `var(--interactive-link)` + `cursor: pointer`。**不使用 `<Button type="link">`**。
+- 状态使用文本、图标或 Tag，不使用 Badge。
 
 ## 布局
 
@@ -17,7 +16,8 @@
 
 ## Don't
 
+- 不要使用 Table 的 `title` 和 `footer` 属性。
+- 不要同时设置左右固定列（`fixed: "left"` + `fixed: "right"`）— 只允许固定一侧。
 - 不要手动画分页、复选列、排序或筛选。
 - 不要把标准表格行做成 Card。
-- 不要用固定宽度破坏表格自适应。
-- 不要使用开发组件不存在的属性或枚举值。
+- 不要在操作列使用文字按钮、带文字的图标按钮或 `types=link`。

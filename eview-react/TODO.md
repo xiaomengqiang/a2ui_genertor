@@ -36,7 +36,9 @@
 
 ## 待实测（需在真实 `@nce/eview-react` 工程里跑一次确认，本地无内网 npm 源）
 
-> 作者侧拿不到真实包，按「阶段 0 · 0.2」三步推进：资料内交叉核对 → 核不了的保持兼容写法并在 Reference 文件头标 ⚠️ → 借使用方的真实工程确认后回填本表。
+> ✅ **2026-09 内网真机已确认（Form 托管）**：`Form.Item name` + 控件不传 `value`/`onChange` + `ref.submit()` → `onSuccess(values)` **能收到 `values`**；`setFieldsValue` / `resetFields` / `submit` / `getFieldsValue` 均可用；Form rules `required` / `email` / `range` 在 `submit()` 时正常拦截。已写入 `Form.md` 头部与 `antd-to-eview-react/references/form-migration.md`。
+> ⚠️ **同批发现的硬坑**：`initialValues` **必须传对象**，传 `undefined` 会让 `onSuccess(values)` 收到空对象（"托管没生效"的根因）；控件自带 `validator` 默认不在 `submit()` 时跑，需 `validateAllChildComponent={true}`（此项仍待实测确认）；`onFailed` 真机示例只取第一参 `errors`。
+> 其余未确认项仍按「阶段 0 · 0.2」三步推进：资料内交叉核对 → 核不了的保持兼容写法并在 Reference 文件头标 ⚠️ → 借使用方的真实工程确认后回填本表。
 
 | 项 | 现状 | 确认后动作 |
 |----|------|-----------|

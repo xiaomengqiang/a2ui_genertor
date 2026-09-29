@@ -1,0 +1,9 @@
+/* theme-dark.css - 原始暗色覆盖占位
+   步骤 2: 跑 extract-umd.cjs 从源项目 index.page.html 的 <style> 块提取 .dark 覆盖到此文件。
+   暗色模式：.dark 挂 <html>（app.jsx 的 useEffect 控制）。 */
+
+/* .dark {
+    --color-text-primary: #FFFFFF;
+    --surface: #000000;
+    ...
+} */

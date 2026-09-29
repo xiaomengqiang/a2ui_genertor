@@ -79,6 +79,14 @@ const groupData = [
 <ButtonGroup data={groupData} />
 ```
 
+### 图标：leftIcon / rightIcon 用 icon+
+
+```tsx
+import { IconPlusIcPublicSave, IconPlusIcPublicArrowRight } from '@nce/icon-plus';
+<Button status="primary" text="保存" leftIcon={<IconPlusIcPublicSave />} onClick={handleSave} />
+<Button text="下一步" rightIcon={<IconPlusIcPublicArrowRight />} onClick={handleNext} />
+```
+
 ## 5. 数据结构
 
 ```tsx

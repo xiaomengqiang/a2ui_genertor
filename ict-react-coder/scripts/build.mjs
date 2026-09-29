@@ -11,7 +11,7 @@
 //   3. 剥离 import/export 语句(固定模式),模块包进 IIFE 共享一个 __export 池
 //   4. 提取使用到的 Lucide 图标(扫描 name="x" / icon: "x" 等模式),
 //      在 lucide-icon-nodes.json(1777 icons)中校验,非 Lucide 名 → WARN,
-//      将图标 nodes 注入 shared/icons.js 模块(const LUCIDE = {...})
+//      将图标 nodes 注入 shared/icon.jsx 模块(const LUCIDE = {...})
 //   5. 内联全部产物 — base/light/theme/dark/ant 五层 CSS 进 <style>
 //      (font url() 重写为 HTML 根相对路径),
 //      React/ReactDOM/dayjs/antd/Babel 保持本地 assets/library 引用
@@ -21,7 +21,7 @@
 // Usage:  node build.mjs --dir "<scaffold path>"
 
 import { readFile, writeFile } from "node:fs/promises";
-import { extname, resolve, dirname, basename } from "node:path";
+import { extname, resolve, dirname } from "node:path";
 
 // --- parse --dir argument (the scaffold path to build) ---
 const args = process.argv.slice(2);
@@ -39,7 +39,7 @@ const STYLE_DIR = resolve(ROOT, "assets/style");
 // → ant(antd 组件换肤层,.dark 规则随暗色生效)
 const STYLE_FILES = ["base.css", "light.css", "theme.css", "dark.css", "ant.css"].map((f) => resolve(STYLE_DIR, f));
 const LUCIDE_JSON = resolve(ROOT, "assets/library/lucide-icon-nodes.json");
-const ICONS_MODULE = "assets/shared/icons.js";
+const ICONS_MODULE = "assets/shared/icon.jsx";
 
 // Matches: import [Def,] [Def2] [{ named, names }] from "source";
 const IMPORT_RE = /^[ \t]*import\s+(?:(\w+)\s*,\s*)?(?:(\w+)\s+)?(?:\{([^}]*)\})?\s*from\s*["']([^"']+)["'];?[ \t]*$/gm;
@@ -69,7 +69,6 @@ const moduleByPath = new Map(); // resolved path -> module record
 const loaded = new Set();
 const cssFiles = [];  // in dependency order
 let entryDefault = null;
-let appTitle = null;
 const iconRefs = new Map(); // kebab-name -> Set of "file (usage)" for error reporting
 
 function recordIconRef(rawName, label) {
@@ -108,12 +107,6 @@ async function loadModule(filePath) {
   const defImports = []; // { local, dep } — default import 的本地名与依赖路径
   let code = raw;
 
-  // entry-only: extract APP_TITLE before stripping exports
-  if (filePath === ENTRY) {
-    const tm = raw.match(/^[ \t]*export\s+const\s+APP_TITLE\s*=\s*["']([^"']+)["']/m);
-    if (tm) appTitle = tm[1];
-  }
-
   code = code.replace(IMPORT_RE, (_match, def1, def2, named, source) => {
     const def = def1 || def2;
     if (source === "react") {
@@ -137,7 +130,7 @@ async function loadModule(filePath) {
       return "";
     }
     if (source === "@ant-design/icons") {
-      throw new Error(`${label}: 本 skill 不使用 @ant-design/icons — 页面图标一律使用 <Icon name="lucide-name" />(import { Icon } from "./assets/shared/icons.js")`);
+      throw new Error(`${label}: 本 skill 不使用 @ant-design/icons — 页面图标一律使用 <Icon name="lucide-name" />(import { Icon } from "./assets/shared/icon.jsx")`);
     }
     deps.push(resolve(dirname(filePath), source));
     if (def) defImports.push({ local: def, dep: resolve(dirname(filePath), source) });
@@ -238,6 +231,42 @@ if (!entryDefault) {
   throw new Error("app.jsx must have: export default function App()");
 }
 
+// --- Banned antd components (布局/装饰类 — 须用 H5 + CSS 或组件组合实现) ---
+const ANTD_BANNED = ["Layout", "Grid", "Row", "Col", "Flex", "Space", "Card", "Skeleton", "Masonry", "Popconfirm", "Watermark", "Typography", "List", "Listy", "QRCode", "Tour", "Statistic", "FloatButton", "Mentions", "Descriptions", "Affix", "Avatar", "Transfer", "Result", "Upload", "Alert", "AutoComplete", "Splitter", "Image", "Calendar"];
+const bannedHits = [];
+for (const mod of modules) {
+  for (const n of mod.antdNames) {
+    if (ANTD_BANNED.includes(n)) bannedHits.push(`${mod.label}: import { ${n} } from "antd"`);
+  }
+  const tagRe = new RegExp(`<(?:${ANTD_BANNED.join("|")})[\\s/>.]|antd\\.(?:${ANTD_BANNED.join("|")})\\b`, "g");
+  let bm;
+  while ((bm = tagRe.exec(mod.code)) !== null) {
+    const name = bm[0].replace(/[<\s/>.]|\bantd\./g, "").replace(/^antd\./, "");
+    bannedHits.push(`${mod.label}: ${bm[0].startsWith("<") ? `<${name}…` : `antd.${name}`}`);
+  }
+}
+if (bannedHits.length) {
+  console.error("FAIL  禁用的 antd 组件(布局/装饰类) — 用纯 H5 或已有组件组合实现:");
+  for (const h of [...new Set(bannedHits)]) console.error(`  ${h}`);
+  process.exit(1);
+}
+
+// --- Icon size format check: must be rem string, not number ---
+const iconSizeWarnings = [];
+for (const mod of modules) {
+  const sizeNumRe = /<Icon\b[^>]*?\bsize=\{(\d+(?:\.\d+)?)\}/gs;
+  let ism;
+  while ((ism = sizeNumRe.exec(mod.code)) !== null) {
+    const px = parseFloat(ism[1]);
+    const rem = `${parseFloat((px / 16).toFixed(4))}rem`;
+    iconSizeWarnings.push(`  ${mod.label}: size={${px}} → use size="${rem}"`);
+  }
+}
+if (iconSizeWarnings.length) {
+  console.log("WARN  Icon size should be rem string, not number:");
+  console.log(iconSizeWarnings.join("\n"));
+}
+
 // --- Lucide icon extraction & validation ---
 const lucideRaw = JSON.parse(await readFile(LUCIDE_JSON, "utf8"));
 const iconTableEntries = [];
@@ -330,28 +359,30 @@ if (script.includes("</script>")) {
   throw new Error("Module code contains </script>, cannot inline into HTML");
 }
 
-const title = appTitle || basename(ROOT);
 const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${title}</title>
+<title>ICT页面</title>
 <!-- 1. Core Libraries (local UMD) -->
 <script src="./assets/library/react.production.min.js"></script>
 <script src="./assets/library/react-dom.production.min.js"></script>
 <script src="./assets/library/dayjs.min.js"></script>
 <!-- 2. UI Components (local UMD, antd 内置图标随包携带) -->
 <script src="./assets/library/antd.min.js"></script>
-<!-- 3. react-intl (offline, exposes ReactIntl) -->
+<!-- 3. Charts (local UMD, echarts → hui-charts 全局 HUICharts) -->
+<script src="./assets/library/echarts.min.js"></script>
+<script src="./assets/library/hui-charts.umd.js"></script>
+<!-- 4. react-intl (offline, exposes ReactIntl) -->
 <script src="./assets/library/react-intl.umd.js"></script>
-<!-- 3. Babel Transpiler (local) -->
+<!-- 5. Babel Transpiler (local) -->
 <script src="./assets/library/babel.min.js"></script>
-<!-- 4. 五层 CSS(base → light → theme → dark → ant 组件换肤层)内联 -->
+<!-- 6. 五层 CSS(base → light → theme → dark → ant 组件换肤层)内联 -->
 <style>
 ${cssParts.join("\n\n")}
 </style>
-<!-- 5. Base styles -->
+<!-- 7. Base styles -->
 <style>
 body, html { margin: 0; padding: 0; height: 100%; font-family: var(--font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif); }
 #root { height: 100%; }
@@ -375,7 +406,6 @@ ${script}
 
 await writeFile(OUT, html, "utf8");
 console.log(`OK  ${OUT}`);
-console.log(`    title   : ${title}`);
 console.log(`    modules (${modules.length}): ${modules.map((m) => m.label).join(", ")}`);
 console.log(`    css     (${cssFiles.length + STYLE_FILES.length}): style/(base,light,theme,dark,ant) + ${cssFiles.map((c) => c.slice(ROOT.length + 1).replace(/\\/g, "/")).join(", ")}`);
 console.log(`    icons   (${iconTableEntries.length}): ${[...iconRefs.keys()].sort().join(", ") || "none"}`);

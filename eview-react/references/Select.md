@@ -77,6 +77,17 @@ statusRef.current.clear();
 
 父级 `onChange` 里先清子级选中值，再按父级值重新加载子级 `options`；加载要带取消标记防串数据，加载中重置要结束加载态，失败给出重试。完整写法见 §7。
 
+### 选项图标：icon / iconActive 用 icon+
+
+```tsx
+import { IconPlusIcPublicUser, IconPlusIcPublicUserActive } from '@nce/icon-plus';
+const userOptions = [
+  { text: '管理员', value: 'admin', icon: <IconPlusIcPublicUser />, iconActive: <IconPlusIcPublicUserActive /> },
+  { text: '访客', value: 'guest' },
+];
+<Select label="角色" options={userOptions} value={role} onChange={setRole} />
+```
+
 ## 5. 数据结构
 
 ```tsx
@@ -85,8 +96,8 @@ statusRef.current.clear();
 interface SelectOption {
   text: string;                 // 显示文字 —— 不是 label
   value: string | number | boolean | { value: any; [k: string]: any };
-  icon?: string;                // 选项图标（SelectIcon.jsx）
-  iconActive?: string;          // 选中态图标
+  icon?: string | ReactElement;  // 选项图标，默认用 icon+ 组件（SelectIcon.jsx）
+  iconActive?: string | ReactElement;  // 选中态图标
   tipData?: string;             // 悬浮提示（SelectEvent.jsx）
 }
 ```
@@ -252,7 +263,7 @@ const handleProvinceChange = (v) => { setProvince(v); loadCities(v); };
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
-| `options` | `Array<{ text, value, icon?, iconActive?, tipData? }>` | **必填**；`text` 字符串，`value` 可 string/number/boolean/object |
+| `options` | `Array<{ text, value, icon?, iconActive?, tipData? }>` | **必填**；`text` 字符串，`value` 可 string/number/boolean/object；`icon`/`iconActive` 收 `string \| ReactElement`（默认用 icon+ 组件） |
 | `value` | `any`（可 `null`） | 受控选中值；按 `value` 匹配，不是 index |
 | `selectedIndex` | `number` | 按 options 下标选中（VirtualScroll.jsx） |
 | `defaultLabel` | `string` | 未选中时的提示文案（官方注明后续会改名 placeholder） |
