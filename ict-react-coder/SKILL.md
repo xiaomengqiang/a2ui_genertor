@@ -54,6 +54,10 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 > - Root-level files (context.jsx / i18n.js) and entry (app.jsx / app.css) stay flat, no folders
 > - Use relative import paths within component folders
 
+### Component Specs
+
+Read and follow `references/component/{Name}.md` before using any antd component — the spec overrides general API knowledge.
+
 ### Import contract (ES Modules, build-time bundled)
 
 Supported — write **standard ES Module imports**; the bundler maps them to runtime globals:
@@ -79,7 +83,7 @@ NOT supported:
 - `export default` must be a named function declaration (`export default function App()`)
 - Page entry file must be `app.jsx`
 - Relative imports must include file extensions (`./src/views/device-table/index.jsx`, no omitting `.jsx`/`.js`/`.css`)
-- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` `Typography` `List` `Listy` `QRCode` `Tour` `Statistic` `FloatButton` `Mentions` `Descriptions` `Affix` `Avatar` `Transfer` `Result` `Upload` `Alert` `AutoComplete`. If needed, use pure H5 or existing component combinations instead.
+- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` `Typography` `List` `Listy` `QRCode` `Tour` `Statistic` `FloatButton` `Mentions` `Descriptions` `Affix` `Avatar` `Transfer` `Result` `Upload` `Alert` `AutoComplete` `Splitter` `Image` `Calendar`. If needed, use pure H5 or existing component combinations instead.
 
 ### Icon usage
 
@@ -121,6 +125,7 @@ When multilingual is required, use react-intl (bundled offline, `import ... from
    - Do NOT define bare `:root` / `.dark` selectors (without a descendant suffix) — global tokens already live in `assets/style/`
    - Per-mode values that tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override
 4. Do NOT create page-level antd component override styles (e.g., `antd.css`/`ant-override.css`). antd component skinning and visual gaps go into the shared `assets/style/ant.css` (including `.dark` rules) — single source, all pages benefit.
+5. Link-style actions (clickable text, e.g. table data cell links, card header actions, form auxiliary links, help links, inline text links) use `<a>` + `var(--interactive-link)` + `cursor: pointer` — NOT `<Button type="link">`.
 
 ### Content Guidelines
 
@@ -177,13 +182,13 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 - No `import * as`, no aliased imports (`{ a as b }`) — see Import contract
 - No npm packages beyond react/react-dom/antd/dayjs/react-intl — see Import contract
 - No `@ant-design/icons` — use Lucide Icon — see Import contract
-- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` `Typography` `List` `Listy` `QRCode` `Tour` `Statistic` `FloatButton` `Mentions` `Descriptions` `Affix` `Avatar` `Transfer` `Result` `Upload` `Alert` `AutoComplete` — use H5 or existing components when needed — see Import contract
+- Banned antd components: `Layout` `Grid(Row/Col)` `Flex` `Space` `Card` `Skeleton` `Masonry` `Popconfirm` `Watermark` `Typography` `List` `Listy` `QRCode` `Tour` `Statistic` `FloatButton` `Mentions` `Descriptions` `Affix` `Avatar` `Transfer` `Result` `Upload` `Alert` `AutoComplete` `Splitter` `Image` `Calendar` — use H5 or existing components when needed — see Import contract
 - `export default` must be a named function declaration; page entry must be `app.jsx` — see Import contract
 - Relative imports must include file extensions (`.jsx`/`.js`/`.css`) — see Import contract
 - No bare `:root`/`.dark` selectors in component CSS — see Styling rule 3
 - No page-level antd override CSS — see Styling rule 4
 - No antd darkAlgorithm or React-state theme switching — see Styling rule 3
-- No inventing antd component props — use standard Ant Design 5.29.3 API; complex components must follow `references/component/{Name}.md` specs
+- No inventing antd component props — use standard Ant Design 5.29.3 API; every component must follow `references/component/{Name}.md` specs
 
 ---
 
@@ -192,7 +197,8 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 1. build `OK` + verify `OK index.page.html verified`
 2. app.jsx: `export default function App()` present
 3. Mock data complete (row count, status diversity, semantic keys)
-4. `<artifact>` link output
+4. Every used antd component follows `references/component/{Name}.md` specs
+5. `<artifact>` link output
 
 ## References
 

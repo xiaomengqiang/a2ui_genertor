@@ -133,16 +133,27 @@ async function fetchSvg(name, variant, colorHex) {
   }
 }
 
+// size → rem 字符串;数字(设计画布 px)兜底转换为 rem
+function resolveSize(size) {
+  if (typeof size === "number") {
+    console.warn(`[Icon] size={${size}} is a number — use rem string instead (e.g. size="${(size / 16).toFixed(4).replace(/\.?0+$/, "")}rem")`);
+    const rem = size / 16;
+    return `${parseFloat(rem.toFixed(4))}rem`;
+  }
+  return size;
+}
+
 export function Icon({
   name,
   src,
-  size = 16,
+  size = "1rem",
   color,
   className = "",
   style,
   strokeWidth = 2,
   variant = "lined",
 }) {
+  const resolvedSize = resolveSize(size);
   const [plus, setPlus] = useState(plusState); // reuse already-probed result
   const [svg, setSvg] = useState(
     () => svgCache.get(`${name}&${variant}&${color}`) || ""
@@ -175,8 +186,8 @@ export function Icon({
   if (src) {
     return React.createElement("img", {
       src: src,
-      width: size,
-      height: size,
+      width: resolvedSize,
+      height: resolvedSize,
       className: className,
       alt: "",
       "aria-hidden": true,
@@ -195,8 +206,8 @@ export function Icon({
       "svg",
       {
         xmlns: "http://www.w3.org/2000/svg",
-        width: size,
-        height: size,
+        width: resolvedSize,
+        height: resolvedSize,
         viewBox: "0 0 24 24",
         fill: "none",
         strokeWidth: strokeWidth,
@@ -217,14 +228,14 @@ export function Icon({
     return React.createElement("span", {
       className,
       "aria-hidden": true,
-      style: { ...style, width: size, height: size },
+      style: { ...style, width: resolvedSize, height: resolvedSize },
     });
   }
   
   return React.createElement("span", {
     className,
     "aria-hidden": true,
-    style: { ...style, width: size, height: size },
+    style: { ...style, width: resolvedSize, height: resolvedSize },
     dangerouslySetInnerHTML: { __html: svg },
   });
 }

@@ -3,49 +3,17 @@
 > **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Icon/Icon`、`IconButton/IconButton`；官网组件页 Icon 及示例 `IconBasic.jsx` / `IconPlusBasic.jsx` / `IconPlusType.jsx` / `IconPlusSize.jsx`、IconButton 及示例 `Basic.tsx` / `IconPlus.tsx` / `BubbleDirection.tsx` / `Disabled.tsx` / `Event.tsx`
 >
 > ⚠️ 官网首推 **icon+ 图标库**：`import { IconPlusIcPublicSearch } from '@nce/icon-plus'`，按需引入，2000+ 图标，`type="filled"` 换风格、`iconColor={['red']}` 换色、`iconSize` 换尺寸（只能取 12/14/16/20/24/32/36/40/48/60）。
-> ⚠️ **两种渲染方式**（详见下方「渲染方式」段）：**A. scaffold 自定义 `<Icon>` 组件**（`src/shared/icon.jsx`，运行时 fetch icon-plus，迁移期默认、调用点零改动）；**B. icon+ 静态 import**（`import { IconPlusIcXxx } from '@nce/icon-plus'`，可选目标范式）。eview-react 内置 `Icon name="ict_*"` 已下线；scaffold 的同名自定义 `<Icon>` 是源项目契约保留件（A 范式），底层走 icon-plus 在线，**两者不同**。真实 icon+ 名迁移时用 icon-plus 接口（`getIconInfo`）按 antd/Lucide 名 keyword 查得（见下方「切到 B 范式：icon+ 名发现流程」），本文示例的 icon+ 组件名仅为示意。icon+ 组件名由下划线名按分段大写 + 前加 `IconPlus` 得到（如 `ic_public_search` → `IconPlusIcPublicSearch`），规则见下方「切到 B 范式」。
-> ⚠️ 只有图标、要点击、要气泡提示 → 用 **`IconButton`**，不要给图标组件挂 onClick 再自己写 title。
+> ⚠️ **三种渲染方式**（详见下方「渲染方式」段）：**C. catalog 离线匹配 + icon+ 静态 import**（`import { IconPlusIcXxx } from '@nce/icon-plus'`，读 skill 自带 `../icons/icon-plus-names.json` 离线匹配 Lucide/antd 名，**优选默认、无网络依赖**）；**A. scaffold 自定义 `<Icon>` 组件**（`src/shared/icon.jsx`，运行时 fetch icon-plus，调用点零改动，内网兜底备选）；**B. icon+ 在线名发现**（`getIconInfo` 接口查名，外网不便时不用）。eview-react 内置 `Icon name="ict_*"` 已下线；scaffold 的同名自定义 `<Icon>` 是源项目契约保留件（A 范式），底层走 icon-plus 在线，**两者不同**。C/B 的真实 icon+ 组件名合成规则：`"IconPlusIc" + Domain + Name`（如 `Public` + `Search` → `IconPlusIcPublicSearch`，见 [source-project-guidelines §3.2](../source-project-guidelines.md)）。
 
-## 渲染方式（两种）
+## 渲染方式（三种）
 
 | 方式 | 是什么 | 迁移成本 | 何时用 |
 |------|--------|---------|--------|
-| **A. 自定义 `<Icon>` 组件**（scaffold 默认） | scaffold `src/shared/icon.jsx`，保留源项目 `<Icon name="search" size={14} />` 契约；运行时 fetch icon-plus（getConfig 探测 → getIconInfo 查名 → getIcon 取 SVG 注入）；dev 下 vite `icon-api-base-transform` 插件 + `/assetRepository` 反代解决跨域；probe 失败渲染 `null`（内网恒可达，无 Lucide 兜底）。props：`name`/`src`/`size`(默认 16)/`color`/`variant`(`lined`/`filled`/`two-tone`/`circle`/`square`)/`className`/`style` | **最低**：调用点零改动，只改 import 路径 `./assets/shared/icon.jsx` → `./shared/icon.jsx` | 迁移期默认 |
-| **B. icon+ 静态 import**（可选目标范式） | `import { IconPlusIcXxx } from '@nce/icon-plus'`（scaffold 已预置依赖），按需引入、彻底离线；`type="filled"` 换风格、`iconColor` 换色、`iconSize` 换尺寸（只能取 12/14/16/20/24/32/36/40/48/60） | **中**：逐个查名替换调用点（getIconInfo 名发现 → PascalCase） | 要消除运行时 fetch / 走 eview-react 惯用范式时；见下方「切到 B 范式」。名查不到/接口不可用时用占位 `IconPlusIcPublicTransverseRectangleTemplate` 保证编译通过 |
+| **C. catalog 离线匹配 + icon+ 静态 import**（优选默认） | 读 skill 自带 `../icons/icon-plus-names.json`（按领域划分的 icon+ 名目录）离线匹配源 Lucide/antd 名 → `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import（scaffold 已预置依赖）；`type="filled"` 换风格、`iconColor` 换色、`iconSize` 换尺寸（支持rem、px、数字） | **低-中**：名靠 catalog 离线匹配（`Public`>`Ict` 优先），逐个改调用点为静态 import | **迁移期默认**；无网络依赖、彻底离线；见 [source-project-guidelines §3.2](../source-project-guidelines.md)。名查不到用占位 `IconPlusIcPublicTransverseRectangleTemplate` 保证编译通过 |
+| **A. 自定义 `<Icon>` 组件**（scaffold 备选） | scaffold `src/shared/icon.jsx`，保留源项目 `<Icon name="search" size={14} />` 契约；运行时 fetch icon-plus（getConfig 探测 → getIconInfo 查名 → getIcon 取 SVG 注入）；dev 下 vite `icon-api-base-transform` 插件 + `/assetRepository` 反代解决跨域；probe 失败渲染 `null`（内网恒可达，无 Lucide 兜底）。props：`name`/`src`/`size`(rem需转换为px后取数字)/`color`/`variant`(`lined`/`filled`/`two-tone`/`circle`/`square`)/`className`/`style` | **最低**：调用点零改动，只改 import 路径 `./assets/shared/icon.jsx` → `./shared/icon.jsx` | 内网运行时 fetch 兜底备选；见 [source-project-guidelines §3.3](../source-project-guidelines.md) |
+| **B. icon+ 在线名发现**（备选） | `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import，名靠在线 `getIconInfo?keyword=&topK=2&source_id=6` 接口发现；与 C 共用静态 import 范式，仅名发现方式不同 | **中**：逐个查名替换调用点（在线 getIconInfo 名发现 → PascalCase） | 外网/接口不便时**不用**，改用 C；仅 catalog 未命中且能联通内网接口时兜底；见 [source-project-guidelines §3.4](../source-project-guidelines.md)。名查不到/接口不可用时用占位 `IconPlusIcPublicTransverseRectangleTemplate` 保证编译通过 |
 
-> 本文 §1 起的 icon+ / IconButton 用法是 **B 范式**（目标态）。迁移期默认用 **A 范式**即可（调用点零改动），不必逐个替换为 icon+ 静态 import；若要切 B，按下「切到 B 范式：icon+ 名发现流程」逐个查名替换。
-
-### 切到 B 范式：icon+ 名发现流程（可选）
-
-若要消除运行时 fetch、走 eview-react 惯用范式，把预制 shim 换成 `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import（scaffold 已预置依赖）。需做一次名发现——icon+ 全量目录不随 skill 打包，用 icon-plus 在线接口按 Lucide/antd 名 keyword 查得 icon+ 名。
-
-**接口**：`GET https://octo.hdesign.huawei.com/assetRepository/iconPlus/getIconInfo?keyword=<keyword>&topK=2&source_id=6`
-- 迁移期一次性查询：收集源项目所有图标名（Lucide/antd 名），`keyword` 传逗号拼接的全部名，一次请求拿回每个名对应的 icon+ 名
-- 响应是数组，每项 `item.icons[]`；优先取 `group` 含「系统图标」的图标，取其 `name`；否则回退 `item.icons[0].name`；都没有则该名解析失败
-
-**下划线名 → PascalCase 组件名**：按下划线分段、每段首字母大写、拼接、前加 `IconPlus`。例：`ic_public_search` → `IconPlusIcPublicSearch`。
-
-**失败回退**：API 不可用或某名无匹配时，用占位图标 `IconPlusIcPublicTransverseRectangleTemplate`，保证编译通过、不阻塞迁移。
-
-**整体流程**：
-
-```jsx
-// 1) 收集源项目所有图标名（Lucide/antd 名，如 sun/search/arrow-left）
-// 2) 一次性请求 getIconInfo?keyword=sun,search,arrow-left,... → 拿到每个名对应的 icon+ 下划线名（如 ic_public_sun）
-// 3) 按下划线分段转 PascalCase（IconPlusIcPublicSun）
-// 4) eview-react 工程里静态 import，替换原 <Icon name="sun" /> 调用点
-import { IconPlusIcPublicSearch, IconPlusIcPublicSun } from '@nce/icon-plus';
-<Button leftIcon={<IconPlusIcPublicSun />} onClick={toggleDark} />
-```
-
-接口在此只做迁移期一次的名发现，不参与运行时渲染。切完后可删 `src/shared/icon.jsx`（shim 不再被引用）。
-
-| 源项目图标（Lucide/antd 名） | 接口返回下划线名（示意） | icon+ 组件名 |
-|------------------------------|------------------------|-------------|
-| `search` / `SearchOutlined` | `ic_public_search` | `IconPlusIcPublicSearch` |
-| `sun` / `SunOutlined` | `ic_public_sun` | `IconPlusIcPublicSun` |
-| `arrow-left` / `ArrowLeftOutlined` | `ic_public_arrow_left` | `Button leftIcon={<IconPlusIcPublicArrowLeft />}` |
-| `edit` / `EditOutlined` | `ic_public_edit` | `IconButton iconName={<IconPlusIcPublicEdit />}` |
+> 本文 §1 起的 icon+ / IconButton 用法是 **C/B 范式**（静态 import 目标态）。**迁移期默认用 C**（catalog 离线匹配 → 静态 import）；若内网运行时 fetch 兜底，用 A（调用点零改动）；外网接口不便时不要用 B。切到 C 后保留 `src/shared/icon.jsx`（A 兜底，不删）。
 
 ## 1. 功能定位
 
@@ -80,7 +48,7 @@ const [deleting, setDeleting] = useState<Set<string>>(new Set());
 import { IconPlusIcPublicSearch, IconPlusIcPublicTrash, IconPlusIcPublicEdit } from '@nce/icon-plus';
 <IconPlusIcPublicSearch />
 <IconPlusIcPublicEdit />
-<IconPlusIcPublicTrash type="filled" iconColor={['currentColor']} iconSize={20} />   // 示例继承业务容器的文字颜色
+<IconPlusIcPublicTrash type="filled" iconColor={['currentcolor']} iconSize="1.25rem" />   // 示例继承业务容器的文字颜色
 ```
 
 ### IconButton：图标操作 + 气泡

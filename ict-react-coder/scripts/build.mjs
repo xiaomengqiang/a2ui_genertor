@@ -232,7 +232,7 @@ if (!entryDefault) {
 }
 
 // --- Banned antd components (布局/装饰类 — 须用 H5 + CSS 或组件组合实现) ---
-const ANTD_BANNED = ["Layout", "Grid", "Row", "Col", "Flex", "Space", "Card", "Skeleton", "Masonry", "Popconfirm", "Watermark", "Typography", "List", "Listy", "QRCode", "Tour", "Statistic", "FloatButton", "Mentions", "Descriptions", "Affix", "Avatar", "Transfer", "Result", "Upload", "Alert", "AutoComplete"];
+const ANTD_BANNED = ["Layout", "Grid", "Row", "Col", "Flex", "Space", "Card", "Skeleton", "Masonry", "Popconfirm", "Watermark", "Typography", "List", "Listy", "QRCode", "Tour", "Statistic", "FloatButton", "Mentions", "Descriptions", "Affix", "Avatar", "Transfer", "Result", "Upload", "Alert", "AutoComplete", "Splitter", "Image", "Calendar"];
 const bannedHits = [];
 for (const mod of modules) {
   for (const n of mod.antdNames) {
@@ -249,6 +249,22 @@ if (bannedHits.length) {
   console.error("FAIL  禁用的 antd 组件(布局/装饰类) — 用纯 H5 或已有组件组合实现:");
   for (const h of [...new Set(bannedHits)]) console.error(`  ${h}`);
   process.exit(1);
+}
+
+// --- Icon size format check: must be rem string, not number ---
+const iconSizeWarnings = [];
+for (const mod of modules) {
+  const sizeNumRe = /<Icon\b[^>]*?\bsize=\{(\d+(?:\.\d+)?)\}/gs;
+  let ism;
+  while ((ism = sizeNumRe.exec(mod.code)) !== null) {
+    const px = parseFloat(ism[1]);
+    const rem = `${parseFloat((px / 16).toFixed(4))}rem`;
+    iconSizeWarnings.push(`  ${mod.label}: size={${px}} → use size="${rem}"`);
+  }
+}
+if (iconSizeWarnings.length) {
+  console.log("WARN  Icon size should be rem string, not number:");
+  console.log(iconSizeWarnings.join("\n"));
 }
 
 // --- Lucide icon extraction & validation ---
