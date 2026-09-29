@@ -2242,47 +2242,6 @@ input.ant-input.ant-input-sm {
   border-bottom: 2px solid var(--brand-30) !important;
 }
 
-.ant-form-item .ant-form-item-label > label {
-  font-size: 14px;
-  color: var(--gray-90);
-}
-.ant-form-item .ant-form-item-label label:not(.ant-form-item-required)::before {
-  content: "*";
-  display: inline-block;
-  margin-inline-end: var(--ant-margin-xxs);
-  font-size: var(--ant-font-size);
-  font-family: sans-serif;
-  line-height: 1;
-  visibility: hidden;
-}
-.ant-form-item .ant-form-item-extra {
-  font-size: 12px;
-  line-height: 1;
-  color: var(--gray-30);
-}
-.ant-form-item .ant-form-item-explain-error {
-  font-size: 12px;
-  line-height: 1;
-  color: var(--red-50);
-}
-.ant-form-item .ant-form-item-explain-warning {
-  font-size: 12px;
-  line-height: 1;
-  color: var(--yellow-50);
-}
-.dark .ant-form-item .ant-form-item-label > label {
-  color: var(--gray-0);
-}
-.dark .ant-form-item-extra {
-  color: var(--gray-40);
-}
-.dark .ant-form-item-explain-error {
-  color: var(--red-40);
-}
-.dark .ant-form-item-explain-warning {
-  color: var(--orange-50);
-}
-
 .ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor {
   line-height: 1.5rem;
 }
