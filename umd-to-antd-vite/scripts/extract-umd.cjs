@@ -319,6 +319,7 @@ const handoff = {
     algorithm: 'antd theme.darkAlgorithm',
   },
   verification: null,
+  migrationPlan: null,
   notes: stats.scriptsExtracted
     ? `提取了 ${stats.scriptsExtracted} 个 script 块到 _extracted/，文件名为推断需人工核对`
     : '',

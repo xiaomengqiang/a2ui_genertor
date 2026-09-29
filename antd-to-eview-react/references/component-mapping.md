@@ -1,6 +1,7 @@
 # 组件映射总表（antd → eview-react）
 
 > 本表覆盖 antd 常用组件到 eview-react 的完整映射。每行标注：有对应 / 组合替代 / 无对应需手写。
+> 文末另附**属性拼写异常**（官方拼错的属性名）和**回调签名差异**（首参是值不是 event）两张速查表。
 > eview-react 组件的完整 API 详见本 skill 的 `references/components/<组件>.md`。
 
 ## 通用
@@ -21,8 +22,6 @@
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Form` / `Form.Item` | `Form` / `Form.Item` | `useForm()`→`useRef`；`validateFields()` Promise→`submit()`+`onSuccess` 回调；多列用 `itemCol` 设 Form 级默认，**单项覆盖用 `Form.Item.col`**；Form 内不能用 div/Row/Col 做栅格；详见 [form-migration.md](form-migration.md) |
-| `Row` / `Col`（Form 内用） | 删掉（用 `itemCol` / `Form.Item.col`） | eview-react Form 自带 24 栅格，`itemCol` 设默认宽度，**单项可用 `Form.Item.col` 覆盖** |
 | `Input` | `TextField` | `onChange(value, oldValue, event)` 首参是值；`validator` 返回 `{result,message}`；`required` 自带星号；无 `allowClear`/`prefix`/`rules`/`onPressEnter` |
 | `Input.TextArea` | `TextArea` | `onChange(targetValue, value, event)`；`onBlur(event)` 无 value；`maxLength` 自带右下角计数（替代 `showCount`）；无 `autoSize`/`allowClear`；无 ref 方法 |
 | `Input.Search` | `SearchInput` | `onSearch` 值变化也触发（需防抖）；`onClear(value)`；`placeholder` 保留；`onSuggest` vs `popItems` 互斥 |
@@ -46,7 +45,6 @@
 | `DatePicker.RangePicker` | `DatePicker range={[]}` | `onOkClick` 取 `fromDateObj/toDateObj`；回调里要 `setTimeout` 再 setState |
 | `TimePicker` | `Spinner type="time"` | 值是字符串 `"hh:mm:ss"`；`timeFormat` |
 | `Upload` | `FileUpload` | 组件不发请求；`handleSubmit({event,data})` 自己发；`updateProgressStatus`/`fileUploadStatus` 回写；`disable`（不是 disabled）；`onReload` 重传 |
-| `Form.List` | 手写 | 无对应；用数组 state + `map` 渲染 |
 
 ## 数据展示
 
@@ -92,7 +90,7 @@
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
 | `Layout` / `Header` / `Sider` / `Content` | 手写 CSS 布局 | 见 [handwrite-templates.md](handwrite-templates.md) §4 |
-| `Menu` | 手写导航列表 | 见 [handwrite-templates.md](handwrite-templates.md) §5 |
+| `Menu` | `Accordion` | `items`→`data`（`key`/`label`→`value`/`title`）；`selectedKeys` 数组→`selectedValue` 单 string；`onClick({key})`→`onClick(node)`；`inlineCollapsed`→`expanded`/`onExpand`（⚠️ `expanded={true}`=收起，语义反转）；多级导航用 Accordion，简单平铺列表仍可手写；见 [Accordion.md](components/Accordion.md) |
 | `Breadcrumb` | `Crumbs` | `data=[{title,url?}]`；最后一项无 url；`seprator`（拼错）；`onClick(data,event)` 组件级 |
 | `Affix` | 手写 `position:sticky` | 无对应 |
 | `BackTop` | 手写 | 无对应 |

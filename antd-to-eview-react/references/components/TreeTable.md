@@ -1,10 +1,10 @@
 # TreeTable 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `TreeTable/TreeTable`；官网组件页 TreeTable 及示例 `TreeTableBasic.jsx` / `TreeTablecheckedRows.jsx` / `TreeTableExpandAllAndCollapseAll.jsx` / `TreeTableCustomRender.jsx` / `TreeTableMultiSelect.jsx`（共 13 个 demo）
->
+> 资料来源：TypeDoc `TreeTable/TreeTable` + 官网 TreeTable 页示例。
 > ⚠️ 与 `Table` 的两个根本差别：列定义用 **`field`** 指字段（Table 是 `key`）；行数据是 **`{ data: {...}, children: [...], isLeaf }`** 的嵌套对象（Table 是扁平行）。
 > ⚠️ 没有分页：层级数据一次给全，量大用 `virtualScroll` + `virtualShowNum`。
-> ⚠️ 展开态受控：`expandedKeys` + `onNodeExpand(rowId, expandedKeys, expanded)`，全展开 / 全收起走 ref 的 `expandAll()` / `collapseAll()`（demo）。
+> ⚠️ 展开态受控：`expandedKeys` + `onNodeExpand(rowId, expandedKeys, expanded)`，全展开 / 全收起走 ref 的 `expandAll()` / `collapseAll()`。
+> ⚠️ `disabelCheckAssociated` 默认 false（父子联动），属性名官方即如此拼写（不是 disableCheckAssociated）。
 
 ## 1. 功能定位
 
@@ -16,26 +16,7 @@ TreeTable 是"树 + 多列"的层级表格：属性 / 配置项分组展示、�
 | 扁平列表 + 分页 | `Table`（[Table.md](Table.md)） | TreeTable |
 | 只要层级、单列 | `Tree`（[Tree.md](Tree.md)） | TreeTable |
 
-## 2. 典型场景
-
-- 设备配置查看：属性分组（VRRP / 接口 / 路由）→ 每组下若干键值行
-- 组织 + 指标：部门树每行带人数 / 预算列
-- 层级勾选批量操作：`enableCheckBox` + 父子联动
-- 全部展开 / 收起按钮 + 默认展开首层
-
-## 3. 状态声明
-
-```tsx
-// 展开态受控：存 nodeKey 对应的 id 数组
-const [expandedKeys, setExpandedKeys] = useState<string[]>(['0.0']);
-
-// 勾选：onRowCheck / onHeaderCheck 回传的行集合
-const [checkedRows, setCheckedRows] = useState<any[]>([]);
-
-const treeTableRef = useRef<any>(null);   // expandAll / collapseAll
-```
-
-## 4. 事件与交互逻辑
+## 2. 事件与交互逻辑
 
 ### 列用 field，行用 data + children
 
@@ -54,7 +35,28 @@ const dataset = [
   onNodeExpand={(rowId: string, keys: string[], expanded: boolean) => setExpandedKeys(keys)} />
 ```
 
-### 全展开 / 全收起（demo TreeTableExpandAllAndCollapseAll.jsx）
+#### 嵌套行与列定义形状
+
+```tsx
+interface TreeTableRow<T extends { id: string }> {
+  data: T;                          // 一行的字段，列 field 指向这里
+  children?: TreeTableRow<T>[];
+  isLeaf?: boolean;                 // 无子行标 true，不显示展开箭头
+}
+interface TreeTableColumn {
+  title: string;
+  field: string;                    // data 里的字段名 —— 不是 key
+  width?: number | string;
+  align?: 'left' | 'center' | 'right';
+  display?: boolean;
+  render?: (value: any, row: any) => React.ReactNode;
+  tipFormatter?: (value: any) => string;
+  renderType?: 'progress_bar' | 'custom';
+  getCompareValue?: (v: any) => any;
+}
+```
+
+### 全展开 / 全收起
 
 ```tsx
 <Button text="全部展开" onClick={() => treeTableRef.current.expandAll()} />
@@ -62,7 +64,7 @@ const dataset = [
 <TreeTable ref={treeTableRef} … />
 ```
 
-### 勾选（demo TreeTablecheckedRows.jsx）
+### 勾选
 
 ```tsx
 <TreeTable
@@ -88,88 +90,13 @@ import { IconPlusIcPublicFile, IconPlusIcPublicFolderOpen, IconPlusIcPublicFolde
 />
 ```
 
-## 5. 数据结构
-
-```tsx
-interface TreeTableRow<T extends { id: string }> {
-  data: T;                          // 一行的字段，列 field 指向这里
-  children?: TreeTableRow<T>[];
-  isLeaf?: boolean;                 // 无子行标 true，不显示展开箭头
-}
-interface TreeTableColumn {
-  title: string;
-  field: string;                    // data 里的字段名 —— 不是 key
-  width?: number | string;
-  align?: 'left' | 'center' | 'right';
-  display?: boolean;
-  render?: (value: any, row: any) => React.ReactNode;
-  tipFormatter?: (value: any) => string;
-  renderType?: 'progress_bar' | 'custom';
-  getCompareValue?: (v: any) => any;
-}
-```
-
-## 6. 联动说明
+## 3. 联动说明
 
 - 接口返回扁平数据 → 先按 parentId 组装成 `{ data, children }` 再传入；不要在渲染时递归组装
 - 默认展开首层：`expandedKeys` 初始化为第一层 id；"全部展开"用 ref 方法，之后 `onNodeExpand` 会同步回 keys
 - 勾选集合变化 → 批量按钮解锁；提交前按 `isLeaf` 过滤出叶子行
-- 行点击 `onRowClick(row, e)` → 打开详情 Dialog
 
-## 7. 完整代码示例
-
-```tsx
-import React, { useRef, useState } from 'react';
-import TreeTable from '@nce/eview-react/TreeTable';
-import Button from '@nce/eview-react/Button';
-import Tag from '@nce/eview-react/Tag';
-
-interface CfgRow { id: string; property: string; value?: string | number; status?: 'ok' | 'warn'; }
-interface Node { data: CfgRow; children?: Node[]; isLeaf?: boolean; }
-
-const DATASET: Node[] = [
-  { data: { id: 'vrrp', property: 'VRRP 配置' }, isLeaf: false, children: [
-    { data: { id: 'vrrp-1', property: 'Admin VRRP ID', value: '--', status: 'warn' }, isLeaf: true },
-    { data: { id: 'vrrp-2', property: 'Priority', value: 105, status: 'ok' }, isLeaf: true },
-  ] },
-  { data: { id: 'intf', property: '接口配置' }, isLeaf: false, children: [
-    { data: { id: 'intf-1', property: 'Interface', value: 'GE0/7/1.572', status: 'ok' }, isLeaf: true },
-  ] },
-];
-
-// 设备配置树表：默认展开首层，全展开 / 全收起，状态列用 Tag
-export default function DeviceConfigTree() {
-  const [expandedKeys, setExpandedKeys] = useState<string[]>(['vrrp', 'intf']);
-  const ref = useRef<any>(null);
-
-  const columns = [
-    { title: '属性', field: 'property', width: 240 },
-    { title: '值', field: 'value', render: (v: any) => (v === undefined ? '--' : String(v)) },
-    { title: '状态', field: 'status', width: 120, render: (v: CfgRow['status']) => (v ? <Tag color={v === 'ok' ? 'success' : 'warning'}>{v === 'ok' ? '正常' : '告警'}</Tag> : null) },
-  ];
-
-  return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-        <Button text="全部展开" onClick={() => ref.current.expandAll()} />
-        <Button text="全部收起" onClick={() => ref.current.collapseAll()} />
-        <span className="app-tree-summary" style={{ alignSelf: 'center' }}>已展开 {expandedKeys.length} 组</span>
-      </div>
-      <TreeTable
-        ref={ref}
-        columns={columns}
-        dataset={DATASET}
-        nodeKey="id"
-        expandedKeys={expandedKeys}
-        onNodeExpand={(rowId: string, keys: string[]) => setExpandedKeys(keys)}
-        maxHeight={480}
-      />
-    </div>
-  );
-}
-```
-
-## 8. 反面示例
+## 4. 反面示例
 
 ```tsx
 // ❌ 用 Table 的写法：列 key + 扁平行 + children 直接挂在行上
@@ -188,7 +115,7 @@ export default function DeviceConfigTree() {
 { data: { id: 'x', property: 'Priority', value: 105 } }
 ```
 
-## 9. API 速查
+## 5. API 速查
 
 > 压缩自 `TreeTable/TreeTable`；ref 方法仅列 demo 出现的。
 

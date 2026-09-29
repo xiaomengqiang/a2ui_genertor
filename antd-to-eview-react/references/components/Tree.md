@@ -1,7 +1,6 @@
 # Tree 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Tree/Tree`；官网组件页 Tree 及示例 `TreeExample.jsx` / `TreeAsync.jsx` / `TreeSearchDemo.jsx` / `TreeSearchAPIWithCallbackDemo.jsx` / `TreeExpandCollapseDemo.jsx` / `TreeSingleExpand.jsx` / `TreeCancelLinkage.jsx` / `TreeVirtualScroll.jsx`（共 20 个 demo，本文只覆盖高频能力）
->
+> 资料来源：TypeDoc `Tree/Tree` + 官网 Tree 页示例。
 > ⚠️ 节点数据字段是 **`text` + `id` + `children`**（不是 antd 的 `title` / `key`），`nodeKey="id"` 指定主键字段名；三个受控数组 `selectedKeys` / `checkedKeys` / `expandedKeys` 各自配对回调 `onSelect` / `onCheck` / `onExpand`，回调第一个参数就是新的 keys 数组。
 > ⚠️ 回调里的 `node` 是节点组件对象，主键取 **`node.props.eventKey`**（demo 写法），不是 `node.id`。
 > ⚠️ demo 里出现的 `checkable={true}` 不在 API 表中；勾选框用 **`enableCheckbox`**。`enableMultiSelect` 默认 **true**，单选场景要显式关掉。
@@ -17,28 +16,7 @@ Tree 是层级数据展示与选择：选中 / 勾选 / 展开三套受控状态
 | 表单里选树节点 | `TreeSelect`（[TreeSelect.md](TreeSelect.md)） | Tree 塞进下拉 |
 | 层级数据 + 多列 | `TreeTable`（[TreeTable.md](TreeTable.md)） | Tree 拼列 |
 
-## 2. 典型场景
-
-- 组织架构导航：点节点 → 右侧列表按组织过滤；默认展开前两级
-- 权限分配：勾选父子联动（默认），`checkedKeys` 提交
-- 大树懒加载：`loadData(itemData, callback)` 展开时才拉子节点
-- 搜索定位：`ref.findLevelNodes(value)` 找到路径 → 写回 `expandedKeys`
-
-## 3. 状态声明
-
-```tsx
-// 三套 keys 分开存，值类型与 data[].id 一致
-const [selectedKeys, setSelectedKeys] = useState<Array<string | number>>([]);
-const [checkedKeys, setCheckedKeys] = useState<Array<string | number>>([]);
-const [expandedKeys, setExpandedKeys] = useState<Array<string | number>>([1]);
-
-// 树数据：可变（懒加载 / 增删节点）时放 state
-const [treeData, setTreeData] = useState<TreeNode[]>(initialTree);
-
-const treeRef = useRef<any>(null);   // 搜索定位用 findLevelNodes
-```
-
-## 4. 事件与交互逻辑
+## 2. 事件与交互逻辑
 
 ### 单选导航树（enableMultiSelect 关掉）
 
@@ -73,7 +51,7 @@ const treeRef = useRef<any>(null);   // 搜索定位用 findLevelNodes
 />
 ```
 
-### 异步加载子节点（demo TreeAsync.jsx）
+### 异步加载子节点
 
 ```tsx
 <Tree
@@ -86,7 +64,7 @@ const treeRef = useRef<any>(null);   // 搜索定位用 findLevelNodes
 // 想让节点显示展开箭头，data 里标 isLeaf: false
 ```
 
-### 搜索定位（demo TreeSearchAPIWithCallbackDemo.jsx）
+### 搜索定位
 
 ```tsx
 <SearchInput onSearch={(value: string) => {
@@ -111,10 +89,9 @@ import { IconPlusIcPublicFile, IconPlusIcPublicFolderOpen, IconPlusIcPublicFolde
 // 三态需成套设置；同名属性也可在节点数据里单节点覆盖
 ```
 
-## 5. 数据结构
+#### 节点数据形状
 
 ```tsx
-// Tree.data 节点（api data 描述）
 interface TreeNode {
   id: string | number;            // 主键，字段名可由 nodeKey 改
   text: string;                   // 显示文本 —— 不是 title
@@ -130,88 +107,14 @@ interface TreeNode {
 }
 ```
 
-## 6. 联动说明
+## 3. 联动说明
 
 - `onSelect` → 右侧列表 / 详情按 `keys[0]` 重新请求，`page = 1`
 - `onCheck` → 提交按钮解锁，文案显示已选数量；提交时用 `checkedKeys`（含联动勾上的父节点，按业务过滤叶子）
 - 搜索 → `findLevelNodes` → `expandedKeys` 展开路径；清空搜索恢复默认展开
-- 懒加载：`loadData` 的 `callback` 只负责挂子节点；同时把新节点 id 加进 `expandedKeys`
-- 大树（数千节点）→ 传 `height` 开虚拟滚动（3.9.24），或 `lazyLoad` 不渲染未展开子树
+- 懒加载：`loadData` 的 `callback` 只负责挂子节点；同时把新节点 id 加进 `expandedKeys`；大树（数千节点）传 `height` 开虚拟滚动或 `lazyLoad`
 
-## 7. 完整代码示例
-
-```tsx
-import React, { useRef, useState } from 'react';
-import Tree from '@nce/eview-react/Tree';
-import SearchInput from '@nce/eview-react/SearchInput';
-
-interface TreeNode {
-  id: string;
-  text: string;
-  children?: TreeNode[];
-}
-
-const ORG: TreeNode[] = [
-  { id: 'hq', text: '总部', children: [
-    { id: 'rd', text: '研发部', children: [{ id: 'rd-fe', text: '前端组' }, { id: 'rd-be', text: '后端组' }] },
-    { id: 'ops', text: '运维部', children: [{ id: 'ops-net', text: '网络组' }] },
-  ] },
-];
-
-// 组织架构：左侧单选树（搜索定位 + 默认展开）→ 右侧按组织加载成员
-export default function OrgTreePage() {
-  const [selectedKeys, setSelectedKeys] = useState<string[]>(['hq']);
-  const [expandedKeys, setExpandedKeys] = useState<string[]>(['hq']);
-  const [members, setMembers] = useState<string[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const treeRef = useRef<any>(null);
-
-  const loadMembers = async (orgId: string) => {
-    setLoading(true);
-    try {
-      // 真实项目替换为已有 Service
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      setMembers([`${orgId}-张三`, `${orgId}-李四`]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = (value: string) => {
-    if (!value) { setExpandedKeys(['hq']); return; }
-    const nodes = treeRef.current?.findLevelNodes(value) ?? [];
-    setExpandedKeys(nodes.map((n: any) => n.id));
-  };
-
-  return (
-    <div style={{ display: 'flex', gap: 24, padding: 24 }}>
-      <div style={{ width: 260 }}>
-        <SearchInput placeholder="搜索组织" onSearch={handleSearch} onClear={() => setExpandedKeys(['hq'])} />
-        <Tree
-          ref={treeRef}
-          data={ORG}
-          nodeKey="id"
-          enableMultiSelect={false}
-          connectLine
-          selectedKeys={selectedKeys}
-          expandedKeys={expandedKeys}
-          onSelect={(keys: string[]) => {
-            setSelectedKeys(keys);
-            if (keys[0]) loadMembers(keys[0]);
-          }}
-          onExpand={(keys: string[]) => setExpandedKeys(keys)}
-          style={{ marginTop: 12 }}
-        />
-      </div>
-      <div style={{ flex: 1 }}>
-        {loading ? '加载中...' : members.length === 0 ? '请选择组织' : members.map((m) => <div key={m} style={{ padding: '4px 0' }}>{m}</div>)}
-      </div>
-    </div>
-  );
-}
-```
-
-## 8. 反面示例
+## 4. 反面示例
 
 ```tsx
 // ❌ antd 习惯：没有 treeData / title / key / checkable / onCheck(checkedKeys, info)
@@ -233,7 +136,7 @@ onSelect={(keys, node) => setSelected(node.id)}
 <Tree expandedKeys={['hq']} />
 ```
 
-## 9. API 速查
+## 5. API 速查
 
 > 压缩自 `Tree/Tree`，只列高频；ref 方法仅列 demo 出现的。
 
