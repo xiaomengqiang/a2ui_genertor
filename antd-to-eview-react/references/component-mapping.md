@@ -1,6 +1,7 @@
 # 组件映射总表（antd → eview-react）
 
 > 本表覆盖 antd 常用组件到 eview-react 的完整映射。每行标注：有对应 / 组合替代 / 无对应需手写。
+> 文末另附**属性拼写异常**（官方拼错的属性名）和**回调签名差异**（首参是值不是 event）两张速查表。
 > eview-react 组件的完整 API 详见本 skill 的 `references/components/<组件>.md`。
 
 ## 通用
@@ -21,8 +22,6 @@
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Form` / `Form.Item` | `Form` / `Form.Item` | `useForm()`→`useRef`；`validateFields()` Promise→`submit()`+`onSuccess` 回调；多列用 `itemCol` 设 Form 级默认，**单项覆盖用 `Form.Item.col`**；Form 内不能用 div/Row/Col 做栅格；详见 [form-migration.md](form-migration.md) |
-| `Row` / `Col`（Form 内用） | 删掉（用 `itemCol` / `Form.Item.col`） | eview-react Form 自带 24 栅格，`itemCol` 设默认宽度，**单项可用 `Form.Item.col` 覆盖** |
 | `Input` | `TextField` | `onChange(value, oldValue, event)` 首参是值；`validator` 返回 `{result,message}`；`required` 自带星号；无 `allowClear`/`prefix`/`rules`/`onPressEnter` |
 | `Input.TextArea` | `TextArea` | `onChange(targetValue, value, event)`；`onBlur(event)` 无 value；`maxLength` 自带右下角计数（替代 `showCount`）；无 `autoSize`/`allowClear`；无 ref 方法 |
 | `Input.Search` | `SearchInput` | `onSearch` 值变化也触发（需防抖）；`onClear(value)`；`placeholder` 保留；`onSuggest` vs `popItems` 互斥 |
@@ -46,7 +45,6 @@
 | `DatePicker.RangePicker` | `DatePicker range={[]}` | `onOkClick` 取 `fromDateObj/toDateObj`；回调里要 `setTimeout` 再 setState |
 | `TimePicker` | `Spinner type="time"` | 值是字符串 `"hh:mm:ss"`；`timeFormat` |
 | `Upload` | `FileUpload` | 组件不发请求；`handleSubmit({event,data})` 自己发；`updateProgressStatus`/`fileUploadStatus` 回写；`disable`（不是 disabled）；`onReload` 重传 |
-| `Form.List` | 手写 | 无对应；用数组 state + `map` 渲染 |
 
 ## 数据展示
 
@@ -92,7 +90,7 @@
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
 | `Layout` / `Header` / `Sider` / `Content` | 手写 CSS 布局 | 见 [handwrite-templates.md](handwrite-templates.md) §4 |
-| `Menu` | 手写导航列表 | 见 [handwrite-templates.md](handwrite-templates.md) §5 |
+| `Menu` | `Accordion` | `items`→`data`（`key`/`label`→`value`/`title`）；`selectedKeys` 数组→`selectedValue` 单 string；`onClick({key})`→`onClick(node)`；`inlineCollapsed`→`expanded`/`onExpand`（⚠️ `expanded={true}`=收起，语义反转）；多级导航用 Accordion，简单平铺列表仍可手写；见 [Accordion.md](components/Accordion.md) |
 | `Breadcrumb` | `Crumbs` | `data=[{title,url?}]`；最后一项无 url；`seprator`（拼错）；`onClick(data,event)` 组件级 |
 | `Affix` | 手写 `position:sticky` | 无对应 |
 | `BackTop` | 手写 | 无对应 |
@@ -103,7 +101,38 @@
 
 | antd | eview-react | 关键差异 |
 |------|-----------|---------|
-| `@ant-design/icons` | `@nce/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 尺寸（支持rem、px、数字）；icon+ 名**默认靠 skill 自带 `icons/icon-plus-names.json` 离线匹配**（方案 C；见 [source-project-guidelines §3.2](source-project-guidelines.md)）；在线 `getIconInfo` 名发现为备选 B（§3.4，外网不便时不用） |
+| `@ant-design/icons` | `@nce/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 尺寸（支持rem、px、数字）；icon+ 名**默认靠 skill 自带 `icons/icon-plus-names.json` 离线匹配**（方案 C；见 [components/Icon.md](components/Icon.md) §1.1）；在线 `getIconInfo` 名发现为备选 B（见 [components/Icon.md](components/Icon.md) §1，外网不便时不用） |
 | 可点击图标 | `IconButton` | `iconName={<IconPlusIc* />}`+`tipText`；不要给图标组件挂 onClick |
 
-> 迁移期**默认走方案 C**（catalog 离线匹配 → icon+ 静态 import，见 [source-project-guidelines §3.2](source-project-guidelines.md)）；scaffold 自定义 `<Icon>` shim 为备选 A（运行时 fetch，调用点零改动，见 §3.3，切到 C 后保留不删）；在线名发现为备选 B（§3.4）。
+> 迁移期**默认走方案 C**（catalog 离线匹配 → icon+ 静态 import，见 [components/Icon.md](components/Icon.md) §1.1）；scaffold 自定义 `<Icon>` shim 为备选 A（运行时 fetch，调用点零改动，见 [components/Icon.md](components/Icon.md) §1.2，切到 C 后保留不删）；在线名发现为备选 B（见 [components/Icon.md](components/Icon.md) §1）。
+
+## 属性拼写异常（官方即如此，照抄）
+
+> eview-react 部分 API 官方就拼错了，迁移时必须照抄，不能用"正确英文"。
+
+| 组件 | 正确拼写 | 常见错误 | 说明 |
+|------|---------|---------|------|
+| Crumbs | `seprator` | `separator` | 分隔符属性，官方拼错为 seprator |
+| Toggle | `taggledChildren` | `toggledChildren` | 开态开关内文字，官方拼错为 taggled |
+| Toggle | `unTaggledChildren` | `unToggledChildren` | 关态开关内文字 |
+| SelectCard | `disable` | `disabled` | 整体禁用，不是 disabled |
+| SelectCard | 选项级 `disable` | 选项级 `disabled` | 选项级禁用也是 disable |
+| FileUpload | `disable` | `disabled` | 禁用上传 |
+
+## 回调签名差异（首参是值不是 event）
+
+> eview-react 回调第一个参数通常是**值**不是 event（与 antd 相反）。迁移时容易把 `e.target.value` 写法照搬导致取不到值。
+
+| 组件 | antd 签名 | eview-react 签名 |
+|------|----------|-------------------|
+| TextField.onChange | `(e) => e.target.value` | `(value, oldValue, event)` |
+| TextField.onBlur | `(e)` | `(event, value)` — 注意顺序反了 |
+| TextArea.onChange | `(e) => e.target.value` | `(targetValue, value, event)` |
+| TextArea.onBlur | `(e)` | `(event)` — 只有 event，无 value |
+| Select.onChange | `(value, option)` | `(value, oldValue, text, oldText, event)` — 五参 |
+| Checkbox.onChange | `(e) => e.target.checked` | `(value, checked, event, additionalData)` |
+| Switch.onChange | `(checked)` | `onToggle(value)` — 回调名不同 |
+| Rating | `onChange(value)` | `onClick(value)` — 没有 onChange |
+| Steps | `onChange(current)` | `onClick(index)` — 参数是下标不是 value |
+| Tab | `onChange(key)` | `onClick(index, title, event)` — 参数顺序不同 |
+| Button.onClick | `(e)` | `(event, additionalData)` — 第二个参数是业务数据 |
