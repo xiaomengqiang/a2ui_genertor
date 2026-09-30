@@ -1,7 +1,5 @@
 # TipBox 组件功能逻辑规格（气泡提示）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `TipBox/TipBox`；官网组件页 TipBox 及示例 `TipBoxBasic.jsx` / `TipBoxPosition.jsx` / `TipBoxIn.jsx` / `TipBoxWidth.jsx` / `TipBoxColor.jsx` / `TipBoxCustom.jsx`
->
 > ⚠️ 推荐写法是**包裹式**：`<TipBox content="…" trigger="hover" direction="top"><Button /></TipBox>`；README 把用 `position=[top,left]` 手动定位的老写法标为"传统用法（不推荐）"。
 > ⚠️ 被包裹的元素必须支持 `onMouseEnter / onMouseLeave / onClick / onFocus / onBlur`（原生标签或 eview 组件都行）。
 > ⚠️ `direction` 支持 12 个方位（`top / topLeft / topRight / bottom / … / leftTop / rightBottom`），`arrowDirection="none"` 隐藏箭头；`type="simple"` 是无标题的简洁气泡。

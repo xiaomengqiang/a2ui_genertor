@@ -8,7 +8,7 @@
 |------|------|------|
 | 组件 Reference | 40 个 | 首批：Button（含 ButtonGroup）/ TextField / Select / Checkbox（含 CheckboxGroup）/ Radio（含 RadioGroup）；第二批：TextArea / SearchInput / Steps / Tab（含 TabItem）/ FileUpload；第三批：DatePicker / Spinner / DragInput / SelectCard / Rating / Tag / Badge / Divider；第四批：Form（含 Form.Item）/ Table / Paging / Dialog / MessageDialog / Toggle（含 Switch）/ MultipleSelect；第五批：Drawer / Tree / TreeSelect / TreeTable / InputSelect / IPInput / Cascader / DivMessage / Loading（Loader 同）/ Empty / Crumbs / Panel（含 PanelItem）/ Icon（含 IconButton）/ TipBox；提前加入：Accordion（原排第七批，2026-09-29） |
 | Pattern 文档 | 3 份 | `project-setup.md`（工程接入）+ `page-flows.md`（页面调用链）+ `fallback-handwrite.md`（三层判定、87 项导出核对、业务样式与手写模板、TODO 边界） |
-| 通用约束与组件细则 | 分层维护 | SKILL.md 保留导入、API 溯源、校验、受控、表单托管、异步边界与编码要求；具体 props、回调签名、ref 方法及反例按组件 Reference 读取 |
+| 通用约束与组件细则 | 分层维护 | SKILL.md 保留导入、API 使用约束、校验、受控、表单托管、异步边界与编码要求；具体 props、回调签名、ref 方法及反例按组件 Reference 读取 |
 | 页面调用链模板 | 16 种 | 位于 `references/patterns/page-flows.md`：登录注册 / 筛选列表 / 列表 CRUD / 多选批量 / 向导模式切换 / 级联下拉 / 表单提交 / 多步创建向导 / 多页签工作区 / 附件上传表单 / 时间范围查询条 / 参数配置表单 / 状态列表卡片 / 树 + 列表主从页 / 侧边详情编辑 / 四态内容区 |
 | 评测用例 | 23 个 / 173 条断言 | 1 登录页 / 2 联动筛选条 / 3 待办批量删除 / 4 向导单选切换 / 5 新工程接入 / 6 新建用户表单统一校验与 PC 默认交付 / 7 三步创建向导 / 8 工作区页签 / 9 附件批量上传 / 10 设备搜索框 / 11 工单多行表单 / 12 报表时间范围查询条 / 13 QoS 参数配置 / 14 服务评价 / 15 告警列表状态展示 / 16 未覆盖组件手写补位（进度条 + 时间轴）/ 17 设备管理 CRUD（Table + Dialog(Form) + MessageDialog）/ 18 告警规则开关 / 19 多选筛选 + 卡片分页 / 20 组织树 + 成员表 + 抽屉 / 21 网元接入表单（Cascader + TreeSelect + InputSelect + IPInput + Panel）/ 22 概览卡片四态（Loading + Empty + IconButton）/ 23 配置中心侧边导航（Accordion 语义反转 + 叶子选中 + keepExpandState） |
 | 原始资料 | 856 + 2 文件 | 仓库根 `hui参考文档/`（**不随 skill 打包**，仅供写作与复核）：api 93 份 TypeDoc 表、demos 71 README + 91 API.md + 426 示例、rules 2 份、site-doc 15 份 |
@@ -22,15 +22,15 @@
 
 > 承接 ArkUI-Skills 的实战教训，加上本仓库首批写作中新沉淀的 3 条（第 5-7 条）。
 
-1. **API 必须可溯源**：Reference 里的每个 props / 回调 / ref 方法都必须能在 `hui参考文档/api/<组件>_*.md` 或 `demos/<组件>/__demo__/` 里一比一搜到。原文没有，宁可留空，也不要发明。
+1. **API 必须有依据**：Reference 里的每个 props / 回调 / ref 方法都必须能在 `hui参考文档/api/<组件>_*.md` 或 `demos/<组件>/__demo__/` 里一比一搜到。原文没有，宁可留空，也不要发明。
 2. **速查表只是摘要**：第 9 节是 api 表的压缩再引用，不能新增表里没有的行。
-3. **语义以官方 demo 为准**：参数表文字描述与 `__demo__` 可执行代码冲突时以 demo 为准，并在文件头 ⚠️ 段写明依据（例：`validator.result === true` 表示通过，来自 `TextFieldEvent.jsx` / `selectBasic.tsx`）。
+3. **语义以官方 demo 为准**：参数表文字描述与 `__demo__` 可执行代码冲突时以 demo 为准，并在文件头 ⚠️ 段说明正确用法（例：`validator.result === true` 表示通过），不列来源文件。
 4. **改动必须经 validator**：`python3 skills/eview-react/evals/validate_references.py` 必须 0 错 0 警；新警告优先"改文档"而不是"放宽校验"。
 5. **资料互相矛盾时显式标注、不拍板**（本仓库新增）：`api/` 与 `demos/*/types.ts`、`rules/` 与 `demos/` 之间存在版本差异（见 `hui参考文档/README.md`「已知的资料矛盾」）。写法上给出两头都成立的方案（如 `RadioGroup.onChange` 用"与当前值比较取新值"），并登记到下方「待实测」。
 6. **ref 命令式方法只列 demo 出现过的**（本仓库新增）：`getValue / validate / focus / clear` 目前只在 TextField、Select 的官方 demo 出现，FileUpload 出现过 `handleSubmit / getValue / getValueEx`；TextArea / SearchInput / Tab / Steps 的 demo 没有 ref 方法，即使"看起来也应该有"，不写。
 7. **反例以他库习惯为主**（本仓库新增）：第 8 节至少一半的 ❌ 应是 antd / Material 写法对照（`type="primary"`、`<Option>`、`e.target.value`……），这是 eview-react 生成错误的主要来源。
 8. **不写 React 运行时版本要求**（本仓库新增）：业务侧使用的是兼容 React 的运行时，版本由目标工程决定。原始资料里的"React 18 / 不是 19 / 降级命令"一律不搬进 Skill；只保留组件库自身及构建工具（Vite、plugin-react、react-intl）的版本约束。
-9. **skill 目录必须自包含**（本仓库新增）：`skills/eview-react/` 会被单独打包发布，目录内任何文件都不得出现指向目录之外的链接或路径（validator 会拦 `hui参考文档` 字样和越界链接）。"资料来源"只写纯文本的 TypeDoc 表名 + 示例文件名；未覆盖组件不带资料，按 SKILL.md「未覆盖组件的处理」三层判定：组合已覆盖组件 → 照抄工程 `src/` 现有用法 → 手写 HTML/JSX（接入项目样式、标 TODO）；**不读 `node_modules`、不用他库顶替**。
+9. **发布内容必须自包含**：打包发布的 `SKILL.md` 与 `references/` 不得出现指向 skill 目录之外的链接或路径（validator 会拦 `hui参考文档` 字样和越界链接），不写“资料来源”段落或原始文件清单。未覆盖组件不带资料，按 SKILL.md「未覆盖组件的处理」三层判定：组合已覆盖组件 → 照抄工程 `src/` 现有用法 → 手写 HTML/JSX（接入项目样式、标 TODO）；**不读 `node_modules`、不用他库顶替**。
 
 ---
 
@@ -84,7 +84,7 @@
 
 ### 为什么调整
 
-- **覆盖面已够用**：40 份 Reference 覆盖 48 个导出名（共 87 个），表单、表格、弹层、反馈等高频组件都在；剩余候选只有 24 个（见阶段 2），基本是长尾，其中 8 个没有官方 demo。
+- **覆盖面已够用**：40 份 Reference 覆盖 47 个根导出（共 87 个，另有工程 Pattern 覆盖 ConfigProvider），表单、表格、弹层、反馈等高频组件都在；剩余候选只有 24 个（见阶段 2），基本是长尾，其中 8 个没有官方 demo。
 - **验证欠账大**：待实测 35 项未决；资料对应的组件库版本不明确（见「当前资产 · 资料版本」）；`validate_references.py` 检查结构、链接、数量和禁用写法，但不检查 prop 是否真在 TypeDoc 表里；唯一一次 OpenCode 实测首轮行为测试只过 2/5。
 - **写作速度不是瓶颈**：第二至五批 34 份大约一天内写完，核验手段没有跟上。写错的 Reference 比没有更糟：没有时模型走补位流程并标 TODO，写错时模型会照抄（`TextField.md` 的短路 `refs.find` 与 OpenCode 首轮失败表现一致）。
 
@@ -109,7 +109,7 @@
   - [x] `Checkbox.md` §7：批量删除直接执行，与 `Button.md` 反例"危险操作直接执行，没有二次确认"冲突 → 补确认与取消分支，取消后数据不变
   - [x] `project-setup.md` §2：第 70 行写"`IntlProvider` 必须包在最外层"，但官方 `rules/project-setting.md` 示例与本文第 59–60 行都是 `ConfigProvider` 在外、`IntlProvider` 在内 → 按官方示例改文字（如"`IntlProvider` 必须包住整个 App"）
   - [x] `Select.md` §7：加载中点重置时，`!region` 分支没有 `setLoadingSites(false)`，"加载中..." 文案残留；请求链没有 catch 和错误状态 → 补齐，并覆盖"加载中重置""请求失败"两种情况
-- [ ] **0.4 API 溯源改为机器检查**（在作者仓库运行，不进包）
+- [ ] **0.4 API 准确性机器检查**（在作者仓库运行，不进包）
   - [ ] 校验脚本新增：解析每份 Reference §9 的 API 名，以及 §7 示例里该组件 JSX 上的 props，对照 `api/` TypeDoc 表（缺表时对照 `__docs__/API.md` 与 `types.ts`），查不到报 ERROR；导出名与资料名不一致的建映射（DragInput / Slider、SelectCard / Segmented、TimePicker / TimeSelector）
   - [ ] 从 TypeDoc 表生成 `@nce/eview-react` 的类型声明（`.d.ts`），把各 Reference §7 示例抽成 `.tsx` 后用 `tsc --noEmit` 编译
 - [ ] **0.5 评测流水线（OpenCode）**
@@ -139,7 +139,7 @@ OpenCode 实测里组件 API 基本用对、没有混入 antd 写法，失败集
 
 ### 阶段 2：按需分批补组件
 
-`@nce/eview-react` 共导出 87 个可导入名字（`hui参考文档/demos/index.js`），已覆盖 48 个（40 份 Reference，明细见「当前资产」）。剩余 39 个中，`ConfigProvider` 已在工程接入 Pattern 讲过，另有 14 个已排除（见下），实际候选 24 个。
+`@nce/eview-react` 的资料入口列出 87 个可导入名字（`hui参考文档/demos/index.js`）：40 份 Reference 覆盖其中 47 个根导出，工程 Pattern 另覆盖 `ConfigProvider`，合计 48 个。剩余 39 个中，15 个已排除（按根导出名计，见下），实际候选 24 个。`PanelItem` 是 Panel 子路径导出，`Form.Item` 是静态子组件，不另计根导出。
 
 **排序依据**：
 1. 与 antd 习惯的差异程度：差异越大越需要 Reference；和 antd 几乎一样的组件，模型不看文档也能写对
@@ -148,7 +148,7 @@ OpenCode 实测里组件 API 基本用对、没有混入 antd 写法，失败集
 4. 能拿到业务代码时，用其中 `@nce/eview-react/*` 的 import 次数校准
 
 **开批前准备**：
-- [ ] 每份 Reference 加 front-matter（名称、别名、关键词、可信度、资料来源），用脚本生成 SKILL.md 组件索引、README 目录树与覆盖表、本文件资产表、validator 的 `NON_COMPONENTS` / `CHILD_TO_PARENT`，取代下方"完成后同步更新"的手工步骤；`fallback-handwrite.md` 里写死的已覆盖数量（现为"40 个已覆盖组件"）也改为引用索引（`check_counts` 查不到这一处）
+- [ ] 每份 Reference 加 front-matter（名称、别名、关键词、可信度），用脚本生成 SKILL.md 组件索引、README 目录树与覆盖表、本文件资产表、validator 的 `NON_COMPONENTS` / `CHILD_TO_PARENT`，取代下方"完成后同步更新"的手工步骤；`fallback-handwrite.md` 里写死的已覆盖数量（现为"40 个已覆盖组件"）也改为引用索引（`check_counts` 查不到这一处）
 - [ ] 可信度分级写入文件头与索引：**A** 真实环境确认（目前只能来自使用方反馈）；**B** TypeDoc 表与 demo 交叉一致；**C** 只有类型表，或存在未决冲突。现有 40 份基本为 B（`Steps.md` 无 TypeDoc 表，以站点 API.md 为准）
 - [ ] C 级精简模板：只写文件头 ⚠️、§5 数据结构、§8 反例、§9 API，不写 §7 完整示例（没有 demo 却写完整示例等于编造用法）；validator 相应放宽 C 级的章节要求
 - [ ] validator 增加篇幅告警（总行数、§7 代码行数），阈值按下方完成标准第 8 条定；已于 2026-09-29 精简 Table / Form / Checkbox / Dialog / MessageDialog（分别为 237 / 252 / 254 / 203 / 218 行），FileUpload（292 行）/ DatePicker（291 行）待精简
@@ -174,9 +174,9 @@ OpenCode 实测里组件 API 基本用对、没有混入 antd 写法，失败集
 **已排除（不建）**：`DoubleSelect`、`PageMessage`、`HelpTip`、`Layout`、`GridLayout`（含 `Row` / `Col`）、`Split`、`Card`、`PagingTree`（含 `TreeDataEngine`）、`TimescaleAxis`、`LinkField` 由用户排除；`ButtonMenu` 官方废弃；`Wizards` 是 `Steps` 旧名，不单建 Reference，已在 `Steps.md` 头部对照。
 
 **每份 Reference 的完成标准**：
-1. 列清资料：TypeDoc 表、demo 文件、README，以及资料之间的矛盾
+1. 核对 API 与示例，记录影响用法的差异和未决问题，不列来源清单
 2. 按模板起草：B 级完整 9 节，C 级精简版
-3. 溯源检查通过；§7 示例 `tsc` 编译通过
+3. API 核验通过；§7 示例 `tsc` 编译通过
 4. 至少一个评测用例用到它，且含一条针对 antd 习惯的反向断言
 5. 未决矛盾登记到「待实测」，文件头加 ⚠️
 6. 索引与计数同步，validator 0 错 0 警
@@ -199,7 +199,7 @@ OpenCode 实测里组件 API 基本用对、没有混入 antd 写法，失败集
 现有 23 个用例、173 条断言，按类型分为 `eview_compliance` 74 条、`behavioral` 69 条、`contains_pattern` 30 条；没有执行器，`validate_references.py` 只检查 evals.json 的结构。
 
 - [x] 补 Form / Table 用例：已由用例 17（Table + Dialog(Form) + MessageDialog）与用例 20（Tree + Table + Drawer 表单）覆盖
-- [x] 反向断言：71 条 `eview_compliance` 断言已覆盖"不从 antd 导入""不用 `type="primary"`""Select 不用 `placeholder`""不用 `e.target.checked`"等
+- [x] 反向断言：74 条 `eview_compliance` 断言已覆盖"不从 antd 导入""不用 `type="primary"`""Select 不用 `placeholder`""不用 `e.target.checked`"等
 - [x] 用例 6 的断言"逐个校验，首个失败项调用 focus()"与 `TextField.md` 的短路写法一致，会给错误实现打高分 → 已改为"先全部校验再聚焦首个失败项"，并补"端口拒绝小数、0 和 65536"（2026-09-29）。`TextField.md` §7 已同步修复（全量校验 + `isCharacterAllowed` 拦小数）
 - [ ] 收编 OpenCode 实测的资源申请表单为用例 24（需求原文在 `eview-react-shadcn/artifacts/opencode-form/prompt.md`），把首轮 3 个失败点（全量校验、整数端口、重置清除校验状态）写成断言
 - [x] 断言不得把待实测项写死为唯一答案：已修订用例 8（关闭页签后的激活页）、17（`keyIndex`）、20（节点主键、DivMessage 再次提示），改为按行为判定，并在断言里注明待实测项与可接受的兼容写法（2026-09-29）。以后新增断言照此执行
@@ -223,7 +223,7 @@ OpenCode 实测里组件 API 基本用对、没有混入 antd 写法，失败集
 
 | 阶段 | 任务 |
 |------|------|
-| 第一周 | 阶段 0：0.1 资料基线、0.2 资料内交叉核对与探针清单、0.3 修 4 处问题、0.4 溯源检查与类型声明、0.6 打包脚本 |
+| 第一周 | 阶段 0：0.1 资料基线、0.2 资料内交叉核对与探针清单、0.3 修 4 处问题、0.4 API 检查与类型声明、0.6 打包脚本 |
 | 第二周 | 阶段 0：0.5 评测流水线与基线分数；阶段 1：`form-validation.md`；评测体系中的用例 6 修订与用例 24 |
 | 第三周 | 阶段 1：`async-data.md`、`table-crud.md`；阶段 2 开批前准备（front-matter、可信度分级、C 级模板） |
 | 之后 | 第六批起每批 5–7 份，按基线评测结果调整批次顺序；`theme-and-intl.md` 穿插进行 |

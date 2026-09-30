@@ -1,7 +1,5 @@
 # Drawer 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Drawer/types`；官网组件页 Drawer 及示例 `DrawerDemo.jsx` / `DrawerMaskDemo.jsx` / `DrawerSizeDome.jsx` / `DrawerNestDemo.jsx` / `DrawerFormDemo.jsx` / `DrawerContainerDome.jsx` / `DrawerDraggableDemo.jsx`
->
 > ⚠️ 显隐是 **`visible`**（Dialog 是 `isOpen`），关闭回调 `onClose(isShowDrawer)`；同 Dialog 一样**不会自动关**，业务在 `onClose` 里 `setVisible(false)`。
 > ⚠️ 没有内置按钮区：底部操作栏自己写（demo `DrawerFormDemo.jsx` 用绝对定位的 `<div>` 放 Button）。
 > ⚠️ `destroyOnClose` 默认 **false**（Dialog 默认 true）：关闭后内容保留，再次打开表单是上次的值，需要重置时自己 `resetFields()`。

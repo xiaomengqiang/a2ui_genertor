@@ -1,7 +1,5 @@
 # Pattern：未覆盖组件的补位（三层判定 + 手写 HTML/JSX 规范）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：官网文档 rules（类名前缀 `ev_` 约定）、component-use（查不到不推断）
->
 > 本文不走 9 节模板。它回答的是：页面需要一个本 Skill **没有 Reference** 的组件时，AI 该怎么办。
 > **不读 `node_modules` 猜 API，不用 antd 等其他库顶替**；按下面三层顺序处理，第三层用原生 HTML / JSX 手写并接入业务项目样式。
 

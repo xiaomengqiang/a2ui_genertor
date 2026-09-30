@@ -1,7 +1,5 @@
 # Radio 组件功能逻辑规格（含 RadioGroup）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Radio/types`、`RadioGroup/types`；官网组件页 Radio 及示例 `Basic.tsx` / `Disabled.tsx` / `Tip.tsx` / `RadioGroupBasic.tsx` / `RadioGroupVertical.tsx` / `RadioGroupDisabled.tsx`；组件使用规则文档 component-use（RadioGroup 必须用 `data`）
->
 > ⚠️ **资料矛盾，未决**：`RadioGroup.onChange` 的类型声明是 `(oldValue, value, event)`，而同一份 API 表的文字描述是"value 当前选中值，oldValue 上次选中值"（与 CheckboxGroup 一致）；全部官方示例里没有任何一处调用该回调。本文 §4 给出**两种顺序都正确**的写法，并在 TODO 里登记实测任务。
 
 ## 1. 功能定位

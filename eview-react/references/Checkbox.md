@@ -1,7 +1,5 @@
 # Checkbox 组件功能逻辑规格（含 CheckboxGroup）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Checkbox/types`、`CheckboxGroup/types`；官网组件页 Checkbox 及示例 `Basic.tsx` / `Disabled.tsx` / `Tip.tsx` / `GroupBasic.tsx` / `GroupRequired.tsx` / `GroupSelectAll.tsx`
->
 > CheckboxGroup 的官方示例与说明都收在 Checkbox 组件页下（GroupBasic / GroupRequired / GroupSelectAll），本文一并覆盖。
 
 ## 1. 功能定位

@@ -1,6 +1,5 @@
 # Badge 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Badge/types`；官网组件页 Badge 及示例 `BadgeBasic.jsx` / `BadgeMax.jsx` / `BadgeStatus.jsx` / `BadgeChildren.jsx` / `BadgeOffset.jsx` / `BadgeChange.jsx`
 
 ## 1. 功能定位
 

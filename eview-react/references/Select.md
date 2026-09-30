@@ -1,6 +1,5 @@
 # Select 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Select/Select`；官网组件页 Select 及示例 `selectBasic.tsx` / `SelectEvent.jsx` / `SelectClear.jsx` / `SelectDisable.jsx` / `SelectIcon.jsx` / `VirtualScroll.jsx`
 
 ## 1. 功能定位
 

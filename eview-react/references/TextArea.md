@@ -1,7 +1,5 @@
 # TextArea 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `TextArea/TextArea`；官网组件页 TextArea 及示例 `TextAreaExample.jsx` / `TextAreaEvent.jsx` / `TextAreaLimitExample.jsx` / `ValidateExample.jsx` / `TextAreaResizeExample.jsx` / `TextAreaDisabledExample.jsx`
->
 > ⚠️ 与 TextField 的差别：`onBlur` / `onFocus` 只给 `event`（TextField 的 `onBlur` 是 `(event, value)`）；没有 `type` / `format` / `isCharacterAllowed` / `suffix`；`maxLength` 会在右下角显示字数统计。官方 demo 没有 ref 命令式方法，不要假设有 `validate()`。
 
 ## 1. 功能定位

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 静态校验脚本：检查 eview-react Skill 的 Reference 文件结构、交叉引用一致性、
-资料来源可溯源性，以及正例代码中的 eview-react 反模式。
+链接有效性，以及正例代码中的 eview-react 反模式。
 
 用法：python3 validate_references.py     （0 错 0 警才算完成）
 
@@ -85,7 +85,7 @@ def section(content: str, num: int) -> str:
     return m.group(1) if m else ""
 
 
-# ── 1. 9 节模板 + ❌ 数量 + 资料来源头 ─────────────────────
+# ── 1. 9 节模板 + ❌ 数量 ─────────────────────
 def check_template() -> None:
     for md in ref_files():
         text = md.read_text(encoding="utf-8")
@@ -94,8 +94,6 @@ def check_template() -> None:
                 add(md.name, "ERROR", f"缺少标准章节：{sec}")
         if text.count("❌") < 2:
             add(md.name, "WARN", f"反面示例 ❌ 标记只有 {text.count('❌')} 个，建议至少 2 个")
-        if "**资料来源**" not in text:
-            add(md.name, "ERROR", "文件头缺少「资料来源」段，无法溯源")
         if "export default function" not in section(text, 7):
             add(md.name, "WARN", "第 7 节缺少 `export default function` 完整组件，建议给出可直接运行的示例")
         rows = [ln for ln in section(text, 9).split("\n") if ln.strip().startswith("|")]
@@ -108,7 +106,7 @@ def check_links() -> None:
     for md in list(ref_files()) + sorted(PATTERNS_DIR.glob("*.md")) + [SKILL_MD]:
         text = md.read_text(encoding="utf-8")
         if "hui参考文档" in text:
-            add(md.name, "ERROR", "出现 hui参考文档 路径：原始资料不随 skill 打包，出处只能写纯文本文件名")
+            add(md.name, "ERROR", "出现 hui参考文档 路径：发布文档应自包含，不引用包外资料")
         for m in re.finditer(r"\]\(([^)\s#]+)(?:#[^)]*)?\)", text):
             target = m.group(1)
             if target.startswith(("http://", "https://")):

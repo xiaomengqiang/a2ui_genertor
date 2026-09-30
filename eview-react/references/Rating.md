@@ -1,7 +1,5 @@
 # Rating 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Rating/Rating`；官网组件页 Rating 及示例 `RatingBasic.jsx` / `RatingHalf.jsx` / `RatingDisabled.jsx` / `RatingSize.jsx` / `RatingCustomIcon.jsx`
->
 > ⚠️ 取值回调是 **`onClick(value)`**，没有 `onChange`；悬浮预览靠 `onMouseOver(value)` / `onMouseLeave(value)` 自己写回 state（demo `RatingHalf.jsx`）。
 
 ## 1. 功能定位

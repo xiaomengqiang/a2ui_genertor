@@ -1,7 +1,5 @@
 # TextField 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `TextField/TextField`；官网组件页 TextField 及示例 `TextFieldExample.jsx` / `InputValidator.jsx` / `TextFieldEvent.jsx` / `InputPassward.jsx` / `TextFieldCharacterAllowed.jsx` / `TextFieldSuffix.jsx` / `InputDisable.jsx`
->
 > ⚠️ `validator` 返回值 `result` 的语义：API 表写"用来设置校验是否有错误"，但 `TextFieldEvent.jsx` 与 Select 的 `selectBasic.tsx` 两个官方示例都是 **`result: true` = 校验通过**、`message` 只在失败时展示 → 以示例为准。
 
 ## 1. 功能定位

@@ -1,7 +1,5 @@
 # FileUpload 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `FileUpload/FileUpload`；官网组件页 Upload 及示例 `FileUploadSinge.jsx` / `FileUploadMulti.jsx` / `FileUploadAuto.jsx` / `FileUploadCustomValidate.jsx` / `FileUploadAcceptValidate.jsx` / `FileUploadExampleFileList.jsx`
->
 > ⚠️ **组件不发请求**。用户点"上传"按钮只会触发 `handleSubmit({ event, data })`，请求、进度、成功失败都由业务代码做，再通过 `updateProgressStatus` / `fileUploadStatus` 两个按文件名索引的对象回写给组件（所有官方 demo 都是这个套路）。
 > ⚠️ 禁用属性是 **`disable`**（不是 `disabled`）。
 > ⚠️ `enableProgress` API 表注明"只支持单个文件"，但 `FileUploadMulti.jsx` 在 `type="multi"` 下也开了它 → 按 demo 可用，多文件时以实测为准。
