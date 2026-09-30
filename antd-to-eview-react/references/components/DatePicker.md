@@ -53,20 +53,32 @@ const [effectiveDate, setEffectiveDate] = useState<Date | undefined>(undefined);
 <Button text="重置" onClick={() => setEffectiveDate(undefined)} />
 ```
 
-### 范围选择：range 属性开启，onOkClick 取起止（demo DatePickerRange.jsx / DatePickerUpdate.jsx）
+### 范围选择：range 属性开启，用 onChange 取起止（实测 onOkClick 不返回 fromDateObj/toDateObj）
+
+> ⚠️ **实测问题**：官方文档说 `onOkClick` 的 `obj` 含 `fromDateObj` / `toDateObj`，但实际上 `onOkClick` 是分两次回调（`type: 'from'` 和 `type: 'to'`），每次只返回单日期对象，**不含** `fromDateObj` / `toDateObj`。因此在 range 模式下应使用 `onChange` 监听 `target` 参数来分别收集起止日期。
 
 ```tsx
+const [range, setRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
+
 <DatePicker
   type="datetime"
-  format="yyyy-MM-dd HH:mm:ss"
-  range={[]}                                  // 传数组即为范围模式；仅 date / datetime，不支持 amPm / 夏令时
-  onChange={(dateString: string, date?: Date, target?: string) => { /* target: 'left' | 'right' */ }}
-  onOkClick={(obj: any) => {
-    // obj: { dateFormate, fromDateObj, fromSelectDate, toDateObj, toSelectDate }
-    setTimeout(() => setPeriod({ from: obj.fromDateObj, to: obj.toDateObj }), 100);   // demo 注明：一定要延时
+  format="yyyy-MM-dd HH:mm"
+  timeEmbedded
+  range={range ? range.map(d => d?.toDate?.() || d) : []}    // range prop 传实际值供 DatePicker 显示已选状态
+  onChange={(dateString: string, date?: Date, target?: string) => {
+    // target: 'from' | 'right'（注意不是 'left'）
+    if (!date) return;
+    if (target === 'from') {
+      const to = range?.[1] || dayjs();
+      setRange([dayjs(date), to]);
+    } else if (target === 'right') {
+      const from = range?.[0] || dayjs();
+      setRange([from, dayjs(date)]);
+    }
   }}
   onCancelClick={() => {}}
 />
+// 提交时：const [from, to] = range;
 ```
 
 ### 月 / 季 / 年 / 周：type 与 format 成对

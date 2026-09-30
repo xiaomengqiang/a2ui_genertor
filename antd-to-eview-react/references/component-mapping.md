@@ -42,7 +42,7 @@
 | `Slider` | `DragInput` | `value` **永远是数组**；`type="range"` 开双滑块；`markIndexes` 数组；导出名是 DragInput 不是 Slider |
 | `Rate` | `Rating` | 取值是 `onClick(value)` 不是 onChange；`onMouseOver/Leave` 悬浮预览；`half`；`disabled` 只读 |
 | `DatePicker` | `DatePicker` | **不要无条件回写** `onChange` 的字符串到 `value`（官方反例）；用 `defaultValue`+`ref.getValue()` 或有效 Date 才回写 |
-| `DatePicker.RangePicker` | `DatePicker range={[]}` | `onOkClick` 取 `fromDateObj/toDateObj`；回调里要 `setTimeout` 再 setState |
+| `DatePicker.RangePicker` | `DatePicker range={...}` | **不要用 `onOkClick`**（实测不返回 `fromDateObj/toDateObj`，分两次回调只返回单日期）；改用 `onChange` 的 `target` 参数（`'from'`/`'right'`）分别收集起止日期。详见 [DatePicker.md](components/DatePicker.md) § 范围选择 |
 | `TimePicker` | `Spinner type="time"` | 值是字符串 `"hh:mm:ss"`；`timeFormat` |
 | `Upload` | `FileUpload` | 组件不发请求；`handleSubmit({event,data})` 自己发；`updateProgressStatus`/`fileUploadStatus` 回写；`disable`（不是 disabled）；`onReload` 重传 |
 

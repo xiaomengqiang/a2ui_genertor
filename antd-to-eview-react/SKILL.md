@@ -39,6 +39,7 @@ description: >-
 7. **CSS 不写死色值**：用源项目的 CSS 变量（原始 token）；类名用业务前缀 `app-` 不用 `ev_`
 8. **Toggle `data` 必须用布尔值**：`data={[false, true]}`（不要用字符串 `['false','true']`，`'false'` 是 truthy 会导致开关无法关闭）
 9. **相对导入解析**：路径已由 `umd-to-antd-vite` 修正并验证通过（`.umd-conversion.json` 的 `verification.relativeImports=PASS`），步骤 3 **跳过** `check-relative-imports.cjs`。步骤 2 替换组件时新增的 import 不要写 `./src/...`（同级用 `./`、上层用 `../`）。
+10. **DivMessage 通知浮层避免与表单输入组件同渲染树**：`DivMessage` 通过 `setNotice` 渲染在父组件中时，每次通知会触发父组件重渲染，导致 eview-react 输入组件（TextField、Select 等）丢失焦点。**应在用户输入回调（`setField`/`onChange`）中关闭浮层**，或将通知浮层抽离为独立组件（`createPortal` 到 `document.body` + 独立 `useState`）。
 
 ## 命名异常速查
 
@@ -70,3 +71,17 @@ description: >-
 - **命名拼写异常**：`seprator`/`taggledChildren`/`disable` 等官方拼错；见 [component-mapping.md](references/component-mapping.md) 文末「属性拼写异常」表
 - **import 路径失效**：scaffold 后 `app.jsx` 在 `src/`，`./src/context.jsx` 须改 `./context.jsx`；脚本 `scripts/check-relative-imports.cjs` 按需排查（见 [§4.1](references/migration-workflow.md)）；步骤 4 默认跳过（路径已由前置 skill 修正）
 - **`antdIcons:[]` 误判无图标 → 跳过 `match-icons.cjs` → 全落方案A**：`antdIcons` 只统计 `@ant-design/icons` 命名导入，ict-react-coder 产物用自定义 `<Icon name>` 运行时 shim、`antdIcons` 恒 `[]` 但有大量 `<Icon name>` 调用点；**触发条件看 `<Icon name` 站点（`grep -rl "<Icon\b" src/`）不看 `antdIcons`**，`antdIcons: []` 禁止跳过 `match-icons.cjs`；见 [migration-workflow.md](references/migration-workflow.md) §0.1 警告 + §3.0
+
+## 已知坑点与已解决问题
+
+### DatePicker range 模式：onOkClick 不返回起止对象
+
+**问题**：`DatePicker` range 模式下 `onOkClick` 回调的 `obj` **不含 `fromDateObj` / `toDateObj`**，而是分两次回调（`type: 'from'` 和 `type: 'to'`），每次只返回单个日期对象。导致条件 `if (obj.fromDateObj && obj.toDateObj)` 永远不成立，`setField` 不会执行。
+
+**解决**：改用 `onChange` 回调，通过 `target` 参数（`'from'` / `'right'`）分别收集起止日期自行组装。详见 [DatePicker.md](references/components/DatePicker.md) § 范围选择。
+
+### DivMessage 通知浮层导致输入框失焦
+
+**问题**：`DivMessage` 通知浮层通过 `setNotice` 渲染在父组件渲染树中，每次 `notify` 产生新的 `notice` 对象导致父组件重渲染。`DivMessage` 挂载时触发的副作用（焦点竞争）导致 eview-react 输入组件（TextField、Select 等）在重渲染中丢失焦点。
+
+**解决**：在 `setField` / `onChange` 等用户输入回调中调用 `setNotice(null)` 关闭浮层，避免焦点竞争。如果需保留提示，可把通知浮层抽离为独立组件（如 `createPortal` 到 `document.body` + 独立 `useState`），使其不参与表单组件的渲染树。
