@@ -7,12 +7,14 @@
  *   - residual（带 top-K 候选，交 LLM 选，不自动 apply）：L3 prefix、L5-L7 fuzzy、UNMATCHED、
  *     链式/嵌套三元、常量传播未命中的变量。UNMATCHED 不再直接落占位，而是带候选交 LLM。
  *   - 方案A（保留 src/shared/icon.jsx shim）：仅留给"name 由真运行时后端数据决定"的调用点
- *     （如 name={row.iconField}，row 来自接口/props，迁移时值不可预知）。
- *   - 动态名（数组字段 name={t.icon} / 变量 / 链式三元）**不在脚本自动解析范围**，交 LLM 在 residual
- *     阶段按 references/components/Icon.md 的 recipe 解析。静态数组字段名（t 来自同文件静态数组字面量
- *     [{icon:'server'}]，取值为封闭字面量集合）= **静态可解析**，不许默认退方案A——recipe：把匹配到的
- *     icon+ 组件直接塞进 data 数组、render 站点 <t.icon .../>；仅真运行时数据（接口/props）退 A。
- *     常量传播未命中的标识符 name={x} 亦交 LLM 跨组件追源，追到静态字面量则解析、追不到才 A。
+ *     （如 name={row.iconField}，row 来自接口/props，迁移时值不可预知；或成员表达式绑不到同文件/跨文件静态数组）。
+ *   - 动态名（成员表达式 name={t.icon}）**现已自动解析**：Phase B 把 t.icon 绑定到同文件/跨文件静态数组字面量，
+ *     全组改写——数组里 FIELD:"lit" → FIELD:<IconPlusIc… iconSize/>（命中用真实组件，未命中用占位
+ *     IconPlusIcPublicTransverseRectangleTemplate 顶替并带候选进 residual），render <Icon name={t.icon}/> → {t.icon}。
+ *     标识符 name={x}（常量传播未命中）与链式/嵌套三元仍交 LLM 在 residual 阶段按 Icon.md recipe 解析。
+ *     仅真运行时数据（接口/props、跨文件追源失败、数组含非字面量字段）退方案A。
+ *   - .js→.jsx / .ts→.tsx：--apply 把因改写引入 JSX（替换串含 <IconPlusIc）的 .js/.ts 文件自动转扩展名，
+ *     并扫 src/ 修引用了旧路径显式 .js/.ts 扩展名的 import（无扩展名 import 不动，解析器仍命中 .jsx）。
  *
  * iconSize：源 size 原样透传（icon+ 静态 import 支持 rem/px/数字，不转换；仅方案A shim 的 getIcon API 需转数字）。
  *
@@ -535,6 +537,113 @@ function extractIconProps(tag) {
   return props;
 }
 
+// ─── 数据数组图标解析（动态名 name={t.icon} → 同文件静态数组字面量）──────────────
+
+// 平衡括号扫描：text[openIdx] 为 '[' / '{' / '('，返回 { end, inner }（inner 不含外层括号）；不闭合返回 null。
+// 字符串/注释里的括号不识别（与 getBracedProp 同样的最佳努力边界）。
+function balancedSlice(text, openIdx) {
+  const open = text[openIdx];
+  const close = open === '{' ? '}' : open === '[' ? ']' : open === '(' ? ')' : null;
+  if (!close) return null;
+  let depth = 0;
+  for (let i = openIdx; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === open) depth++;
+    else if (ch === close) {
+      depth--;
+      if (depth === 0) return { end: i, inner: text.slice(openIdx + 1, i) };
+    }
+  }
+  return null;
+}
+
+// 同文件找循环绑定：IDENT 绑到数组变量名 ARR（.map/.forEach/.flatMap/.filter((IDENT… 或 for(const IDENT of ARR)）。返回 ARR 或 null。
+function findLoopBinding(text, ident) {
+  const esc = ident.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re1 = new RegExp(`([A-Za-z_$][\\w$]*)\\.(?:map|forEach|flatMap|filter)\\s*\\(\\s*\\(?\\s*${esc}\\b`, 'g');
+  let m;
+  while ((m = re1.exec(text)) !== null) return m[1];
+  const re2 = new RegExp(`for\\s*\\(\\s*(?:const|let|var)\\s+${esc}\\s+of\\s+([A-Za-z_$][\\w$]*)`, 'g');
+  while ((m = re2.exec(text)) !== null) return m[1];
+  return null;
+}
+
+// 在 text 里找 `(?:export )?(?:const|let|var) ARR = [`，返回 '[' 的索引；找不到返回 -1。
+function findArrayDecl(text, arrName) {
+  const esc = arrName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`(?:export\\s+)?(?:const|let|var)\\s+${esc}\\s*=\\s*(\\[)`, 'g');
+  const m = re.exec(text);
+  if (!m) return -1;
+  return m.index + m[0].length - 1; // 指向 '['
+}
+
+// 在数组字面量（arrOpenIdx 指向 '['）里抓所有 `FIELD: "lit"` / `FIELD: 'lit'` 字符串字面量条目（含 offset/length/raw）。
+function extractDataIconFields(text, arrOpenIdx, fieldName) {
+  const slice = balancedSlice(text, arrOpenIdx);
+  if (!slice) return [];
+  const base = arrOpenIdx + 1;
+  const esc = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`\\b${esc}\\s*:\\s*["']([^"']*)["']`, 'g');
+  const out = [];
+  let m;
+  while ((m = re.exec(slice.inner)) !== null) {
+    out.push({ value: m[1], offset: base + m.index, length: m[0].length, raw: m[0] });
+  }
+  return out;
+}
+
+// 数组里是否存在非字符串字面量的 FIELD 值（变量/三元/标识符等）→ 集合不封闭，不能安全转 icon+ 元素。
+function hasNonLiteralField(text, arrOpenIdx, fieldName) {
+  const slice = balancedSlice(text, arrOpenIdx);
+  if (!slice) return true; // 解析不出就保守当非封闭
+  const esc = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`\\b${esc}\\s*:\\s*([^,}\\n]+?)\\s*(?=[,}\\n])`, 'g');
+  let m;
+  while ((m = re.exec(slice.inner)) !== null) {
+    if (!/^["'][^"']*["']$/.test(m[1].trim())) return true;
+  }
+  return false;
+}
+
+// 由 render 站点 props + 语境 + 组件名，拼 data 数组里 `icon: <Comp iconSize=… />` 元素（复用 sizeSnippet 的尺寸透传）。
+function buildDataIconElement(componentName, props, context) {
+  const out = [`iconSize=${sizeSnippet(props, context)}`];
+  out.push(props.color ? `iconColor={['${props.color}']}` : `iconColor={['currentcolor']}`);
+  if (props.variant && props.variant !== 'lined') out.push(`type="${props.variant}"`);
+  if (props.classNameStr != null) out.push(`className="${props.classNameStr}"`);
+  else if (props.classNameExpr != null) out.push(`className={${props.classNameExpr}}`);
+  if (props.styleRest) out.push(`style={${props.styleRest}}`);
+  return `<${componentName} ${out.join(' ')} />`;
+}
+
+// render 站点 <Icon name={EXPR} …/> 的替换串（EXPR 如 t.icon / MENU[0].icon）。按上下文判 {}：
+// 仅 JSX 子节点位包 {EXPR}（开标签 '>' 或前一个 {expr} 的 '}'）；其余表达式位（三元分支/对象值/数组元素/
+// prop 容器/箭头体/return 等）裸 EXPR——否则 {} 落到非子节点位会被解析为对象字面量/块语句报错。
+// 详见 wrapIfNeeded（缺陷一/二：`<Icon name={X}/>` 改写后 {} 的合法性取决于上下文）。
+function dataRenderReplacement(expr, text, offset) {
+  return wrapIfNeeded(expr, text, offset);
+}
+
+// 方案A shim import 路径修正：assets/shared/icon(.jsx?) → shared/icon（scaffold 把 shared 从 assets/ 上移）。最佳努力，深度由前缀保留。
+function fixShimImportPath(text) {
+  return text.replace(/(from\s*['"])([^'"]*?)\/?assets\/shared\/(icons?)(\.jsx?)(['"])/g, '$1$2/shared/$3$4$5');
+}
+
+// 解析数组变量 ARR 的声明位置：先同文件（renderFile），再跨文件按名唯一性找；返回 {arrayFile, arrOpenIdx} 或 null（找不到/多名歧义）。
+function resolveArrayDecl(arrName, renderFile, textCache) {
+  const renderText = textCache.get(renderFile);
+  const idx = findArrayDecl(renderText, arrName);
+  if (idx !== -1) return { arrayFile: renderFile, arrOpenIdx: idx };
+  const hits = [];
+  for (const [f, t] of textCache) {
+    if (f === renderFile) continue;
+    const i2 = findArrayDecl(t, arrName);
+    if (i2 !== -1) hits.push({ file: f, idx: i2 });
+  }
+  if (hits.length === 1) return { arrayFile: hits[0].file, arrOpenIdx: hits[0].idx };
+  return null;
+}
+
 // ─── 调用点扫描 ─────────────────────────────────────────────────────────────
 
 // 捕获 <Icon .../> 标签（含多行、嵌在 prop 内）。返回 [{ offset, tag, file, line }]
@@ -592,6 +701,7 @@ function scanDynamicIcons(text, constMap) {
   const ternaryChained = [];
   const variables = [];
   const literals = [];
+  const members = []; // 成员表达式 name={IDENT.FIELD}：交 Phase B 解析同文件静态数组（命中→dataIconSite，追不到源→runtimeData）
   const re = /<Icon\b[\s\S]*?(?:\/>|<\/Icon>)/g;
   let m;
   while ((m = re.exec(text)) !== null) {
@@ -607,16 +717,20 @@ function scanDynamicIcons(text, constMap) {
     else if (parsed.kind === 'ternary-chained')
       ternaryChained.push({ ...site, cond: parsed.cond, candidates: parsed.candidates });
     else {
-      // variable：常量传播
+      // variable：常量传播 / 成员表达式 / 标识符分流
       const idMatch = parsed.expr.match(/^([A-Za-z_$][\w$]*)$/);
+      // 成员表达式：IDENT.field 或 IDENT[i][j]….field（含下标直接索引，如 MENU[0].icon）
+      const memMatch = !idMatch && parsed.expr.match(/^([A-Za-z_$][\w$]*)(?:\[[^\]]+\])*\.([A-Za-z_$][\w$]*)$/);
       if (idMatch && constMap && constMap.has(idMatch[1])) {
         literals.push({ ...site, value: constMap.get(idMatch[1]).literal, resolvedVar: idMatch[1] });
+      } else if (memMatch) {
+        members.push({ ...site, root: memMatch[1], fieldName: memMatch[2], expr: parsed.expr });
       } else {
-        variables.push({ ...site, expr: parsed.expr, isMember: !idMatch });
+        variables.push({ ...site, expr: parsed.expr, isMember: false });
       }
     }
   }
-  return { ternaryFlat, ternaryChained, variables, literals };
+  return { ternaryFlat, ternaryChained, variables, literals, members };
 }
 
 // 判断 <Icon> 是否嵌在 Button/IconButton 的 icon/leftIcon/rightIcon/iconName prop 内（决定默认尺寸语境）
@@ -627,12 +741,18 @@ function detectContext(text, offset) {
   return 'standalone';
 }
 
-// 判断 <Icon> 标签是否处在 JSX 表达式容器内（即前一个非空白字符是 '{'，如 prop={<Icon/>}、{<Icon/>}）。
-// 三元改写时：在容器内 → 替换为 `cond ? <A/> : <B/>`（容器已提供 {}）；独立 JSX 子节点 → 包 `{cond ? <A/> : <B/>}`。
-function inExprContainer(text, offset) {
+// 判定 <Icon/> 改写结果（一个表达式 EXPR，如 `cond ? <A/> : <B/>`、`t.icon`）是否需要包 {}：
+// **仅 JSX 子节点位置才包 {}**；其余表达式位置一律裸 EXPR，否则 {} 落到非子节点位会被解析为对象字面量/块语句报错。
+// JSX 子节点位：前一个非空白字符是 '>'（开标签/自闭合/闭合标签的 '>'，但排除 '=>'）或 '}'（前一个 {expr} 子节点结束）。
+// 其余（'(' ')' ',' ':' '[' '?' '{' / '=>' 的 '>' / return 等关键字尾字母）→ 表达式位 → 裸 EXPR。
+function wrapIfNeeded(expr, text, offset) {
   let i = offset - 1;
   while (i >= 0 && /\s/.test(text[i])) i--;
-  return i >= 0 && text[i] === '{';
+  if (i < 0) return expr;
+  const ch = text[i];
+  if (ch === '>' && i >= 1 && text[i - 1] !== '=') return `{${expr}}`; // 开标签 '>'（排除 '=>'）
+  if (ch === '}') return `{${expr}}`; // 前一个 {expr} 子节点结束 → 仍在 JSX 子节点位
+  return expr; // 表达式位（括号/对象值/数组元素/prop 容器/箭头体/return 等）→ 裸
 }
 
 // ─── 报告 ───────────────────────────────────────────────────────────────────
@@ -715,16 +835,40 @@ function reportConsole(scan, byName) {
     }
   }
 
-  // 变量名（常量传播未命中）→ 带 expr 交 LLM 追源；静态数组字段名/局部变量持字面量可静态解析（recipe 见 Icon.md，不落 A），追不到源（真运行时数据）才保留 shim=方案A
+  // 变量名（标识符，常量传播未命中）→ 带 expr 交 LLM 跨组件追源；追到静态字面量则解析、追不到才方案A
   if (scan.variableSites && scan.variableSites.length) {
     console.log('');
-    console.log(`变量 name（交 LLM 追源；静态数组字段/字面量变量可解析塞进 data，追不到源=真运行时数据才保留 shim=方案A）: ${scan.variableSites.length} 处`);
+    console.log(`变量 name（标识符，常量传播未命中，交 LLM 跨组件追源；追到静态字面量则解析、追不到才方案A）: ${scan.variableSites.length} 处`);
     for (const v of scan.variableSites) {
-      const hint = v.isMember
-        ? `成员表达式 ${v.expr}：若 X 是循环变量取同文件静态数组字段→可解析（按 Icon.md recipe 把 icon+ 塞进 data，非运行时）；若 X 来自接口/props→方案A`
-        : `标识符 ${v.expr}：常量传播未命中，LLM 跨组件追源；追到静态字面量则解析、追不到才方案A`;
-      console.log(`  ${rel(v.file)}:${v.line}  name={${v.expr}}  [${hint}]`);
+      console.log(`  ${rel(v.file)}:${v.line}  name={${v.expr}}`);
       console.log(`    - ${v.original.trim()}`);
+    }
+  }
+
+  // 数据数组图标：name={IDENT.FIELD} 绑定同文件/跨文件静态数组 → icon+ 元素塞进 data + render 改 {IDENT.FIELD}
+  if (scan.dataIconSites && scan.dataIconSites.length) {
+    console.log('');
+    console.log(`数据数组图标（icon: "lit" → icon: <IconPlusIc…/> 塞进 data + render → {IDENT.FIELD}）: ${scan.dataIconSites.length} 处`);
+    for (const d of scan.dataIconSites) {
+      const sameFile = d.arrayFile === d.renderFile;
+      console.log(`  ${rel(d.renderFile)}:${d.renderLine}  ${d.renderExpr} ← 数组 ${d.arrayName}（${sameFile ? '同文件' : rel(d.arrayFile)}）`);
+      console.log(`    - render ${d.renderOriginal.trim()}  → ${d.renderReplacement}`);
+      for (const e of d.entries) {
+        const st = e.isPlaceholder
+          ? `[未命中→占位 ${PLACEHOLDER.componentName}，residual 候选: ${fmtCandidates(e.match.candidates)}]`
+          : `[${e.match.level}]`;
+        console.log(`    + ${d.fieldName}: "${e.value}" → ${e.element}  ${st}`);
+      }
+    }
+  }
+
+  // 运行时数据图标：name={IDENT.FIELD} 绑不到同文件/跨文件静态数组（接口/props）→ 保留 <Icon> 走方案A，仅修 shim import 路径
+  if (scan.runtimeDataSites && scan.runtimeDataSites.length) {
+    console.log('');
+    console.log(`运行时数据图标（追不到静态数组源=真运行时，保留 <Icon> 走方案A，修 shared/icon shim 路径）: ${scan.runtimeDataSites.length} 处`);
+    for (const r of scan.runtimeDataSites) {
+      console.log(`  ${rel(r.file)}:${r.line}  name={${r.expr}}  [${r.reason}]`);
+      console.log(`    - ${r.original.trim()}`);
     }
   }
 }
@@ -805,6 +949,47 @@ function writeJson(scan, byName, outPath) {
     isMember: v.isMember === true,
     original: v.original.trim(),
   }));
+  const dataIconSites = (scan.dataIconSites || []).map((d) => {
+    const sameFile = d.arrayFile === d.renderFile;
+    return {
+      renderFile: rel(d.renderFile),
+      renderLine: d.renderLine,
+      arrayFile: rel(d.arrayFile),
+      sameArrayAndRenderFile: sameFile,
+      arrayName: d.arrayName,
+      fieldName: d.fieldName,
+      renderExpr: d.renderExpr,
+      root: d.root,
+      directArray: d.directArray === true,
+      renderOriginal: d.renderOriginal.trim(),
+      renderReplacement: d.renderReplacement,
+      entries: d.entries.map((e) => ({
+        value: e.value,
+        status: e.match.status,
+        matchLevel: e.match.level,
+        componentName: e.componentName,
+        isPlaceholder: e.isPlaceholder === true,
+        element: e.element,
+        candidates: e.match.candidates || undefined,
+      })),
+    };
+  });
+  const runtimeDataSites = (scan.runtimeDataSites || []).map((r) => ({
+    file: rel(r.file),
+    line: r.line,
+    expr: r.expr,
+    reason: r.reason,
+    original: r.original.trim(),
+  }));
+  // data 数组改写引入的 import 也收进 imports（arrayFile）
+  for (const d of scan.dataIconSites || []) {
+    const f = rel(d.arrayFile);
+    for (const e of d.entries) (imports[f] = imports[f] || new Set()).add(e.componentName);
+  }
+  const dataIconPlaceholderCount = (scan.dataIconSites || []).reduce(
+    (acc, d) => acc + d.entries.filter((e) => e.isPlaceholder).length,
+    0
+  );
   const residualCount = names.length - confirmedCount;
   const out = {
     summary: {
@@ -814,12 +999,17 @@ function writeJson(scan, byName, outPath) {
       ternaryCount: ternarySites.length,
       chainedTernaryCount: chainedTernarySites.length,
       variableCount: variableSites.length,
-      needsLlmReview: residualCount + ternarySites.filter((t) => !t.allConfirmed).length + chainedTernarySites.length + variableSites.length,
+      dataIconSiteCount: dataIconSites.length,
+      dataIconPlaceholderCount,
+      runtimeDataCount: runtimeDataSites.length,
+      needsLlmReview: residualCount + ternarySites.filter((t) => !t.allConfirmed).length + chainedTernarySites.length + variableSites.length + dataIconPlaceholderCount + runtimeDataSites.length,
     },
     icons,
     ternarySites,
     chainedTernarySites,
     variableSites,
+    dataIconSites,
+    runtimeDataSites,
     imports: Object.fromEntries(Object.entries(imports).map(([k, v]) => [k, [...v].sort()])),
   };
   fs.writeFileSync(outPath, JSON.stringify(out, null, 2) + '\n', 'utf8');
@@ -827,7 +1017,7 @@ function writeJson(scan, byName, outPath) {
 
 // ─── --apply 改写 ───────────────────────────────────────────────────────────
 
-function applyRewrites(scan, byName) {
+function applyRewrites(scan, byName, srcDir) {
   // 按文件聚合改写计划：edits（标签替换）+ 所需 @nce/icon-plus 组件名
   const byFile = new Map();
   const plan = (file) => {
@@ -856,25 +1046,48 @@ function applyRewrites(scan, byName) {
     if (/<IconPlusIc\b/.test(t.tag)) continue;
     p.edits.push({ tag: t.tag, offset: t.offset, repl: t.replacement });
   }
+  // 数据数组图标站点：数组里 FIELD:"lit" → FIELD:<Comp .../>（在 arrayFile），render <Icon name={t.field}/> → {t.field}（在 renderFile）；组件 import 进 arrayFile
+  for (const d of scan.dataIconSites || []) {
+    const ap = plan(d.arrayFile);
+    for (const e of d.entries) {
+      ap.imports.add(e.componentName);
+      // 幂等：raw 已被改写（不再含字符串字面量形态）→ 跳过
+      if (!new RegExp(`${d.fieldName}\\s*:\\s*["']`).test(e.raw)) continue;
+      ap.edits.push({ tag: e.raw, offset: e.offset, repl: e.element });
+    }
+    const rp = plan(d.renderFile);
+    // 幂等：render tag 已不含 <Icon（前次已改为 {t.field}）→ 跳过
+    if (!/<Icon\b/.test(d.renderTag)) continue;
+    rp.edits.push({ tag: d.renderTag, offset: d.renderOffset, repl: d.renderReplacement });
+  }
 
   // 旧 shared/icon(x) 具名 Icon import 清理正则：覆盖 shared/icon.jsx（scaffold）与 shared/icons.js（源项目）
   const oldIconImportRe = /^\s*import\s*\{\s*Icon\s*\}\s*from\s*['"][^'"]*shared\/icons?\.jsx?['"];?\s*\r?\n?/gm;
 
+  // 运行时数据站点所在文件：保留 <Icon> 走方案A，仅修 shared/icon shim 的 import 路径（assets/shared → shared）
+  const runtimeFiles = new Set((scan.runtimeDataSites || []).map((r) => r.file));
+  for (const f of runtimeFiles) plan(f); // 纳入 byFile 以触发 fixShimImportPath（即便无其他改写）
+
   let touched = 0;
   for (const [file, { edits, imports }] of byFile) {
     let text = fs.readFileSync(file, 'utf8');
+    // 方案A：修 shim import 路径（assets/shared/icon → shared/icon）
+    if (runtimeFiles.has(file)) text = fixShimImportPath(text);
     // 解析每个 edit 的实际位置（offset 可能因前序编辑漂移，先按 offset 定位，失败再从头找）
     const resolved = [];
+    const seenFrom = new Set(); // 同位置多 edit（多个 render 站点引用同一数组条目）去重，仅取首个
     for (const e of edits) {
       let idx = text.indexOf(e.tag, e.offset);
       if (idx === -1) idx = text.indexOf(e.tag);
       if (idx === -1) continue;
+      if (seenFrom.has(idx)) continue;
+      seenFrom.add(idx);
       resolved.push({ from: idx, to: idx + e.tag.length, repl: e.repl });
     }
     if (!resolved.length) {
-      // 调用点都已改写但 import 仍缺 → 补 import + 清旧 shim import
-      if (!imports.size) continue;
-      text = ensureImport(text, [...imports].sort());
+      // 调用点都已改写但 import 仍缺 → 补 import + 清旧 shim import + 方案A 路径修正
+      if (!imports.size && !runtimeFiles.has(file)) continue;
+      if (imports.size) text = ensureImport(text, [...imports].sort());
       if (!/<Icon\b/.test(text)) text = text.replace(oldIconImportRe, '');
       fs.writeFileSync(file, text, 'utf8');
       touched++;
@@ -886,7 +1099,7 @@ function applyRewrites(scan, byName) {
       text = text.slice(0, e.from) + e.repl + text.slice(e.to);
     }
     // 注入 @nce/icon-plus import（幂等：已有则合并去重）
-    text = ensureImport(text, [...imports].sort());
+    if (imports.size) text = ensureImport(text, [...imports].sort());
     // 若文件已无 <Icon 调用，移除旧的 shared/icon(x) 具名 Icon import
     if (!/<Icon\b/.test(text)) {
       text = text.replace(oldIconImportRe, '');
@@ -894,8 +1107,77 @@ function applyRewrites(scan, byName) {
     fs.writeFileSync(file, text, 'utf8');
     touched++;
   }
+
+  // .js→.jsx / .ts→.tsx 转换 pass：本次改写引入 JSX（替换串含 <IconPlusIc）的 .js/.ts 文件转扩展名，并修引用方显式扩展名 import
+  const renamed = renameJsxFiles(byFile, runtimeFiles);
+  if (renamed.size) {
+    fixExplicitExtensionImports(renamed, srcDir);
+    console.log(`[match-icons] --apply: ${renamed.size} 个 .js/.ts 文件转 .jsx/.tsx（引入 JSX）并修引用方显式扩展名 import。`);
+  }
   console.log(`[match-icons] --apply: 改写 ${touched} 个文件。`);
 }
+
+// 判定本次改写是否在 file 引入 JSX：edits 中有替换串含 <IconPlusIc（数据数组元素 / 字面量 / 三元改写均含）。render 站点 {t.icon} 不引入 <，不算。
+function editIntroducesJsx(edits) {
+  return edits.some((e) => e.repl.includes('<IconPlusIc'));
+}
+
+// 把因改写引入 JSX 的 .js→.jsx / .ts→.tsx 重命名，写回新路径删旧；返回 Map<oldAbs,newAbs>。仅扫本次有改写的文件（byFile keys）+ 方案A 文件（保留 <Icon>，但其引用方可能因 data 文件重命名需修）。
+function renameJsxFiles(byFile, runtimeFiles) {
+  const renamed = new Map();
+  for (const [file, { edits }] of byFile) {
+    if (!editIntroducesJsx(edits)) continue;
+    const ext = path.extname(file);
+    let newExt = null;
+    if (ext === '.js') newExt = '.jsx';
+    else if (ext === '.ts') newExt = '.tsx';
+    if (!newExt) continue;
+    const newPath = file.slice(0, file.length - ext.length) + newExt;
+    const text = fs.readFileSync(file, 'utf8');
+    fs.writeFileSync(newPath, text, 'utf8');
+    if (file !== newPath && fs.existsSync(file)) fs.unlinkSync(file);
+    renamed.set(file, newPath);
+  }
+  return renamed;
+}
+
+// 扫 src/ 所有文件，把引用了 renamed 旧路径且带显式 .js/.ts 扩展名的 import 说明符改为新扩展名。无扩展名 import 不动（解析器仍能命中 .jsx）。
+function fixExplicitExtensionImports(renamed, srcDir) {
+  if (!renamed.size) return;
+  const oldPaths = new Set(renamed.keys());
+  const allFiles = walk(srcDir, []);
+  let fixed = 0;
+  for (const f of allFiles) {
+    if (!fs.existsSync(f)) continue;
+    let text = fs.readFileSync(f, 'utf8');
+    let changed = false;
+    const rewrite = (spec) => {
+      if (!/\.js$/.test(spec) && !/\.ts$/.test(spec)) return spec;
+      const resolved = path.resolve(path.dirname(f), spec);
+      if (oldPaths.has(resolved)) {
+        const newExt = path.extname(renamed.get(resolved)); // '.jsx' / '.tsx'
+        return spec.replace(/\.(js|ts)$/, newExt); // 匹配含点号，替换也含点号
+      }
+      return spec;
+    };
+    text = text.replace(/(\bfrom\s*['"])([^'"]+)(['"])/g, (m, pre, spec, post) => {
+      const ns = rewrite(spec);
+      if (ns !== spec) { changed = true; return `${pre}${ns}${post}`; }
+      return m;
+    });
+    text = text.replace(/(\bimport\s*\(\s*['"])([^'"]+)(['"]\s*\))/g, (m, pre, spec, post) => {
+      const ns = rewrite(spec);
+      if (ns !== spec) { changed = true; return `${pre}${ns}${post}`; }
+      return m;
+    });
+    if (changed) {
+      fs.writeFileSync(f, text, 'utf8');
+      fixed++;
+    }
+  }
+  if (fixed) console.log(`[match-icons] --apply: 修正 ${fixed} 个引用文件的显式扩展名 import。`);
+}
+
 
 // 确保文件含 `import { ... } from '@nce/icon-plus'`；已有则合并去重，无则插到首个 import 之后
 function ensureImport(text, names) {
@@ -960,11 +1242,17 @@ function main() {
     ternarySites: [],
     chainedTernarySites: [],
     variableSites: [],
+    dataIconSites: [],
+    runtimeDataSites: [],
   };
   // byName: sourceName -> { normalized, match, sites: [{file,line,original,replacement,offset,tag}] }
   const byName = {};
   const topk = opts.topk;
   const match1 = (norm) => matchOne(norm, index, topk);
+
+  // 文件文本缓存（Phase B 跨文件数组解析需要）
+  const textCache = new Map();
+  const memberSites = []; // 待 Phase B 解析的 name={IDENT.FIELD} 站点
 
   function addSite(name, normalized, file, line, original, replacement, offset, tag) {
     if (!byName[name]) {
@@ -987,7 +1275,8 @@ function main() {
     });
     const [a, b] = candidates;
     const inner = `${t.cond} ? ${a.replacement} : ${b.replacement}`;
-    const replacement = inExprContainer(text, t.offset) ? inner : `{${inner}}`;
+    // 按上下文判 {}：JSX 子节点位 → {inner}；表达式位（三元分支/括号/对象值等）→ 裸 inner（避免 {} 被当对象字面量）
+    const replacement = wrapIfNeeded(inner, text, t.offset);
     scan.ternarySites.push({
       file,
       line,
@@ -1026,6 +1315,7 @@ function main() {
 
   for (const file of files) {
     const text = fs.readFileSync(file, 'utf8');
+    textCache.set(file, text);
 
     // a. 源 <Icon name="..."/> 调用点（字面量 name）
     const iconSites = scanIconComponent(text);
@@ -1080,6 +1370,95 @@ function main() {
       });
       scan.totalSites++;
     }
+    // 成员表达式 name={IDENT.field} / name={IDENT[i].field} → 暂存，Phase B 跨文件解析同文件/跨文件静态数组
+    for (const mb of dyn.members) {
+      memberSites.push({
+        file,
+        line: lineOfOffset(text, mb.offset),
+        offset: mb.offset,
+        tag: mb.tag,
+        original: mb.tag,
+        root: mb.root,
+        fieldName: mb.fieldName,
+        expr: mb.expr,
+      });
+      scan.totalSites++;
+    }
+  }
+
+  // Phase B：解析成员表达式站点 → dataIconSite（同文件/跨文件静态数组）或 runtimeDataSite（追不到源=真运行时）
+  for (const site of memberSites) {
+    const renderText = textCache.get(site.file);
+    // 绑定数组变量名 ARR：root 是循环变量（.map/forEach/for-of 绑到 ARR）；否则 root 自身是数组常量（直接索引 MENU[0].icon）
+    let arrName = findLoopBinding(renderText, site.root);
+    let directArray = false;
+    if (!arrName) {
+      arrName = site.root; // 直接索引模式：root 即数组名（resolveArrayDecl 会验证它确为数组常量）
+      directArray = true;
+    }
+    const decl = resolveArrayDecl(arrName, site.file, textCache);
+    if (!decl) {
+      // 追不到源（无循环绑定且 root 非任何已扫文件中的数组常量 / 跨文件多名歧义）→ 真运行时数据 → 方案A
+      scan.runtimeDataSites.push({
+        file: site.file, line: site.line, offset: site.offset, tag: site.tag, original: site.tag,
+        expr: site.expr, reason: 'no-loop-binding-or-array-const',
+      });
+      continue;
+    }
+    const { arrayFile, arrOpenIdx } = decl;
+    const arrText = textCache.get(arrayFile);
+    // 集合不封闭（含非字符串字面量字段）→ 不能安全转元素，退方案A
+    if (hasNonLiteralField(arrText, arrOpenIdx, site.fieldName)) {
+      scan.runtimeDataSites.push({
+        file: site.file, line: site.line, offset: site.offset, tag: site.tag, original: site.tag,
+        expr: site.expr, reason: 'non-literal-field-in-array',
+      });
+      continue;
+    }
+    const entries = extractDataIconFields(arrText, arrOpenIdx, site.fieldName);
+    if (!entries.length) {
+      // 数组里没有该字段的字符串字面量（可能全是非字面量，或字段名不匹配）
+      scan.runtimeDataSites.push({
+        file: site.file, line: site.line, offset: site.offset, tag: site.tag, original: site.tag,
+        expr: site.expr, reason: 'no-string-literal-entries',
+      });
+      continue;
+    }
+    // 逐字面量匹配：confirmed → 真实组件名；未命中 → 占位图标 PLACEHOLDER，并带候选进 residual
+    const props = extractIconProps(site.tag);
+    const context = detectContext(renderText, site.offset);
+    const resolved = entries.map((e) => {
+      const norm = normalizeSourceName(e.value);
+      const m = byName[e.value] ? byName[e.value].match : match1(norm);
+      const componentName =
+        m.status === 'confirmed' ? m.componentName : PLACEHOLDER.componentName;
+      const element = `${site.fieldName}: ${buildDataIconElement(componentName, props, context)}`;
+      return {
+        value: e.value,
+        offset: e.offset,
+        raw: e.raw,
+        match: m,
+        componentName,
+        element,
+        isPlaceholder: m.status !== 'confirmed',
+      };
+    });
+    const renderRepl = dataRenderReplacement(site.expr, renderText, site.offset);
+    scan.dataIconSites.push({
+      renderFile: site.file,
+      renderLine: site.line,
+      renderOffset: site.offset,
+      renderTag: site.tag,
+      renderOriginal: site.tag,
+      renderReplacement: renderRepl,
+      renderExpr: site.expr,
+      arrayFile,
+      arrayName: arrName,
+      fieldName: site.fieldName,
+      root: site.root,
+      directArray,
+      entries: resolved,
+    });
   }
 
   reportConsole(scan, byName);
@@ -1091,11 +1470,13 @@ function main() {
     Object.keys(byName).filter((n) => byName[n].match.status !== 'confirmed').length +
     (scan.ternarySites || []).filter((t) => !t.allConfirmed).length +
     (scan.chainedTernarySites || []).length +
-    (scan.variableSites || []).length;
+    (scan.variableSites || []).length +
+    (scan.dataIconSites || []).reduce((a, d) => a + d.entries.filter((e) => e.isPlaceholder).length, 0) +
+    (scan.runtimeDataSites || []).length;
   console.log(`\n[match-icons] 报告写入临时目录 ${outPath}（residual ${residualCount} 处待 LLM 复核；不进产物）`);
 
   if (opts.apply) {
-    applyRewrites(scan, byName);
+    applyRewrites(scan, byName, srcDir);
     // --apply 仅落 confirmed 改写；报告在临时目录，结束后清理（产物根永不出现 .icon-match.json）。
     // residual 由 LLM 在会话内按控制台/临时报告复核，逐条人工改写调用点。
     if (fs.existsSync(outPath)) {

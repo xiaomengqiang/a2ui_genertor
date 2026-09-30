@@ -89,24 +89,25 @@ interface AccordionItem {
 import React, { useMemo, useState } from 'react';
 import Accordion from '@nce/eview-react/Accordion';
 import Button from '@nce/eview-react/Button';
+import { IconPlusIcHuaweiCloudNetwork, IconPlusIcPublicSecurity } from '@nce/icon-plus';  
 
 interface AccordionItem {
   title: string;                 // 本例标题都用字符串，便于拼路径
   value?: string;
-  icon?: string;
+  icon?: React.ReactNode | string;
   content?: React.ReactNode;
   disabled?: boolean;
   children?: AccordionItem[];
 }
 
-// 菜单数据：真实项目一般来自接口；图标换成项目资源
+// 菜单数据：真实项目一般来自接口；一级菜单图标用 icon+ 组件（封闭字面量集合，静态 import，见 Icon.md 动态名 recipe）
 const buildMenu = (alarmCount: number): AccordionItem[] => [
   {
-    title: '网络配置', value: 'network', icon: './image/icon_network.svg',
+    title: '网络配置', value: 'network', icon: <IconPlusIcHuaweiCloudNetwork />,
     children: [{ title: '接口管理', value: 'network-interface' }, { title: '路由配置', value: 'network-route' }],
   },
   {
-    title: '安全策略', value: 'security', icon: './image/icon_security.svg',
+    title: '安全策略', value: 'security', icon: <IconPlusIcPublicSecurity />,
     children: [
       { title: '访问控制', value: 'security-acl' },
       {
