@@ -78,7 +78,7 @@ description: >-
 
 **问题**：`DatePicker` range 模式下 `onOkClick` 回调的 `obj` **不含 `fromDateObj` / `toDateObj`**，而是分两次回调（`type: 'from'` 和 `type: 'to'`），每次只返回单个日期对象。导致条件 `if (obj.fromDateObj && obj.toDateObj)` 永远不成立，`setField` 不会执行。
 
-**解决**：改用 `onChange` 回调，通过 `target` 参数（`'from'` / `'right'`）分别收集起止日期自行组装。详见 [DatePicker.md](references/components/DatePicker.md) § 范围选择。
+**解决**：改用 `onChange` 回调，通过 `target` 参数（`'from'` / `'to'`）分别收集起止日期自行组装。详见 [DatePicker.md](references/components/DatePicker.md) § 范围选择。
 
 ### DivMessage 通知浮层导致输入框失焦
 

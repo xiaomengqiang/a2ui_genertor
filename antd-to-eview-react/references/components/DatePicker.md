@@ -66,12 +66,12 @@ const [range, setRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
   timeEmbedded
   range={range ? range.map(d => d?.toDate?.() || d) : []}    // range prop 传实际值供 DatePicker 显示已选状态
   onChange={(dateString: string, date?: Date, target?: string) => {
-    // target: 'from' | 'right'（注意不是 'left'）
+    // target: 'from' | 'to'
     if (!date) return;
     if (target === 'from') {
       const to = range?.[1] || dayjs();
       setRange([dayjs(date), to]);
-    } else if (target === 'right') {
+    } else if (target === 'to') {
       const from = range?.[0] || dayjs();
       setRange([from, dayjs(date)]);
     }
@@ -131,7 +131,7 @@ const [range, setRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
 | `defaultValue` | `Date \| string` | 初始值，**只在初始化生效** |
 | `dateRange` | `{ dateFrom: Date, dateTo: Date }` | 可选范围限制 |
 | `range` | `(Date \| string)[]` | 传数组开启范围选择（仅 date / datetime） |
-| `onChange` | `(dateString, date?, target?, dstDate?) => void` | 变更；范围时 `target` 为 `left` / `right` |
+| `onChange` | `(dateString, date?, target?, dstDate?) => void` | 变更；范围时 `target` 为 `from` / `to` |
 | `onOkClick` / `onCancelClick` | `(obj, event, target?) => void` | 范围模式确定 / 取消；`obj` 含 `fromDateObj` / `toDateObj` / `fromSelectDate` / `toSelectDate` / `dateFormate` |
 | `onBlur` | `(ev: { event, value: Date, text, format }) => void` | 输入框失焦 |
 | `required` / `disabled` / `readOnly` | `boolean`，默认 `false` | 必填 / 禁用 / 输入框只读 |
