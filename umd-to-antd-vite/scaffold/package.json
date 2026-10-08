@@ -11,9 +11,15 @@
     "dependencies": {
         "react": "^18.3.0",
         "react-dom": "^18.3.0",
-        "antd": "^5.20.0",
-        "@ant-design/icons": "^5.4.0",
+        "react-intl": "^7.1.14",
         "dayjs": "^1.11.10",
+        "@nce/eview-react": "latest",
+        "@nce/icon-plus": "latest",
+        "@cloudsop/horizon": "latest",
+        "@cloudsop/horizon-intl": "latest",
+        "@cloudsop/htimezone": "latest",
+        "@baize/wdk": "latest",
+        "@hui/design-token": "latest",
         "lodash": "^4.17.21"
     },
     "devDependencies": {

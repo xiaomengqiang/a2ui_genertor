@@ -4,16 +4,19 @@
 // 替代手动 cp -r + 手改两个字段，跨平台可用（不依赖 Unix cp）。
 //
 // 用法：
-//   node init-scaffold.cjs <目标工程根> [项目名] [标题] [--force]
+//   node init-scaffold.cjs <目标工程根> [项目名] [标题] [--force] [--upgrade]
 //
 // 参数：
 //   目标工程根  必需。不存在则自动创建；非空时需 --force 确认覆盖
 //   项目名      可选。写入 package.json 的 name；缺省用目标目录名
 //   标题        可选。写入 index.html 的 <title>；缺省用项目名
+//   --force     覆盖非空目标目录
+//   --upgrade   升级模式：跳过 src/styles/ 目录拷贝，保留已有 token CSS
+//               （用于源项目已是标准 Vite 工程，如 umd-to-antd-vite 产物）
 //
 // 示例：
 //   node init-scaffold.cjs ./my-app my-app "我的应用"
-//   node init-scaffold.cjs D:/projects/portal
+//   node init-scaffold.cjs D:/projects/portal --force --upgrade
 
 const fs = require('fs');
 const path = require('path');
@@ -25,9 +28,10 @@ const targetRoot = process.argv[2];
 const projectName = process.argv[3];
 const title = process.argv[4];
 const force = process.argv.includes('--force');
+const upgrade = process.argv.includes('--upgrade');
 
-if (!targetRoot || targetRoot === '--force') {
-  console.error('[init-scaffold] 用法: node init-scaffold.cjs <目标工程根> [项目名] [标题] [--force]');
+if (!targetRoot || targetRoot === '--force' || targetRoot === '--upgrade') {
+  console.error('[init-scaffold] 用法: node init-scaffold.cjs <目标工程根> [项目名] [标题] [--force] [--upgrade]');
   console.error('[init-scaffold] 示例: node init-scaffold.cjs ./my-app my-app "我的应用"');
   process.exit(1);
 }
@@ -62,6 +66,10 @@ function copyDir(src, dst) {
     const dstPath = path.join(dst, name);
     const stat = fs.statSync(srcPath);
     if (stat.isDirectory()) {
+      if (upgrade && name === 'styles' && src === path.join(scaffoldDir, 'src')) {
+        skippedStyles = true;
+        continue;
+      }
       copyDir(srcPath, dstPath);
     } else {
       fs.copyFileSync(srcPath, dstPath);
@@ -71,6 +79,7 @@ function copyDir(src, dst) {
 }
 
 let copiedCount = 0;
+let skippedStyles = false;
 copyDir(scaffoldDir, resolvedTarget);
 
 const pkgPath = path.join(resolvedTarget, 'package.json');
@@ -90,8 +99,11 @@ if (fs.existsSync(htmlPath)) {
 console.log(`[init-scaffold] 拷贝完成: ${copiedCount} 个文件 -> ${resolvedTarget}`);
 console.log(`[init-scaffold] package.json name = "${resolvedName}"`);
 console.log(`[init-scaffold] index.html title = "${resolvedTitle}"`);
+if (skippedStyles) {
+  console.log('[init-scaffold] 升级模式：保留已有 src/styles/ 目录（token CSS 未覆盖）');
+}
 console.log('');
 console.log('后续步骤:');
 const cdPath = path.relative(process.cwd(), resolvedTarget) || '.';
 console.log(`  cd ${cdPath}`);
-console.log('  npm install');
+  console.log('  npm install');

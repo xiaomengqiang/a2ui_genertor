@@ -1,16 +1,17 @@
 # 组件映射总表（antd → eview-react）
 
 > 本表覆盖 antd 常用组件到 eview-react 的完整映射。每行标注：有对应 / 组合替代 / 无对应需手写。
+> 文末另附**属性拼写异常**（官方拼错的属性名）和**回调签名差异**（首参是值不是 event）两张速查表。
 > eview-react 组件的完整 API 详见本 skill 的 `references/components/<组件>.md`。
 
 ## 通用
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Button type="primary"` | `Button status="primary"` | `type`→`status`（default/primary/risk/text）；无 `loading`/`htmlType`/`danger`；文字用 `text` 或 children；处理中用 `disabled`+文案切换 |
+| `Button type="primary"` | `Button status="primary"` | `type`→`status`（default/primary/risk/text）；无 `loading`/`htmlType`/`danger`；文字用 `text`（**带 `leftIcon`/`rightIcon`/`icon` 时必须用 `text`，不能用 children，否则图标不渲染**；无图标时可等价用 children）；处理中用 `disabled`+文案切换 |
 | `Button danger` | `Button status="risk"` | 同上 |
-| `Button type="text" shape="circle" icon={<Icon/>}`（无 children，纯图标按钮） | `IconButton iconName tipText` | antd `shape="circle"`/`type="text"`+`icon`+无 children 是纯图标按钮信号；**不要**退化为原生 `<button>+<Icon>`；`onClick`→`onClick`、antd 的 `message.success` 提示文案移到 `tipText`；**`icon` 的尺寸（`<Icon size>` / antd `style.fontSize`）吸附后写到内层 `<IconPlusIc* iconSize={N} />`（就近吸附、默认 14），不是 IconButton 的 `size`** |
-| `Button icon={...}`（有文字 children） | `Button leftIcon` / `rightIcon` | 仅当有文字 children 时；无 children 的纯图标按钮走 IconButton（见上行）；**`icon` 的尺寸同样落到内层 `<IconPlusIc* iconSize={N} />`** |
+| `Button type="text" shape="circle" icon={<Icon/>}`（无 children，纯图标按钮） | `IconButton iconName tipText` | antd `shape="circle"`/`type="text"`+`icon`+无 children 是纯图标按钮信号；**不要**退化为原生 `<button>+<Icon>`；`onClick`→`onClick`、antd 的 `message.success` 提示文案移到 `tipText`；**`icon` 的尺寸（`<Icon size>` / antd `style.fontSize`）吸附后写到内层 `<IconPlusIc* iconSize={N} />`（默认 14；吸附规则见 [match-icons.cjs](../scripts/match-icons.cjs)），不是 IconButton 的 `size`** |
+| `Button icon={...}`（有文字 children） | `Button leftIcon` / `rightIcon` | 仅当有文字 children 时；无 children 的纯图标按钮走 IconButton（见上行）；**`icon` 的尺寸同样落到内层 `<IconPlusIc* iconSize={N} />`；文字搬 `text=`，不要保留 children（children 与 leftIcon/rightIcon 同时存在会让图标不渲染）** |
 | `Space` | flex div + `gap` | 无对应组件；用 `<div style={{ display:'flex', gap:'0.75rem' }}>` |
 | `Typography.Link` | `Button status="text"` | 或手写 `<a>` |
 | `Typography.Title` | 手写 `<h1>`~`<h6>` | 用 `--fontSizeLarge` / `--titleFontSize` 变量 |
@@ -21,8 +22,6 @@
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Form` / `Form.Item` | `Form` / `Form.Item` | `useForm()`→`useRef`；`validateFields()` Promise→`submit()`+`onSuccess` 回调；多列用 `itemCol` 设 Form 级默认，**单项覆盖用 `Form.Item.col`**；Form 内不能用 div/Row/Col 做栅格；详见 [form-migration.md](form-migration.md) |
-| `Row` / `Col`（Form 内用） | 删掉（用 `itemCol` / `Form.Item.col`） | eview-react Form 自带 24 栅格，`itemCol` 设默认宽度，**单项可用 `Form.Item.col` 覆盖** |
 | `Input` | `TextField` | `onChange(value, oldValue, event)` 首参是值；`validator` 返回 `{result,message}`；`required` 自带星号；无 `allowClear`/`prefix`/`rules`/`onPressEnter` |
 | `Input.TextArea` | `TextArea` | `onChange(targetValue, value, event)`；`onBlur(event)` 无 value；`maxLength` 自带右下角计数（替代 `showCount`）；无 `autoSize`/`allowClear`；无 ref 方法 |
 | `Input.Search` | `SearchInput` | `onSearch` 值变化也触发（需防抖）；`onClear(value)`；`placeholder` 保留；`onSuggest` vs `popItems` 互斥 |
@@ -43,10 +42,9 @@
 | `Slider` | `DragInput` | `value` **永远是数组**；`type="range"` 开双滑块；`markIndexes` 数组；导出名是 DragInput 不是 Slider |
 | `Rate` | `Rating` | 取值是 `onClick(value)` 不是 onChange；`onMouseOver/Leave` 悬浮预览；`half`；`disabled` 只读 |
 | `DatePicker` | `DatePicker` | **不要无条件回写** `onChange` 的字符串到 `value`（官方反例）；用 `defaultValue`+`ref.getValue()` 或有效 Date 才回写 |
-| `DatePicker.RangePicker` | `DatePicker range={[]}` | `onOkClick` 取 `fromDateObj/toDateObj`；回调里要 `setTimeout` 再 setState |
+| `DatePicker.RangePicker` | `DatePicker range={...}` | **不要用 `onOkClick`**（实测不返回 `fromDateObj/toDateObj`，分两次回调只返回单日期）；改用 `onChange` 的 `target` 参数（`'from'`/`'right'`）分别收集起止日期。详见 [DatePicker.md](components/DatePicker.md) § 范围选择 |
 | `TimePicker` | `Spinner type="time"` | 值是字符串 `"hh:mm:ss"`；`timeFormat` |
 | `Upload` | `FileUpload` | 组件不发请求；`handleSubmit({event,data})` 自己发；`updateProgressStatus`/`fileUploadStatus` 回写；`disable`（不是 disabled）；`onReload` 重传 |
-| `Form.List` | 手写 | 无对应；用数组 state + `map` 渲染 |
 
 ## 数据展示
 
@@ -92,7 +90,7 @@
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
 | `Layout` / `Header` / `Sider` / `Content` | 手写 CSS 布局 | 见 [handwrite-templates.md](handwrite-templates.md) §4 |
-| `Menu` | 手写导航列表 | 见 [handwrite-templates.md](handwrite-templates.md) §5 |
+| `Menu` | `Accordion` | `items`→`data`（`key`/`label`→`value`/`title`）；`selectedKeys` 数组→`selectedValue` 单 string；`onClick({key})`→`onClick(node)`；`inlineCollapsed`→`expanded`/`onExpand`（⚠️ `expanded={true}`=收起，语义反转）；多级导航用 Accordion，简单平铺列表仍可手写；见 [Accordion.md](components/Accordion.md) |
 | `Breadcrumb` | `Crumbs` | `data=[{title,url?}]`；最后一项无 url；`seprator`（拼错）；`onClick(data,event)` 组件级 |
 | `Affix` | 手写 `position:sticky` | 无对应 |
 | `BackTop` | 手写 | 无对应 |
@@ -103,7 +101,7 @@
 
 | antd | eview-react | 关键差异 |
 |------|-----------|---------|
-| `@ant-design/icons` | `@nce/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 尺寸（支持rem、px、数字）；icon+ 名**默认靠 skill 自带 `icons/icon-plus-names.json` 离线匹配**（方案 C；见 [source-project-guidelines §3.2](source-project-guidelines.md)）；在线 `getIconInfo` 名发现为备选 B（§3.4，外网不便时不用） |
+| `@ant-design/icons` | `@nce/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 尺寸（支持rem、px、数字）；icon+ 名**按迁移环境二选一匹配**：内网（`https://octo.hdesign.huawei.com/` 可达）走方案 B 的 `getIconInfo` 在线匹配，外网（octo 不可达）走方案 C 的 `icons/icon-plus-names.json` 离线匹配；**命中后均静态 import**。见 [Icon.md 渲染方式](components/Icon.md)；C 算法见 [match-icons.cjs](../scripts/match-icons.cjs) |
 | 可点击图标 | `IconButton` | `iconName={<IconPlusIc* />}`+`tipText`；不要给图标组件挂 onClick |
 
-> 迁移期**默认走方案 C**（catalog 离线匹配 → icon+ 静态 import，见 [source-project-guidelines §3.2](source-project-guidelines.md)）；scaffold 自定义 `<Icon>` shim 为备选 A（运行时 fetch，调用点零改动，见 §3.3，切到 C 后保留不删）；在线名发现为备选 B（§3.4）。
+> 迁移期**先探测 `https://octo.hdesign.huawei.com/` 可达性定项目级方案**：内网（可达）→ B（`getIconInfo` 在线名匹配 → icon+ 静态 import）；外网（不可达）→ C（catalog 离线匹配 → icon+ 静态 import，跑 `scripts/match-icons.cjs`）。B/C 仅名匹配方式不同，命中后均静态 import。scaffold 自定义 `<Icon>` shim 为**方案 A**，作 B 与 C 的兜底：当 LLM（B）或本地算法（C）实在识别不出 icon+ 名的调用点零改动保留；切定后 `src/shared/icon.jsx` 保留不删。详见 [Icon.md 渲染方式](components/Icon.md)。

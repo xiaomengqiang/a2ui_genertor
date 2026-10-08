@@ -1,7 +1,6 @@
 # DragInput 组件功能逻辑规格（官网页面名：Slider / 滑动输入器）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `DragInput/DragInput`；官网组件页 Slider（标题 DragInput）及示例 `DragInputBasic.jsx` / `DragInputDemo.jsx` / `DragInputDisabled.jsx` / `DragInputGroup.jsx` / `DragInputUpdateDemo.jsx` / `DragInputEventDemo.jsx`
->
+> 资料来源：TypeDoc `DragInput/DragInput` + 官网 Slider（标题 DragInput）页示例。
 > ⚠️ **导入名是 `DragInput`**：`import DragInput from '@nce/eview-react/DragInput'`。官网页面叫 Slider，但 `Slider` 不在导出清单里，demo 全部导入 `DragInput`。
 > ⚠️ `value` **永远是数组**：单滑块 `[v]`，区间 `[min, max]`；`onChange` 第一个参数也是数组。
 > ⚠️ demo 里用到的 `onBlur` / `onFocus` 不在 API 表中，不要依赖。
@@ -15,29 +14,9 @@ DragInput 是带刻度的滑动输入器：单值或区间，可显示刻度值�
 | 在一个范围内拖选数值（带宽、阈值、百分比） | `DragInput` | antd `Slider` |
 | 选一段区间（起止端口、价格区间） | `DragInput type="range"` | 两个 Spinner |
 | 精确输入数字、加减微调 | `Spinner`（[Spinner.md](Spinner.md)） | 把 DragInput 当输入框 |
-| 滑块 + 旁边独立输入框联动 | `DragInput displayInput={false}` + `TextField`（demo DragInputGroup） | — |
+| 滑块 + 旁边独立输入框联动 | `DragInput displayInput={false}` + `TextField` | — |
 
-## 2. 典型场景
-
-- 带宽 / 配额设置：`min` / `max` / `unit="Mbps"`，`markIndexes` 标出关键刻度
-- 告警阈值区间：`type="range"`，`value=[low, high]`
-- 百分比参数（CPU 阈值）：`precision={0}`，`displayInput` 默认显示输入框可直接键入
-- 滑块与外部输入框双向联动，输入越界时钳制到 `min` / `max`
-
-## 3. 状态声明
-
-```tsx
-// 单滑块：数组只有一个元素
-const [bandwidth, setBandwidth] = useState<number[]>([50]);
-
-// 区间：[low, high]
-const [threshold, setThreshold] = useState<number[]>([60, 90]);
-
-// 与外部 TextField 联动时，输入框的字符串单独存（用户可能输入非法字符）
-const [bandwidthText, setBandwidthText] = useState<string>('50');
-```
-
-## 4. 事件与交互逻辑
+## 2. 事件与交互逻辑
 
 ### onChange(value[], changeValue[]) —— 第一个参数是整组值
 
@@ -64,7 +43,7 @@ const [bandwidthText, setBandwidthText] = useState<string>('50');
 />
 ```
 
-### 与外部输入框联动：输入越界钳制（demo DragInputGroup.jsx 思路）
+### 与外部输入框联动：输入越界钳制（displayInput={false} 时配 TextField）
 
 ```tsx
 const clamp = (n: number) => Math.min(Math.max(n, MIN), MAX);
@@ -86,111 +65,12 @@ const clamp = (n: number) => Math.min(Math.max(n, MIN), MAX);
 <DragInput labelFormat={(value?: number) => ({ formatValue: `${value} GB` })} … />
 ```
 
-## 5. 数据结构
+## 3. 联动说明
 
-```tsx
-// 表单里的两类值
-interface QosForm {
-  bandwidth: number[];   // [v]
-  threshold: number[];   // [low, high]
-}
-```
+- 表单重置 → 直接 `setBandwidth([默认])`，组件按新 `value` 重绘（值必须是数组）
+- 提交时以 state 数组为准；单滑块取 `value[0]`，区间取 `[value[0], value[1]]`
 
-## 6. 联动说明
-
-- 滑块变化 → 外部输入框同步显示；输入框变化 → 解析为数字、钳制到范围后写回滑块
-- 区间值变化 → 图表阈值线 / 表格高亮同步
-- 表单重置 → 直接 `setBandwidth([默认])`，组件按新 `value` 重绘（demo DragInputUpdateDemo）
-- 提交时以 state 数组为准；单滑块取 `value[0]`
-
-## 7. 完整代码示例
-
-```tsx
-import React, { useState } from 'react';
-import DragInput from '@nce/eview-react/DragInput';
-import TextField from '@nce/eview-react/TextField';
-import Button from '@nce/eview-react/Button';
-
-const MIN = 0;
-const MAX = 1000;
-
-// QoS 配置：带宽单滑块 + 外部输入框联动钳制；CPU 告警阈值区间滑块；重置
-export default function QosConfig() {
-  const [bandwidth, setBandwidth] = useState<number[]>([200]);
-  const [bandwidthText, setBandwidthText] = useState<string>('200');
-  const [threshold, setThreshold] = useState<number[]>([60, 90]);
-  const [summary, setSummary] = useState<string>('');
-
-  const clamp = (n: number): number => Math.min(Math.max(n, MIN), MAX);
-
-  const handleSliderChange = (value: number[]) => {
-    setBandwidth(value);
-    setBandwidthText(String(value[0]));
-  };
-
-  const handleTextChange = (text: string) => {
-    setBandwidthText(text);
-    if (text === '' || Number.isNaN(Number(text))) return;   // 非法输入不动滑块
-    setBandwidth([clamp(Number(text))]);
-  };
-
-  const handleTextBlur = () => {
-    // 失焦时把输入框规整为滑块的合法值
-    setBandwidthText(String(bandwidth[0]));
-  };
-
-  const handleReset = () => {
-    setBandwidth([200]);
-    setBandwidthText('200');
-    setThreshold([60, 90]);
-    setSummary('');
-  };
-
-  return (
-    <div style={{ width: 560, padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <DragInput
-          label="带宽"
-          min={MIN}
-          max={MAX}
-          unit="Mbps"
-          markIndexes={[0, 500, 1000]}
-          displayInput={false}
-          style={{ flex: 1 }}
-          value={bandwidth}
-          onChange={handleSliderChange}
-        />
-        <TextField inputStyle={{ width: 80 }} format="number" value={bandwidthText} onChange={handleTextChange} onBlur={handleTextBlur} />
-        <span>Mbps</span>
-      </div>
-
-      <DragInput
-        label="CPU 告警阈值"
-        type="range"
-        min={0}
-        max={100}
-        precision={0}
-        markIndexes={[0, 50, 100]}
-        labelFormat={(value?: number) => ({ formatValue: `${value}%` })}
-        value={threshold}
-        onChange={(value: number[]) => setThreshold(value)}
-      />
-
-      {summary ? <div>{summary}</div> : null}
-      <div style={{ display: 'flex', gap: 12 }}>
-        <Button
-          status="primary"
-          text="保存"
-          onClick={() => setSummary(`带宽 ${bandwidth[0]} Mbps，阈值 ${threshold[0]}% ~ ${threshold[1]}%`)}
-        />
-        <Button text="重置" onClick={handleReset} />
-      </div>
-    </div>
-  );
-}
-```
-
-## 8. 反面示例
+## 4. 反面示例
 
 ```tsx
 // ❌ 导入不存在的名字（官网页面叫 Slider，导出名是 DragInput）
@@ -212,7 +92,7 @@ onChange={(value) => setBandwidth(value * 2)}     // 应为 value[0]
 onChange={(text) => setBandwidth([Number(text)])}
 ```
 
-## 9. API 速查
+## 5. API 速查
 
 > 压缩自 `DragInput/DragInput`；ref 方法仅列 demo 出现的。
 

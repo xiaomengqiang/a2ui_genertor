@@ -1,8 +1,7 @@
 # Toggle 组件功能逻辑规格（含 Switch）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Toggle/Toggle`、`Switch/Switch`（同一套 props，Switch 多 `allowPropagation` / `isControlToggled`）；官网组件页 Toggle（目录名 Switch）及示例 `SwitchExample.jsx` / `SwitchInteractiveExample.jsx` / `SwitchTextExample.jsx` / `SwitchIconExample.jsx` / `SwitchTipExample.jsx`；Form 示例 `FormItem.jsx`（`valuePropName="toggled" updateTrigger="onToggle"`）
->
-> ⚠️ 官方 demo 全部 `import Toggle from 'eview-react/Toggle'`，`Switch` 是同 API 的超集；本文按 `Toggle` 写，需要"点击后先二次确认再切换"时换 `Switch` 的 `isControlToggled`。
+> 资料来源：TypeDoc `Toggle/Toggle`、`Switch/Switch` + 官网 Toggle 页示例。
+> ⚠️ 官方 demo 全部 `import Toggle from 'eview-react/Toggle'`，`Switch` 是同 API 的超集（多 `allowPropagation` / `isControlToggled`）；需要"点击后先二次确认再切换"时换 `Switch` 的 `isControlToggled`。
 > ⚠️ 状态属性叫 **`toggled`**、回调叫 **`onToggle(value)`**，`value` 来自 `data=[关值, 开值]`；不是 `checked` / `onChange`。
 > ⚠️ 文案属性拼写是 `taggledChildren` / `unTaggledChildren`（官方即如此拼），照抄。
 
@@ -16,36 +15,16 @@ Toggle 是两态开关：立即生效的启用 / 禁用切换，可带 label、�
 | 需要勾选后再提交的布尔项 | `Checkbox`（[Checkbox.md](Checkbox.md)） | Toggle |
 | 切换前要二次确认 | `Switch isControlToggled` + `MessageDialog` | Toggle 直接切 |
 | 多个互斥选项 | `RadioGroup` / `SelectCard` | 多个 Toggle |
-| **Form.Item 内配 `valuePropName="toggled"`** | **`Switch data={[false, true]}`**（布尔值） | Toggle（Toggle 导出即 Switch，但推荐显式 import Switch） |
 
-## 2. 典型场景
-
-- 列表行"启用"开关：切换即调接口，失败回滚
-- 设置页开关联动：开启后显示下方子配置
-- 表单里的布尔字段：在 `Form.Item` 内配 `valuePropName="toggled" updateTrigger="onToggle"`
-- 危险切换（关闭防护）：`Switch isControlToggled` 先弹 `MessageDialog` 确认
-
-## 3. 状态声明
-
-```tsx
-// 受控写法（demo SwitchInteractiveExample.jsx：toggled 绑 state，onToggle 里翻转）
-const [enabled, setEnabled] = useState<boolean>(false);
-
-// data 决定 onToggle 回传的值：[关, 开]；不传 data 时 demo 直接按 !toggled 翻转
-const TOGGLE_DATA: [boolean, boolean] = [false, true];
-
-// 列表行开关：切换中的行 id，防止连点
-const [switching, setSwitching] = useState<Set<string>>(new Set());
-```
-
-## 4. 事件与交互逻辑
+## 2. 事件与交互逻辑
 
 ### 基本：toggled + onToggle
 
 ```tsx
+const [enabled, setEnabled] = useState<boolean>(false);
 <Toggle
   label="启用告警"
-  data={[false, true]}
+  data={[false, true]}                    // data：两态对应的值 [关, 开]，决定 onToggle 回传的值
   toggled={enabled}
   onToggle={(value: boolean) => setEnabled(value)}   // value 是 data 中对应状态的值
 />
@@ -54,7 +33,7 @@ const [switching, setSwitching] = useState<Set<string>>(new Set());
 ### 开关内显示文字 / 图标
 
 ```tsx
-// 文字
+// 文字（拼写照官方：taggledChildren / unTaggledChildren）
 <Toggle toggled={on} taggledChildren="开" unTaggledChildren="关" onToggle={(v: boolean) => setOn(v)} />
 
 // 图标（icon+ 组件）
@@ -93,107 +72,13 @@ const handleToggle = async (row: Rule, value: boolean) => {
 // MessageDialog ok → setProtection(false)
 ```
 
-### 在 Form 内
-
-> ⚠️ `data` 必须传**布尔值** `[false, true]`。传字符串 `['false', 'true']` 会导致 `toggled` 收到字符串 `'false'`（JS truthy），开关无法关闭。同时推荐 `import Switch from '@nce/eview-react/Switch'` 而非 Toggle（两者相同，但 Switch 语义更明确）。
-
-```tsx
-<Form.Item label="启用" name="enabled" valuePropName="toggled" updateTrigger="onToggle">
-  <Switch data={[false, true]} />
-</Form.Item>
-```
-
-## 5. 数据结构
-
-```tsx
-// data：两态对应的值 [关, 开]，可以是布尔、数字或字符串（api 示例 ["33", "44"]）
-// ⚠️ Form 内 valuePropName="toggled" 时必须用布尔 [false, true]
-//    用字符串 ['false', 'true'] 会导致 toggled 收到 'false'（truthy），开关无法关闭
-type ToggleData<T> = [T, T];
-
-interface Rule {
-  id: string;
-  name: string;
-  enabled: boolean;
-}
-```
-
-## 6. 联动说明
+## 3. 联动说明
 
 - 开启 → 显示子配置区块；关闭 → 隐藏并清掉子配置里的值
 - 行内开关切换 → 立即请求 → 失败回滚 + 提示；切换中 `disabled`
-- 与 Form 配合时不传 `toggled` / `onToggle`，用 `valuePropName` / `updateTrigger` 让 Form 托管
 - 危险方向的切换（如关闭防护）走 `Switch isControlToggled` + 确认框，安全方向直接切
 
-## 7. 完整代码示例
-
-```tsx
-import React, { useState } from 'react';
-import Toggle from '@nce/eview-react/Toggle';
-import Spinner from '@nce/eview-react/Spinner';
-
-interface Rule {
-  id: string;
-  name: string;
-  enabled: boolean;
-}
-
-// 告警规则设置：总开关联动子配置；规则列表行内开关切换即保存、失败回滚
-export default function AlarmRuleSettings() {
-  const [master, setMaster] = useState<boolean>(true);
-  const [checkInterval, setCheckInterval] = useState<number>(30);
-  const [rows, setRows] = useState<Rule[]>([
-    { id: 'r1', name: 'CPU > 85%', enabled: true },
-    { id: 'r2', name: '端口 down', enabled: false },
-  ]);
-  const [switching, setSwitching] = useState<Set<string>>(new Set());
-  const [message, setMessage] = useState<string>('');
-
-  const handleRowToggle = async (row: Rule, value: boolean) => {
-    if (switching.has(row.id)) return;
-    setSwitching((s) => new Set(s).add(row.id));
-    const prev = row.enabled;
-    setRows((rs) => rs.map((r) => (r.id === row.id ? { ...r, enabled: value } : r)));
-    try {
-      // 真实项目替换为已有 Service；模拟第二条规则开启失败
-      await new Promise((resolve, reject) => setTimeout(() => (row.id === 'r2' && value ? reject(new Error('规则冲突')) : resolve(null)), 300));
-      setMessage('');
-    } catch (e: any) {
-      setRows((rs) => rs.map((r) => (r.id === row.id ? { ...r, enabled: prev } : r)));
-      setMessage(`${row.name} 切换失败：${e.message}`);
-    } finally {
-      setSwitching((s) => { const n = new Set(s); n.delete(row.id); return n; });
-    }
-  };
-
-  return (
-    <div style={{ width: 480, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <Toggle label="启用告警" data={[false, true]} toggled={master} taggledChildren="开" unTaggledChildren="关" onToggle={(v: boolean) => setMaster(v)} />
-
-      {master ? (
-        <Spinner label="检测间隔(秒)" min={5} max={300} step={5} doNotFocusWhenValueUpdate value={checkInterval} onChange={(v: number) => setCheckInterval(v)} />
-      ) : null}
-
-      <div className="app-toggle-list" style={{ paddingTop: 12 }}>
-        {rows.map((row) => (
-          <div key={row.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }}>
-            <span className={master ? "app-toggle-label" : "app-toggle-label-disabled"}>{row.name}</span>
-            <Toggle
-              data={[false, true]}
-              toggled={row.enabled}
-              disabled={!master || switching.has(row.id)}
-              onToggle={(v: boolean) => handleRowToggle(row, v)}
-            />
-          </div>
-        ))}
-      </div>
-      {message ? <div className="app-error">{message}</div> : null}
-    </div>
-  );
-}
-```
-
-## 8. 反面示例
+## 4. 反面示例
 
 ```tsx
 // ❌ antd 习惯：没有 checked / onChange / checkedChildren / loading / size
@@ -208,19 +93,11 @@ export default function AlarmRuleSettings() {
 // ❌ 行内开关切换后不处理失败，接口报错界面仍显示已开启
 onToggle={(v) => { setEnabled(v); api.setEnabled(v); }}
 
-// ❌ Form 内不配 valuePropName / updateTrigger，Form 收不到值
-<Form.Item name="enabled"><Toggle /></Form.Item>
-
-// ❌ Form 内 data 传字符串 ['false', 'true'] → toggled 收到 'false'（truthy），开关无法关闭
-<Form.Item label="启用" name="enabled" valuePropName="toggled" updateTrigger="onToggle">
-  <Switch data={['false', 'true']} />
-</Form.Item>
-
 // ❌ 用 Toggle 表达"提交前勾选同意"（应为 Checkbox）
 <Toggle label="我已阅读协议" />
 ```
 
-## 9. API 速查
+## 5. API 速查
 
 > 压缩自 `Toggle/Toggle` + `Switch/Switch`。
 
@@ -228,7 +105,7 @@ onToggle={(v) => { setEnabled(v); api.setEnabled(v); }}
 |-----|--------------|------|
 | `toggled` | `boolean`，默认 `false` | 开关态 |
 | `onToggle` | `(value) => void` | 点击回调，`value` 为 `data` 中当前状态对应的值 |
-| `data` | `any[]`，如 `[关值, 开值]` | 两态的值集合，推荐设置 |
+| `data` | `any[]`，如 `[关值, 开值]` | 两态的值集合，推荐设置；**必须用布尔 `[false, true]`** |
 | `label` / `labelPosition` | `string` / `'before' \| 'after'`（默认 before） | 文本及位置 |
 | `taggledChildren` / `unTaggledChildren` | `string \| ReactNode` | 开 / 关状态下开关内的内容（拼写照官方） |
 | `disabled` | `boolean`，默认 `false` | 禁用 |

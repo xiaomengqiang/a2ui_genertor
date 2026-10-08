@@ -1,7 +1,6 @@
 # IPInput 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `IPInput/IPInput`；官网组件页 IP Input 及示例 `IPInputDemo.jsx` / `IPInputEventDemo.jsx` / `IpInputDisabled.jsx` / `IpInputType.jsx`；Form 示例 `FormPro.jsx`
->
+> 资料来源：TypeDoc `IPInput/IPInput` + 官网 IP Input 页示例。
 > ⚠️ 值是**完整字符串**（如 `'10.8.52.211'`），组件内部拆成分段输入框；`onChange(value, event)` / `onBlur(value, event)` 第一个参数都是拼好的字符串。
 > ⚠️ `type` 三种：`v4`（默认）/ `v6` / `mac`；MAC 类型粘贴带分隔符的串时行为由 `liftDelimiterOnPaste` 控制，`onChange` 回传去掉分隔符的十六进制文本，需自行格式化。
 
@@ -12,25 +11,10 @@ IPInput 是分段式 IP / MAC 输入框：按段校验、自动跳格、必填�
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
 | IPv4 / IPv6 / MAC 地址输入 | `IPInput type="v4" \| "v6" \| "mac"` | `TextField` + 正则 |
-| IP 校验但允许任意文本（如网段 CIDR） | `TextField validator={TextField.defaultValidator.ipv4()}` 或自定义 | IPInput |
+| IP 校验但允许任意文本（如网段 CIDR） | `TextField validator={TextField.defaultValidator.ipv4()}` 或自定义（[TextField.md](TextField.md)） | IPInput |
 | 端口、数字 | `Spinner` / `TextField format="number"` | IPInput |
 
-## 2. 典型场景
-
-- 网元配置：管理 IP（v4）、IPv6 地址、MAC 地址各一个输入
-- 必填 + 业务校验：不能是保留地址 / 不能与已有重复
-- 在 Form 内：`Form.Item name="ip" rules={[{ required: true }]}`（demo FormPro）
-- 编辑回填：`value` 传完整字符串
-
-## 3. 状态声明
-
-```tsx
-const [ip, setIp] = useState<string>('');            // '10.8.52.211'
-const [mac, setMac] = useState<string>('');
-const ipRef = useRef<any>(null);                     // demo：getValue()
-```
-
-## 4. 事件与交互逻辑
+## 2. 事件与交互逻辑
 
 ```tsx
 <IPInput
@@ -47,86 +31,16 @@ const ipRef = useRef<any>(null);                     // demo：getValue()
 <IPInput label="IPv6" type="v6" value={ip6} onChange={(v: string) => setIp6(v)} />
 <IPInput label="MAC" type="mac" value={mac} onChange={(v: string) => setMac(v)} liftDelimiterOnPaste />
 
-// 命令式取值（demo IPInputEventDemo.jsx）
+// 命令式取值
 const current = ipRef.current.getValue();
 ```
 
-在 Form 内（demo FormPro.jsx）：
+## 3. 联动说明
 
-```tsx
-<Form.Item label="IP" name="ip" rules={[{ required: true }]}>
-  <IPInput type="v4" />
-</Form.Item>
-```
+- 未填满的段：组件按段校验，提交前用 `ipRef.current.getValue()` 拿最终拼好的字符串
+- 类型切换（RadioGroup v4/v6）→ 切换 `type` 并清空 `value`（v4 的值留在 v6 输入里会出错）
 
-## 5. 数据结构
-
-```tsx
-type IpType = 'v4' | 'v6' | 'mac';
-interface NetworkForm {
-  mgmtIp: string;      // '10.8.52.211'
-  ipv6?: string;
-  mac?: string;        // 'AA-BB-CC-DD-EE-FF'（mac 默认以 - 分隔）
-}
-```
-
-## 6. 联动说明
-
-- IP 填完失焦 → 异步查重 / 探测可达性，结果显示在旁边
-- 类型切换（RadioGroup v4/v6）→ 切换 `type` 并清空 `value`
-- `required` 与其他控件一起提交前校验；Form 内由 Form 托管
-- 未填满的段：组件按段校验，提交前用 `ipRef.current.getValue()` 拿最终值
-
-## 7. 完整代码示例
-
-```tsx
-import React, { useRef, useState } from 'react';
-import IPInput from '@nce/eview-react/IPInput';
-import RadioGroup from '@nce/eview-react/RadioGroup';
-import Button from '@nce/eview-react/Button';
-
-// 网元地址配置：v4/v6 切换、失焦查重、MAC 输入、提交取值
-export default function NetAddressForm() {
-  const [ipType, setIpType] = useState<'v4' | 'v6'>('v4');
-  const [ip, setIp] = useState<string>('');
-  const [mac, setMac] = useState<string>('');
-  const [dupMsg, setDupMsg] = useState<string>('');
-  const [result, setResult] = useState<string>('');
-  const ipRef = useRef<any>(null);
-
-  const handleTypeChange = (a: string, b: string) => {          // RadioGroup 参数顺序冲突，取与当前值不同的那个
-    const next = (a === ipType ? b : a) as 'v4' | 'v6';
-    setIpType(next);
-    setIp('');
-    setDupMsg('');
-  };
-
-  const handleBlur = async (value: string) => {
-    if (!value) return;
-    await new Promise((resolve) => setTimeout(resolve, 200));    // 真实项目替换为已有 Service
-    setDupMsg(value === '10.0.0.1' ? '该 IP 已被 core-sw-01 占用' : '');
-  };
-
-  const handleSubmit = () => {
-    const finalIp: string = ipRef.current.getValue();
-    if (!finalIp || dupMsg) { setResult('请填写可用的 IP'); return; }
-    setResult(`保存：${ipType} ${finalIp}${mac ? ` / MAC ${mac}` : ''}`);
-  };
-
-  return (
-    <div style={{ width: 480, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <RadioGroup label="地址类型" isControlled data={[{ value: 'v4', text: 'IPv4' }, { value: 'v6', text: 'IPv6' }]} value={ipType} onChange={handleTypeChange} />
-      <IPInput ref={ipRef} label="管理 IP" type={ipType} required hintType="tip" value={ip} onChange={(value: string) => { setIp(value); setDupMsg(''); }} onBlur={(value: string) => handleBlur(value)} />
-      {dupMsg ? <div className="app-error">{dupMsg}</div> : null}
-      <IPInput label="MAC" type="mac" value={mac} onChange={(value: string) => setMac(value)} />
-      {result ? <div>{result}</div> : null}
-      <div><Button status="primary" text="保存" onClick={handleSubmit} /></div>
-    </div>
-  );
-}
-```
-
-## 8. 反面示例
+## 4. 反面示例
 
 ```tsx
 // ❌ 用 TextField 手写 IP 正则替代分段输入（丢掉自动跳格与按段校验）
@@ -145,7 +59,7 @@ onChange={(t) => setIpType(t)}   // 少了 setIp('')
 <IPInput validator={(v) => !v.startsWith('127.')} />
 ```
 
-## 9. API 速查
+## 5. API 速查
 
 > 压缩自 `IPInput/IPInput`；ref 方法仅列 demo 出现的。
 

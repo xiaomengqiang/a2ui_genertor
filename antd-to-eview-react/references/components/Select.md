@@ -1,6 +1,8 @@
 # Select 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Select/Select`；官网组件页 Select 及示例 `selectBasic.tsx` / `SelectEvent.jsx` / `SelectClear.jsx` / `SelectDisable.jsx` / `SelectIcon.jsx` / `VirtualScroll.jsx`
+> 资料来源：TypeDoc `Select/Select` + 官网 Select 页示例。
+> ⚠️ `onChange(value, oldValue, text, oldText, event)`——**五个参数**，前四个都是值，`event` 是第五个；eview-react 没有 `mode` / `showSearch` / `placeholder`，占位用 `defaultLabel`，多选用 `MultipleSelect`、可输入用 `InputSelect`。
+> ⚠️ 选项字段是 `text`（不是 `label`）；`value` 可 string/number/boolean/object，为 object 时对象里必须含 key 为 `value` 的属性；受控 `value` 存选中项的 value（不是 text / index），`null` = 未选。
 
 ## 1. 功能定位
 
@@ -9,32 +11,12 @@ Select 是单选下拉框：`options` 数组驱动，每项 `text` 显示、`val
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
 | 单选下拉 | `Select` + `options` | antd 的 `<Select><Option>` children、`mode` |
-| 多选下拉 | `MultipleSelect`（第二批） | `Select` 加 `multiple` |
+| 多选下拉 | `MultipleSelect`（[MultipleSelect.md](MultipleSelect.md)） | `Select` 加 `multiple` |
 | 可输入 + 下拉建议 | `InputSelect`（第二批） | `Select` 加 `showSearch` |
-| 树形下拉 | `TreeSelect`（第二批） | — |
-| 级联 | `Cascader`（第二批） | — |
+| 树形下拉 | `TreeSelect`（[TreeSelect.md](TreeSelect.md)） | — |
+| 级联 | `Cascader`（[Cascader.md](Cascader.md)） | — |
 
-## 2. 典型场景
-
-- 列表页筛选条："状态 / 类型"下拉，切换后重新拉取列表
-- 表单枚举字段："区域 / 协议 / 级别"，必填校验
-- 联动下拉：先选省 → 再加载市（第二个 Select 的 `options` 由第一个决定）
-- 大数据量（> 100 项）下拉：开 `virtualScroll`
-
-## 3. 状态声明
-
-```tsx
-// 受控写法（demo SelectEvent.jsx）：value 存选中项的 value，不是 text，也不是 index
-const [status, setStatus] = useState<string | number | null>(null);   // null = 未选
-
-// options 通常来自接口，用 state 存；静态枚举可直接写常量
-const [regionOptions, setRegionOptions] = useState<SelectOption[]>([]);
-
-// 需要命令式取值 / 校验 / 清空时加 ref（demo：getValue / validate / focus / clear）
-const statusRef = useRef<any>(null);
-```
-
-## 4. 事件与交互逻辑
+## 2. 事件与交互逻辑
 
 ### onChange —— 五个参数 `(value, oldValue, text, oldText, event)`
 
@@ -42,7 +24,7 @@ const statusRef = useRef<any>(null);
 <Select
   label="状态"
   options={statusOptions}
-  defaultLabel="-请选择-"                 // 占位文案（注意：不是 placeholder）
+  defaultLabel="-请选择-"                 // 占位文案（不是 placeholder）
   value={status}
   onChange={(value, oldValue, text, oldText, event) => {
     setStatus(value);
@@ -51,7 +33,7 @@ const statusRef = useRef<any>(null);
 />
 ```
 
-### 必填 + 校验 + 清空
+### 必填 + 校验 + 清空（ref 命令式）
 
 ```tsx
 <Select
@@ -96,135 +78,24 @@ const userOptions = [
 <Select label="角色" options={userOptions} value={role} onChange={setRole} />
 ```
 
-## 5. 数据结构
+### 选项结构（agent 必须构造）
 
 ```tsx
-// options 每项结构（demos/Select/README.md：text 只支持字符串；value 支持 string/number/boolean/object，
-// 为 object 时对象里必须含 key 为 value 的属性）
 interface SelectOption {
   text: string;                 // 显示文字 —— 不是 label
   value: string | number | boolean | { value: any; [k: string]: any };
-  icon?: string | ReactElement;  // 选项图标，默认用 icon+ 组件（SelectIcon.jsx）
-  iconActive?: string | ReactElement;  // 选中态图标
-  tipData?: string;             // 悬浮提示（SelectEvent.jsx）
+  icon?: string | ReactElement;
+  iconActive?: string | ReactElement;
+  tipData?: string;
 }
 ```
 
-## 6. 联动说明
+## 3. 联动说明
 
-- 筛选 Select 变化 → 列表 `page` 归 1 → 重新请求 → 空结果显示空态
-- 省市级联：父级 `onChange` 里先 `setCity(null)`，再异步加载子级 `options`
-- 表单内必填 Select → `ref.validate()` 与 TextField 一起纳入提交前统一校验
-- 在 `Form.Item` 内使用时不传 `value` / `onChange`，交给 Form 按 `name` 托管
+- 省市级联：父级 `onChange` 里先 `setCity(null)` 清子级值，再异步加载子级 `options`，避免残留无效值
 - `options` 长度 > 100 → 加 `virtualScroll`（README：数据量必须大于 100 才生效）
 
-## 7. 完整代码示例
-
-```tsx
-import React, { useEffect, useRef, useState } from 'react';
-import Select from '@nce/eview-react/Select';
-import Button from '@nce/eview-react/Button';
-
-interface SelectOption {
-  text: string;
-  value: string | number;
-}
-
-// 模拟接口：按区域返回站点列表；真实项目替换为已有 Service
-const fetchSites = (region: string): Promise<SelectOption[]> =>
-  new Promise((resolve) =>
-    setTimeout(() => resolve([1, 2, 3].map((i) => ({ text: `${region}-站点${i}`, value: `${region}_${i}` }))), 300),
-  );
-
-// 区域 → 站点 两级联动 + 必填校验 + 重置
-export default function SiteFilter() {
-  const regionOptions: SelectOption[] = [
-    { text: '华东', value: 'east' },
-    { text: '华南', value: 'south' },
-    { text: '华北', value: 'north' },
-  ];
-  const [region, setRegion] = useState<string | null>(null);
-  const [site, setSite] = useState<string | null>(null);
-  const [siteOptions, setSiteOptions] = useState<SelectOption[]>([]);
-  const [loadingSites, setLoadingSites] = useState<boolean>(false);
-  const [result, setResult] = useState<string>('');
-
-  const regionRef = useRef<any>(null);
-  const siteRef = useRef<any>(null);
-
-  // 区域变化：清空站点，重新加载站点列表
-  useEffect(() => {
-    if (!region) {
-      setSiteOptions([]);
-      return;
-    }
-    let cancelled = false;       // 防止快速切换时旧请求覆盖新结果
-    setLoadingSites(true);
-    fetchSites(region)
-      .then((list) => {
-        if (!cancelled) setSiteOptions(list);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingSites(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [region]);
-
-  const handleRegionChange = (value: string) => {
-    setRegion(value);
-    setSite(null);               // 父级变了，子级选择作废
-    setResult('');
-  };
-
-  const handleQuery = () => {
-    const ok = regionRef.current.validate() && siteRef.current.validate();
-    if (!ok) return;
-    setResult(`查询：region=${region}, site=${site}`);
-  };
-
-  const handleReset = () => {
-    regionRef.current.clear();
-    siteRef.current.clear();
-    setRegion(null);
-    setSite(null);
-    setResult('');
-  };
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 24 }}>
-      <Select
-        ref={regionRef}
-        label="区域"
-        required
-        hintType="tip"
-        enableClear
-        options={regionOptions}
-        defaultLabel="-请选择-"
-        value={region}
-        onChange={handleRegionChange}
-      />
-      <Select
-        ref={siteRef}
-        label="站点"
-        required
-        hintType="tip"
-        options={siteOptions}
-        defaultLabel={loadingSites ? '加载中...' : '-请选择-'}
-        disabled={!region || loadingSites}
-        value={site}
-        onChange={(value: string) => setSite(value)}
-      />
-      <Button status="primary" text="查询" onClick={handleQuery} />
-      <Button text="重置" onClick={handleReset} />
-      {result ? <span>{result}</span> : null}
-    </div>
-  );
-}
-```
-
-## 8. 反面示例
+## 4. 反面示例
 
 ```tsx
 // ❌ antd 写法：eview-react Select 没有 Option 子组件、mode、showSearch、placeholder
@@ -245,15 +116,15 @@ export default function SiteFilter() {
 const handleProvinceChange = (v) => { setProvince(v); loadCities(v); };
 ```
 
-## 9. API 速查
+## 5. API 速查
 
-> 压缩自 `api/Select_Select.md`；ref 方法仅列 README / demo 实际出现的。
+> 压缩自 `Select/Select`；ref 方法仅列 README / demo 实际出现的。
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
 | `options` | `Array<{ text, value, icon?, iconActive?, tipData? }>` | **必填**；`text` 字符串，`value` 可 string/number/boolean/object；`icon`/`iconActive` 收 `string \| ReactElement`（默认用 icon+ 组件） |
 | `value` | `any`（可 `null`） | 受控选中值；按 `value` 匹配，不是 index |
-| `selectedIndex` | `number` | 按 options 下标选中（VirtualScroll.jsx） |
+| `selectedIndex` | `number` | 按 options 下标选中 |
 | `defaultLabel` | `string` | 未选中时的提示文案（官方注明后续会改名 placeholder） |
 | `label` / `labelPosition` | `string` / `'before' \| 'after'`，默认 `before` | 名称文字及位置 |
 | `onChange` | `(value, oldValue, text, oldText, event) => void` | 五参，前四个都是值 |

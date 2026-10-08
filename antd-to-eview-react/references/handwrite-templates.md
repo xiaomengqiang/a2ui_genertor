@@ -131,8 +131,10 @@ function AppLayout({ header, sider, children }) {
 
 ## 5. 侧导航菜单（antd Menu）
 
+> 多级导航优先用 `Accordion`（见 [Accordion.md](components/Accordion.md)）。以下手写模板仅用于简单平铺列表（单层、无图标、无收起）。
+
 ```tsx
-// TODO(eview-react): Menu 有导出名但无 Reference，当前手写侧导航
+// TODO(eview-react): 简单平铺菜单，多级导航用 Accordion
 function AppMenu({ items, activeKey, onSelect }) {
     return (
         <nav className="app-menu">
