@@ -1,7 +1,5 @@
 # Form 组件功能逻辑规格（含 Form.Item）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Form/Form`、`Form/FormItem`；官网组件页 Form 及示例 `FormPro.jsx` / `FormEvent.jsx` / `FormFunction.jsx` / `FormVertical.jsx` / `FormItem.jsx` / `FormRule.jsx` / `FormWCAG.jsx`；工程配置文档 project-setting（`Form.Item` 不要提取为变量）
->
 > ⚠️ 官网 README 明确："表单 2.0 能力发布，推荐使用；传统用法 1.0 不推荐"。**2.0 = `Form.Item name + rules` 托管值与校验**；`FormDemo.jsx` 是 1.0 写法（控件自己带 `name` / `value`），不要参考。
 > ⚠️ 提交按钮不是 `type="submit"`（Button 没有 type），而是 `onClick={() => formRef.current.submit()}`；校验通过走 `onSuccess(values)`，失败走 `onFailed(errorFields, values)`。
 > ⚠️ 官方 demo 原话："尽量不要使用 TextField 等组件自己的赋值方法，请使用 Form 的 `setFieldsValue` 等方法"。

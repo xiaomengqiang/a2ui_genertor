@@ -1,7 +1,5 @@
 # DragInput 组件功能逻辑规格（官网页面名：Slider / 滑动输入器）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `DragInput/DragInput`；官网组件页 Slider（标题 DragInput）及示例 `DragInputBasic.jsx` / `DragInputDemo.jsx` / `DragInputDisabled.jsx` / `DragInputGroup.jsx` / `DragInputUpdateDemo.jsx` / `DragInputEventDemo.jsx`
->
 > ⚠️ **导入名是 `DragInput`**：`import DragInput from '@nce/eview-react/DragInput'`。官网页面叫 Slider，但 `Slider` 不在导出清单里，demo 全部导入 `DragInput`。
 > ⚠️ `value` **永远是数组**：单滑块 `[v]`，区间 `[min, max]`；`onChange` 第一个参数也是数组。
 > ⚠️ demo 里用到的 `onBlur` / `onFocus` 不在 API 表中，不要依赖。

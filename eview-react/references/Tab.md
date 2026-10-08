@@ -1,7 +1,5 @@
 # Tab 组件功能逻辑规格（含 TabItem）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Tab/Tab`、`Tab/TabItem`；官网组件页 Tab 及示例 `TabsBasic.jsx` / `TabClose.jsx` / `TabCard.jsx` / `TabPosition.jsx` / `TabDefinedTitle.jsx` / `NonDraggableTab.jsx` / `TabStorage.jsx`
->
 > ⚠️ 与 Group 类组件相反，**Tab 是 children 驱动**：`<Tab><TabItem title="…">内容</TabItem></Tab>`，没有 `items` / `data` 属性。
 > ⚠️ 切换回调叫 **`onClick`**（不是 `onChange`）；`draggable` 默认 **true**，业务页签通常要显式关掉。
 > ⚠️ `isAutoClose` 默认 true（"set tab items AutoClose or not"），与业务自己维护页签数组是否冲突，资料未说明 → 已登记待实测。

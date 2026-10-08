@@ -4,13 +4,15 @@
 > antd 用自带的 `ConfigProvider locale` 对象管组件内置文案，业务文案靠项目自选库或硬编码；
 > eview-react 统一用 `react-intl` 的 `IntlProvider` 管组件内置文案，业务文案也走同一套 react-intl。
 > 迁移时最大的坑是：源项目如果没用过 react-intl，等于要新引入一整个国际化库。
+>
+> **执行位置**：scenario A/B 的静态接线（IntlProvider + 业务包合并）现由上游 `umd-to-antd-vite` 步骤 3 完成（读 `.umd-conversion.json` 的 `i18nScenario` 字段判定）；本文档作为该步骤子 agent 的参考（§4 main.jsx 结构、§5 dayjs locale），以及 `antd-to-eview-react` 步骤 1 处理 scenario C（§3 场景 C keep/migrate 决策）时的参考。scenario A/B 接线完成后，下游步骤 1 只做运行时验证。
 
 ## 两层国际化模型对比
 
 | 层 | antd | eview-react |
 |----|------|-------------|
 | **组件内置文案**（DatePicker 月份、Pagination 翻页、Table 筛选、Empty 描述等） | `ConfigProvider locale={zhCN}`，locale 对象从 `antd/locale/zh_CN` 导入 | `IntlProvider locale messages={componentsLocales[locale]}`，locale 包从 `@nce/eview-react/locales` 导入 |
-| **Form 校验消息**（必填提示、格式错误提示等） | locale 对象里的 `Form.defaultValidateMessages`（如 `required: "请输入${label}"`） | Form rules 无 `message` 字段；校验提示由控件自带的 `validator` 返回 `{result, message}` 或由 `required` 自动产生 |
+| **校验消息**（必填提示、格式错误提示等） | 源项目无 Form，校验由各输入组件自行处理 | 控件自带的 `validator` 返回 `{result, message}` 或由 `required` 自动产生 |
 | **业务文案**（页面文字、按钮文字、标签等） | antd 不管；项目硬编码或自选 i18n 库 | 同一套 `react-intl`；业务文案可用 `<FormattedMessage id="xxx" />` 或 `useIntl().formatMessage()` |
 | **日期库 locale** | antd locale 包同时注册 dayjs locale | 单独处理（见下方 §5） |
 
@@ -71,67 +73,9 @@ const [locale, setLocale] = useState('zh');     // 'zh' 或 'en'
 3. **locale 值从对象改为字符串**：antd 的 `locale={zhCN}`（对象）→ eview-react 的 `locale="zh"`（字符串）
 4. **`IntlProvider` 必须在最外层**：包在 `ConfigProvider` 外面或里面都可以，但必须在所有 eview-react 组件的外层
 
-## 2. Form 校验消息迁移
+## 2. 校验消息
 
-### antd 原始写法
-
-antd 的校验消息有两层：
-
-```js
-// 第一层：locale 里的 defaultValidateMessages（全局默认）
-Form.defaultValidateMessages = {
-    required: '请输入${label}',
-    string: { max: '${label}最多${max}个字符' },
-    number: { range: '${label}须在${min}-${max}之间' },
-};
-
-// 第二层：Form.Item rules 里的 message（单条覆盖）
-<Form.Item
-    name="deviceName"
-    rules={[
-        { required: true, message: '请输入设备名称' },
-        { max: 32, message: '不超过 32 个字符' },
-    ]}
->
-    <Input />
-</Form.Item>
-```
-
-### eview-react 转换后
-
-eview-react **没有** `defaultValidateMessages`，Form rules 也**没有** `message` 字段。校验提示来源：
-
-```jsx
-// 来源 1：required 自动产生提示（无需 message）
-<Form.Item name="deviceName" rules={[{ required: true }]}>
-    <TextField label="设备名称" placeholder="请输入" maxLength={32} />
-</Form.Item>
-{/* 必填校验失败时自动显示红色提示，文案由组件内置（跟随 IntlProvider locale） */}
-
-// 来源 2：控件自带的 validator 返回 { result, message }
-<TextField
-    label="端口"
-    placeholder="1-65535"
-    validator={TextField.defaultValidator.range(1, 65535)}
-    hintType="tip"
-/>
-{/* validator 校验失败时显示 message */}
-
-// 来源 3：Form rules 的 range 等内置规则（自动提示，无需 message）
-<Form.Item name="port" rules={[{ required: true }, { range: true, args: [1, 65535] }]}>
-    <Spinner min={1} max={65535} />
-</Form.Item>
-```
-
-### 迁移要点
-
-| antd | eview-react | 说明 |
-|------|-------------|------|
-| `rules=[{ required: true, message: '请输入设备名称' }]` | `rules=[{ required: true }]` | 删 message，提示由组件内置 |
-| `rules=[{ max: 32, message: '不超过 32 个字符' }]` | 控件 `maxLength={32}` | 长度限制用控件的 maxLength |
-| `rules=[{ pattern: /regex/, message: '格式错误' }]` | 控件 `validator={(v) => ({result, message})}` | pattern 校验迁移到 validator |
-| `rules=[{ type: 'email', message: '邮箱格式错误' }]` | `rules=[{ email: true }]` 或控件 `validator={TextField.defaultValidator.email()}` | 两种方式都行 |
-| locale 里的 `Form.defaultValidateMessages` | 无对应 | eview-react 没有"全局默认校验消息模板"，每个控件的提示文案由组件内置 |
+源项目无 Form/Form.Item，校验由各输入组件自行处理（如手动判空 + `message.warning()`）。迁移后 eview-react 控件自带的 `validator` 返回 `{result, message}`，或 `required` 自动产生提示——无需迁移 antd 的 `Form.defaultValidateMessages`。
 
 ## 3. 业务文案迁移
 
@@ -386,7 +330,7 @@ useEffect(() => {
 |--------|-----------|------|
 | 注册 dayjs zh-cn locale | §5 单独处理 | 删文件，按 §5 单独注册 |
 | 导出 antd ConfigProvider 用的 zhCN locale 对象 | `@nce/eview-react/locales` 的 `componentsLocales.zh` | 删文件，用 `componentsLocales` |
-| Form.defaultValidateMessages | 无对应（见 §2） | 删文件，Form rules 不带 message |
+| Form.defaultValidateMessages | 无对应（源项目无 Form） | 删文件 |
 
 **结论：`antd-zh-cn.js` 整个文件删除。** 它的职责被 `componentsLocales` + 可选的 dayjs locale 注册替代。
 
@@ -395,10 +339,9 @@ useEffect(() => {
 - [ ] `IntlProvider` 在 **main.jsx**，是 `ConfigProvider` 的直接子级（不是在 `app.jsx`/AppShell 里）——否则弹层 MISSING_TRANSLATION（见 §4.1）
 - [ ] `locale` 用 `"zh"`（不是 `"zh-CN"`），匹配 `componentsLocales` 的 key（见 §4.2）
 - [ ] `messages` 传了合并包 `mergedMessages[locale]`（`componentsLocales` + 业务语言包），不是空对象
-- [ ] 已运行 `check-i18n-keys.cjs`：无 `t(x, x)` 调用落在 `value ≠ msgId` 的字段上（Table render 动态 key，见 [migration-workflow.md](migration-workflow.md) §3.5/§5.2）
+- [ ] 已运行 `check-i18n-keys.cjs`：无 `t(x, x)` 调用落在 `value ≠ msgId` 的字段上（Table render 动态 key，见 [migration-workflow.md](migration-workflow.md) §3.5/§4.2）
 - [ ] 删掉了 `import zhCN from 'antd/locale/...'` 或自写的 locale 文件
 - [ ] 删掉了 `ConfigProvider` 的 `locale` prop（eview-react 的 ConfigProvider 不管 locale）
-- [ ] Form rules 里删掉了所有 `message` 字段
 - [ ] 业务文案如果是 react-intl，已合并 `componentsLocales` + 业务语言包
 - [ ] 如果项目用 dayjs 且需要中文星期/月份，已单独注册 dayjs locale
 - [ ] `app.jsx`/AppShell 不再放 IntlProvider / AppProvider / mergedMessages / dayjs effect（都在 main.jsx 的 Root 里）

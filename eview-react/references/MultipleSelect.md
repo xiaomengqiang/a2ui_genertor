@@ -1,7 +1,5 @@
 # MultipleSelect 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `MultipleSelect/MultipleSelect`；官网组件页 Multiple Select 及示例 `MultipleSelectDemo.jsx` / `MultipleSelectEventDemo.jsx` / `MultipleSelectSearchableDemo.jsx` / `MultipleSelectExpandQueryDemo.jsx` / `MultipleSelectVirtualScroll.jsx` / `DisabledDome.jsx`；Form 示例 `FormItem.jsx`
->
 > ⚠️ 与单选 `Select` 的三个差别：`value` 是**数组**；占位用 **`placeholder`**（Select 是 `defaultLabel`）；选项禁用字段是 **`disabled`**（SelectCard 是 `disable`）。
 > ⚠️ `onChange(value[], changeValue[], event)`：第一个是当前全部选中值，第二个是本次勾上 / 取消的值。
 > ⚠️ demo `MultipleSelectDemo.jsx` 漏传了 `options`，不要照抄它；`options` 是必填。

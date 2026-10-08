@@ -1,5 +1,7 @@
 # Accordion 组件功能逻辑规格（手风琴导航菜单）
 
+> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Accordion/Accordion`；官网组件页 Accordion 及示例 `AccordionBasic.jsx` / `AccordionMultiLevel.jsx` / `AccordionDisabled.jsx` / `AccordionDemo.jsx` / `AccordionIcon.jsx` / `AccordionCustomContent.jsx`；变更日志中的 Accordion 条目
+>
 > ⚠️ Accordion 是**多级导航菜单**（官网："为页面和功能提供导航的菜单列表"）：`data` 驱动，`selectedValue` 是**单个 string**，点击回调 `onClick(node)`。它不是 antd `Collapse` 那种内容折叠面板，内容折叠用 [Panel](Panel.md)。
 > ⚠️ **`expanded` / `onExpand` 语义反转**（官方标注"组件属性遗留问题"）：`expanded={true}` 表示**收起**，`onExpand(flag)` 的 `flag` 为 true 表示变为展开。写法固定为 `expanded={collapsed}` + `onExpand={(flag) => setCollapsed(!flag)}`（demo `AccordionDemo.jsx` / `AccordionIcon.jsx`）。
 > ⚠️ demo 中的 `expand={…}` 与子项字段 `description` 不在 API 表中，不要写。
@@ -87,24 +89,25 @@ interface AccordionItem {
 import React, { useMemo, useState } from 'react';
 import Accordion from '@nce/eview-react/Accordion';
 import Button from '@nce/eview-react/Button';
+import { IconPlusIcHuaweiCloudNetwork, IconPlusIcPublicSecurity } from '@nce/icon-plus';  
 
 interface AccordionItem {
   title: string;                 // 本例标题都用字符串，便于拼路径
   value?: string;
-  icon?: string;
+  icon?: React.ReactNode | string;
   content?: React.ReactNode;
   disabled?: boolean;
   children?: AccordionItem[];
 }
 
-// 菜单数据：真实项目一般来自接口；图标换成项目资源
+// 菜单数据：真实项目一般来自接口；一级菜单图标用 icon+ 组件（封闭字面量集合，静态 import，见 Icon.md 动态名 recipe）
 const buildMenu = (alarmCount: number): AccordionItem[] => [
   {
-    title: '网络配置', value: 'network', icon: './image/icon_network.svg',
+    title: '网络配置', value: 'network', icon: <IconPlusIcHuaweiCloudNetwork />,
     children: [{ title: '接口管理', value: 'network-interface' }, { title: '路由配置', value: 'network-route' }],
   },
   {
-    title: '安全策略', value: 'security', icon: './image/icon_security.svg',
+    title: '安全策略', value: 'security', icon: <IconPlusIcPublicSecurity />,
     children: [
       { title: '访问控制', value: 'security-acl' },
       {

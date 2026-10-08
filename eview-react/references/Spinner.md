@@ -1,7 +1,5 @@
 # Spinner 组件功能逻辑规格（数字微调器，即 InputNumber）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Spinner/Spinner`；官网组件页 Spinner 及示例 `SpinnerExample1.jsx` / `SpinnerExample2.jsx` / `SpinnerExample3.jsx` / `SpinnerCustomPrefix.jsx` / `SpinnerWithRangeArray.jsx` / `SpinnerTypeTime.jsx`；Badge 示例 `BadgeChange.jsx`（受控用法）
->
 > ⚠️ eview-react **没有 `InputNumber`**，数字输入 + 加减按钮就是 `Spinner`（"微调器允许用户通过鼠标或键盘，输入范围内的数值"）。它不是 loading 转圈——那是 `Loading` / `Loader`。
 > ⚠️ `value` 从外部更新时输入框默认会**抢焦点**（`doNotFocusWhenValueUpdate` 说明"默认会获取"），程序化改值（如重置、联动）要传 `doNotFocusWhenValueUpdate`。
 

@@ -1,13 +1,11 @@
 # Table 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：源码接口 `Table/interfaces/TableProps.ts`、`Table/interfaces/ColumnProps.ts`（TypeDoc 表由此生成）；官网组件页 Table 及示例 `TableBasic.jsx` / `TableEmpty.jsx` / `TableObjectData.jsx` / `TablePaging.jsx` / `TablePagingAuto.jsx` / `TableSort.jsx` / `TableLoading.jsx` / `TableRowExpand.jsx` / `TableScrollPagination.jsx` / `TableEdit.jsx`（共 40 个 demo，本文只覆盖列表页高频能力）
->
+> 资料来源：TypeDoc `Table/interfaces/TableProps.ts`、`Table/interfaces/ColumnProps.ts` + 官网 Table 页示例。
 > ⚠️ `dataset` 是**行数组**：既可以是二维数组（顺序与 `columns` 一致），也可以是对象数组（key 对应 `columns[].key`）；不是 antd 的 `dataSource + rowKey`。
 > ⚠️ 勾选回调 `onRowCheck(row, checkedRows, e)` 的 `checkedRows` 是**行序号数组**；需要整行数据时用 `tableRef.current.getCheckedRowsData()`。
 > ⚠️ 分页有两种：`enableAutoPaging` 前台分页（`dataset` 传全量）；后台分页（默认）`dataset` 只传当前页，`recordCount` 传总数，`onPageChange` 里去请求。
 > ⚠️ 排序默认组件自己排（前台）；后台排序要 `disableEviewSort` + `onColumnSort(sortColumn, sortType)` 自己请求再换 `dataset`。
-> ⚠️ **`render(cellValue, rowData, options, row, isEdit)` 的行数据在第 4 参 `row.rawData`**；第 2 参 `rowData` 类型是 `any[]`（数组，**不是行对象**），第 4 参 `row` 是表格内部包装对象，**真正的行数据在 `row.rawData`**（可能为 `undefined`）。单元格内要取行字段（文本+图标来自不同字段、取 `row.rawData?.id` 等）一律写 `row.rawData?.xxx`；只用本格值的用第 1 参 `cell`。误用 `rowData` 当行对象、或误用 `row.xxx` 直接取字段 → 均为 undefined、整列空白（主值用 `cell` 的列看似正常，容易漏判）。
-> ⚠️ `onRowExpend(row)` / `onRowClick(row)` / `render(cellValue, rowData, options, row, ...)` 的 `row` 是表格内部包装对象，**行数据在 `row.rawData`**（可能为 `undefined`，访问字段务必写 `row.rawData?.xxx`）。`row.rawData` 不保证包含未在列定义中定义 `key` 的字段（如 `desc`、`views`），如需这些字段需从源数组通过 `dataset.find(d => d.id === row.rawData?.id)` 查找完整记录，并对属性访问加空值保护 `??`。
+> ⚠️ **行数据在 `row.rawData`（不是 `rowData`、不是 `row.xxx`）**：`render(cellValue, rowData, options, row, isEdit)` / `onRowExpend(row)` / `onRowClick(row)` 的 `row` 是表格内部包装对象，**真正的行数据在 `row.rawData`**（可能为 `undefined`）。第 2 参 `rowData` 类型是 `any[]`（数组，**不是行对象**）。单元格内取行字段一律写 `row.rawData?.xxx`；只用本格值的用第 1 参 `cell`。误用 `rowData` 当行对象、或误用 `row.xxx` 直接取字段 → 均为 undefined、整列空白（主值用 `cell` 的列看似正常，容易漏判）。`row.rawData` 不保证包含未在列定义中定义 `key` 的字段（如 `desc`、`views`），如需这些字段需从源数组通过 `dataset.find(d => d.id === row.rawData?.id)` 查找完整记录，并对属性访问加空值保护 `??`。
 
 ## 1. 功能定位
 
@@ -17,34 +15,10 @@ Table 是行列数据集展示：列定义驱动、自带分页 / 排序 / 勾�
 |-----------|--------|--------|
 | 服务端分页的资源列表 | `Table` + `enablePagination` + `pagingProps` + `onPageChange` | antd `Table pagination={{...}}` |
 | 几十条以内的静态数据 | `Table enableAutoPaging` | 自己切片 |
-| 树形表格 | `TreeTable`（后续批次） | Table 嵌套 |
+| 树形表格 | `TreeTable`（[TreeTable.md](TreeTable.md)） | Table 嵌套 |
 | 独立分页器（列表不是表格） | `Paging`（[Paging.md](Paging.md)） | Table 只为分页 |
 
-## 2. 典型场景
-
-- 资源列表页：筛选条 + Table（后台分页 + 排序 + 勾选）+ 批量操作按钮；状态列 / 操作列用 `render` 放 `Tag` / `Button status="text"`
-- 请求中 `enableLoading`，无数据 `emptyTableMsg`；行详情用 `enableRowExpand` + `onRowExpend(row)` 或 `onRowClick` 打开 Dialog
-
-## 3. 状态声明
-
-```tsx
-// 列表数据：只存当前页（后台分页）
-const [rows, setRows] = useState<DeviceRow[]>([]);
-const [loading, setLoading] = useState<boolean>(false);
-
-// 分页三元组 + 排序：切换时都回到第 1 页
-const [page, setPage] = useState<number>(1);
-const [pageSize, setPageSize] = useState<number>(10);
-const [total, setTotal] = useState<number>(0);
-const [sort, setSort] = useState<{ column: string; type: string } | null>(null);
-
-// 勾选：存行序号数组，跨页保留用 preserveCheckedRows
-const [checkedIndexes, setCheckedIndexes] = useState<number[]>([]);
-
-const tableRef = useRef<any>(null);   // 需要 getCheckedRowsData() / setCheckedRows() 时用
-```
-
-## 4. 事件与交互逻辑
+## 2. 事件与交互逻辑
 
 ### 列定义与行数据
 
@@ -67,11 +41,32 @@ const columns = [
     },
   },
 ];
-// 对象行：key 与 columns[].key 对应（TableObjectData.jsx）
+// 对象行：key 与 columns[].key 对应
 const rows = list.map((d) => ({ id: d.id, name: d.name, state: d.state, ip: d.ip, op: null }));
 ```
 
-### 后台分页 + 后台排序（TablePaging.jsx / TableSort.jsx）
+#### 列定义形状（ColumnProps 高频字段）
+
+```tsx
+interface TableColumn {
+  title: string | React.ReactNode;          // 列头
+  key?: string;                             // 对象行取值 / 自定义排序时的字段名
+  width?: string | number;                  // 不填自适应
+  align?: 'left' | 'center' | 'right';
+  allowSort?: boolean;                      // 默认 true
+  sort?: 'asc' | 'desc' | 'origin';         // 初始排序态
+  display?: boolean;                        // 默认 true；false 隐藏（配合列筛选）
+  ellipsis?: boolean;
+  tipFormatter?: ((v: any) => string) | string;   // 悬浮提示；非文本单元格必填
+  render?: (cellValue: any, rowData: any[], options: any, row: any, isEdit: boolean) => React.ReactNode;   // 行数据在第 4 参 row.rawData
+  freezeCol?: boolean;                      // 冻结列；编辑列另有 renderType / isEditable
+}
+
+// 行数据两种形态：二维数组（顺序 = columns）或对象（key = columns[].key）
+type TableRow = any[] | Record<string, any>;
+```
+
+### 后台分页 + 后台排序
 
 ```tsx
 <Table
@@ -118,151 +113,13 @@ const expandedRow = (row: any) => {
 <Table … onRowClick={(row: any, event) => openDetail(row?.rawData)} enableRowExpand onRowExpend={expandedRow} />
 ```
 
-## 5. 数据结构
-
-```tsx
-// 列定义（ColumnProps 高频字段）
-interface TableColumn {
-  title: string | React.ReactNode;          // 列头
-  key?: string;                             // 对象行取值 / 自定义排序时的字段名
-  id?: string | number;
-  width?: string | number;                  // 不填自适应
-  align?: 'left' | 'center' | 'right';
-  allowSort?: boolean;                      // 默认 true
-  sort?: 'asc' | 'desc' | 'origin';         // 初始排序态
-  display?: boolean;                        // 默认 true；false 隐藏（配合列筛选）
-  ellipsis?: boolean;
-  tipFormatter?: ((v: any) => string) | string;   // 悬浮提示；非文本单元格必填
-  render?: (cellValue: any, rowData: any[], options: any, row: any, isEdit: boolean) => React.ReactNode;   // 行数据在第 4 参 row.rawData（可能 undefined，取字段写 row.rawData?.xxx）；第 2 参 rowData 是数组，勿当行对象用
-  freezeCol?: boolean;                      // 冻结列；编辑列另有 renderType / isEditable（demo TableEdit）
-}
-
-// 行数据两种形态：二维数组（顺序 = columns）或对象（key = columns[].key）
-type TableRow = any[] | Record<string, any>;
-```
-
-## 6. 联动说明
+## 3. 联动说明
 
 - 筛选 / 排序 / 翻页 / 改每页条数 → 合并到同一个请求（筛选与排序变化时 `page = 1`），版本号丢弃过期响应，请求期间 `enableLoading`
 - 勾选数量 → 批量按钮 `disabled` 与文案；批量操作成功后 `setCheckedIndexes([])` 并刷新；删光当前页且 `page > 1` 则 `page - 1`
 - 操作列按钮 → `Dialog`（编辑表单）/ `MessageDialog`（删除确认），成功后刷新
 
-## 7. 完整代码示例
-
-```tsx
-import React, { useEffect, useRef, useState } from 'react';
-import Table from '@nce/eview-react/Table';
-import Tag from '@nce/eview-react/Tag';
-import Button from '@nce/eview-react/Button';
-import SearchInput from '@nce/eview-react/SearchInput';
-
-interface DeviceRow {
-  id: string;
-  name: string;
-  state: 'running' | 'alarm' | 'stopped';
-  ip: string;
-}
-interface Query {
-  keyword: string;
-  page: number;
-  pageSize: number;
-  sortColumn?: string;
-  sortType?: string;
-}
-
-const STATE_COLOR: Record<DeviceRow['state'], 'success' | 'danger' | 'default'> = { running: 'success', alarm: 'danger', stopped: 'default' };
-const ALL: DeviceRow[] = Array.from({ length: 57 }, (_, i) => ({
-  id: `d${i + 1}`, name: `device-${String(i + 1).padStart(2, '0')}`, state: (['running', 'alarm', 'stopped'] as const)[i % 3], ip: `10.0.${Math.floor(i / 10)}.${i % 10}`,
-}));
-
-// 模拟后台：过滤 + 排序 + 分页；真实项目替换为已有 Service
-const fetchDevices = (q: Query): Promise<{ list: DeviceRow[]; total: number }> =>
-  new Promise((resolve) => setTimeout(() => {
-    let list = ALL.filter((d) => d.name.includes(q.keyword) || d.ip.includes(q.keyword));
-    if (q.sortColumn && q.sortType !== 'origin') {
-      const k = q.sortColumn as keyof DeviceRow;
-      list = [...list].sort((a, b) => (a[k] > b[k] ? 1 : -1) * (q.sortType === 'desc' ? -1 : 1));
-    }
-    const start = (q.page - 1) * q.pageSize;
-    resolve({ list: list.slice(start, start + q.pageSize), total: list.length });
-  }, 300));
-
-// 设备列表：搜索 → 后台分页 + 后台排序 + 跨页勾选 + 批量删除
-export default function DeviceTablePage() {
-  const [keyword, setKeyword] = useState<string>('');
-  const [rows, setRows] = useState<DeviceRow[]>([]);
-  const [total, setTotal] = useState<number>(0);
-  const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(10);
-  const [sort, setSort] = useState<{ column: string; type: string } | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [checkedIndexes, setCheckedIndexes] = useState<number[]>([]);
-  const [reload, setReload] = useState<number>(0);          // 删除等操作后强制重新请求
-  const versionRef = useRef<number>(0);
-  const tableRef = useRef<any>(null);          // 勾选批量操作时取整行数据：getCheckedRowsData()
-
-  const columns = [
-    { title: 'ID', key: 'id', display: false },
-    { title: '名称', key: 'name', width: '35%', ellipsis: true },
-    { title: '状态', key: 'state', allowSort: false, render: (cell: DeviceRow['state']) => <Tag color={STATE_COLOR[cell]}>{cell}</Tag> },
-    { title: 'IP', key: 'ip', width: '25%' },
-  ];
-
-  useEffect(() => {
-    const my = ++versionRef.current;
-    setLoading(true);
-    fetchDevices({ keyword: keyword.trim(), page, pageSize, sortColumn: sort?.column, sortType: sort?.type })
-      .then(({ list, total: t }) => {
-        if (my !== versionRef.current) return;          // 丢弃过期响应
-        setRows(list);
-        setTotal(t);
-      })
-      .finally(() => { if (my === versionRef.current) setLoading(false); });
-  }, [keyword, page, pageSize, sort, reload]);
-
-  const handleBatchDelete = async () => {
-    // 真实项目：先用 MessageDialog 二次确认（见 MessageDialog.md），再调删除接口
-    const checkedData: DeviceRow[] = tableRef.current?.getCheckedRowsData() ?? [];   // 行序号→整行数据
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    const checkedIdSet = new Set(checkedData.map((d) => d.id));
-    const remain = ALL.filter((d) => !checkedIdSet.has(d.id));
-    ALL.length = 0;
-    ALL.push(...remain);                                     // 模拟服务端已删除
-    setCheckedIndexes([]);
-    if (rows.length === checkedIndexes.length && page > 1) setPage(page - 1);   // 删光当前页则回退一页
-    else setReload((n) => n + 1);                                            // 否则刷新当前页
-  };
-
-  return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
-        <SearchInput placeholder="名称 / IP" value={keyword} onChange={(v: string) => setKeyword(v)} onSearch={(v: string) => { setKeyword(v); setPage(1); }} onClear={() => { setKeyword(''); setPage(1); }} />
-        <Button status="risk" text={`删除所选（${checkedIndexes.length}）`} disabled={checkedIndexes.length === 0 || loading} onClick={handleBatchDelete} />
-      </div>
-      <Table
-        ref={tableRef}
-        columns={columns}
-        dataset={rows.map((d) => ({ id: d.id, name: d.name, state: d.state, ip: d.ip }))}
-        enableLoading={loading}
-        emptyTableMsg="暂无设备"
-        enableCheckBox
-        preserveCheckedRows
-        checkedRows={checkedIndexes}
-        onRowCheck={(row: any, checkedRows: number[]) => setCheckedIndexes(checkedRows)}
-        onHeaderCheck={(checkedRows: number[]) => setCheckedIndexes(checkedRows)}
-        enablePagination
-        pagingProps={{ pageSize, currentPage: page, recordCount: total, pageSizeOptions: [10, 20, 50], onPageSizeChange: (size: number) => { setPageSize(size); setPage(1); } }}
-        onPageChange={(currentPage: number) => setPage(currentPage)}
-        disableEviewSort
-        onColumnSort={(sortColumn: string, sortType: string) => { setSort({ column: sortColumn, type: sortType }); setPage(1); }}
-        maxHeight={520}
-      />
-    </div>
-  );
-}
-```
-
-## 8. 反面示例
+## 4. 反面示例
 
 ```tsx
 // ❌ onRowExpend 直接访问未在 columns 中定义 key 的字段 → undefined 抛错
@@ -291,13 +148,13 @@ columns=[{ title: '名称', key: 'name' }]  dataset=[{ deviceName: 'a' }]
 onRowCheck={(row) => setChecked([...checked, row])}
 ```
 
-## 9. API 速查
+## 5. API 速查
 
 > 压缩自 `TableProps.ts` / `ColumnProps.ts`，只列列表页高频项；ref 方法来自 `TableAPI` 接口并在 demo 出现。
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
-| `columns` | `ColumnProps[]` | 列定义（见 §5） |
+| `columns` | `ColumnProps[]` | 列定义（见 §2 列定义形状） |
 | `dataset` | `any[]`，**必填** | 行数组：二维数组或对象数组 |
 | `enableCheckBox` / `checkType` | `boolean`（默认 false）/ `'multi' \| 'single'` | 勾选列 / 单多选 |
 | `checkedRows` / `preserveCheckedRows` / `disableCheckboxIds` | `number[]` / `boolean`（3.5.12）/ `(string \| number)[]` | 受控勾选（行序号）/ 跨页保留 / 禁勾行 |
@@ -309,7 +166,7 @@ onRowCheck={(row) => setChecked([...checked, row])}
 | `enableAutoPaging` | `boolean`，默认 `false`（3.3.2） | 前台分页，`dataset` 传全量 |
 | `pagingProps` | `PagingProps` | 透传给分页器：`pageSize` `currentPage` `recordCount` `pageSizeOptions` `onPageSizeChange` … |
 | `onPageChange` / `onPageSizeChange` | `(currentPage) => void` / `(pageSize) => void` | 翻页 / 改每页条数 |
-| `recordCount` / `currentPage` / `pageSize` / `pageSizeOptions` | — | 也可直接放在 Table 上（demo TableObjectData） |
+| `recordCount` / `currentPage` / `pageSize` / `pageSizeOptions` | — | 也可直接放在 Table 上 |
 | `enableSort` / `disableEviewSort` / `enableOriginSort` | `boolean` | 排序开关 / 关前台排序（后台排序用）/ 允许"原始顺序"态 |
 | `onColumnSort` / `onColumnSorted` / `customSortFun` | `(sortColumn, sortType)` / `(data)` / `(key, a, b) => number` | 排序回调 / 完成 / 自定义比较 |
 | `enableLoading` | `boolean` | 加载态 |

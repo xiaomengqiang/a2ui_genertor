@@ -1,7 +1,5 @@
 # Loading 组件功能逻辑规格（`Loader` 是同一组件的别名导出）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Loading/Loading`；官网组件页 Loader（目录 Loading）及示例 `GlobalLoadingExample.jsx` / `LocalLoadingExample.jsx` / `MicroLoadingExample.jsx` / `MicroIconExample.jsx`；源码 `Loader/index.ts`（`import Loader from '../Loading'` 再导出）
->
 > ⚠️ `Loader` 与 `Loading` 是**同一个组件**（Loader 只是再导出），demo 全部 `import Loader from 'eview-react/Loader'`；本文按 `Loading` 写，两者任选其一即可，不要同时用两个名字。
 > ⚠️ 显隐是 **`isOpen`**；`type="local"` 覆盖的是**最近的 `position: relative` 父容器**（demo 给外层 div 加了 `position: 'relative'`）。
 > ⚠️ 不是数字微调器 —— 那是 `Spinner`（[Spinner.md](Spinner.md)）。

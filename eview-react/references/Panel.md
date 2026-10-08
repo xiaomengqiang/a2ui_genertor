@@ -1,7 +1,5 @@
 # Panel 组件功能逻辑规格（含 PanelItem，折叠面板）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Panel/Panel`、`Panel/PanelItem`；官网组件页 Panel 及示例 `PanelMultipleExample.jsx` / `PanelExample.jsx` / `PanelNestExample.jsx` / `PanelEventExample.jsx`
->
 > ⚠️ 导入是 `import Panel, { PanelItem } from '@nce/eview-react/Panel'`，**children 驱动**（同 Tab）；展开态受控用 `selectedIndex`（**数组**，即使手风琴模式也是数组）+ `onExpand(index, event)` / `onClose(index, event, collapsed)`。
 > ⚠️ `PanelItem.closable` 默认 **true**——会在标题栏显示"移除"按钮；表单分组面板通常要显式 `closable={false}`。
 

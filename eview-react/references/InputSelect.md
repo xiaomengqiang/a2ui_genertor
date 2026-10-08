@@ -1,7 +1,5 @@
 # InputSelect 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `InputSelect/InputSelect`；官网组件页 InputSelect 及示例 `InputSelectBasic.jsx` / `InputSelectEvent.jsx` / `InputSelectDisable.jsx` / `InputSelectVirtual.jsx`；Form 示例 `FormItem.jsx`
->
 > ⚠️ 它是"可输入的 Select"：`options=[{ text, value }]` 与 Select 一致，但输入框可以敲字过滤；**`onlySelect`** 决定输入的文字是只用于过滤（失焦清空）还是可作为值保留。
 > ⚠️ `onChange(value, oldValue)`，API 描述还提到第三个参数 `type: 'input' | 'select'` 区分触发来源，类型签名里没写 → 待实测，不要依赖。
 

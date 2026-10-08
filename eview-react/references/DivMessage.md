@@ -1,7 +1,5 @@
 # DivMessage 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `DivMessage/DivMessage`；官网组件页 DivMessage 及示例 `Basic.tsx` / `Type.tsx` / `TimeOut.tsx` / `Custom.tsx` / `CustomTitle.tsx`；大量其他组件 demo 用它显示回调结果
->
 > ⚠️ 显隐是 **`display`**（不是 `visible`），默认 **10 秒自动消失**（`disposeTimeOut`，`enableDisposeTimeOut` 可关）；自动消失后组件内部隐藏，但外部 `display` state 仍是 true，再次触发前要先置回 false（或每次用新 key 重挂）。
 > ⚠️ 没有命令式 API：不存在 `message.success()`，只能渲染一个 `<DivMessage>` 并控制 `display`。
 

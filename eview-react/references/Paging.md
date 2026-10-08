@@ -1,7 +1,5 @@
 # Paging 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Paging/types`；官网组件页 Paging 及示例 `PagingBasic.jsx` / `PagingJump.jsx` / `PagingSimple.jsx` / `PagingDisabled.jsx`
->
 > ⚠️ 表格场景优先用 `Table` 自带分页（`enablePagination` + `pagingProps`，属性与本组件同名，见 [Table.md](Table.md)）；独立 `Paging` 用于卡片列表、图库、非表格列表。
 > ⚠️ 跳转输入框只在总页数 > 7 时出现（README），`enableGoInput={false}` 可关。
 

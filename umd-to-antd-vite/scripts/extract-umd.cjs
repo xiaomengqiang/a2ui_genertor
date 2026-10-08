@@ -298,6 +298,89 @@ function scanAntdImports() {
 
 scanAntdImports();
 
+// ========== 4.5 扫描 i18n 用法（判定 scenario A/B/C） ==========
+
+function scanI18nUsage() {
+  const scanDirs = [];
+  const srcDir = path.join(sourceDir, 'src');
+  if (fs.existsSync(srcDir)) scanDirs.push(srcDir);
+  const extractedDir = path.join(resolvedOutput, '_extracted');
+  if (fs.existsSync(extractedDir)) scanDirs.push(extractedDir);
+
+  const result = {
+    scenario: 'A',
+    reactIntl: { used: false, files: [] },
+    i18next: { used: false, files: [] },
+    antdLocaleImports: [],
+    antdLocaleFiles: [],
+    businessLocaleFiles: [],
+    hasDayjs: false,
+  };
+
+  const localeDirRe = /(^|[\/\\])(locales?|i18n|lang|messages|languages)([\/\\]|$)/i;
+
+  for (const base of scanDirs) {
+    function walk(dir) {
+      for (const name of fs.readdirSync(dir)) {
+        const full = path.join(dir, name);
+        const stat = fs.statSync(full);
+        if (stat.isDirectory()) {
+          if (name === 'node_modules' || name === 'dist') continue;
+          walk(full);
+          continue;
+        }
+        if (!/\.(jsx?|tsx?|mjs)$/.test(name)) continue;
+        const code = fs.readFileSync(full, 'utf8');
+        const relFile = path.relative(sourceDir, full).replace(/\\/g, '/');
+
+        if (/'react-intl'/.test(code) || /<FormattedMessage\b/.test(code) || /\buseIntl\b/.test(code)) {
+          result.reactIntl.used = true;
+          if (!result.reactIntl.files.includes(relFile)) result.reactIntl.files.push(relFile);
+        }
+        if (/'react-i18next'/.test(code) || /'i18next'/.test(code) || /\buseTranslation\b/.test(code)) {
+          result.i18next.used = true;
+          if (!result.i18next.files.includes(relFile)) result.i18next.files.push(relFile);
+        }
+
+        let lm;
+        const localeImportRe = /from\s+['"]antd\/locale\/[^'"]+['"]/g;
+        while ((lm = localeImportRe.exec(code)) !== null) {
+          if (!result.antdLocaleImports.includes(lm[0])) result.antdLocaleImports.push(lm[0]);
+        }
+
+        if (/dayjs\.locale\s*\(/.test(code)) {
+          if (!result.antdLocaleFiles.includes(relFile)) result.antdLocaleFiles.push(relFile);
+        }
+
+        if (/['"]dayjs['"]/.test(code)) result.hasDayjs = true;
+
+        if (localeDirRe.test(relFile) || /^locales?\.[a-z]+$/.test(name) || /^i18n\.[a-z]+$/.test(name) || /^messages\.[a-z]+$/.test(name)) {
+          if (!result.businessLocaleFiles.includes(relFile)) result.businessLocaleFiles.push(relFile);
+        }
+      }
+    }
+    walk(base);
+  }
+
+  if (result.i18next.used) result.scenario = 'C';
+  else if (result.reactIntl.used) result.scenario = 'B';
+  else result.scenario = 'A';
+
+  return result;
+}
+
+const i18nInfo = scanI18nUsage();
+stats.i18n = i18nInfo;
+
+if (i18nInfo.scenario !== 'A') {
+  console.log(`[extract-umd] i18n scenario: ${i18nInfo.scenario}`);
+}
+if (i18nInfo.reactIntl.used) console.log(`[extract-umd] react-intl 用法: ${i18nInfo.reactIntl.files.length} 个文件`);
+if (i18nInfo.i18next.used) console.log(`[extract-umd] i18next 用法: ${i18nInfo.i18next.files.length} 个文件`);
+if (i18nInfo.antdLocaleImports.length) console.log(`[extract-umd] antd locale 导入: ${i18nInfo.antdLocaleImports.length} 处`);
+if (i18nInfo.antdLocaleFiles.length) console.log(`[extract-umd] 自写 antd locale 文件(dayjs 注册): ${i18nInfo.antdLocaleFiles.join(', ')}`);
+if (i18nInfo.businessLocaleFiles.length) console.log(`[extract-umd] 业务语言包文件: ${i18nInfo.businessLocaleFiles.length} 个`);
+
 // ========== 5. 生成 .umd-conversion.json 交接文件 ==========
 
 const handoff = {
@@ -314,11 +397,21 @@ const handoff = {
   },
   srcFiles: stats.srcFiles,
   darkMode: {
-    method: 'css-vars + antd-darkAlgorithm',
-    darkClass: '.dark on <html>',
-    algorithm: 'antd theme.darkAlgorithm',
+    method: 'css-vars + aui3_1_dark class (antd darkAlgorithm removed in step 3)',
+    darkClass: '.dark on <html> + aui3_1_dark on <body>',
+  },
+  i18nScenario: {
+    scenario: i18nInfo.scenario,
+    reactIntl: i18nInfo.reactIntl,
+    i18next: i18nInfo.i18next,
+    antdLocaleImports: i18nInfo.antdLocaleImports,
+    antdLocaleFiles: i18nInfo.antdLocaleFiles,
+    businessLocaleFiles: i18nInfo.businessLocaleFiles,
+    hasDayjs: i18nInfo.hasDayjs,
+    wired: i18nInfo.scenario === 'A' || i18nInfo.scenario === 'B',
   },
   verification: null,
+  migrationPlan: null,
   notes: stats.scriptsExtracted
     ? `提取了 ${stats.scriptsExtracted} 个 script 块到 _extracted/，文件名为推断需人工核对`
     : '',
@@ -337,6 +430,7 @@ console.log(`  Token 变量: ${stats.tokenVars} 个 (:root), ${stats.darkVars} �
 console.log(`  src/ 文件: ${stats.srcFiles.length} 个`);
 console.log(`  antd 组件: ${Object.keys(stats.antdComponents).length} 个`);
 console.log(`  antd 图标: ${stats.antdIcons.length} 个`);
+console.log(`  i18n scenario: ${i18nInfo.scenario}${i18nInfo.scenario === 'A' ? '（硬编码，scaffold 已就绪）' : i18nInfo.scenario === 'B' ? '（react-intl，步骤 3 合并业务包）' : '（i18next，留下游决策）'}`);
 if (stats.scriptsExtracted) console.log(`  提取 script 块: ${stats.scriptsExtracted} 个`);
 console.log(`  交接文件: .umd-conversion.json`);
 

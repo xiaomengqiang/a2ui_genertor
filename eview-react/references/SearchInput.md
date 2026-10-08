@@ -1,7 +1,5 @@
 # SearchInput 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `SearchInput/type`；官网组件页 Search 及示例 `Basic.tsx` / `Disabled.tsx` / `Validator.tsx` / `SearchItems.jsx`
->
 > ⚠️ `onSearch` 的触发时机按 API 表是"点击搜索图标、按回车、**或文本值变化**"三种 —— 所以放在 `onSearch` 里的请求必须防抖 / 防重复，不要假设它只在回车时触发。
 > ⚠️ **资料冲突**：`onItemClick` 类型为 `(value, obj)`，但 demo `SearchItems.jsx` 的处理函数把**第一个参数**当成选项对象用（`obj.value` / `obj.text`）。§4 给出两种情况都成立的写法，已登记待实测。
 > ⚠️ demo 里的 `enablePopup={true}` 不在 API 表中，不要使用。

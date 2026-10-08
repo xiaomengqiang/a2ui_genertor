@@ -1,7 +1,5 @@
 # Empty 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Empty/types`；官网组件页 Empty 及示例 `Empty.jsx` / `SuccessEmpty.jsx`
->
 > ⚠️ 只有 6 个 props，`type` 两种：`fail`（默认图，加载失败 / 无权限）与 `success`（加载成功但数据为 0）。语义要选对：搜索无结果是 `success`，接口报错是 `fail`。
 > ⚠️ 表格内部空态用 `Table` 自带的 `emptyTableMsg` / `showEmptyImage`，不要在 Table 外再叠 Empty。
 

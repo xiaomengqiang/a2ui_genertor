@@ -1,7 +1,5 @@
 # Steps 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：官网组件页 Steps 的 props 表（`__docs__/API.md`）及示例 `WizardsDemo.jsx` / `WizardsClick.jsx` / `WizardsError.jsx` / `WizardsVerticalDemo.jsx` / `WizardsLabelPlacement.jsx` / `WizardsCustom.jsx`；旧名对照 TypeDoc 类型表 `Wizards/Wizards`、`Wizards/WizardsItem`
->
 > ⚠️ `Steps` 没有 TypeDoc 类型表，以官网组件页的 props 表为准；组件页标题仍写 "Wizards"，示例也写 `import Wizards from 'eview-react/Steps'`，**导入路径是 `Steps`**，`Wizards` 是同时保留的旧组件。
 > ⚠️ `direction="vertical"` 只在 `WizardsVerticalDemo.jsx` 出现，API 表未列 → 可用但标注来源。
 

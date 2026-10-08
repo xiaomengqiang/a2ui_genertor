@@ -1,7 +1,5 @@
 # 图标（icon+ 与 IconButton）功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Icon/Icon`、`IconButton/IconButton`；官网组件页 Icon 及示例 `IconBasic.jsx` / `IconPlusBasic.jsx` / `IconPlusType.jsx` / `IconPlusSize.jsx`、IconButton 及示例 `Basic.tsx` / `IconPlus.tsx` / `BubbleDirection.tsx` / `Disabled.tsx` / `Event.tsx`
->
 > ⚠️ 官网首推 **icon+ 图标库**：`import { IconPlusIcPublicSearch } from '@nce/icon-plus'`，按需引入，2000+ 图标，`type="filled"` 换风格、`iconColor={['red']}` 换色、`iconSize` 换尺寸（只能取 12/14/16/20/24/32/36/40/48/60）。
 > ⚠️ 内置 `Icon name="ict_xxx"` 组件**已被 icon+ 替代、不再推荐**；下文示例统一用 icon+ 组件。真实 icon+ 名迁移时用 icon-plus 接口（`getIconInfo`）按 antd/Lucide 名 keyword 查得（见 antd-to-eview-react/source-project-guidelines §3.3），本文示例的 icon+ 组件名仅为示意。
 > ⚠️ 只有图标、要点击、要气泡提示 → 用 **`IconButton`**，不要给图标组件挂 onClick 再自己写 title。

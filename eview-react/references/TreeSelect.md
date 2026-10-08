@@ -1,7 +1,5 @@
 # TreeSelect 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `TreeSelect/TreeSelect`；官网组件页 TreeSelect 及示例 `TreeSelectBasic.jsx` / `TreeSelectCheckbox.jsx`（仅 2 个 demo，事件回调在 demo 中为空实现）
->
 > ⚠️ 数据属性是 **`treeData`**（不是 Select 的 `options`），节点字段沿用 Tree 的 `text` / `id` / `children`；`onChange(selectNode[])` 回传的是**选中节点对象数组** `[{ value, text, tipText }]`，不是 value 数组。
 > ⚠️ 资料薄：只有基础 / 勾选两个 demo，且没演示受控 `value`。写法上按 API 表 + Tree 规律，标"待实测"。
 
