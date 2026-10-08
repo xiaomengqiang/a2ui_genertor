@@ -36,11 +36,13 @@
 
 ## 步骤 1：i18n 设置
 
-> antd ConfigProvider + theme.darkAlgorithm 已由 umd-to-antd-vite 步骤 3 删除并换成 eview 类名切换；`<body class="aui3_1">` 已在 scaffold `index.html` 写死。本步骤只做 IntlProvider 业务文案合并。
+> antd ConfigProvider + theme.darkAlgorithm 已由 umd-to-antd-vite 步骤 3 删除并换成 eview 类名切换；`<body class="aui3_1">` 已在 scaffold `index.html` 写死。i18n 静态接线按 `.umd-conversion.json` 的 `i18nScenario` 分支：
+> - **scenario A/B（`wired=true`）**：上游步骤 3 已完成 `main.jsx` 接线（IntlProvider + componentsLocales，B 还合并了业务包）。本步骤**跳过接线**，只做运行时验证（DatePicker 月份显中文、Dialog 等 portal 不报 `MISSING_TRANSLATION`、Pagination "条/页" 正常），运行时验证并入步骤 3 的 `npm install` + 浏览器实测。
+> - **scenario C（`wired=false`）**：源项目用 i18next，上游未合并业务包。本步骤做 keep i18next vs 迁 react-intl 决策（见 [i18n-migration.md](i18n-migration.md) §3 场景 C）；若迁 react-intl，按 §4 在 `main.jsx` 接 IntlProvider（注意 §2.5 的放置位置）。
 
 ### 2.5 IntlProvider 放在 main.jsx（不要跟着 AppShell 搬）
 
-> **高频踩坑点。** IntlProvider 必须是 `main.jsx` 中 `ConfigProvider` 的**直接子级**（不是在 `app.jsx`/AppShell 里），否则弹层（Dialog 等 portal）取不到业务文案报 `MISSING_TRANSLATION`；locale 用 `"zh"` 不是 `"zh-CN"`。完整代码（含 `Root` 包一层读 lang、合并 `componentsLocales` + 业务文案、反例对照）见 [i18n-migration.md](i18n-migration.md) §4。
+> scenario A/B 的 IntlProvider 已由上游 `umd-to-antd-vite` 步骤 3 在 `main.jsx` 正确放置，本节主要针对 scenario C（迁 react-intl）接线时。**高频踩坑点。** IntlProvider 必须是 `main.jsx` 中 `ConfigProvider` 的**直接子级**（不是在 `app.jsx`/AppShell 里），否则弹层（Dialog 等 portal）取不到业务文案报 `MISSING_TRANSLATION`；locale 用 `"zh"` 不是 `"zh-CN"`。完整代码（含 `Root` 包一层读 lang、合并 `componentsLocales` + 业务文案、反例对照）见 [i18n-migration.md](i18n-migration.md) §4。
 
 ```jsx
 // main.jsx 结构（详见 i18n-migration.md §4.1）

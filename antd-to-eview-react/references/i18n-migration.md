@@ -4,6 +4,8 @@
 > antd 用自带的 `ConfigProvider locale` 对象管组件内置文案，业务文案靠项目自选库或硬编码；
 > eview-react 统一用 `react-intl` 的 `IntlProvider` 管组件内置文案，业务文案也走同一套 react-intl。
 > 迁移时最大的坑是：源项目如果没用过 react-intl，等于要新引入一整个国际化库。
+>
+> **执行位置**：scenario A/B 的静态接线（IntlProvider + 业务包合并）现由上游 `umd-to-antd-vite` 步骤 3 完成（读 `.umd-conversion.json` 的 `i18nScenario` 字段判定）；本文档作为该步骤子 agent 的参考（§4 main.jsx 结构、§5 dayjs locale），以及 `antd-to-eview-react` 步骤 1 处理 scenario C（§3 场景 C keep/migrate 决策）时的参考。scenario A/B 接线完成后，下游步骤 1 只做运行时验证。
 
 ## 两层国际化模型对比
 

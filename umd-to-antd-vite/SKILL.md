@@ -1,7 +1,7 @@
 ---
 name: umd-to-antd-vite
 description: >-
-  把 ict-react-coder 产出的 UMD 单 HTML 工程（index.page.html + 内联 token CSS + Babel-standalone 转译 + 双份代码）转换为标准 antd Vite + npm 工程的专项 Skill。提供 scaffold 预制骨架（一键拷贝 antd Vite 空壳）、extract-umd.cjs 自动提取内联 token CSS（:root/.dark/@font-face 分类外置到独立文件）、check-relative-imports.cjs 排查路径错误。工作流为混合编排：主 agent 亲自跑脚本搭骨架+提取内容（步骤 1-2），派发 general 子 agent 搬代码修路径+验证（步骤 3-4）；验证结果写入 .conversion-result.json 供主 agent 判定。产出的标准 antd Vite 工程可直接衔接 antd-to-eview-react skill 继续迁移到 eview-react（下游步骤 1 以 `--upgrade` 模式把骨架从 antd 换成 eview-react，保留本 skill 外置的 token CSS）。务必在以下场景使用：把 ict-react-coder 产物的 UMD 单 HTML 转成标准 React 工程、需要外置内联 token CSS 到独立文件、想标准化工程结构以降低后续组件库迁移成本、用户提供了 index.page.html 并要求转成 React 项目、需要为 antd-to-eview-react 迁移做前置工程标准化、想把 UMD 内联的 666+ 个 CSS 变量提取到 tokens.css + theme-dark.css。
+  把 ict-react-coder 产出的 UMD 单 HTML 工程（index.page.html + 内联 token CSS + Babel-standalone 转译 + 双份代码）转换为标准 eview-react Vite + npm 工程的专项 Skill。提供 scaffold 预制骨架（一键拷贝 eview-react Vite 空壳）、extract-umd.cjs 自动提取内联 token CSS（:root/.dark/@font-face 分类外置到独立文件）、check-relative-imports.cjs 排查路径错误。工作流为混合编排：主 agent 亲自跑脚本搭骨架+提取内容（步骤 1-2），派发 general 子 agent 搬代码修路径+验证（步骤 3-4）；验证结果写入 .conversion-result.json 供主 agent 判定。产出的 eview-react Vite 工程可直接衔接 antd-to-eview-react skill 继续把业务代码的 antd 组件替换为 @nce/eview-react（骨架已是 eview-react，下游不再跑 init-scaffold.cjs；保留本 skill 外置的 token CSS）。务必在以下场景使用：把 ict-react-coder 产物的 UMD 单 HTML 转成标准 React 工程、需要外置内联 token CSS 到独立文件、想标准化工程结构以降低后续组件库迁移成本、用户提供了 index.page.html 并要求转成 React 项目、需要为 antd-to-eview-react 迁移做前置工程标准化、想把 UMD 内联的 666+ 个 CSS 变量提取到 tokens.css + theme-dark.css。
 ---
 
 # UMD → antd Vite 工程标准化 Skill
@@ -13,7 +13,7 @@ description: >-
 - **token CSS 全量丢失**：源项目 1000+ 行内联 `<style>` 里有 666 个 CSS 变量定义（三层 `:root` + `.dark` 暗色覆盖），迁移到 Vite 后 HTML 不能用，变量全丢。`extract-umd.cjs` 自动按选择器分类提取到 `tokens.css` / `theme-dark.css` / `font.css` / `base.css`
 - **双份代码一致性**：源项目 `index.page.html` 内联版 vs `src/` 独立版两份代码，需判断以哪份为准。`extract-umd.cjs` 自动列出 `src/` 文件清单，优先用独立文件
 - **相对 import 路径错位**：源项目根目录 `app.jsx` 写 `./src/context.jsx`，搬进 scaffold 的 `src/app.jsx` 后变成错误的 `src/src/context.jsx`。`check-relative-imports.cjs` 自动扫描
-- **无 package.json / vite.config.js**：UMD 工程用 Babel-standalone 浏览器内转译，无构建工具。scaffold 预制 antd Vite 空壳，`init-scaffold.cjs` 一键拷贝
+- **无 package.json / vite.config.js**：UMD 工程用 Babel-standalone 浏览器内转译，无构建工具。scaffold 预制 eview-react Vite 空壳，`init-scaffold.cjs` 一键拷贝
 - **图标运行时 fetch 跨域**：源项目 icon 组件用 icon-plus 在线服务（绝对 URL），Vite dev 下跨域。vite.config.js 预配 proxy + transform 插件
 
 ## 前置条件
@@ -27,8 +27,8 @@ description: >-
 | 步骤 | 做什么 | 产出 | 执行方式 |
 |------|--------|------|---------|
 | **1. 搭骨架** | 跑 `init-scaffold.cjs` 拷贝 eview-react Vite 空壳（package.json/vite.config.js/index.html/main.jsx/styles/字体/icon shim） | 可运行的 eview-react 空壳工程 | 主 agent 跑脚本 |
-| **2. 提取 UMD 内容** | 跑 `extract-umd.cjs` 从源项目 `index.page.html` 提取：`:root` → tokens.css、`.dark` → theme-dark.css、`@font-face` → font.css、其他 → base.css 追加；扫描 antd 组件导入（组件→文件映射 + 图标列表）；生成 `.umd-conversion.json` 交接文件供 antd-to-eview-react 读取；无 `src/` 时加 `--scripts` 提取 script 块 | token 外置 + antd 清单 + 交接文件 | 主 agent 跑脚本 |
-| **3. 搬代码 + 修路径 + 转暗色** | 把源项目 `src/` 独立文件搬进 scaffold `src/`；修正 `./src/...` → `./...` 相对导入；`app.jsx` 搬入时删除 antd `ConfigProvider` + `theme.darkAlgorithm`，换成 eview 类名切换 `useEffect` | 代码就位，import 正确，暗色已转 | 派发 general 子 agent |
+| **2. 提取 UMD 内容** | 跑 `extract-umd.cjs` 从源项目 `index.page.html` 提取：`:root` → tokens.css、`.dark` → theme-dark.css、`@font-face` → font.css、其他 → base.css 追加；扫描 antd 组件导入（组件→文件映射 + 图标列表）；扫描 i18n 用法判定 scenario A/B/C + 业务包/antd-locale 文件路径；生成 `.umd-conversion.json` 交接文件供 antd-to-eview-react 读取；无 `src/` 时加 `--scripts` 提取 script 块 | token 外置 + antd 清单 + i18n scenario + 交接文件 | 主 agent 跑脚本 |
+| **3. 搬代码 + 修路径 + 转暗色 + i18n 接线** | 把源项目 `src/` 独立文件搬进 scaffold `src/`；修正 `./src/...` → `./...` 相对导入；`app.jsx` 搬入时删除 antd `ConfigProvider` + `theme.darkAlgorithm`，换成 eview 类名切换 `useEffect`；按 `i18nScenario` 做 i18n 静态接线（删 antd locale 文件；scenario B 合并业务包到 `main.jsx`；scenario C 留下游） | 代码就位，import 正确，暗色已转，i18n A/B 接线完成 | 派发 general 子 agent |
 | **4. 验证** | 跑 `check-relative-imports.cjs` 静态检查 ；验证通过后更新 `.umd-conversion.json` 的 `verification` 字段 | import 通过 + 交接文件就绪 | 主 agent |
 | **5. 下游评估** | 读 antd-to-eview-react 的 `references/component-mapping.md`，对照 `antdComponents` 给每组件分类（A 有对应 / B 无对应手写 / C 模式转换）+ eview-react 替换名 + 关键差异摘要 + 涉及文件 + 下游 reference 指引，写入 `.umd-conversion.json` 的 `migrationPlan` 字段。**始终执行**——不依赖步骤 4 PASS，`antdComponents` 在步骤 2 已就绪 | 下游步骤 0 评估清单就绪 | 主 agent |
 
@@ -78,14 +78,24 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
   "antdIcons": ["SearchOutlined", "SunOutlined"],
   "tokens": { "rootVarCount": 666, "darkVarCount": 200, "cssFiles": ["src/styles/tokens.css"] },
   "srcFiles": ["src/context.jsx", "src/data.js"],
-  "darkMode": { "method": "css-vars + antd-darkAlgorithm" },
+  "darkMode": { "method": "css-vars + aui3_1_dark class", "darkClass": ".dark on <html> + aui3_1_dark on <body>" },
+  "i18nScenario": {
+    "scenario": "A",
+    "reactIntl": { "used": false, "files": [] },
+    "i18next": { "used": false, "files": [] },
+    "antdLocaleImports": [],
+    "antdLocaleFiles": [],
+    "businessLocaleFiles": [],
+    "hasDayjs": false,
+    "wired": true
+  },
   "verification": null,
   "migrationPlan": null,
   "notes": ""
 }
 ```
 
-`antd-to-eview-react` 步骤 0 检查此文件：有则直接读 `antdComponents` 的 keys 作为迁移清单（跳过 explore 子 agent 扫描），读 `tokens` 确认 token 已外置（跳过步骤 4），读 `verification` 确认路径已修正（跳过 `check-relative-imports.cjs`）。**`migrationPlan` 由步骤 5 始终填充，下游步骤 0 直接读它作为分类评估清单（A/B/C + 替换名 + 关键差异 + 涉及文件 + reference 指引），跳过读 `component-mapping.md` 大表对照。**
+`antd-to-eview-react` 步骤 0 检查此文件：有则直接读 `antdComponents` 的 keys 作为迁移清单（跳过 explore 子 agent 扫描），读 `tokens` 确认 token 已外置（跳过步骤 4），读 `verification` 确认路径已修正（跳过 `check-relative-imports.cjs`），读 `i18nScenario.wired` 确认 i18n 静态接线状态（`true` 即 A/B 已由步骤 3 接线完成，下游步骤 1 跳过接线只做运行时验证；`false` 即 scenario C，下游步骤 1 做 keep i18next vs 迁 react-intl 决策）。**`migrationPlan` 由步骤 5 始终填充，下游步骤 0 直接读它作为分类评估清单（A/B/C + 替换名 + 关键差异 + 涉及文件 + reference 指引），跳过读 `component-mapping.md` 大表对照。**
 
 步骤 4 验证通过后，更新 `verification` 字段：
 
@@ -95,13 +105,13 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 
 ## 硬约束（转换时必须遵守）
 
-1. **不换组件库**：保持 antd 5，不引入 `@nce/eview-react`（那是 antd-to-eview-react 的工作）
-2. **不换 Provider 体系**：保持 antd `ConfigProvider` + `zhCN` locale，不加 `IntlProvider`
-3. **保留源项目暗色方案**：`.dark` 类挂 `<html>`（CSS 变量翻转）+ antd `ConfigProvider theme.darkAlgorithm`（antd 组件暗色），两套并行
+1. **不换组件库**：业务代码（app.jsx、views/*、components/*）保持 antd 5 组件导入，不替换为 `@nce/eview-react` 组件（那是 antd-to-eview-react 的工作）；main.jsx 的 eview-react `ConfigProvider` / `locales` 属 scaffold 预设，不在此约束范围
+2. **Provider 体系由 scaffold 定型，不在业务代码另设**：main.jsx 已预设 eview-react `ConfigProvider` + react-intl `IntlProvider`（`locale='zh'` + `componentsLocales`），步骤 3 删除 app.jsx 的 antd `ConfigProvider`（含 `zhCN` locale + `theme.darkAlgorithm`），不在业务代码另加 Provider；业务语言包合并到 `IntlProvider` messages 留给下游 antd-to-eview-react 步骤 1
+3. **保留源项目暗色方案（CSS 类切换）**：`.dark` 挂 `<html>`（token 变量翻转）+ `aui3_1_dark` 挂 `<body>`（eview 暗色 CSS），步骤 3 删除 antd `ConfigProvider theme.darkAlgorithm`；antd 组件暗色留待下游替换为 eview-react 后由暗色 CSS 覆盖
 4. **token CSS 外置**：`:root` 变量只放 `tokens.css`，`.dark` 只放 `theme-dark.css`，不混在选择器规则里
 5. **相对导入不能有 `./src/...`**：`src/app.jsx` 导入同级用 `./context.jsx`，导入视图用 `./views/X.jsx`；`src/views/X.jsx` 导入上层数据用 `../data.js`
 6. **图标组件保留源项目原版**：搬入源项目的 `icon.jsx`（含 Lucide 兜底 + icon-plus 在线），不剥离 Lucide、不换 icon+ 静态 import（那是 antd-to-eview-react 的工作）。vite.config.js 已配 icon-plus proxy + transform
-7. **不引入 eview-react 相关依赖**：不装 `@nce/eview-react` / `react-intl` / `@cloudsop/horizon` 等
+7. **不在业务代码引入额外 eview-react 依赖**：scaffold package.json 已预设 `@nce/eview-react` / `react-intl` / `@cloudsop/horizon` 等（骨架自带，不算转换时引入）；业务代码保持 antd 组件导入，不替换为 `@nce/eview-react` 组件、不另装额外依赖（组件替换是 antd-to-eview-react 的工作）
 
 ## 步骤 3：搬代码 + 修路径
 
@@ -110,7 +120,7 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 **任务描述模板：**
 
 ```
-把源项目代码搬入目标 eview-react Vite 工程并修正路径：
+把源项目代码搬入目标 eview-react Vite 工程并修正路径 + i18n 静态接线：
 
 源项目路径：<源UMD文件所在目录>
 目标工程根：<目标工程根>
@@ -131,11 +141,20 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
    - ./src/context.jsx → ./context.jsx
    - ./src/views/X.jsx → ./views/X.jsx
    - ./src/data.js → ./data.js
-3. 不要改 main.jsx（scaffold 已配好 eview-react ConfigProvider + IntlProvider）
+3. i18n 静态接线（读 .umd-conversion.json 的 i18nScenario 字段）：
+   - 删除源项目里的 antd locale 导入（i18nScenario.antdLocaleImports 列出）和自写 antd locale 文件（i18nScenario.antdLocaleFiles，如 antd-zh-cn.js）
+   - scenario A（硬编码中文）: main.jsx 不改（scaffold 的 IntlProvider + componentsLocales 已就绪）
+   - scenario B（源用 react-intl）:
+     a. 搬 i18nScenario.businessLocaleFiles 列出的业务语言包到 <目标工程根>/src/ 下，保持原路径
+     b. 改 main.jsx: 合并 componentsLocales + 业务包成 mergedMessages，IntlProvider messages={mergedMessages[locale]}；若源项目有动态语言切换（lang state in context）用 Root 包裹结构（见 antd-to-eview-react/references/i18n-migration.md §4.1），否则简单合并即可
+     c. 业务代码里的 <FormattedMessage>/useIntl() 不用改（react-intl 同一套库）
+   - scenario C（源用 i18next）: 本步骤不合并业务包到 main.jsx，留给下游 antd-to-eview-react 步骤 1 做 keep i18next vs 迁 react-intl 决策；但仍要删 antd locale 导入/文件
+   - 若 i18nScenario.hasDayjs 且项目用到 dayjs 中文星期/月份: 按 i18n-migration.md §5 在 main.jsx 单独 import 'dayjs/locale/zh-cn' + dayjs.locale() 同步（运行时是否真需要下游验证）
 
 读 <skill目录>/references/umd-structure.md 了解 UMD 源项目结构。
+读 <antd-to-eview-react skill 目录>/references/i18n-migration.md §4/§5 了解 scenario B 的 main.jsx 合并结构与 dayjs locale 注册。
 
-输出：改了哪些文件 + 每个文件做了什么 + 遗留问题
+输出：改了哪些文件 + 每个文件做了什么 + i18n scenario + 遗留问题
 ```
 
 ## 步骤 4 派发子 agent：验证
@@ -209,7 +228,7 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 衔接要点：
 
 1. **骨架已是 eview-react**：步骤 1 已用 antd-to-eview-react 的 scaffold 搭好（依赖 / Provider / `aui3_1` body 类 / 字体 / icon shim 均就位），下游不再跑 `init-scaffold.cjs`
-2. **下游步骤 1 i18n 设置**：源项目 `app.jsx` 的 antd `ConfigProvider` + `theme.darkAlgorithm` 已在步骤 3 删除并换成 eview 类名切换；下游步骤 1 只需合并 `componentsLocales` + 业务语言包到 `IntlProvider` messages
+2. **下游步骤 1 i18n 设置**：i18n 静态接线已由步骤 3 按 `i18nScenario` 前置完成——scenario A/B 的 `main.jsx` IntlProvider + 业务包合并已就绪（`i18nScenario.wired=true`），下游步骤 1 跳过接线只做运行时验证（DatePicker 中文、Portal MISSING_TRANSLATION）；scenario C（`wired=false`）下游步骤 1 做 keep i18next vs 迁 react-intl 决策。antd ConfigProvider + darkAlgorithm 已在步骤 3 删除换成 eview 类名切换
 3. **token CSS 已外置、无需重提**：`tokens.css` + `theme-dark.css` 已在步骤 2 提取好，骨架的 `src/styles/` 原样保留
 4. **相对导入已修正**：`check-relative-imports.cjs` 已跑过，路径正确——下游验证里此子项跳过（`check-i18n-keys.cjs` 仍照跑）
 5. **代码只有一份**：双份代码已在步骤 3 归一

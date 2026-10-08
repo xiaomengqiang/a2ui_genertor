@@ -20,7 +20,7 @@ description: >-
 | 步骤 | 做什么 | 产出 |
 |------|--------|------|
 | **0. 评估** | 读 `.umd-conversion.json` 的 `migrationPlan`（由 `umd-to-antd-vite` 步骤 5 始终生成，含分类 A/B/C + 替换名 + 关键差异 + 涉及文件 + reference 指引）。详见 [migration-workflow.md](references/migration-workflow.md) 步骤 0 | 组件迁移清单 |
-| **1. i18n 设置** | 合并 `componentsLocales` + 业务语言包到 `IntlProvider` messages（scaffold `main.jsx` 已有基础 IntlProvider，需补业务文案）。详见 [i18n-migration.md](references/i18n-migration.md) §4 | IntlProvider 就绪 |
+| **1. i18n 设置** | 读 `.umd-conversion.json` 的 `i18nScenario`：`wired=true`（scenario A/B）跳过接线（IntlProvider + 业务包合并已由上游步骤 3 完成），只做运行时验证（DatePicker 中文、Portal 不报 MISSING_TRANSLATION）；`wired=false`（scenario C）做 keep i18next vs 迁 react-intl 决策。详见 [i18n-migration.md](references/i18n-migration.md) §3/§4 | i18n 运行时验证通过 |
 | **2. 逐组件替换** | 按映射总表替换每个 antd 组件；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写；图标按 §3.0 转 B/C 静态 import（字面量、三元、数据数组动态名 `name={t.icon}` 全由 `match-icons.cjs --apply` 自动改写；引入 JSX 的 `.js`→`.jsx` / `.ts`→`.tsx` 自动转换；仅真运行时数据退方案A shim 兜底，详见 [Icon.md](references/components/Icon.md)）/图表（`@nce/eview-react/Chart`）走预制件复用，调用点零改动。详见 [§3.0–§3.5](references/migration-workflow.md) | 组件代码全部替换 |
 | **3. 验证** | `check-relative-imports.cjs` 跳过（路径已由 `umd-to-antd-vite` 修正）。`check-i18n-keys.cjs` 必跑。`npm install`（bash 工具 timeout=30000，超时/失败记 SKIP 不判 FAIL）。详见 [§4.4](references/migration-workflow.md) | i18n 检查通过 |
 
@@ -32,7 +32,7 @@ description: >-
 
 1. **导入路径**：`import Button from '@nce/eview-react/Button'`，不是 `import { Button } from 'antd'`
 2. **样式**：scaffold `main.jsx` 已写好六处 CSS import（`aui3_1` / `aui3_1_dark` / `base` / `font` / `tokens` / `theme-dark`），不要删
-3. **Provider**：scaffold `main.jsx` 已配好 `ConfigProvider` + `IntlProvider`（`messages={componentsLocales[locale]}`）；步骤 1 需合并业务语言包。**IntlProvider 必须在 `main.jsx`，是 `ConfigProvider` 的直接子级**（不是在 `app.jsx`/AppShell 里），否则弹层（Dialog 等 portal）取不到业务文案报 `MISSING_TRANSLATION`；**locale 用 `"zh"` 不是 `"zh-CN"`**
+3. **Provider**：scaffold `main.jsx` 已配好 `ConfigProvider` + `IntlProvider`（`messages={componentsLocales[locale]}`）；i18n 静态接线（scenario A/B 合并业务包）已由 `umd-to-antd-vite` 步骤 3 前置完成（`i18nScenario.wired=true`），本 skill 步骤 1 只在 `wired=false`（scenario C）时做决策。**IntlProvider 必须在 `main.jsx`，是 `ConfigProvider` 的直接子级**（不是在 `app.jsx`/AppShell 里），否则弹层（Dialog 等 portal）取不到业务文案报 `MISSING_TRANSLATION`；**locale 用 `"zh"` 不是 `"zh-CN"`**
 4. **回调签名**：第一个参数通常是值不是 event（TextField `onChange(value, ...)`、Select `onChange(value, oldValue, text, oldText, event)`）
 5. **validator**：返回 `{ result: true, message }`，`result: true` = 通过
 6. **API 表里查不到的 props 一律不写**
@@ -58,7 +58,7 @@ description: >-
 
 ## 前置 skill：umd-to-antd-vite
 
-以下工作已由 `umd-to-antd-vite` 完成，本 skill 跳过：工程骨架搭建（eview-react scaffold 已就位）、组件扫描（`antdComponents`）、token 外置、相对导入修正、暗色模式转换（antd `theme.darkAlgorithm` → eview 类名切换）、组件分类评估（`migrationPlan`，由上游步骤 5 始终填充，步骤 0 直接读它）。
+以下工作已由 `umd-to-antd-vite` 完成，本 skill 跳过：工程骨架搭建（eview-react scaffold 已就位）、组件扫描（`antdComponents`）、token 外置、相对导入修正、暗色模式转换（antd `theme.darkAlgorithm` → eview 类名切换）、i18n 静态接线（scenario A/B 的 `IntlProvider` + 业务包合并，`i18nScenario.wired=true`；scenario C 留本 skill 步骤 1 决策）、组件分类评估（`migrationPlan`，由上游步骤 5 始终填充，步骤 0 直接读它）。
 
 ## 核心问题
 
