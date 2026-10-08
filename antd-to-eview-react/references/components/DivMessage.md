@@ -3,6 +3,7 @@
 > 资料来源：TypeDoc `DivMessage/DivMessage` + 官网 DivMessage 页示例。
 > ⚠️ 显隐是 **`display`**（不是 `visible`），默认 **10 秒自动消失**（`disposeTimeOut`，`enableDisposeTimeOut` 可关）；自动消失后组件内部隐藏，但外部 `display` state 仍是 true，再次触发前要先置回 false（或每次用新 key 重挂）。
 > ⚠️ 没有命令式 API：不存在 `message.success()`，只能渲染一个 `<DivMessage>` 并控制 `display`。
+> ⚠️ DivMessage **不脱离文档流**（非 portal、非 fixed）。要复刻 antd `message.xxx()` 顶部居中浮层，外层包裹元素**必须**加 `position: fixed`（或 `sticky`）+ 居中定位（如 `top` + `left:50%` + `transform:translateX(-50%)`）；不加会留在文档流里把页面内容往下推。
 
 ## 1. 功能定位
 
@@ -19,16 +20,16 @@ DivMessage 是区域内的结果提示条：直接显示在内容区上方，默
 
 ```tsx
 {notice ? (
-  <DivMessage
-    key={notice.key}                              // 换 key 重挂，重置自动消失计时
-    display
-    type={notice.type}
-    title={notice.title}
-    text={notice.text}
-    disposeTimeOut={5000}                          // 5 秒后自动隐藏（默认 10000）
-    onClose={() => setNotice(null)}                // 用户点 ×
-    style={{ marginBottom: 12 }}
-  />
+  <div style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1050 }}>
+    <DivMessage
+      key={notice.key}
+      display
+      type={notice.type}
+      text={notice.text}
+      enableDisposeTimeOut={!notice.persistent}
+      onClose={() => setNotice(null)}
+    />
+  </div>
 ) : null}
 
 // 常驻错误：关掉自动消失
@@ -47,7 +48,7 @@ import { IconPlusIcPublicInfo } from '@nce/icon-plus';
 - 请求 `try` 成功 → `notify('success', …)`；`catch` → `notify('error', …)`；同一位置只显示最新一条
 - 表单校验失败（Form `onFailed`）→ `notify('warn', '请修正标红字段')`
 - 关闭 / 自动消失 → `setNotice(null)`（自动消失时组件不回调 `onClose`，靠换 key 即可，不必同步 state）
-- 提示条放在被操作区域的顶部，而不是页面顶部
+- 定位分两种模式：页面级全局提示用 `position: fixed` 浮在屏幕顶部居中（见 §2 示例，复刻 antd `message`）；区域级提示可 inline 放在被操作区上方（不脱离文档流）。DivMessage 自身不管定位，选哪种都靠外层包裹元素承接。
 
 ## 4. 反面示例
 
@@ -68,6 +69,9 @@ const [show, setShow] = useState(false);
 
 // ❌ type 写 warning / info（只有 default / success / error / warn）
 <DivMessage type="warning" />
+
+// ❌ 外层不加定位，DivMessage 留在文档流里把页面内容往下推（antd message 是 fixed portal）
+<DivMessage display type="success" text="已保存" />   // 外层需 <div style={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1050 }}>
 ```
 
 ## 5. API 速查
