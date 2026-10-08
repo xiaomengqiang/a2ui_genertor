@@ -6,7 +6,7 @@
 >
 > ✅ **运行时已验证（内网真机，2026-09）**：2.0 托管模式（`Form.Item name` + 控件不传 `value`/`onChange` + `ref.submit()` → `onSuccess(values)`）在真实工程里**能收到 `values`**（含所有 `name` 字段）；`setFieldsValue` / `resetFields` / `submit` / `getFieldsValue` 均可用。先前 `TODO.md`「待实测」对应项 hereby 关闭。
 > ⚠️ **硬坑**：`initialValues` **必须传对象，不能是 `undefined`**。真机观察到传 `undefined` 时 `submit()` 仍触发 `onSuccess` 但 `values` 是空对象（"托管没生效"的表现；机制未深究但可复现，传具体对象则 `values` 正常）。动态/异步场景务必 `initialValues={x || {}}`。
-> ⚠️ 控件自带 `validator`（如 TextField/TextArea 的 `validator`）默认**不在 `submit()` 时执行**，需 Form 上加 `validateAllChildComponent={true}`；Form rules（`required`/`email`/`range` 等）则在 `submit()` 时正常跑（已验证）。`onFailed` 真机示例只取第一参 `errors`，第二参 `values` 是否提供待实测。
+> ⚠️ `submit()` 默认也调用子控件的 `validate()`；`validateAllChildComponent` 控制首个失败后是否继续，默认 false 只收集首错，true 收集全部失败项。`onFailed(errors, values)` 的 `errors` 是 `{ 字段名: 当前值 }`，不是错误消息；`values` 是已处理的有 name 字段值。
 > ⚠️ `Form.Item` 必须是 `Form` 的**直接子节点**，不能套在 `div` / flex / CSS grid 里模拟 antd 的 `Row/Col`，条件显隐也不能用 Fragment 包一组（栅格同样失效，实测）：标签（渲染后的 `ev_label`）宽度与栅格都由 Form 按直接子级 `Form.Item` 计算，隔一层 DOM 标签宽度即塌缩、只显示一小截。多列在 `Form` 上设 `itemCol={8}` 等，单项覆盖用 `Form.Item.col`；说明文案用 `labelTip` 或放在 `Form.Item` 之间，不要连同 `Form.Item` 一起包进装饰性容器。
 
 ## 1. 功能定位
@@ -45,8 +45,8 @@ const initialValues: ResourceForm = { name: '', region: null, port: '', agree: f
 
 完整骨架见 §7，要点：
 
-- **提交**：按钮 `onClick={() => formRef.current.submit()}` 触发全量校验，通过走 `onSuccess(values)`，失败走 `onFailed(errorFields, values)`；`onValuesChange(changed, allNew, allPrev)` 监听字段变化做联动
-- **托管**：`Form.Item` 写 `name` + `rules`，内部控件不传 `value` / `onChange`；长度限制仍用控件自己的 `maxLength`，控件自带的 `validator` 可叠加（FormPro.jsx）
+- **提交**：按钮 `onClick={() => formRef.current.submit()}` 触发校验（默认遇首错停止），通过走 `onSuccess(values)`，失败走 `onFailed(errorFields, values)`；`onValuesChange(changed, allNew, allPrev)` 监听字段变化做联动
+- **托管**：`Form.Item` 写 `name` + `rules`，内部控件不传 `value` / `onChange`；输入长度上限用控件的 `maxLength`，长度校验也可写 `minLength` / `maxLength` / `rangeLength` rules；控件自带 `validator` 可叠加（FormPro.jsx）
 - **布局**：`layout="horizontal"`（默认）配 `labelCol`；多列用 `itemCol={12}`；错误提示形式用 `validateErrorType`
 
 ### 多列布局：itemCol 设在 Form 上，Form.Item 保持直接子级
@@ -106,17 +106,17 @@ const detailItems = [
 ### 命令式方法（demo FormFunction.jsx）
 
 ```tsx
-formRef.current.submit();                      // 触发全量校验 → onSuccess / onFailed
+formRef.current.submit();                      // 触发校验（默认遇首错停止） → onSuccess / onFailed
 formRef.current.resetFields();                 // 回到 initialValues
-formRef.current.setFieldsValue({ name: 'x' }); // 程序化改值（回填 / 联动），不要去改控件自己的 value
+formRef.current.setFieldsValue({ name: 'x' }); // 合并改值；切换记录时先 resetFields，避免旧字段残留
 formRef.current.getFieldsValue();              // 当前全部值
 formRef.current.getFieldValue('name');
 formRef.current.getErrors();                   // 当前错误
 ```
 
-### 内置规则（demo FormRule.jsx 出现过的）
+### 内置规则
 
-`required` · `min` / `max` / `range` / `rangeAndInteger`（配 `args`）· `digit` · `integer` · `url` · `email` · `alpha` · `postfix`（`args: ['后缀']`）· `ipv4` · `ipv6` · `creditCard`；写法 `rules={[{ required: true }, { range: true, args: [5, 15] }]}`。整数范围（如端口）用 `rangeAndInteger`，`range` 不拦小数。
+`required`；`min` / `max` / `range` / `rangeAndInteger`；`number` / `integer` / `digit`；`email` / `url` / `alpha` / `regex` / `postfix`；`ipv4` / `ipv6` / `creditCard`；`equalTo` / `notEqualTo`；`minLength` / `maxLength` / `rangeLength`。带参统一写 `{ 规则名: true, args: [...] }`，如 `{ minLength: true, args: [5] }`；`{ min: 0 }` 的假值会被跳过。整数范围用 `rangeAndInteger`，`range` 不拦小数；不支持 `pattern` / `type: 'integer'`。
 
 ## 5. 数据结构
 
@@ -133,14 +133,15 @@ interface ResourceForm {
 }
 
 // rules 单项：{ 规则名: true, args?: any[] }
-type FormRule = { required?: true; email?: true; range?: true; postfix?: true; args?: any[]; [k: string]: any };
+type RuleName = 'required' | 'min' | 'max' | 'integer' | 'range' | 'rangeAndInteger' | 'number' | 'email' | 'digit' | 'url' | 'alpha' | 'regex' | 'postfix' | 'ipv4' | 'ipv6' | 'creditCard' | 'equalTo' | 'notEqualTo' | 'minLength' | 'maxLength' | 'rangeLength';
+type FormRule = Partial<Record<RuleName, true>> & { args?: unknown[] };
 ```
 
 ## 6. 联动说明
 
 - `onValuesChange(changed, allNew)` 里读 `changed` 判断哪个字段动了 → 条件渲染其他 `Form.Item`（被隐藏字段的值提交前用 `getFieldsValue()` 过滤）
 - 父级 Select 变化 → `setFieldsValue({ child: null })` 清子级，再换子级 `options`
-- 编辑页：数据加载完成后 `setFieldsValue(record)`（`initialValues` 只在初始化生效，异步数据要用方法回填）
+- 编辑页：数据加载完成后先 `resetFields()` 再 `setFieldsValue(record)`（后者合并值，单独调用会保留新记录缺失的旧字段；`initialValues` 只在初始化生效）
 - 提交：`submit()` → `onSuccess` 里 `setSubmitting(true)` → 请求 → `finally` 复位；按钮 `disabled={submitting}`
 - 服务端字段级错误：目前资料未提供"设置单字段错误"的 API，用页面级提示（[MessageDialog.md](MessageDialog.md) 或文案区）
 
@@ -156,12 +157,8 @@ import Toggle from '@nce/eview-react/Toggle';
 import Button from '@nce/eview-react/Button';
 
 interface ResourceForm {
-  name: string;
-  email: string;
-  port: string;
-  region: string | null;
-  agree: boolean;
-  enabled: boolean;
+  name: string; email: string; port: string;
+  region: string | null; agree: boolean; enabled: boolean;
 }
 
 const INITIAL: ResourceForm = { name: '', email: '', port: '', region: null, agree: false, enabled: true };
@@ -177,6 +174,7 @@ export default function ResourceFormPage({ record }: { record?: ResourceForm }) 
   // 编辑态：异步数据到达后用方法回填（initialValues 只在初始化生效）
   useEffect(() => {
     if (record) {
+      formRef.current?.resetFields();
       formRef.current?.setFieldsValue(record);
       setEnabled(record.enabled);
     }
@@ -297,18 +295,18 @@ rules={[{ required: true, message: '必填' }, { type: 'email' }]}
 |-----|--------------|------|
 | `initialValues` | `object` | 按 `name` 初始化，仅初始化与 `resetFields` 时生效；**必须传对象，`undefined` 会让 `onSuccess(values)` 收到空对象（已真机确认）** |
 | `onSuccess` | `(values) => void` | 提交且校验全部通过 |
-| `onFailed` | `(errors, values?) => void` | 提交且校验失败；真机示例只取第一参 `errors`，第二参 `values` 待实测 |
+| `onFailed` | `(errors, values) => void` | `errors={name: 当前字段值}`，不是消息；`values` 为已处理的有 name 字段值，默认首错后停止 |
 | `onValuesChange` | `(changedFields, allNewValues, allPrevValues) => void` | 字段更新 |
 | `layout` | `'horizontal' \| 'vertical'`，默认 `horizontal` | 不支持 inline |
 | `itemCol` | `24 \| 12 \| 8 \| 6`，默认 `24` | 多列表单，每项占栅格；只作用于**直接子级** `Form.Item` |
 | `labelCol` / `wrapperCol` | `number \| { span, offset }` | 仅水平布局；`labelCol + wrapperCol <= 24` |
 | `validateErrorType` | `'div' \| 'tip' \| 'none'` | 错误提示形式 |
-| `validateAllChildComponent` | `boolean`，默认 `false` | 是否同时执行子控件自带校验；**控件 `validator` 要在 `submit()` 时跑必须设 `true`**（待实测确认，但官方 API 表语义如此） |
+| `validateAllChildComponent` | `boolean`，默认 `false` | 首错后是否继续校验其余项；默认也调用子控件 `validate()`，true 收集全部失败字段 |
 | `component` | `any`，默认 `form` | 渲染的 HTML 元素；`false` 不创建 DOM |
 | `itemFillUp` / `padding` / `title` / `fields` | — | 垂直布局占满 / 内边距 / 标题 / 外部状态管理（不推荐） |
 | `Form.Item.name` | `string`，**必填** | 字段名 |
 | `Form.Item.label` / `labelTip` | `string` | 标签 / 标签提示 |
-| `Form.Item.rules` | `Array<{ 规则名: true, args? }>` | `required` `min` `max` `range` `rangeAndInteger` `digit` `integer` `url` `email` `alpha` `postfix` `ipv4` `ipv6` `creditCard` |
+| `Form.Item.rules` | `Array<{ 规则名: true, args? }>` | 完整关键字见 §4；长度、相等、正则与整数范围均可校验，非 antd rule 结构 |
 | `Form.Item.valuePropName` | `string` | 控件值属性名（Checkbox `checked`、Toggle `toggled`） |
 | `Form.Item.updateTrigger` / `updateTriggerIndex` | `string` / `number` | 取值回调名（Toggle `onToggle`）/ 值在回调第几个参数（Checkbox 为 1） |
 | `ref.submit()` / `resetFields()` / `setFieldsValue(obj)` / `getFieldsValue()` / `getFieldValue(name)` / `getErrors()` | 命令式方法 | demo FormFunction.jsx |

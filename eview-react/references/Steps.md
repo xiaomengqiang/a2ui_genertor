@@ -1,7 +1,7 @@
 # Steps 组件功能逻辑规格
 
-> ⚠️ `Steps` 没有 TypeDoc 类型表，以官网组件页的 props 表为准；组件页标题仍写 "Wizards"，示例也写 `import Wizards from 'eview-react/Steps'`，**导入路径是 `Steps`**，`Wizards` 是同时保留的旧组件。
-> ⚠️ `direction="vertical"` 只在 `WizardsVerticalDemo.jsx` 出现，API 表未列 → 可用但标注来源。
+> 新代码使用 `Steps` 导入；旧页面名为 Wizards。
+> 核验的 3.10 源码线支持 `direction="horizontal" | "vertical"`，默认 `horizontal`。
 
 ## 1. 功能定位
 
@@ -11,7 +11,7 @@ Steps 是多步骤任务的步骤条，`data` 驱动，`currentStep` 指向当�
 |-----------|--------|--------|
 | 向导 / 多步表单顶部的进度指示 | `Steps` | antd 的 `<Steps><Step>` children、`current` 下标 |
 | 旧工程已在用 | `Wizards`（同 API，旧名） | 新代码不要再用 |
-| 纯展示的时间轴 | `TimeLine`（未覆盖） | Steps 竖排硬凑 |
+| 纯展示的时间轴 | [TimeLine](TimeLine.md) | Steps 竖排硬凑 |
 
 ## 2. 典型场景
 
@@ -88,7 +88,7 @@ const handlePrev = () => setStepIndex((i) => Math.max(i - 1, 0));
 ```tsx
 const data = stepData.map((s) => ({ ...s, status: errorSteps.has(s.value) ? 'error' : '' }));
 <Steps data={data} currentStep={current} labelPlacement="horizontal" />   // 文字在图标右侧
-<Steps data={data} currentStep={current} direction="vertical" />         // 竖排（仅 demo 出现）
+<Steps data={data} currentStep={current} direction="vertical" />         // 竖排
 ```
 
 ## 5. 数据结构
@@ -257,7 +257,7 @@ import Wizards from '@nce/eview-react/Wizards';
 
 ## 9. API 速查
 
-> 压缩自 `demos/Steps/__docs__/API.md`；`direction` 仅见于 demo。
+> `currentStep` 按选项值匹配，`direction` 控制横竖布局。
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
@@ -266,7 +266,7 @@ import Wizards from '@nce/eview-react/Wizards';
 | `disabled` | `boolean`，默认 `false` | 整条禁用 |
 | `onClick` | `(index: number) => void`（3.5.16） | 点击步骤，参数是**下标** |
 | `labelPlacement` | `'vertical' \| 'horizontal'`，默认 `vertical`（3.6.10） | 文字在图标下方 / 右侧 |
-| `direction` | `'vertical'`（仅 demo） | 竖排步骤条 |
+| `direction` | `'horizontal' \| 'vertical'`，默认 `horizontal` | 横排 / 竖排步骤条 |
 | `wizardTextStyle` | `CSSProperties` | 每步文字样式 |
 | `id` / `className` / `style` | — | 外层容器 |
 | `Item.text` / `Item.value` | `string` / `string \| number`，**必填** | 标题 / 序号 |

@@ -1,7 +1,7 @@
 # Table 组件功能逻辑规格
 
 > ⚠️ `dataset` 是**行数组**：既可以是二维数组（顺序与 `columns` 一致），也可以是对象数组（key 对应 `columns[].key`）；不是 antd 的 `dataSource + rowKey`。
-> ⚠️ 勾选回调 `onRowCheck(row, checkedRows, e)` 的 `checkedRows` 是**主键数组**：设了 `keyIndex` 就是该列的值，没设就是行序号。
+> ⚠️ 勾选回调 `onRowCheck(row, checkedRows, e)` 的 `checkedRows` 是**主键数组**：`keyIndex` 是从 0 开始的 `columns` 列下标，取对应列值；未设或越界退化为行号，不是字段名。
 > ⚠️ 分页有两种：`enableAutoPaging` 前台分页（`dataset` 传全量）；后台分页（默认）`dataset` 只传当前页，`recordCount` 传总数，`onPageChange` 里去请求。
 > ⚠️ 排序默认组件自己排（前台）；后台排序要 `disableEviewSort` + `onColumnSort(sortColumn, sortType)` 自己请求再换 `dataset`。
 
@@ -66,7 +66,7 @@ const rows = list.map((d) => ({ id: d.id, name: d.name, state: d.state, ip: d.ip
 
 - 后台分页：`enablePagination` + `pagingProps={{ pageSize, currentPage, recordCount, pageSizeOptions, onPageSizeChange }}` + `onPageChange(currentPage)`；`page` / `pageSize` / `sort` 任一变化 → 请求 → `setRows` + `setTotal`（TablePaging.jsx）
 - 后台排序：`disableEviewSort` 关掉前台排序，`onColumnSort(sortColumn, sortType)` 里记下排序并回到第 1 页（TableSort.jsx）
-- 勾选：`enableCheckBox`（`checkType` 单 / 多选）+ `checkedRows` + `onRowCheck(row, checkedRows)` / `onHeaderCheck(checkedRows)` 存主键数组，跨页保留加 `preserveCheckedRows`；要整行数据时用 `tableRef.current.getCheckedRowsData()`
+- 勾选：`enableCheckBox`（`checkType` 单 / 多选）+ `checkedRows` + `onRowCheck(row, checkedRows)` / `onHeaderCheck(checkedRows)` 存主键数组，跨页保留加 `preserveCheckedRows`；表头第三参是内部行对象数组且可能含 `undefined`，使用前过滤；要整行数据时用 `tableRef.current.getCheckedRowsData()`
 - 批量删除等危险操作：按钮 `status="risk"`，点击后先走 MessageDialog 二次确认（[MessageDialog.md](MessageDialog.md)），成功后清空勾选并刷新
 
 ### 前台分页 / 行点击 / 行展开
@@ -219,11 +219,11 @@ onRowCheck={(row) => setChecked([...checked, row])}
 |-----|--------------|------|
 | `columns` | `ColumnProps[]` | 列定义（见 §5） |
 | `dataset` | `any[]`，**必填** | 行数组：二维数组或对象数组 |
-| `keyIndex` | `number` | 行主键所在列序号；不设则用行号 |
+| `keyIndex` | `number` | `columns` 的 0 基下标；对象行按 `columns[i].key` 转换，所有列要有 key；未设 / 越界用行号，`rowKey` 不参与勾选主键 |
 | `enableCheckBox` / `checkType` | `boolean`（默认 false）/ `'multi' \| 'single'` | 勾选列 / 单多选 |
 | `checkedRows` / `preserveCheckedRows` / `disableCheckboxIds` | `(string \| number)[]` / `boolean`（3.5.12）/ `(string \| number)[]` | 受控勾选 / 跨页保留 / 禁勾行 |
 | `onRowCheck` | `(row, checkedRows, e) => void` | 行勾选；`checkedRows` 为主键数组 |
-| `onHeaderCheck` | `(checkedRows, checked, checkedRowsData) => void` | 表头勾选 |
+| `onHeaderCheck` | `(checkedRows, checked, checkedRowsData) => void` | 主键数组 / 本次是否全选 / 对应内部行对象数组 `{ id, data: [...], ... }`；跨页或禁用行时第三参可能含 `undefined` |
 | `onRowClick` / `onDoubleClick` / `onRowRightClick` | `(row, event)` / `(evtRow, evtCell, e)` / `(event, row)` | 行事件（注意参数顺序各不相同） |
 | `enablePagination` / `enableAutoPaging` | `boolean`，默认 `false` / `boolean`，默认 `false`（3.3.2） | 显示分页 / 前台分页（`dataset` 传全量） |
 | `pagingProps` | `PagingProps` | 透传给分页器：`pageSize` `currentPage` `recordCount` `pageSizeOptions` `onPageSizeChange` … |

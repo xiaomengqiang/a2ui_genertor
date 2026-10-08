@@ -1,7 +1,7 @@
 # Dialog 组件功能逻辑规格
 
 > ⚠️ 显隐是 `isOpen`（不是 `open` / `visible`），关闭按钮 / ESC 触发 `onClose(event)`，**组件不会自己把 `isOpen` 置 false**，业务在 `onClose` 和按钮 `onClick` 里 `setIsOpen(false)`。
-> ⚠️ 底部按钮用 `buttons={[{ text, status?, onClick }]}`（数组，每项是 Button props），不是 `footer` / `onOk`。
+> ⚠️ 底部按钮用 `buttons={[{ text, status?, disabled?, onClick }]}`（数组，每项是 Button props），不是 `footer` / `onOk`。
 > ⚠️ `zindex` 默认 9999，官方注明不要超过 9999，否则会盖住弹窗内 Select 等组件的下拉层。
 
 ## 1. 功能定位
@@ -121,8 +121,7 @@ import { IconPlusIcPublicHelp } from '@nce/icon-plus';
 ## 5. 数据结构
 
 ```tsx
-// buttons 每项 = Button 的 props（见 Button.md）。demo 出现过 text / status / onClick；
-// disabled 等其余 Button props 按"数组项即 Button 属性"推断，已登记待实测
+// buttons 每项原样展开为 Button props（见 Button.md）；disabled 会阻止鼠标与 Enter 触发
 interface DialogButton {
   text: string;
   status?: 'default' | 'primary' | 'risk' | 'text';
@@ -262,7 +261,7 @@ buttons={[{ text: '确定', onClick: () => { setOpen(false); save(); } }]}
 | `isOpen` | `boolean`，默认 `false` | 显隐（受控） |
 | `onClose` | `(event) => void` | 关闭按钮 / ESC；需自行置 `isOpen=false` |
 | `title` / `titleTip` | `any` / `string` | 标题 / 标题提示 |
-| `buttons` | `Array<ButtonProps>` | 按钮区，如 `[{ text, status: 'primary', onClick }]` |
+| `buttons` | `Array<ButtonProps>` | 原样传给 Button，支持 `disabled` 并阻止点击 / Enter，如 `[{ text, disabled: saving, onClick }]` |
 | `buttonStyle` / `contentStyle` / `maskStyle` / `style` | `CSSProperties` | 按钮区 / 内容区 / 蒙层 / 整体样式 |
 | `size` | `[w, h]`，可 `null` / `'auto'` / 百分比 | 大小；**高传 `'auto'` 自适应内容 + `style={{ maxHeight: '80vh' }}` 限高**，宽按场景设（见 §4），勿定死 |
 | `position` | `[x, y]`，可 `null` | 位置（左边距 / 上边距） |

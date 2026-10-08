@@ -1,7 +1,7 @@
 # Tree 组件功能逻辑规格
 
 > ⚠️ 节点数据字段是 **`text` + `id` + `children`**（不是 antd 的 `title` / `key`），`nodeKey="id"` 指定主键字段名；三个受控数组 `selectedKeys` / `checkedKeys` / `expandedKeys` 各自配对回调 `onSelect` / `onCheck` / `onExpand`，回调第一个参数就是新的 keys 数组。
-> ⚠️ 回调里的 `node` 是节点组件对象，主键取 **`node.props.eventKey`**（demo 写法），不是 `node.id`。
+> ⚠️ 回调里的 `node` 是 **TreeNode 组件实例**，主键取 **`node.props.eventKey`**，原始数据取 `node.props.data`；不是 `node.id`，自定义 nodeKey 时也不能依赖 `node.props.id`。
 > ⚠️ demo 里出现的 `checkable={true}` 不在 API 表中；勾选框用 **`enableCheckbox`**。`enableMultiSelect` 默认 **true**，单选场景要显式关掉。
 
 ## 1. 功能定位
@@ -135,7 +135,8 @@ interface TreeNode {
 - `onCheck` → 提交按钮解锁，文案显示已选数量；提交时用 `checkedKeys`（含联动勾上的父节点，按业务过滤叶子）
 - 搜索 → `findLevelNodes` → `expandedKeys` 展开路径；清空搜索恢复默认展开
 - 懒加载：`loadData` 的 `callback` 只负责挂子节点；同时把新节点 id 加进 `expandedKeys`
-- 大树（数千节点）→ 传 `height` 开虚拟滚动（3.9.24），或 `lazyLoad` 不渲染未展开子树
+- 大树（数千节点）→ 传 `height` 开虚拟滚动（3.9.24），回调仍是 TreeNode 实例；或 `lazyLoad` 不渲染未展开子树
+- 每项必须有 `nodeKey` 对应的稳定业务字段（默认 id）；缺失时 eventKey 退化为路径 + 下标，不适合作为业务标识。PagingTree 是不同组件，其 node 为数据对象，不能混用回调读法。
 
 ## 7. 完整代码示例
 
@@ -254,7 +255,7 @@ onSelect={(keys, node) => setSelected(node.id)}
 | `connectLine` / `superLevel` | `boolean`，默认 `false` | 连线 / 超多级树容器不足时 |
 | `focusNode` | `{ key }` | 滚动到并聚焦节点 |
 | `disabled` | `boolean`，默认 `false` | 灰化 |
-| `onNodeDoubleClick` / `onNodeRightClick` / `onClickRightIcon` | 回调 | 双击 / 右键 / 右侧图标 |
+| `onNodeDoubleClick` / `onNodeRightClick` / `onClickRightIcon` | 回调 | 双击为 `(eventKey, node, event)`，第 1 参已是主键；其余右键 / 右侧图标 |
 | `treeNodePrefix` / `treeNodeSuffix` / `nodeSuffixTrigger` / `showRightIcon(Arr)` | — | 节点前后缀 / 右侧图标 |
 | `iconLeaf` / `iconExpanded` / `iconCollapsed`（及 className） | `string \| ReactNode` | 三态图标，需成套设置 |
 | `draggable` / `onDragStart` / `onDrop` … | — | 拖拽（顺序更新需自行处理） |

@@ -53,8 +53,8 @@ const [password, setPassword] = useState<string>('');
 ### validator —— 内置规则优先，自定义返回 `{ result, message }`
 
 ```tsx
-// 内置：TextField.defaultValidator.xxx(...)（api 表列出 18 个；demo 还用了 integer()）
-<TextField label="端口" validator={TextField.defaultValidator.range(1, 65535)} hintType="tip" />
+// 核验的 3.10 源码线含 integer() 与 rangeAndInteger(min, max)，旧文档列表漏列
+<TextField label="端口" validator={TextField.defaultValidator.rangeAndInteger(1, 65535)} hintType="tip" />
 <TextField label="邮箱" validator={TextField.defaultValidator.email()} />
 
 // 自定义：result === true 通过；type 告诉你是 onChange 还是 onBlur 触发的
@@ -64,6 +64,8 @@ const validateAccount = (value: string, id?: string, type?: string) => {
 };
 <TextField label="账号" required validator={validateAccount} ruleText="字母开头，3-20 位" />
 ```
+
+`integer()` 只校验整数（允许负号），不校验范围；整数且限制区间用 `rangeAndInteger(min, max)`。该源码线的 `number()` 与 `integer()` 使用相同正则，仅提示文案不同。
 
 ### 输入拦截 —— isCharacterAllowed 返回 false 的字符直接不落入
 
@@ -190,8 +192,8 @@ export default function CreateUserForm() {
         label="端口"
         placeholder="1-65535"
         format="number"
-        isCharacterAllowed={(value: string) => /^\d*$/.test(value)}   // 只允许整数，挡住小数点；range 不拦小数
-        validator={TextField.defaultValidator.range(1, 65535)}
+        isCharacterAllowed={(value: string) => /^\d*$/.test(value)}   // 输入阶段挡住小数点
+        validator={TextField.defaultValidator.rangeAndInteger(1, 65535)}
         hintType="tip"
         value={port}
         onChange={(value: string) => setPort(value)}
@@ -246,7 +248,7 @@ export default function CreateUserForm() {
 | `isAllowToModifyPasswordByProps` | `boolean`，默认 `false` | 密码模式下允许通过 props 改 value |
 | `required` / `hideRequiredMark` | `boolean`，默认 `false` | 必填（自带非空校验 + 星号）/ 隐藏星号 |
 | `validator` | `(value, id?, type?) => { result, message, type? }` | 自定义校验，`result: true` 通过 |
-| `TextField.defaultValidator.*` | 静态方法 | `min max range number email digit url alpha regex postfix ipv4 ipv6 creditCard equalTo notEqualTo minLength maxLength rangeLength`（demo 另有 `integer`） |
+| `TextField.defaultValidator.*` | 静态方法 | `min max integer range rangeAndInteger number email digit url alpha regex postfix ipv4 ipv6 creditCard equalTo notEqualTo minLength maxLength rangeLength` |
 | `validateWhileEmpty` | `boolean` | 空值时是否也执行校验 |
 | `hintType` | `'div' \| 'tip'`，默认 `div` | 错误提示形式 |
 | `ruleText` | `string` | 输入框右侧常驻规则提示 |

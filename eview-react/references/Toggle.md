@@ -1,7 +1,7 @@
 # Toggle 组件功能逻辑规格（含 Switch）
 
-> ⚠️ 官方 demo 全部 `import Toggle from 'eview-react/Toggle'`，`Switch` 是同 API 的超集；本文按 `Toggle` 写，需要"点击后先二次确认再切换"时换 `Switch` 的 `isControlToggled`。
-> ⚠️ 状态属性叫 **`toggled`**、回调叫 **`onToggle(value)`**，`value` 来自 `data=[关值, 开值]`；不是 `checked` / `onChange`。
+> ⚠️ `Toggle` 是 `Switch` 的别名，使用同一实现；需要先确认再切换时，两者均可用 `isControlToggled`，并显式传 `data`。
+> ⚠️ 状态属性叫 **`toggled`**、回调叫 **`onToggle(value)`**，传了 `data=[关值, 开值]` 时回传切换后的值，未传时回传 **null**；不是 `checked` / `onChange`。
 > ⚠️ 文案属性拼写是 `taggledChildren` / `unTaggledChildren`（官方即如此拼），照抄。
 
 ## 1. 功能定位
@@ -28,7 +28,7 @@ Toggle 是两态开关：立即生效的启用 / 禁用切换，可带 label、�
 // 受控写法（demo SwitchInteractiveExample.jsx：toggled 绑 state，onToggle 里翻转）
 const [enabled, setEnabled] = useState<boolean>(false);
 
-// data 决定 onToggle 回传的值：[关, 开]；不传 data 时 demo 直接按 !toggled 翻转
+// data 决定 onToggle 回传的值：[关, 开]；未传时参数为 null，不能当 boolean 保存
 const TOGGLE_DATA: [boolean, boolean] = [false, true];
 
 // 列表行开关：切换中的行 id，防止连点
@@ -51,7 +51,7 @@ const [switching, setSwitching] = useState<Set<string>>(new Set());
 ### 开关内显示文字 / 图标
 
 ```tsx
-<Toggle toggled={on} taggledChildren="开" unTaggledChildren="关" onToggle={(v: boolean) => setOn(v)} />
+<Toggle data={[false, true]} toggled={on} taggledChildren="开" unTaggledChildren="关" onToggle={(v: boolean) => setOn(v)} />
 ```
 
 ### 行内开关：切换即请求，失败回滚
@@ -159,7 +159,7 @@ export default function AlarmRuleSettings() {
       <Toggle label="启用告警" data={[false, true]} toggled={master} taggledChildren="开" unTaggledChildren="关" onToggle={(v: boolean) => setMaster(v)} />
 
       {master ? (
-        <Spinner label="检测间隔(秒)" min={5} max={300} step={5} doNotFocusWhenValueUpdate value={checkInterval} onChange={(v: number) => setCheckInterval(v)} />
+        <Spinner label="检测间隔(秒)" min={5} max={300} step={5} value={checkInterval} onChange={(v: number | string) => setCheckInterval(Number(v))} />
       ) : null}
 
       <div className="app-toggle-list" style={{ paddingTop: 12 }}>
@@ -187,7 +187,10 @@ export default function AlarmRuleSettings() {
 // ❌ antd 习惯：没有 checked / onChange / checkedChildren / loading / size
 <Switch checked={on} onChange={setOn} checkedChildren="开" loading={busy} size="small" />
 
-// ❌ 把 onToggle 当无参回调，自己翻转 state，data 传了也不用 → 与组件显示可能不同步
+// ❌ 未传 data，却把 onToggle 的 null 当成新的 boolean
+<Toggle toggled={on} onToggle={(v) => setOn(v)} />
+
+// ❌ 传了 data 却忽略返回值翻转 state，可能与组件显示不同步
 <Toggle data={['off', 'on']} toggled={on} onToggle={() => setOn(!on)} />
 
 // ❌ 拼写按"正确英文"写成 toggledChildren（官方是 taggledChildren）
@@ -210,12 +213,12 @@ onToggle={(v) => { setEnabled(v); api.setEnabled(v); }}
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
 | `toggled` | `boolean`，默认 `false` | 开关态 |
-| `onToggle` | `(value) => void` | 点击回调，`value` 为 `data` 中当前状态对应的值 |
-| `data` | `any[]`，如 `[关值, 开值]` | 两态的值集合，推荐设置 |
+| `onToggle` | `(value) => void` | 传 data 时为切换后的值；未传 data 时为 `null`，不是 boolean |
+| `data` | `any[]`，如 `[关值, 开值]` | 索引 0=关、1=开；受控切换须传 |
 | `label` / `labelPosition` | `string` / `'before' \| 'after'`（默认 before） | 文本及位置 |
 | `taggledChildren` / `unTaggledChildren` | `string \| ReactNode` | 开 / 关状态下开关内的内容（拼写照官方） |
 | `disabled` | `boolean`，默认 `false` | 禁用 |
 | `required` | `boolean`，默认 `false` | 必填标记 |
 | `fieldStyle` / `fieldClassName` / `labelStyle` / `labelClassName` / `style` / `className` / `id` | — | 样式与标识 |
-| `Switch.isControlToggled` | `boolean` | 外部控制切换（点击后先确认再 setState） |
-| `Switch.allowPropagation` | `boolean`，默认 `false` | 允许点击事件向上冒泡（如被 TipBox 包裹） |
+| `isControlToggled` | `boolean` | Toggle / Switch 均可用；内部不翻转，确认后回写 toggled，并传 data |
+| `allowPropagation` | `boolean`，默认 `false` | 允许点击事件向上冒泡（如被 TipBox 包裹） |

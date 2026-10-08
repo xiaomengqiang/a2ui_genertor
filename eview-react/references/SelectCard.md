@@ -1,7 +1,7 @@
 # SelectCard 组件功能逻辑规格（官网页面名：Segmented / 分段选项卡）
 
 > 版本要求：3.5.5 起支持。
-> ⚠️ **导入名是 `SelectCard`**：`import SelectCard from '@nce/eview-react/SelectCard'`。官网页面叫 Segmented，但 `Segmented` 不在导出清单里，demo 也全部导入 `SelectCard`。
+> 默认用 `SelectCard` 导入。核验的 3.10 源码线中它是 Segmented 的别名，但根入口只导出 `SelectCard`，没有 `Segmented`；发布包 3.10.28 已确认可用 `import Segmented from '@nce/eview-react/Segmented'` 默认导入，其他版本先核对。
 > ⚠️ 禁用属性是 **`disable`**（组件级与选项级都是），不是 `disabled`。
 
 ## 1. 功能定位
@@ -59,6 +59,8 @@ const sizeOptions: SelectCardItem[] = [
 <SelectCard data={sizeOptions} value={size} disable={submitting} />       // 提交中整体禁用
 <SelectCard data={sizeOptions} value={size} isTipShow={false} />          // 默认悬浮显示 text 或 tipsText
 ```
+
+`ref.getValue()` 已在核验的 3.10 源码线确认：返回当前选中项的 `value`（string / number），无选中或越界时返回 `null`。
 
 ### 动态改选项（demo SelectCardChangeData.jsx）
 
@@ -167,8 +169,8 @@ export default function PurchaseConfig() {
 ## 8. 反面示例
 
 ```tsx
-// ❌ 导入不存在的名字（官网页面叫 Segmented，导出名是 SelectCard）
-import Segmented from '@nce/eview-react/Segmented';
+// ❌ 从根入口导入未导出的别名；默认使用 SelectCard
+import { Segmented } from '@nce/eview-react';
 
 // ❌ antd 习惯：没有 options / Radio.Button / block
 <Segmented options={['列表', '卡片']} block onChange={setView} />
@@ -201,4 +203,4 @@ setSizeOptions(next); // 少了 if (!next.some(o => o.value === size)) setSize(.
 | `required` | `boolean`，默认 `false` | 必填 |
 | `itemStyle` / `itemClassName` | `CSSProperties` / `string` | 单个选项卡样式 |
 | `labelStyle` / `labelClassName` / `style` / `className` / `id` | — | 常规透传 |
-| `ref.getValue()` | `() => value` | 获取选中值（官网 API 表 methods） |
+| `ref.getValue()` | `() => string \| number \| null` | 当前选中 value；无选中 / 越界时为 null |

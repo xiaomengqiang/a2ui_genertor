@@ -1,6 +1,6 @@
 # Checkbox 组件功能逻辑规格（含 CheckboxGroup）
 
-> CheckboxGroup 的官方示例与说明都收在 Checkbox 组件页下（GroupBasic / GroupRequired / GroupSelectAll），本文一并覆盖。
+> ⚠️ 核验的 3.10 源码线中，`Checkbox.checked` 是半受控：点击先改内部状态，父级仅在 `checked` 值改变时同步；同值回写不强制恢复。需要在下一次父级更新中按 props 恢复时用 `forceUpdate`，树专用字段通常不用于业务。
 
 ## 1. 功能定位
 
@@ -67,7 +67,7 @@ const halfChecked = checkedIds.size > 0 && !allChecked;
 />
 ```
 
-表头全选 / 半选的写法见 §7：`checked` 与 `halfChecked` 都由子项派生，不单独存 state。
+表头全选 / 半选的写法见 §7：`checked` 与 `halfChecked` 都由子项派生，不单独存 state。父级修改 `checked` 可同步；若要拦截点击，优先用 `onPreChange`，不要依赖同一个 `checked` 值反复回写。`forceUpdate={true}` 在接收父级 props 时重置内部值；`treeChecked` / `treeHalfChecked` 在渲染时强制按 props 显示，供 Tree 使用。
 
 ### CheckboxGroup —— data 驱动 + value 数组 + selectAll
 
@@ -239,7 +239,9 @@ checkedIds.add(item.id); setCheckedIds(checkedIds);
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
 | `Checkbox.label` / `value` | `string` / `any` | 显示文字 / 存取值 |
-| `Checkbox.checked` / `halfChecked` | `boolean`，默认 `false` | 选中 / 半选（可与 `checked` 同时传，见 Basic.tsx） |
+| `Checkbox.checked` / `halfChecked` | `boolean`，默认 `false` | 选中 / 半选；checked 值变化才同步内部状态 |
+| `Checkbox.forceUpdate` | `boolean` | 父级 props 更新时强制按 props 恢复内部状态 |
+| `Checkbox.treeChecked` / `treeHalfChecked` | `boolean` | 树专用：渲染时直接使用 props，普通业务通常不用 |
 | `Checkbox.disabled` | `boolean`，默认 `false` | 灰化 |
 | `Checkbox.onChange` | `(value, checked, event, additionalData) => void` | **第二个参数**是勾选态 |
 | `Checkbox.onPreChange` | `(value, checked, event) => boolean` | 返回 `false` 阻止切换 |

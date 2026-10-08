@@ -2,7 +2,7 @@
 
 > ⚠️ Accordion 是**多级导航菜单**（官网："为页面和功能提供导航的菜单列表"）：`data` 驱动，`selectedValue` 是**单个 string**，点击回调 `onClick(node)`。它不是 antd `Collapse` 那种内容折叠面板，内容折叠用 [Panel](Panel.md)。
 > ⚠️ **`expanded` / `onExpand` 语义反转**（官方标注"组件属性遗留问题"）：`expanded={true}` 表示**收起**，`onExpand(flag)` 的 `flag` 为 true 表示变为展开。写法固定为 `expanded={collapsed}` + `onExpand={(flag) => setCollapsed(!flag)}`（demo `AccordionDemo.jsx` / `AccordionIcon.jsx`）。
-> ⚠️ demo 中的 `expand={…}` 与子项字段 `description` 不在 API 表中，不要写。
+> ⚠️ `expand={…}` 无效，只有 `expanded`；子项 `description` 不支持，标题提示属性是复数 `hideTitleTips`。
 
 ## 1. 功能定位
 
@@ -55,7 +55,8 @@ const handleMenuClick = (node: object) => {
 
 - **两种形态**：固定导航用 `enableExpand={false}` + `hideIcons`（demo 同时设置）；可收起导航用 `enableExpand` + `expanded` / `onExpand`，一级菜单都配 `icon`。官方 demo 都设了 `hideTitleBar`，页面标题放在导航之外
 - `enableMultiOpen` 默认 false：展开一个一级菜单会收起其他一级菜单；需要同时展开多个时设为 true
-- ⚠️ 外部按钮直接改 `expanded`、用 `isControlSelectedValue` 做切换前拦截，都没有 demo，已登记待实测，不作为默认写法
+- 外部修改 `expanded` 能控制收起 / 展开；`onExpand(flag)` 回写仍须取反。
+- `isControlSelectedValue` 可阻止普通叶子点击更新内部选中；不回写则保持原选中，但不控制父节点展开。收起态图标 / 无 children 节点的 openAccordion 路径及键盘 Enter 仍可写内部 selectedValue，不能据此承诺完全受控或覆盖所有切换前拦截。
 
 ## 5. 数据结构
 
@@ -188,7 +189,7 @@ export default function ConfigCenterNav() {
 // ❌ 按字面理解 expanded / onExpand：expanded={true} 实际是"收起"，flag 需要取反
 <Accordion data={menuData} expanded={!collapsed} onExpand={(flag) => setCollapsed(flag)} />
 
-// ❌ 照抄 demo 里的 expand：它不在 API 表中
+// ❌ 照抄 demo 里的 expand：运行时无效，改用 expanded
 <Accordion data={menuData} expand={false} />
 
 // ❌ 父节点点击也切换内容：父节点只负责展开收起，业务选中只处理叶子
@@ -215,4 +216,4 @@ export default function ConfigCenterNav() {
 | `hideTitleBar` | `boolean`，默认 `false` | 隐藏标题栏 |
 | `enableMultiOpen` | `boolean`，默认 `false` | 允许同时展开多个一级菜单 |
 | `keepExpandState` | `boolean`，默认 `false` | data 变更后保留上一次的展开收起状态 |
-| 其余 | — | `isControlSelectedValue` 外部控制选中、组件不维护（⚠️ 无 demo）/ `onItemRightClick(event, node)` 右键 / `headerText` · `headerIcon` · `headerIconPosition`（`'top' \| 'left'`）标题栏文字、图标及位置 / `hideHeaderIcon` / `hideTitleTips` / `id` / `className` / `style` |
+| 其余 | — | `isControlSelectedValue` 锁定普通叶子点击选中；键盘 / 收起态图标等路径仍可能内部更新（见 §4）/ `onItemRightClick(event, node)` 右键 / `headerText` · `headerIcon` · `headerIconPosition`（`'top' \| 'left'`）标题栏文字、图标及位置 / `hideHeaderIcon` / `hideTitleTips`（复数，无 hideTitleTip） / `id` / `className` / `style` |

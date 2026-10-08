@@ -2,7 +2,7 @@
 
 > ⚠️ 显隐是 **`visible`**（Dialog 是 `isOpen`），关闭回调 `onClose(isShowDrawer)`；同 Dialog 一样**不会自动关**，业务在 `onClose` 里 `setVisible(false)`。
 > ⚠️ 没有内置按钮区：底部操作栏自己写（demo `DrawerFormDemo.jsx` 用绝对定位的 `<div>` 放 Button）。
-> ⚠️ `destroyOnClose` 默认 **false**（Dialog 默认 true）：关闭后内容保留，再次打开表单是上次的值，需要重置时自己 `resetFields()`。
+> ⚠️ `destroyOnClose` 默认 **false**（Dialog 默认 true）：关闭只隐藏子树，Form 值、错误与子控件校验态会保留。`destroyOnClose=true` 也只在关闭按钮 / 遮罩路径销毁，程序化 `visible=false` 不保证销毁。
 
 ## 1. 功能定位
 
@@ -76,7 +76,8 @@ interface DrawerState<T> {
 
 - 表格行操作 → `setCurrent(row)` + `setVisible(true)`；关闭 → `setVisible(false)`，`current` 可保留供动画期间显示
 - 编辑保存成功 → 关抽屉 + 刷新列表；失败 → 保持打开并提示
-- `destroyOnClose` 默认 false：编辑不同行时要 `setFieldsValue(current)` 覆盖上次内容，或干脆开 `destroyOnClose`
+- A → B 编辑先 `resetFields()` 再 `setFieldsValue(B)`；后者是合并语义，单独使用会残留 B 缺失的 A 字段。需要彻底隔离（包括无 clear 方法的控件）可给 Form `key={record.id}` 重建；同条记录重新打开仍需重置。
+- 不依赖程序化 `visible=false` 触发 destroyOnClose；没有 forceRender prop。
 - 嵌套抽屉各自独立 `visible`；内层关闭不影响外层
 
 ## 7. 完整代码示例
@@ -100,7 +101,10 @@ export default function DeviceDrawerPage() {
   const formRef = useRef<any>(null);
 
   useEffect(() => {
-    if (visible && current) formRef.current?.setFieldsValue({ name: current.name, ip: current.ip });
+    if (visible && current) {
+      formRef.current?.resetFields();
+      formRef.current?.setFieldsValue({ name: current.name, ip: current.ip });
+    }
   }, [visible, current]);
 
   const handleSave = async (values: { name: string; ip: string }) => {
@@ -128,7 +132,7 @@ export default function DeviceDrawerPage() {
       ))}
 
       <Drawer title={current ? `编辑 ${current.name}` : '编辑'} visible={visible} placement="right" width={480} destroyOnClose onClose={() => setVisible(false)}>
-        <Form ref={formRef} initialValues={{ name: '', ip: '' }} layout="vertical" validateErrorType="tip" component={false} onSuccess={handleSave}>
+        <Form key={current?.id} ref={formRef} initialValues={{ name: '', ip: '' }} layout="vertical" validateErrorType="tip" component={false} onSuccess={handleSave}>
           <Form.Item label="名称" name="name" rules={[{ required: true }]}><TextField maxLength={32} /></Form.Item>
           <Form.Item label="IP" name="ip" rules={[{ required: true }, { ipv4: true }]}><TextField /></Form.Item>
         </Form>
@@ -158,7 +162,7 @@ export default function DeviceDrawerPage() {
 // ❌ 以为有内置按钮区，传 buttons（那是 Dialog 的）
 <Drawer buttons={[{ text: '确定' }]} />
 
-// ❌ 忘了 destroyOnClose 默认 false：换一行编辑时表单还是上一行的值
+// ❌ 只用 initialValues 或 setFieldsValue 切换记录；旧值 / 错误可能残留，程序化关闭也不保证销毁
 <Drawer visible={v}><Form initialValues={current} /></Drawer>
 ```
 
@@ -175,7 +179,7 @@ export default function DeviceDrawerPage() {
 | `width` / `height` | `number`，默认 `300px` | 左右方向用 `width`，上下用 `height` |
 | `showMask` / `isClickMask` | `boolean`，默认 `true` | 遮罩 / 点遮罩关闭 |
 | `showClose` | `boolean`，默认 `true` | 关闭按钮 |
-| `destroyOnClose` | `boolean`，默认 **`false`** | 关闭销毁内容 |
+| `destroyOnClose` | `boolean`，默认 **`false`** | true 仅在关闭按钮 / 遮罩路径销毁；程序化 visible=false 不保证销毁 |
 | `isMountBody` / `mountId` | `boolean`（默认 true）/ `string` | 挂 body 或当前 DOM / 指定挂载点（二者互斥） |
 | `sizeDraggable` / `onDragMove` / `onDragFinished` | `boolean`（默认 false）/ `(size) => void` / `(event) => void` | 拖拽调整大小 |
 | `animationDuration` | `number` | 动画时长 |

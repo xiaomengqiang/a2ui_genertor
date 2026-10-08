@@ -2,7 +2,7 @@
 
 > ⚠️ 与 Group 类组件相反，**Tab 是 children 驱动**：`<Tab><TabItem title="…">内容</TabItem></Tab>`，没有 `items` / `data` 属性。
 > ⚠️ 切换回调叫 **`onClick`**（不是 `onChange`）；`draggable` 默认 **true**，业务页签通常要显式关掉。
-> ⚠️ `isAutoClose` 默认 true（"set tab items AutoClose or not"），与业务自己维护页签数组是否冲突，资料未说明 → 已登记待实测。
+> ⚠️ 核验的 3.10 源码线中，`isAutoClose=true` 只内部隐藏页签，父级再次渲染可能使其复现。业务自己维护数组时传 `isAutoClose={false}`，在 `onClose` 删除数据并修正 `selectedIndex`；父级改变 `selectedIndex` 可同步选中项。
 
 ## 1. 功能定位
 
@@ -63,6 +63,7 @@ const [loaded, setLoaded] = useState<Set<number>>(new Set([0]));
 ```tsx
 <Tab
   type="sub"
+  isAutoClose={false}
   selectedIndex={activeIndex}
   draggable={false}
   onClose={(index: number, event, title: string) => {
@@ -159,7 +160,7 @@ export default function WorkspaceTabs() {
   return (
     <div style={{ padding: 24 }}>
       <Button status="primary" text="打开新任务" onClick={openTask} style={{ marginBottom: 16 }} />
-      <Tab type="sub" selectedIndex={activeIndex} draggable={false} onClick={handleClick} onClose={handleClose}>
+      <Tab type="sub" isAutoClose={false} selectedIndex={activeIndex} draggable={false} onClick={handleClick} onClose={handleClose}>
         <TabItem title="概览">
           <div style={{ padding: 16 }}>共 {tabs.length} 个任务打开中</div>
         </TabItem>
@@ -202,7 +203,7 @@ onClick={(index) => { setActiveIndex(index); fetchSection(index); }}
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
-| `selectedIndex` | `number` | 选中页签在 children 中的下标 |
+| `selectedIndex` | `number`，默认 `0` | children 下标；父级改变该值会同步选中项 |
 | `onClick` | `(index, title, event) => void` | **切换回调** |
 | `onClose` | `(index, event, title) => void` | 关闭回调；注意与 onClick 第二、三参顺序不同 |
 | `type` | `'main' \| 'sub'`，默认 `main` | 一级 / 卡片式二级 |
@@ -212,7 +213,7 @@ onClick={(index) => { setActiveIndex(index); fetchSection(index); }}
 | `isUpdateContent` | `boolean`，默认 `false` | 非 lazyLoad 时切换是否更新内容区 |
 | `disabled` / `hover` | `boolean`，默认 `false` | 全部禁用 / hover 切换 |
 | `isShowCloseBtns` | `boolean`，默认 `false` | 显示"关闭选中 / 其他 / 所有"按钮 |
-| `isAutoClose` | `boolean`，默认 `true` | 页签自动关闭（语义待实测） |
+| `isAutoClose` | `boolean`，默认 `true` | true 内部隐藏且自行调整选中项；false 仅回调，业务管理数组时选 false |
 | `isCloseByTabIds` / `onBeforeClose(tabIds)` / `onCloseByTabIds(tabIds, buttonIdentify)` | — | 由外部元素批量关闭页签 |
 | `onlyHideNone` | `boolean`，默认 `false` | 收纳项是否只显示被隐藏的标题 |
 | `headStyle` / `tabContentStyle` / `tabContentClassName` | 样式 | 标题区 / 内容区 |

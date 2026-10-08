@@ -1,7 +1,7 @@
 # InputSelect 组件功能逻辑规格
 
 > ⚠️ 它是"可输入的 Select"：`options=[{ text, value }]` 与 Select 一致，但输入框可以敲字过滤；**`onlySelect`** 决定输入的文字是只用于过滤（失焦清空）还是可作为值保留。
-> ⚠️ `onChange(value, oldValue)`，API 描述还提到第三个参数 `type: 'input' | 'select'` 区分触发来源，类型签名里没写 → 待实测，不要依赖。
+> ⚠️ 运行时为 `onChange(value, oldValue, type, event?)`，第三参是 `'input' | 'select'`；输入变化与选项点击可据此区分。仅部分失焦分支传第 4 参，不能假定始终有 event。
 
 ## 1. 功能定位
 
@@ -119,8 +119,8 @@ export default function BindDeviceForm() {
 // ❌ 想"只能选"却没传 onlySelect，用户敲的半截字被当成值提交
 <InputSelect options={opts} value={v} onChange={setV} />
 
-// ❌ 依赖 API 描述里未写进签名的第三个参数 type
-onChange={(value, oldValue, type) => { if (type === 'input') … }}
+// ❌ 假定所有 onChange 都提供第 4 个事件；仅部分 onlySelect 失焦分支有
+onChange={(value, oldValue, type, event) => event.preventDefault()}
 
 // ❌ 占位用 Select 的 defaultLabel（InputSelect 是 placeholder）
 <InputSelect defaultLabel="请选择" />
@@ -134,7 +134,7 @@ onChange={(value, oldValue, type) => { if (type === 'input') … }}
 |-----|--------------|------|
 | `options` | `Array<{ text, value }>`，**必填** | 选项 |
 | `value` / `selectedIndex` | `any` / `number` | 受控值 / 按下标（优先级高于 value） |
-| `onChange` | `(value, oldValue) => void` | 值变化（描述提及第三参 `type`，未入签名） |
+| `onChange` | `(value, oldValue, type, event?) => void` | type 为 input / select；onlySelect 且未开 onlySelectLastValue 的失焦分支可带第 4 参事件 |
 | `onSelect` | `(value, oldValue) => void` | 选中选项 |
 | `onInputEnter` / `onInputKeyUp` | `(e, value) => void` / `(value) => void` | 输入框回车 / 键抬起 |
 | `onlySelect` | `boolean`，默认 `false` | 输入只用于过滤，失焦清空，只有选项值保留 |

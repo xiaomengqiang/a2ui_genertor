@@ -9,6 +9,8 @@ description: >-
 
 只说明组件库接入、API 与交互；页面视觉样式沿用目标项目，不定义设计 token。
 
+当前实现核验以 **3.10.36 源码线**为主，另已核对 **3.10.28 发布包的部分入口与声明**，4.x 只对比了部分源码。目标业务工程版本仍需确认，具体范围见[工程接入](references/patterns/project-setup.md)。先看目标版本与已安装声明；区分类型、实现和运行证据，不把内网核验当作已在目标工程运行通过。
+
 ## 页面默认值
 
 以下是用户交付偏好，明确指定的目标端和设计稿优先：
@@ -26,9 +28,11 @@ description: >-
 
 ## 必须遵守
 
-- 导入用 `@nce/eview-react` 的命名导出或 `@nce/eview-react/组件名` 的默认导出；不能用源码别名 `eview-react/…` 或 antd 顶替。入口引入主题 CSS：`aui3_1.css`（浅色），运行时切深色的工程同时引 `aui3_1_dark.css`，并给 `body` 加 `aui3_1` 类名（深色为 `aui3_1 aui3_1_dark`；3.x 不加则样式不生效，详见工程 Pattern）。确保 `ConfigProvider` / `IntlProvider` 与依赖已接入。
+- 按 Reference 确认导入方式：根命名导出或组件子路径默认导出；3.10 源码线的时间组件根名为 `TimeSelector`，`ColorPicker` 使用子路径，`Cascader` 在已核验的 3.10 / 4.x 源码及 3.10.28 包中均不存在，先核验目标版本。不能用源码别名 `eview-react/…` 或 antd 顶替。入口引入 `aui3_1.css`，运行时切深色同时引 `aui3_1_dark.css`；给 `body` 加 `aui3_1`（深色另加 `aui3_1_dark`），覆盖挂在 body 下的弹层，详见工程 Pattern。
+- 平常尽量不用 `ConfigProvider`：已有 `IntlProvider` 且无动画配置需求时沿用；没有 `IntlProvider`，或需要控制 `animation` 时，再使用 `ConfigProvider` 替代。无动画配置时只透传 children，有需求时传布尔值；复用已有根 Provider，不逐页重复包裹。替换前核对业务国际化上下文依赖，未确认兼容时保留必要的 IntlProvider；3.10 核验线的 ConfigProvider.locale/messages 无实际消费者，不靠它迁移文案，也不强制嵌套两者。
 - **图标默认用 icon+**（`import { IconPlusIc* } from '@nce/icon-plus'` 按需引入），不用内置 `Icon name='ict_…'`（已下线）；可点击图标用 `IconButton iconName={<IconPlus* />}`，不给图标组件挂 onClick。
 - **props、导出名、回调参数顺序和 ref 方法都以对应 Reference 为准，查不到不推断**；不按其他库 API 或原生 event 猜写法。资料冲突按文档兼容方案处理，保留待实测说明，不能擅自认定某一版正确。
+- 允许只读目标工程已安装组件包的相关 `.d.ts`，核对当前版本的导出、props、回调和 ref 类型；不修改依赖，不仅凭类型声明扩展未验证的新用法。与 Reference 冲突时核对目标版本并记录差异，类型检查通过不代表运行行为已验证。
 - 校验器 `validator` 返回 `{ result, message }`，`result === true` 表示通过；提交前触发文档支持的校验。不要给没有记录 ref 方法的组件虚构 `validate()` / `getValue()`。
 - 受控方式逐组件核对：尤其是 Radio 的 `isControlled`、密码回填、DatePicker 回写及 Spinner 程序化更新；具体规则在各 Reference。
 - `Form.Item` 按 `name + rules` 托管，内部控件不另传 `value/onChange`；特殊取值回调按 Form 文档配置 `valuePropName/updateTrigger`，不提取 `Form.Item` 别名。
@@ -39,7 +43,7 @@ description: >-
 
 ## 组件索引
 
-当前 40 份组件 Reference；每份保留 API、回调、状态、联动、完整示例与反例。
+当前 48 份组件 Reference，包含版本受限的历史组件说明；索引中的名称不代表目标版本均可导入。每份保留 API、回调、状态、联动、完整示例与反例。
 
 | 组件 / 场景 | 读取 |
 |-------------|------|
@@ -72,7 +76,7 @@ description: >-
 | `Tree` / 树 / 组织架构 | [references/Tree.md](references/Tree.md) |
 | `TreeSelect` / 树形下拉 | [references/TreeSelect.md](references/TreeSelect.md) |
 | `TreeTable` / 树表 / 层级表格 | [references/TreeTable.md](references/TreeTable.md) |
-| `Cascader` / 级联 / 省市区 | [references/Cascader.md](references/Cascader.md) |
+| `Cascader` / 级联 / 省市区（已核验版本不提供；优先联动 Select） | [references/Cascader.md](references/Cascader.md) |
 | `Drawer` / 抽屉 / 侧滑面板 | [references/Drawer.md](references/Drawer.md) |
 | `IPInput` / IP / MAC 输入 | [references/IPInput.md](references/IPInput.md) |
 | `DivMessage` / 提示条 / 操作反馈 | [references/DivMessage.md](references/DivMessage.md) |
@@ -83,6 +87,14 @@ description: >-
 | `Accordion` / 手风琴导航 / 侧边多级菜单（内容折叠用 `Panel`） | [references/Accordion.md](references/Accordion.md) |
 | `Icon` / `IconButton` / 图标 / icon+ | [references/Icon.md](references/Icon.md) |
 | `TipBox` / 气泡 / 悬浮说明 | [references/TipBox.md](references/TipBox.md) |
+| `Carousel` / 轮播 / 内容切换 | [references/Carousel.md](references/Carousel.md) |
+| `ColorPicker` / 颜色选择 / 配色 | [references/ColorPicker.md](references/ColorPicker.md) |
+| `ConfigProvider` / 全局配置 / 动画 | [references/ConfigProvider.md](references/ConfigProvider.md) |
+| `DropDown` / Dropdown / Deopdown / 一级操作菜单 / 更多操作 | [references/DropDown.md](references/DropDown.md) |
+| `PopUpMenu` / PopupMenu / 多级操作菜单 / 子菜单 | [references/PopUpMenu.md](references/PopUpMenu.md) |
+| `ProgressBar` / 进度条 / 环形进度 | [references/ProgressBar.md](references/ProgressBar.md) |
+| `TimeLine` / Timeline / 时间轴 / 事件记录 | [references/TimeLine.md](references/TimeLine.md) |
+| `TimeSelector` / TimePicker / 时间选择 / 时分秒（3.10 根导出用 TimeSelector） | [references/TimePicker.md](references/TimePicker.md) |
 
 ## 按需读取的 Pattern
 
@@ -94,12 +106,12 @@ description: >-
 
 ## 未覆盖组件的处理
 
-按顺序命中即停：**组合已覆盖组件 → 复用目标工程 src/ 已有用法 → 原生 HTML/JSX 补位**。第二层只用工程已出现的 props / 回调 / 数据结构，并注释来源；导出名先核对补位 Pattern 中的清单。没有记录的能力也走此流程，不从 `node_modules` 猜 API、不用他库顶替；原始资料不随 Skill 打包。
+按顺序命中即停：**组合已覆盖组件 → 复用目标工程 src/ 已有用法 → 原生 HTML/JSX 补位**。第二层只用工程已出现的 props / 回调 / 数据结构，并注释来源；导出名先核对补位 Pattern 中的清单，可只读已安装包的 `.d.ts` 核验。没有记录的能力也走此流程，不仅凭类型声明新增用法、不用他库顶替；原始资料不随 Skill 打包。
 
 手写前读补位 Pattern：使用业务样式和语义化元素，不借 `ev_` 内部类名；按能力边界实现并标 `TODO(eview-react)`，最终回复列明补位位置、替代方式和可核验的后续组件。
 
 ## 交付自检
 
-- [ ] 每个导入、prop、回调及 ref 方法都有依据；受控 / Form 托管方式正确，文档中的兼容说明未遗漏。
+- [ ] 每个导入、prop、回调及 ref 方法都有依据；目标工程有类型声明时可只读核验，并运行适用的项目类型检查（如 `tsc --noEmit`）；受控 / Form 托管方式正确，记录声明与 Reference 的差异及仍待运行验证的行为。
 - [ ] 五要素齐全：值能更新、按钮有效、数据结构正确、联动完整，加载 / 失败 / 空态 / 重置 / 重复提交已处理。
 - [ ] 依赖、Provider、样式完整；完成适用的编译 / 运行检查及 PC 预览，交代未验证事项与所有补位。

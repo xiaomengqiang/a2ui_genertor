@@ -1,12 +1,14 @@
-# Cascader 组件功能逻辑规格
+# Cascader 组件功能逻辑规格（版本受限）
 
-> ⚠️ **eview-react 里唯一一个选项字段用 `label` 的组件**：`options=[{ label, value, children, disabled }]`，其他组件都是 `text`。不要按"eview 都用 text"的规律套。
+> ⚠️ 核验的 `3.10.36 + 6`、`4.0.607 + 15` 源码线及发布包 **3.10.28 均没有 Cascader**。下文只保留旧契约，不适用于这些版本；其他发布版本也未确认存在。仅当目标包明确提供该组件、入口及相应用法已验证时采用。
+
+> ⚠️ **下述旧契约的选项字段用 `label`**：`options=[{ label, value, children, disabled }]`。不要按其他选择器的惯例改成 `text`。
 > ⚠️ 选中值是**路径数组** `selectedValue=['jiangsu', 'nanjing', 'yuhuataiqu']`；`multiple` 时是路径数组的数组。属性名是 `selectedValue`，不是 `value`。
 > ⚠️ Cascader 没有 TypeDoc 表，以官网 props 表为准；demo 里的 `showCheckedStrategy="SHOW_CHILD" | "SHOW_PARENT"` 不在表中，标待实测。
 
 ## 1. 功能定位
 
-Cascader 是级联选择：省 / 市 / 区、目录 / 子目录这类"一级一级选到底"的层级数据，单选或多选。
+在确认存在且用法已验证的目标包中，Cascader 是级联选择：省 / 市 / 区、目录 / 子目录这类"一级一级选到底"的层级数据，单选或多选。
 
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
@@ -66,9 +68,11 @@ type CascaderPaths = CascaderPath[];              // multiple 值
 - 地区选中 → 叶子值提交，或用路径联动其他字段（如按省份限制可选运营商）
 - `changeOnSelect` 时可能只选到父级 → 提交前判断路径长度是否满足业务要求
 - options 来自接口 → 加载完成再渲染；编辑回填的 `selectedValue` 路径必须在 options 中存在
-- 在 `Form.Item` 内：Form 按 `name` 托管；值属性是 `selectedValue`，需 `valuePropName="selectedValue"`（推断自 Form.Item 机制，待实测）
+- 在 `Form.Item` 内：Form 按 `name` 托管；值属性是 `selectedValue`，不能仅据属性名就假定 `valuePropName="selectedValue"` 可用；先验证目标包的回调、回填及清空契约
 
 ## 7. 完整代码示例
+
+以下仅保留为已验证目标包的旧契约参考；本次核验源码线不能导入或运行它，不作为默认生成方案。
 
 ```tsx
 import React, { useState } from 'react';
@@ -140,6 +144,8 @@ if (region.length > 0) submit();
 ```
 
 ## 9. API 速查
+
+本表是版本受限的旧契约，不能据此认定当前安装包提供这些 API。
 
 > 压缩自官网 Cascader props 表。
 

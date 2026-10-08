@@ -47,18 +47,18 @@ EVIEW_FORBIDDEN = [
 ]
 
 # SKILL.md 里用反引号标出、但不是组件（不需要 Reference）的词
-NON_COMPONENTS = {"IntlProvider", "ConfigProvider", "Set", "TextButton", "ScrollTable", "Option",
-                  "Wizards", "BrowseButton", "TimeLine", "TabPane", "Step", "Upload",
-                  "Input", "TimePicker", "TimeRangeSelector", "CheckableTag", "Modal", "Tabs", "Transfer",
+NON_COMPONENTS = {"IntlProvider", "Set", "TextButton", "ScrollTable", "Option",
+                  "Wizards", "BrowseButton", "TabPane", "Step", "Upload",
+                  "Input", "TimeRangeSelector", "CheckableTag", "Modal", "Tabs", "Transfer",
                   "Chart", "ChartCard", "HexField", "PagingTree", "TreeSelector", "PageMessage", "Card",
-                  "ProgressBar", "Carousel", "PopUpMenu", "DropDown", "ButtonMenu", "AutoComplete",
+                  "ButtonMenu", "AutoComplete",
                   "Breadcrumb", "Collapse", "Tooltip", "Popover", "Spin", "Alert", "Descriptions"}
 # eval 文本中出现的子组件 / 旧名 / 他库别名 → 收编到哪份父 Reference
 CHILD_TO_PARENT = {"ButtonGroup": "Button", "CheckboxGroup": "Checkbox", "RadioGroup": "Radio",
                    "TabItem": "Tab", "Wizards": "Steps", "Segmented": "SelectCard", "Slider": "DragInput",
                    "InputNumber": "Spinner", "Rate": "Rating", "RangePicker": "DatePicker",
                    "Switch": "Toggle", "Pagination": "Paging", "IconButton": "Icon", "PanelItem": "Panel",
-                   "Loader": "Loading"}
+                   "Loader": "Loading", "TimeSelector": "TimePicker", "CarouselItem": "Carousel"}
 
 
 class Issue(NamedTuple):
