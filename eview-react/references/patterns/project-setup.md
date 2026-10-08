@@ -1,7 +1,5 @@
 # Pattern：工程接入（让 eview-react 组件"跑得起来"）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：工程配置文档 project-setting；官网文档 quick-start / intl / aui_to_ict / f_&_q
->
 > 本文不走 9 节模板。它回答的是"组件代码写对了，为什么页面还是报错 / 没样式 / 文案是 key"这一类问题。
 > **生成任何 eview-react 页面前，先确认目标工程已满足 §1-§4；没有就把这些一并生成。**
 

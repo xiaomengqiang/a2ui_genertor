@@ -1,7 +1,5 @@
 # TreeTable 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `TreeTable/TreeTable`；官网组件页 TreeTable 及示例 `TreeTableBasic.jsx` / `TreeTablecheckedRows.jsx` / `TreeTableExpandAllAndCollapseAll.jsx` / `TreeTableCustomRender.jsx` / `TreeTableMultiSelect.jsx`（共 13 个 demo）
->
 > ⚠️ 与 `Table` 的两个根本差别：列定义用 **`field`** 指字段（Table 是 `key`）；行数据是 **`{ data: {...}, children: [...], isLeaf }`** 的嵌套对象（Table 是扁平行）。
 > ⚠️ 没有分页：层级数据一次给全，量大用 `virtualScroll` + `virtualShowNum`。
 > ⚠️ 展开态受控：`expandedKeys` + `onNodeExpand(rowId, expandedKeys, expanded)`，全展开 / 全收起走 ref 的 `expandAll()` / `collapseAll()`（demo）。

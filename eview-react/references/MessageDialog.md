@@ -1,7 +1,5 @@
 # MessageDialog 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `MessageDialog/types`；官网组件页 MessageDialog 及示例 `Basic.tsx` / `Type.tsx` / `HasChecked.tsx` / `MessageDialogEventExample.jsx` / `Input.tsx` / `Steps.tsx` / `CustomDetail.tsx`
->
 > ⚠️ 按钮是**对象** `buttons={{ ok: { text?, onClick, focused? }, cancel: { text?, onClick } }}`，与 Dialog 的数组写法不同；只传 `ok` 就是单按钮提示。
 > ⚠️ 七种 `type`：`info`（默认）/ `success` / `error` / `warn` / `confirm` / `risk` / `highRisk`；`risk` / `highRisk` 可配 `hasChecked` 要求用户勾选后才能确认。
 > ⚠️ 显隐同 Dialog：`isOpen` 受控，`onClose` / `ok.onClick` / `cancel.onClick` 都要自己 `setIsOpen(false)`。

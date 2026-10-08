@@ -1,7 +1,5 @@
 # Dialog 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Dialog/types`；官网组件页 Dialog 及示例 `Basic.tsx` / `Confirm.tsx` / `Modal.tsx` / `Nest.tsx` / `DialogTableSample.jsx` / `Animation.tsx`
->
 > ⚠️ 显隐是 `isOpen`（不是 `open` / `visible`），关闭按钮 / ESC 触发 `onClose(event)`，**组件不会自己把 `isOpen` 置 false**，业务在 `onClose` 和按钮 `onClick` 里 `setIsOpen(false)`。
 > ⚠️ 底部按钮用 `buttons={[{ text, status?, onClick }]}`（数组，每项是 Button props），不是 `footer` / `onOk`。
 > ⚠️ `zindex` 默认 9999，官方注明不要超过 9999，否则会盖住弹窗内 Select 等组件的下拉层。

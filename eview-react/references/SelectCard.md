@@ -1,7 +1,6 @@
 # SelectCard 组件功能逻辑规格（官网页面名：Segmented / 分段选项卡）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `SelectCard/types`、`Segmented/types`（内容相同，后者多 `isTipShow` 3.5.31 / `disable` 3.7.18）；官网组件页 Segmented（标题 SelectCard，3.5.5 起）及示例 `SelectCardDemo.jsx` / `SelectCardEvent.jsx` / `SelectCardDisable.jsx` / `SelectCardChangeData.jsx` / `SelectTipsCard.jsx` / `SelectCardShowTip.jsx`
->
+> 版本要求：3.5.5 起支持。
 > ⚠️ **导入名是 `SelectCard`**：`import SelectCard from '@nce/eview-react/SelectCard'`。官网页面叫 Segmented，但 `Segmented` 不在导出清单里，demo 也全部导入 `SelectCard`。
 > ⚠️ 禁用属性是 **`disable`**（组件级与选项级都是），不是 `disabled`。
 

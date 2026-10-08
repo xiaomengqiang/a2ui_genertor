@@ -1,7 +1,5 @@
 # Button 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Button/types`、`ButtonGroup/types`；官网组件页 Button 及示例 `Status.tsx` / `Size.tsx` / `Disabled.tsx` / `Icon.tsx` / `IconPlus.tsx` / `Tip.tsx` / `ButtonGroup.tsx`
->
 > ⚠️ 源码 `Button/types.ts` 里 `status` 缺 `text`、`size` 缺 `small`，但 TypeDoc 表与示例 `Status.tsx` / `Size.tsx` 都有 → 以 TypeDoc 表 + 示例为准。
 
 ## 1. 功能定位

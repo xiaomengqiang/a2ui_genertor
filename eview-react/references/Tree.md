@@ -1,7 +1,5 @@
 # Tree 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Tree/Tree`；官网组件页 Tree 及示例 `TreeExample.jsx` / `TreeAsync.jsx` / `TreeSearchDemo.jsx` / `TreeSearchAPIWithCallbackDemo.jsx` / `TreeExpandCollapseDemo.jsx` / `TreeSingleExpand.jsx` / `TreeCancelLinkage.jsx` / `TreeVirtualScroll.jsx`（共 20 个 demo，本文只覆盖高频能力）
->
 > ⚠️ 节点数据字段是 **`text` + `id` + `children`**（不是 antd 的 `title` / `key`），`nodeKey="id"` 指定主键字段名；三个受控数组 `selectedKeys` / `checkedKeys` / `expandedKeys` 各自配对回调 `onSelect` / `onCheck` / `onExpand`，回调第一个参数就是新的 keys 数组。
 > ⚠️ 回调里的 `node` 是节点组件对象，主键取 **`node.props.eventKey`**（demo 写法），不是 `node.id`。
 > ⚠️ demo 里出现的 `checkable={true}` 不在 API 表中；勾选框用 **`enableCheckbox`**。`enableMultiSelect` 默认 **true**，单选场景要显式关掉。

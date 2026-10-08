@@ -1,7 +1,5 @@
 # DatePicker 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `DatePicker/types`；官网组件页 Date Picker 及示例 `DatePickerDemo.jsx` / `DatePickerEvent.jsx` / `DatePickerRange.jsx` / `DatePickerUpdate.jsx` / `DateTimePicker.jsx` / `DatePickerDisabled.jsx` / `DatePickerAmPm.jsx` / **`DatePickerBadExample.jsx`（官方反例）**；官网 FAQ「onChange 等回调函数中不建议使用双向绑定的写法」
->
 > ⚠️ **这是唯一一个官方明确给出"反例 demo"的组件**：`DatePickerBadExample.jsx` 标题写着"onChange 回调中，和 value 的状态'双向绑定'了"——它把 `onChange` 第一个参数（字符串）**无条件**回写 `value`。原因（FAQ）：组件会对 value 做修正 / 格式化，原样回写会打断用户输入。对照 `DatePickerEvent.jsx`（正例）：只在第二个参数 `date` 为有效 Date 时才回写（`if (obj)`）。**其他组件通用的 `value` + `onChange` 直接回写，在 DatePicker 上要改成"有效 Date 才回写"或干脆用 `defaultValue` + `ref.getValue()`。**
 > ⚠️ `DatePickerUpdate.jsx` 注释："传给组件的 value 值要是 24 小时制的（不建议使用字符串，容易出错）"，"onOkClick 里一定要设置延时（setTimeout）再 setState"。
 > ⚠️ `timeEmbedded` 在 API 表无说明；官方 demo 统一写 `timeEmbedded={theme === 'aui3_1'}`，本 Skill 目标主题即 aui3_1 → `datetime` 类型加 `timeEmbedded`。

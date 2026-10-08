@@ -1,7 +1,5 @@
 # Crumbs 组件功能逻辑规格（面包屑）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Crumbs/Crumbs`；官网组件页 Crumbs 及示例 `CrumbsBasic.jsx` / `CrumbsLinkExample.jsx` / `CrumbsIconExample.jsx` / `CrumbsIconPlus.jsx` / `CrumbsMultilExample.jsx`
->
 > ⚠️ 组件名是 **`Crumbs`**（不是 Breadcrumb）；`data=[{ title, url?, enable?, icon? }]` 驱动，**最后一项不传 `url` 即当前页**；点击回调是组件级 `onClick(data, event)`，不是每项自己的 onClick。
 > ⚠️ 分隔符属性拼写是 **`seprator`**（官方即如此），默认 `>`。
 > ⚠️ 超过 `countLimit`（默认 6）项会自动折叠成下拉。

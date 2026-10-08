@@ -1,7 +1,5 @@
 # Accordion 组件功能逻辑规格（手风琴导航菜单）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Accordion/Accordion`；官网组件页 Accordion 及示例 `AccordionBasic.jsx` / `AccordionMultiLevel.jsx` / `AccordionDisabled.jsx` / `AccordionDemo.jsx` / `AccordionIcon.jsx` / `AccordionCustomContent.jsx`；变更日志中的 Accordion 条目
->
 > ⚠️ Accordion 是**多级导航菜单**（官网："为页面和功能提供导航的菜单列表"）：`data` 驱动，`selectedValue` 是**单个 string**，点击回调 `onClick(node)`。它不是 antd `Collapse` 那种内容折叠面板，内容折叠用 [Panel](Panel.md)。
 > ⚠️ **`expanded` / `onExpand` 语义反转**（官方标注"组件属性遗留问题"）：`expanded={true}` 表示**收起**，`onExpand(flag)` 的 `flag` 为 true 表示变为展开。写法固定为 `expanded={collapsed}` + `onExpand={(flag) => setCollapsed(!flag)}`（demo `AccordionDemo.jsx` / `AccordionIcon.jsx`）。
 > ⚠️ demo 中的 `expand={…}` 与子项字段 `description` 不在 API 表中，不要写。

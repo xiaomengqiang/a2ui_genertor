@@ -1,7 +1,5 @@
 # Toggle 组件功能逻辑规格（含 Switch）
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Toggle/Toggle`、`Switch/Switch`（同一套 props，Switch 多 `allowPropagation` / `isControlToggled`）；官网组件页 Toggle（目录名 Switch）及示例 `SwitchExample.jsx` / `SwitchInteractiveExample.jsx` / `SwitchTextExample.jsx` / `SwitchIconExample.jsx` / `SwitchTipExample.jsx`；Form 示例 `FormItem.jsx`（`valuePropName="toggled" updateTrigger="onToggle"`）
->
 > ⚠️ 官方 demo 全部 `import Toggle from 'eview-react/Toggle'`，`Switch` 是同 API 的超集；本文按 `Toggle` 写，需要"点击后先二次确认再切换"时换 `Switch` 的 `isControlToggled`。
 > ⚠️ 状态属性叫 **`toggled`**、回调叫 **`onToggle(value)`**，`value` 来自 `data=[关值, 开值]`；不是 `checked` / `onChange`。
 > ⚠️ 文案属性拼写是 `taggledChildren` / `unTaggledChildren`（官方即如此拼），照抄。

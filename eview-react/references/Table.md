@@ -1,7 +1,5 @@
 # Table 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：源码接口 `Table/interfaces/TableProps.ts`、`Table/interfaces/ColumnProps.ts`（TypeDoc 表由此生成）；官网组件页 Table 及示例 `TableBasic.jsx` / `TableEmpty.jsx` / `TableObjectData.jsx` / `TablePaging.jsx` / `TablePagingAuto.jsx` / `TableSort.jsx` / `TableLoading.jsx` / `TableRowExpand.jsx` / `TableScrollPagination.jsx` / `TableEdit.jsx`（共 40 个 demo，本文只覆盖列表页高频能力）
->
 > ⚠️ `dataset` 是**行数组**：既可以是二维数组（顺序与 `columns` 一致），也可以是对象数组（key 对应 `columns[].key`）；不是 antd 的 `dataSource + rowKey`。
 > ⚠️ 勾选回调 `onRowCheck(row, checkedRows, e)` 的 `checkedRows` 是**主键数组**：设了 `keyIndex` 就是该列的值，没设就是行序号。
 > ⚠️ 分页有两种：`enableAutoPaging` 前台分页（`dataset` 传全量）；后台分页（默认）`dataset` 只传当前页，`recordCount` 传总数，`onPageChange` 里去请求。

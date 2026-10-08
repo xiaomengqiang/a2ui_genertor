@@ -1,7 +1,5 @@
 # Cascader 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：官网组件页 Cascader 的 props 表（`__docs__/API.md`）及示例 `CascaderBasic.jsx` / `CascaderMultiple.jsx`；源码类型 `Cascader/type.ts`
->
 > ⚠️ **eview-react 里唯一一个选项字段用 `label` 的组件**：`options=[{ label, value, children, disabled }]`，其他组件都是 `text`。不要按"eview 都用 text"的规律套。
 > ⚠️ 选中值是**路径数组** `selectedValue=['jiangsu', 'nanjing', 'yuhuataiqu']`；`multiple` 时是路径数组的数组。属性名是 `selectedValue`，不是 `value`。
 > ⚠️ Cascader 没有 TypeDoc 表，以官网 props 表为准；demo 里的 `showCheckedStrategy="SHOW_CHILD" | "SHOW_PARENT"` 不在表中，标待实测。

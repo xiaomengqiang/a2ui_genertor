@@ -1,6 +1,5 @@
 # Divider 组件功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Divider/Divider`；官网组件页 Divider 及示例 `DividerBasic.jsx` / `DividerPositoin.jsx` / `DividerVertical.jsx`
 
 ## 1. 功能定位
 
