@@ -26,6 +26,11 @@
   - `1.5rem`（24px，常规表单）
   - `2rem`（32px，分区表单或内容稀疏）
 
+### 控件宽度（重点）
+
+- 所有输入类控件（Input / TextArea / InputNumber / Select / TreeSelect / Cascader / DatePicker / RangePicker / TimePicker / Slider）必须显式设置宽度：占满控件列用 `style={{ width: "100%" }}`，固定宽度用 rem 值；同一区域同类控件宽度保持一致。
+- Checkbox / Radio / Switch / Rate / ColorPicker / Segmented 内容自适应，不设宽度。
+
 ### 校验文案
 
 - 提示文案绝对定位在控件正下方，显示/隐藏不改变布局高度、不把内容往下顶（见下方参考写法）。
