@@ -30,7 +30,7 @@ import { IconPlusIcPublicSearch } from '@nce/icon-plus';
 > 触发与 `--apply` 机制详见 [migration-workflow.md](../migration-workflow.md) §0.1（`antdIcons` 陷阱）+ §3.0（B/C 步骤）；本节为速查。
 
 - **触发条件**：`src/` 下有 `<Icon name` 调用点（`grep -rl "<Icon\b" src/` 非空）或 `@ant-design/icons` 用法即走图标步骤，**与 `.umd-conversion.json` 的 `antdIcons` 是否为空无关**——ict-react-coder 产物用自定义 `<Icon name>` shim、`antdIcons` 恒 `[]` 但有大量站点，**`antdIcons: []` 禁止跳过 `match-icons.cjs`**。
-- **源码 `<Icon name>` shim ≠ 产物方案A**：`<Icon name="字面量">` 站点必须转 C/B 静态 import；**成员表达式 `name={t.icon}` / `name={MENU[0].icon}` 也由 `--apply` 自动转 B/C**（绑到静态数组即塞 icon+ 元素进 data + render 改 `{t.icon}`），仅真运行时数据（`name={row.iconField}` 类，绑不到静态数组源）落产物方案A。
+- **源码 `<Icon name>` shim ≠ 产物方案A**：`<Icon name="字面量">` 站点必须转 C/B 静态 import；**成员表达式 `name={t.icon}` / `name={MENU[0].icon}` 也由 `--apply` 自动转 B/C**（绑到静态数组即塞 icon+ 元素进 data + render 改 `{t.icon}`）；**自定义 wrapper 组件（SoftTag/ToggleRow：接收 `icon` prop、内部 `<Icon name={icon}/>` 渲染）也由 `--apply` Phase C 自动转 B/C**（调用点 `icon="字面量"`/`icon={常量}`/`icon={扁平三元}` → `icon={<IconPlusIc…/>}`，内部 → `{icon}`；`icon={成员}` 透传 + 数据数组元素化），仅真运行时数据（`name={row.iconField}` 类、wrapper 调用方 `icon={expr}` 不可静态解析触发安全闸）落产物方案A。
 - **方案C `--apply`**：落 confirmed（SEMANTIC/L1-L4）+ 扁平三元两分支均 confirmed + **数据数组图标整组改写**（命中用真实组件，未命中用占位 `IconPlusIcPublicTransverseRectangleTemplate`）；residual 不自动 apply。报告写 OS 临时目录、不进产物根、`--apply` 结束清理。**禁止因 residual 整体放弃方案C**——residual 由 LLM 在会话内按控制台/临时报告逐条复核。
 - **`.js→.jsx` 自动转换**：`--apply` 把因改写引入 JSX（替换串含 `<IconPlusIc`）的 `.js`→`.jsx` / `.ts`→`.tsx`，并扫 `src/` 修引用方显式 `.js`/`.ts` 扩展名 import（无扩展名 import 不动）；非 `src/` 引用（vite.config、index.html）不处理，需人工核对。
 - **已落方案A的产物可原地补救**：调用点仍为 `<Icon name="字面量" .../>` 或 `name={t.icon}` 时，直接 `node scripts/match-icons.cjs <工程根> --apply`（脚本幂等，已含 `IconPlusIc` 的站点自动跳过）。
@@ -38,7 +38,7 @@ import { IconPlusIcPublicSearch } from '@nce/icon-plus';
 ### 硬规则
 
 - eview-react 内置 `Icon name="ict_*"` 已下线，**不要用**；也不要用 `@ant-design/icons`——一律用 `@nce/icon-plus` 的 `IconPlusIc*` 静态 import。
-- **方案 A（`src/shared/icon.jsx` shim）仅用于真运行时数据**：`name` 的值在迁移时不可预知（来自接口/props 字段、或成员表达式绑不到任何已扫文件中的静态数组常量）。字面量、同文件常量、三元、**成员表达式 `name={t.icon}` / `name={MENU[0].icon}`（绑到静态数组）一律走 B/C 静态 import**（`match-icons.cjs --apply` 自动改写），不许默认退方案 A。
+- **方案 A（`src/shared/icon.jsx` shim）仅用于真运行时数据**：`name` 的值在迁移时不可预知（来自接口/props 字段、或成员表达式绑不到任何已扫文件中的静态数组常量）。字面量、同文件常量、三元、**成员表达式 `name={t.icon}` / `name={MENU[0].icon}`（绑到静态数组）一律走 B/C 静态 import**（`match-icons.cjs --apply` 自动改写），不许默认退方案 A。**自定义 wrapper 组件**（`icon` prop + 内部 `<Icon name={icon}/>`）同理自动转 B/C，仅当调用方 `icon={expr}` 不可静态解析（安全闸）才整组退方案 A。
 - 可点击图标（编辑/删除/刷新等）用 `IconButton iconName={<IconPlusIc* />} tipText onClick`，**不给图标组件挂 onClick**（无气泡、无禁用态、键盘不可达）。
 - **antd 纯图标按钮（`Button type="text" shape="circle" icon={...}` 无 children）→ 用 `IconButton`，禁止退化为原生 `<button>+<Icon>`**（见 [component-mapping.md](../component-mapping.md) 图标行）。
 - **带图标的 Button 文字必须用 `text=`，不能写 children**（children 会让图标不渲染，见 [Button.md](Button.md) §4）。
@@ -96,6 +96,29 @@ const data = [
 **规则**：`<Icon name={X}/>` → `{X}` **仅当**原处 JSX 子节点位；**其余表达式位一律裸 `X`（不加 `{}`）**。判定：`<Icon/>` 前一个非空白字符是 `>`（开/自闭合/闭合标签，但非 `=>`）或 `}`（前一个 `{expr}` 子节点结束）→ 子节点位 → 包 `{}`；否则（`(` `)` `,` `:` `[` `?` `{` `=>` `return` 等）→ 表达式位 → 裸。
 
 **prop 驱动调用方同步更新**（数据数组 `icon` 已从字符串改成 icon+ 元素后，调用方去 `<Icon/>` 壳直接透传）：对象值位 `icon: <Icon name={group.icon}/>` → `icon: group.icon`（裸）；JSX 子节点位 `<li><Icon name={group.icon}/></li>` → `<li>{group.icon}</li>`（包）。链式/嵌套三元 LLM 手拼条件渲染同理按上下文判 `{}`。脚本 `--apply` 已按此规则（`wrapIfNeeded`）处理三元与数据数组 render；LLM residual 手改其他形态时务必遵守。
+
+### 图标-prop wrapper 组件（SoftTag / ToggleRow 模式）
+
+> 自定义组件接收 `icon` prop（字符串名），内部 `<Icon name={icon}/>` 渲染。调用点的字面量不在 `<Icon>` 标签上（`<SoftTag icon="bell-ring">`）→ `scanIconComponent` 看不见；内部 `name={icon}` 是解构 prop 参数 → `scanDynamicIcons` 归变量 residual。两半耦合改写由 `match-icons.cjs --apply` **Phase C 自动处理**（方案 B/C，不退方案 A）。
+
+**模式识别**（脚本 `scanIconPropWrappers`）：
+- `function NAME({ ..., icon, ... }) {...}` / `const NAME = ({ ..., icon, ... }) => {...}`（解构参数含 `icon` 绑定）；
+- 函数体内含 `<Icon name={icon}/>`（`name` 表达式恰为裸标识符 `icon`）；
+- `icon` 仅在该 `<Icon name={icon}/>` 内被引用（truthy `icon ?` / render `{icon}` 兼容 ReactNode，放行；`icon.toLowerCase()` / `icon[i]` / `${icon}` 等字符串用法 → 跳过，不入自动）。
+
+**改写规则**（两半同改，否则半改致 `name={<element/>}` 报错）：
+
+| 调用方 `icon=` 形态 | 改写 |
+|---|---|
+| `icon="字面量"` / `icon={常量}`（同文件 `const X = "lit"` 传播命中） | `icon={<IconPlusIc… iconSize=…/>}`（**尺寸/颜色取自 wrapper 内部 `<Icon/>` 的 size/color**）；未命中 → 占位 `IconPlusIcPublicTransverseRectangleTemplate` |
+| `icon={cond ? "a" : "b"}` 扁平两分支字面量 | `icon={cond ? <A…/> : <B…/>}`（任一未命中→该分支占位） |
+| `icon={IDENT.field}` 成员（`item.icon` / `MENU[0].icon`） | 调用点**不改**（透传）；数据数组 `FIELD:"lit"` → `FIELD:<IconPlusIc…/>` 元素化（复用数据数组 Phase B 流水线） |
+| `icon={链式/嵌套三元}` / 裸标识符未命中常量 / 追不到数组源 | **安全闸：整组退方案 A**（见下） |
+| 无 `icon` prop | 不动（`icon` undefined → `{icon}` 渲染空） |
+
+**wrapper 内部** `<Icon name={icon} size="0.75rem"/>` → `{icon}` / 裸 `icon`，按上文 `<Icon name={X}/>` 的 `{}` 上下文规则判：JSX 子节点位（`<span><Icon name={icon}/></span>`）→ `{icon}`；三元分支位（`{icon ? <Icon name={icon}/> : null}`）→ 裸 `icon`（结果 `{icon ? icon : null}`，LLM 可精简为 `{icon}`）。`icon` prop 契约由「字符串名」变「ReactNode」。
+
+**安全闸**：若某 wrapper 存在任一**不可静态解析**的 `icon={expr}` 调用方（链式/嵌套三元、未命中常量的裸标识符、成员表达式追不到静态数组源），**整组跳过自动改写** → wrapper 内部 `<Icon name={icon}/>` 保留走方案 A shim（修 `shared/icon` import 路径），调用方维持原样，报告 `propWrapperResidual` 段交 LLM。理由：wrapper 内部与调用方强耦合——内部转 `{icon}` 透传后，传字符串的调用方会渲染成文本；传元素的调用方又要求内部是透传。二者必须同态，故任一不可解析即整组退 A（与"真运行时数据退方案 A"一致）。LLM residual 处理 `propWrapperResidual` 时：若 `expr` 可追源到静态字面量/数组 → 按 B/C 改写两半；若真运行时 → 保留 shim。
 
 ## 1. 功能定位
 
@@ -163,6 +186,21 @@ import { EditOutlined } from '@ant-design/icons';
 //   正确：按上下文剥 {} —— 子节点位才包 {X}，表达式位（三元分支/对象值/数组元素/prop 容器/箭头体/return）裸 X
 cond ? (openKey === item.key ? <IconPlusIcPublicChevronUp /> : <IconPlusIcPublicChevronDown />) : null
 icon: group.icon
+```
+
+```jsx
+// ❌ 图标-prop wrapper 半改：调用点 icon="bell-ring" 改了，wrapper 内部 <Icon name={icon}/> 没改
+//    → <SoftTag icon={<IconPlusIcPublicXxx/>}> 配内部 <Icon name={icon}/> → name={<element/>} 非法
+<SoftTag tone="brand" icon={<IconPlusIcPublicXxx iconSize="0.75rem" />}>已开启</SoftTag>
+//   wrapper 内部仍是 {icon ? <Icon name={icon} size="0.75rem"/> : null}  // name 收到元素，报错
+
+//   正确：两半同改——调用点 icon= → icon={<IconPlusIc…/>}（尺寸取自 wrapper 内部 size），内部 <Icon name={icon}/> → {icon}/裸透传
+<SoftTag tone="brand" icon={<IconPlusIcPublicXxx iconSize="0.75rem" />}>已开启</SoftTag>
+//   内部：{icon ? icon : null}   // icon 已是 ReactNode，透传渲染
+
+// ❌ wrapper 存在不可静态解析的调用方仍强改内部 → 传字符串的调用方渲染成文本
+<BadWrapper icon={pickIcon(row)} label="alert" />   // pickIcon(row) 运行时才知值
+//   正确：安全闸整组退方案 A——内部保留 <Icon name={icon}/> shim，调用方维持原样，交 LLM residual
 ```
 
 ## 5. API 速查
