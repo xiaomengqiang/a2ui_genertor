@@ -45,8 +45,10 @@ Radio 是单个单选框；RadioGroup 是 `data` 驱动的互斥单选组，自�
 
 ### 单个 Radio（自绘布局时）—— onChange 是 `(value, event)`
 
+> 单个 Radio 默认无间距，选项间距需自行添加：仅在**非末位**选项上加 `style={{ marginRight: '1rem' }}`（水平）或 `style={{ marginBottom: '1rem' }}`（垂直）——末位选项不加，间距只放在选项之间，避免尾部多余空白。
+
 ```tsx
-<Radio label="按天" value="day" checked={unit === 'day'} isControlled onChange={(value: string) => setUnit(value)} />
+<Radio label="按天" value="day" checked={unit === 'day'} isControlled onChange={(value: string) => setUnit(value)} style={{ marginRight: '1rem' }} />
 <Radio label="按周" value="week" checked={unit === 'week'} isControlled onChange={(value: string) => setUnit(value)} />
 ```
 
