@@ -1,0 +1,20 @@
+.evTextField-custom {
+    width: 100%;
+    min-width: 0px;
+}
+
+.aui3_1 .evTextField-custom .ev_textField_input {
+    width: inherit;
+}
+
+.evTextField-custom .ev_textField_wrapper {
+    width: 100%;
+}
+
+.evTextField-custom .ev_textField_container {
+    width: 100%;
+}
+
+.evTextField-custom .ev_textField_inner {
+    width: 100%;
+}

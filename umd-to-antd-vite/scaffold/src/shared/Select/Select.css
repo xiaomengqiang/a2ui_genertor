@@ -1,0 +1,12 @@
+.evSelect-custom {
+    width: 100%;
+    min-width: 0px;
+}
+
+.aui3_1 .evSelect-custom .ev_select {
+    width: inherit;
+}
+
+.aui3_1 .evSelect-custom .ev_select_div {
+    width: 100%;
+}

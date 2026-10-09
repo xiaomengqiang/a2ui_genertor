@@ -6,7 +6,7 @@
  *   - confirmed（--apply 自动改写）：SEMANTIC_MAP + L1/L2/L4 命中（唯一或多桶同名，多桶按最短完整名 tie-break，非 domainRank）。
  *   - residual（带 top-K 候选，交 LLM 选，不自动 apply）：L3 prefix、L5-L7 fuzzy、UNMATCHED、
  *     链式/嵌套三元、常量传播未命中的变量。UNMATCHED 不再直接落占位，而是带候选交 LLM。
- *   - 方案A（保留 src/shared/icon.jsx shim）：仅留给"name 由真运行时后端数据决定"的调用点
+ *   - 方案A（保留 src/shared/Icon shim，folder + 默认导出）：仅留给"name 由真运行时后端数据决定"的调用点
  *     （如 name={row.iconField}，row 来自接口/props，迁移时值不可预知；或成员表达式绑不到同文件/跨文件静态数组）。
  *   - 动态名（成员表达式 name={t.icon}）**现已自动解析**：Phase B 把 t.icon 绑定到同文件/跨文件静态数组字面量，
  *     全组改写——数组里 FIELD:"lit" → FIELD:<IconPlusIc… iconSize/>（命中用真实组件，未命中用占位
@@ -41,7 +41,7 @@
  * 说明：
  * - 纯静态正则 + 常量传播，不执行代码、不做运行时渲染。
  * - 报告写 OS 临时目录、不进产物根：`--apply` 结束清理临时报告；residual 由 LLM 在会话内按控制台/临时报告逐条复核，**勿因 residual 整体放弃方案C**。
- * - 不删 src/shared/icon.jsx shim（方案A 兜底保留）。
+ * - 不删 src/shared/Icon shim（方案A 兜底保留）。
  * - 语义覆写表内联在下方 SEMANTIC_MAP，覆盖 confirmed 路径的同义条目；视实践增量扩充。
  */
 'use strict';
@@ -624,9 +624,10 @@ function dataRenderReplacement(expr, text, offset) {
   return wrapIfNeeded(expr, text, offset);
 }
 
-// 方案A shim import 路径修正：assets/shared/icon(.jsx?) → shared/icon（scaffold 把 shared 从 assets/ 上移）。最佳努力，深度由前缀保留。
+// 方案A shim import 路径修正：assets/shared/icon(.jsx?) 或旧产物 shared/icon(.jsx?) → @/shared/Icon（scaffold 把 shim 重构为 src/shared/Icon/ folder + 默认导出）。
+// 同时把具名 import { Icon } 改为默认 import Icon（scaffold 桶 export { default }）。幂等：已是 @/shared/Icon 默认导入不匹配。
 function fixShimImportPath(text) {
-  return text.replace(/(from\s*['"])([^'"]*?)\/?assets\/shared\/(icons?)(\.jsx?)(['"])/g, '$1$2/shared/$3$4$5');
+  return text.replace(/import\s*\{\s*Icon\s*\}\s*from\s*['"][^'"]*?(?:assets\/shared|shared)\/icons?\.jsx?['"]/g, 'import Icon from "@/shared/Icon"');
 }
 
 // 解析数组变量 ARR 的声明位置：先同文件（renderFile），再跨文件按名唯一性找；返回 {arrayFile, arrOpenIdx} 或 null（找不到/多名歧义）。
@@ -865,7 +866,7 @@ function reportConsole(scan, byName) {
   // 运行时数据图标：name={IDENT.FIELD} 绑不到同文件/跨文件静态数组（接口/props）→ 保留 <Icon> 走方案A，仅修 shim import 路径
   if (scan.runtimeDataSites && scan.runtimeDataSites.length) {
     console.log('');
-    console.log(`运行时数据图标（追不到静态数组源=真运行时，保留 <Icon> 走方案A，修 shared/icon shim 路径）: ${scan.runtimeDataSites.length} 处`);
+    console.log(`运行时数据图标（追不到静态数组源=真运行时，保留 <Icon> 走方案A，修 shared/Icon shim 路径，具名→默认导入）: ${scan.runtimeDataSites.length} 处`);
     for (const r of scan.runtimeDataSites) {
       console.log(`  ${rel(r.file)}:${r.line}  name={${r.expr}}  [${r.reason}]`);
       console.log(`    - ${r.original.trim()}`);
@@ -1061,17 +1062,17 @@ function applyRewrites(scan, byName, srcDir) {
     rp.edits.push({ tag: d.renderTag, offset: d.renderOffset, repl: d.renderReplacement });
   }
 
-  // 旧 shared/icon(x) 具名 Icon import 清理正则：覆盖 shared/icon.jsx（scaffold）与 shared/icons.js（源项目）
-  const oldIconImportRe = /^\s*import\s*\{\s*Icon\s*\}\s*from\s*['"][^'"]*shared\/icons?\.jsx?['"];?\s*\r?\n?/gm;
+  // 旧 Icon import 清理正则（文件已无 <Icon 调用时移除）：覆盖 legacy 具名 shared/icon(s).jsx（scaffold 旧产物/源项目）与新默认 @/shared/Icon（scaffold 重构后）
+  const oldIconImportRe = /^\s*import\s*(?:\{\s*Icon\s*\}|Icon)\s*from\s*['"](?:[^'"]*?(?:assets\/)?shared\/icons?\.jsx?|@\/shared\/Icon)['"];?\s*\r?\n?/gm;
 
-  // 运行时数据站点所在文件：保留 <Icon> 走方案A，仅修 shared/icon shim 的 import 路径（assets/shared → shared）
+  // 运行时数据站点所在文件：保留 <Icon> 走方案A，仅修 shared/Icon shim 的 import 路径（assets/shared → @/shared/Icon，具名→默认）
   const runtimeFiles = new Set((scan.runtimeDataSites || []).map((r) => r.file));
   for (const f of runtimeFiles) plan(f); // 纳入 byFile 以触发 fixShimImportPath（即便无其他改写）
 
   let touched = 0;
   for (const [file, { edits, imports }] of byFile) {
     let text = fs.readFileSync(file, 'utf8');
-    // 方案A：修 shim import 路径（assets/shared/icon → shared/icon）
+    // 方案A：修 shim import 路径（assets/shared/icon → @/shared/Icon，具名→默认）
     if (runtimeFiles.has(file)) text = fixShimImportPath(text);
     // 解析每个 edit 的实际位置（offset 可能因前序编辑漂移，先按 offset 定位，失败再从头找）
     const resolved = [];
@@ -1100,7 +1101,7 @@ function applyRewrites(scan, byName, srcDir) {
     }
     // 注入 @nce/icon-plus import（幂等：已有则合并去重）
     if (imports.size) text = ensureImport(text, [...imports].sort());
-    // 若文件已无 <Icon 调用，移除旧的 shared/icon(x) 具名 Icon import
+    // 若文件已无 <Icon 调用，移除旧的 shared/Icon(默认) 或 legacy shared/icon(x)(具名) Icon import
     if (!/<Icon\b/.test(text)) {
       text = text.replace(oldIconImportRe, '');
     }

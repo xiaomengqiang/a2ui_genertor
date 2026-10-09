@@ -166,7 +166,7 @@ function fetchSvg(name, variant, colorHex, size) {
   return p;
 }
 
-export function Icon({
+export default function Icon({
   name,
   src,
   size = 16,

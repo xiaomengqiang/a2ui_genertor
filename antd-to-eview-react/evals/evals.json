@@ -8,7 +8,7 @@
       "input": "antd Form with useForm, Input, Switch, Button type=primary htmlType=submit loading",
       "assertions": [
         "import Form from '@nce/eview-react/Form'",
-        "import TextField from '@nce/eview-react/TextField'",
+        "import TextField from '@/shared/TextField'",
         "import Toggle from '@nce/eview-react/Toggle'",
         "import Button from '@nce/eview-react/Button'",
         "NOT import from 'antd'",
