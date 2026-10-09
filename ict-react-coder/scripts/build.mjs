@@ -252,7 +252,7 @@ if (bannedHits.length) {
 }
 
 // --- Banned antd props ---
-const PROPS_BANNED = ["addonAfter", "prefix"];
+const PROPS_BANNED = ["addonAfter", "prefix", "optionType"];
 const propBannedHits = [];
 for (const mod of modules) {
   for (const p of PROPS_BANNED) {
@@ -260,8 +260,22 @@ for (const mod of modules) {
     if (propRe.test(mod.code)) propBannedHits.push(`${mod.label}: ${p}`);
   }
 }
+// --- Banned code patterns (子组件/形态) ---
+const CODE_BANNED = [
+  { re: /\bRadio\.Button\b/, msg: "Radio.Button 按钮形态" },
+];
+for (const mod of modules) {
+  for (const { re, msg } of CODE_BANNED) {
+    if (re.test(mod.code)) propBannedHits.push(`${mod.label}: ${msg}`);
+  }
+}
+// --- Component-scoped banned props: InputNumber.suffix（Input 的 suffix 搜索场景不受影响） ---
+for (const mod of modules) {
+  const inumSuffixRe = /<InputNumber\b[^<]*?\bsuffix\s*=/gs;
+  if (inumSuffixRe.test(mod.code)) propBannedHits.push(`${mod.label}: <InputNumber suffix>`);
+}
 if (propBannedHits.length) {
-  console.error("FAIL  禁用的 antd 属性 — 附加内容用 suffix 或控件外独立文本:");
+  console.error("FAIL  禁用的 antd 属性 — 附加内容放控件外（Input 搜索框 suffix 除外）:");
   for (const h of [...new Set(propBannedHits)]) console.error(`  ${h}`);
   process.exit(1);
 }
@@ -269,7 +283,7 @@ if (propBannedHits.length) {
 // --- Icon size format check: must be rem string, not number ---
 const iconSizeWarnings = [];
 for (const mod of modules) {
-  const sizeNumRe = /<Icon\b[^>]*?\bsize=\{(\d+(?:\.\d+)?)\}/gs;
+  const sizeNumRe = /<Icon\b[^<]*?\bsize=\{(\d+(?:\.\d+)?)\}/gs;
   let ism;
   while ((ism = sizeNumRe.exec(mod.code)) !== null) {
     const px = parseFloat(ism[1]);

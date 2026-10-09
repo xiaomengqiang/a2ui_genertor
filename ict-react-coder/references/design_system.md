@@ -221,7 +221,7 @@ Raw scale: `--font-size-sm(10) / base(12) / md(14) / lg(16) / xl(18) / 2xl(20) /
 - Card title: color `var(--on-surface)`, font `var(--font-headline-m)`.
 
 **Component selection:**
-- Top nav and side nav must use `Menu` — never `Tabs`; no `Checkbox`, `RadioGroup` or `Tag` inside nav items.
+- Top nav and side nav must use `Menu` — never `Tabs`; no `Checkbox`, `Radio` or `Tag` inside nav items.
 - Card top-right mutually exclusive view switching uses `Segmented`; same-level content sections use `Tabs`.
 - Table row selection uses Table's `rowSelection` — never hand-draw Checkbox columns.
 - Keyword search uses `Input` with a search icon in `suffix` (right side) — do not create a non-existent Search component.
