@@ -15,7 +15,7 @@
 ### 标签
 
 - 标签文字**一律左对齐**。
-- 必填星号绝对定位悬挂在标签文字左侧，不占排版空间（见下方参考写法）。
+- 必填星号绝对定位悬挂在标签文字左侧，与标签垂直居中，不占排版空间（见下方参考写法）。
 
 ### 布局间距
 
@@ -38,14 +38,16 @@
 ### 星号与校验文案参考写法（类名自定，CSS 写在组件自己的文件里）
 
 ```css
-/* 必填星号：突出在标签左侧，不占位 */
+/* 必填星号：突出在标签左侧垂直居中，不占位 */
 .form-label {
   position: relative;
 }
 .form-label.required::before {
   content: "*";
   position: absolute;
-  left: -0.5rem; /* 悬挂在标签左侧；列间距固定 2rem，多列时星号不与左列控件相碰 */
+  left: -0.5rem; 
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--color-error);
   font: var(--font-body-m);
 }

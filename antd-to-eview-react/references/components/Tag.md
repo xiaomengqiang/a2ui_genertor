@@ -1,7 +1,7 @@
 # Tag 组件功能逻辑规格
 
 > 资料来源：TypeDoc `Tag/types`（3.4.11 起）+ 官网 Tag 页示例。
-> ⚠️ eview Tag **没有 `closable` / `onClose`**（antd 最常用的可关闭标签在这里不存在）。需要"可删除的标签列表"时，用业务数组 + `onClick` 或旁边放 `IconButton` 自己实现。
+> ⚠️ eview Tag **没有 `closable` / `onClose`**（antd 最常用的可关闭标签在这里不存在）。需要"可删除的标签列表"时，用业务数组 + `onClick` 或旁边放 `<IconPlusIc* onClick={fn} title="…" />` 直接挂 icon+ 自己实现（`IconButton` 已弃用）。
 
 ## 1. 功能定位
 
