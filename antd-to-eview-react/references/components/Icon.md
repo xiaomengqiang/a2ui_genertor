@@ -1,12 +1,12 @@
-# 图标（icon+ 与 IconButton）功能逻辑规格
+# 图标（icon+）功能逻辑规格
 
-> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Icon/Icon`、`IconButton/IconButton`；官网组件页 Icon 及示例 `IconBasic.jsx` / `IconPlusBasic.jsx` / `IconPlusType.jsx` / `IconPlusSize.jsx`、IconButton 及示例 `Basic.tsx` / `IconPlus.tsx` / `BubbleDirection.tsx` / `Disabled.tsx` / `Event.tsx`
+> **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Icon/Icon`；官网组件页 Icon 及示例 `IconBasic.jsx` / `IconPlusBasic.jsx` / `IconPlusType.jsx` / `IconPlusSize.jsx`。`IconButton` 已弃用，可点击图标直接用 icon+ 挂 `onClick`+`title`（见 §3）。
 >
 > 官网首推 **icon+ 图标库**：`import { IconPlusIcPublicSearch } from '@nce/icon-plus'`，按需引入、2000+ 图标；`type="filled"` 换风格、`iconColor` 换色、`iconSize` 换尺寸（B/C 静态 import 支持任意数字 / rem / px 字符串如 `"1.25rem"`，原样透传；**方案A shim 的 `getIcon` API 另需吸附到离散集 12/14/16/20/24/32/36/40/48/60**，见下表 A 行）。组件名合成 = `"IconPlusIc" + Domain + Name`（`Public`+`Search` → `IconPlusIcPublicSearch`，算法见 [match-icons.cjs](../../scripts/match-icons.cjs) `matchOne`）。eview-react 内置 `Icon name="ict_*"` 已下线；scaffold 同名自定义 `<Icon>` 是源项目契约保留件（方案A 范式），底层走 icon-plus 在线，**两者不同**。
 
 ## 渲染方式（三种）
 
-> 项目级二选一：迁移开始先探测 `https://octo.hdesign.huawei.com/`，可达（内网）→ B，不可达（外网）→ C；A 为 B/C 兜底，切定后保留 `src/shared/icon.jsx`（不删）。本文 §1 起的 icon+/IconButton 用法是 B/C 范式（静态 import 目标态）。触发条件、`--apply` 机制、`antdIcons:[]` 陷阱见下方「迁移工作流要点」+ [migration-workflow.md](../migration-workflow.md) §0.1/§3.0。
+> 项目级二选一：迁移开始先探测 `https://octo.hdesign.huawei.com/`，可达（内网）→ B，不可达（外网）→ C；A 为 B/C 兜底，切定后保留 `src/shared/icon.jsx`（不删）。本文 §1 起的 icon+ 用法是 B/C 范式（静态 import 目标态）。触发条件、`--apply` 机制、`antdIcons:[]` 陷阱见下方「迁移工作流要点」+ [migration-workflow.md](../migration-workflow.md) §0.1/§3.0。
 
 | 方式 | 是什么 | 迁移成本 | 何时用 |
 |------|--------|---------|--------|
@@ -39,8 +39,8 @@ import { IconPlusIcPublicSearch } from '@nce/icon-plus';
 
 - eview-react 内置 `Icon name="ict_*"` 已下线，**不要用**；也不要用 `@ant-design/icons`——一律用 `@nce/icon-plus` 的 `IconPlusIc*` 静态 import。
 - **方案 A（`src/shared/icon.jsx` shim）仅用于真运行时数据**：`name` 的值在迁移时不可预知（来自接口/props 字段、或成员表达式绑不到任何已扫文件中的静态数组常量）。字面量、同文件常量、三元、**成员表达式 `name={t.icon}` / `name={MENU[0].icon}`（绑到静态数组）一律走 B/C 静态 import**（`match-icons.cjs --apply` 自动改写），不许默认退方案 A。**自定义 wrapper 组件**（`icon` prop + 内部 `<Icon name={icon}/>`）同理自动转 B/C，仅当调用方 `icon={expr}` 不可静态解析（安全闸）才整组退方案 A。
-- 可点击图标（编辑/删除/刷新等）用 `IconButton iconName={<IconPlusIc* />} tipText onClick`，**不给图标组件挂 onClick**（无气泡、无禁用态、键盘不可达）。
-- **antd 纯图标按钮（`Button type="text" shape="circle" icon={...}` 无 children）→ 用 `IconButton`，禁止退化为原生 `<button>+<Icon>`**（见 [component-mapping.md](../component-mapping.md) 图标行）。
+- 可点击图标（编辑/删除/刷新等）直接给 icon+ 挂 `onClick` + 原生 `title` 属性（hover 提示），**`IconButton` 已弃用**：`<IconPlusIcPublicTrash onClick={remove} title="删除" />`；禁用态见 §3）。
+- **antd 纯图标按钮（`Button type="text" shape="circle" icon={...}` 无 children）→ 剥 Button 外壳，`onClick`/`title` 直接搬到内层 `<IconPlusIc* />`**（见 [component-mapping.md](../component-mapping.md) 图标行；脚本 `--apply` 已先把内层 `<Icon>`→`<IconPlusIc>` 并吸附 `iconSize`，LLM 只需剥外壳 + 搬 onClick/title）。
 - **带图标的 Button 文字必须用 `text=`，不能写 children**（children 会让图标不渲染，见 [Button.md](Button.md) §4）。
 
 ### 动态名：数组循环 `name={t.icon}` / 直接索引 `name={MENU[0].icon}`
@@ -122,13 +122,13 @@ const data = [
 
 ## 1. 功能定位
 
-icon+（`@nce/icon-plus`）是组件库首推的图标方案，按需引入、2000+ 图标，可换风格 / 颜色 / 尺寸；IconButton 是"纯图标按钮 + 气泡提示"，用于表格操作列、卡片角落等小面积区域。内置 `Icon` 组件已被 icon+ 替代、不再推荐。
+icon+（`@nce/icon-plus`）是组件库首推的图标方案，按需引入、2000+ 图标，可换风格 / 颜色 / 尺寸；可点击图标操作（编辑/删除/刷新等）直接给 icon+ 挂 `onClick`+原生 `title`，不再用 `IconButton`（已弃用）。内置 `Icon` 组件已被 icon+ 替代、不再推荐。
 
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
 | 装饰性图标 / 状态图标 | icon+ 组件 | antd `@ant-design/icons` 或内置 `Icon name` |
-| 可点击的图标操作（编辑 / 删除 / 刷新） | `IconButton iconName={<IconPlus* />} tipText onClick` | 给图标组件挂 onClick / antd 纯图标 Button 退化 |
-| 文字 + 图标按钮 | `Button leftIcon={<IconPlusXxx />}`（[Button.md](Button.md)） | IconButton 加文字 |
+| 可点击的图标操作（编辑 / 删除 / 刷新） | `<IconPlusIc* onClick={fn} title="…" />` 直接挂 icon+ | 用已弃用的 `IconButton` 包一层 / antd 纯图标 Button 退化成原生 `<button>+<Icon>` |
+| 文字 + 图标按钮 | `Button leftIcon={<IconPlusXxx />}`（[Button.md](Button.md)） | 给纯 icon+ 加文字（文字按钮用 `Button leftIcon`） |
 
 ### 方案A import 路径改法
 
@@ -151,18 +151,31 @@ import { IconPlusIcPublicSearch, IconPlusIcPublicTrash, IconPlusIcPublicEdit } f
 <IconPlusIcPublicTrash type="filled" iconColor={['currentcolor']} iconSize="1.25rem" />   // 继承业务容器文字颜色
 ```
 
-### IconButton：图标操作 + 气泡
+### 可点击图标：icon+ 直接挂 onClick + title（IconButton 已弃用）
 
 ```tsx
-<IconButton iconName={<IconPlusIcPublicEdit />} tipText="编辑" tipData={{ direction: 'top' }} onClick={() => openEdit(row)} />
-<IconButton iconName={<IconPlusIcPublicTrash />} tipText="删除" disabled={deleting.has(row.id)} onClick={() => askDelete(row)} />
-<IconButton iconName={<IconPlusIcPublicTips />} tipContent={<div style={{ maxWidth: '16rem' }}>该操作会同步到所有节点</div>} tipData={{ direction: 'right', arrowDirection: 'none' }} enableClickHideTip />
+// ✅ 可点击图标：onClick + 原生 title（hover 提示）直接挂 icon+；iconSize 已由脚本 --apply 吸附（默认 14）
+<IconPlusIcPublicEdit onClick={() => openEdit(row)} title="编辑" iconSize={14} iconColor={['currentcolor']} />
+<IconPlusIcPublicTrash onClick={() => askDelete(row)} title="删除" iconSize={14} iconColor={['currentcolor']} />
+
+// 禁用/处理中态：icon+ 无 disabled prop → 条件渲染，或 style 降透明 + 禁指针
+{!deleting.has(row.id) && (
+  <IconPlusIcPublicTrash onClick={() => askDelete(row)} title="删除" iconSize={14} />
+)}
+// 或：
+<IconPlusIcPublicTrash onClick={deleting.has(row.id) ? undefined : () => askDelete(row)} title="删除" iconSize={14}
+  style={{ cursor: deleting.has(row.id) ? 'not-allowed' : 'pointer', opacity: deleting.has(row.id) ? 0.5 : 1, pointerEvents: deleting.has(row.id) ? 'none' : 'auto' }} />
 ```
+
+> - **hover 提示**用原生 HTML `title` 属性（源 antd Button 的 `title` prop 原样搬；源无 title 则省略，不强加）。需**富文本气泡**（自定义内容/方向）才用 `TipBox` 包裹 icon+，见 [TipBox.md](TipBox.md)。
+> - **cursor**：icon+ 默认非 pointer，可点击图标建议 `style={{ cursor: 'pointer' }}`（或业务 className）。
+> - **a11y（可选）**：icon+ 非 `<button>` 元素、默认不可键盘聚焦/Enter 触发；无障碍敏感位加 `role="button" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn();}}}`。常规表格操作列可省。
+> - **antd 纯图标 Button 迁移**：`<Button type="text" shape="circle" icon={<Icon name="trash-2" size="0.875rem"/>} title="删除规则" onClick={remove}/>` → 脚本 `--apply` 先把内层 `<Icon>`→`<IconPlusIcPublicTrash iconSize={14}/>`（detectContext 识别 Button 语境、吸附尺寸），LLM 再剥 Button 外壳、把 `onClick`/`title` 搬到 icon+：`<IconPlusIcPublicTrash onClick={remove} title="删除规则" iconSize={14} />`。
 
 ## 3. 联动说明
 
-- 操作列 IconButton → 编辑打开 Dialog / Drawer，删除打开 MessageDialog（[MessageDialog.md](MessageDialog.md)）；处理中 `disabled`
-- 权限 → 条件渲染该 IconButton（隐藏时相邻 `Divider type="vertical"` 一起隐藏）
+- 操作列可点击图标 → 编辑打开 Dialog / Drawer，删除打开 MessageDialog（[MessageDialog.md](MessageDialog.md)）；处理中用条件渲染或 `pointerEvents:'none'` 降级
+- 权限 → 条件渲染该图标（隐藏时相邻 `Divider type="vertical"` 一起隐藏）
 
 ## 4. 反面示例
 
@@ -173,12 +186,11 @@ import { EditOutlined } from '@ant-design/icons';
 // ❌ 用内置 Icon name="ict_*"（已下线），改用 icon+ 组件
 <Icon name="ict_trash" />
 
-// ❌ 给图标组件挂 onClick 当按钮用，没有气泡提示、没有禁用态、键盘不可达 → 用 IconButton
-//   也包括 antd <Button type="text" shape="circle" icon={...}>（无 children）→ 同样用 IconButton，不要退化为原生 button+Icon
-<IconPlusIcPublicTrash onClick={remove} />
+// ❌ 用已弃用的 IconButton 包一层——可点击图标直接给 icon+ 挂 onClick + title 即可
+<IconButton iconName={<IconPlusIcPublicTrash />} tipText="删除" onClick={() => askDelete(row)} />
 
-// ❌ IconButton 的提示同时传 tipText 和 tipContent（二选一）
-<IconButton tipText="删除" tipContent={<div>删除</div>} />
+// ✅ 目标态：icon+ 直接挂 onClick + 原生 title（含 antd 纯图标 Button 剥外壳后）
+<IconPlusIcPublicTrash onClick={remove} title="删除" iconSize={14} />
 
 // ❌ 剥离 <Icon name={X}/> 包装时在非子节点位包 {}，{X} 被解析为对象字面量/块语句而语法报错（缺陷一/二）
 //   三元分支位：cond ? {openKey===item.key ? <A/> : <B/>} : null      → 内层 {} 变对象字面量
@@ -205,16 +217,10 @@ icon: group.icon
 
 ## 5. API 速查
 
-> 压缩自 `IconButton/IconButton`；icon+ 用法来自 Icon 页 README 与 demo。内置 `Icon/Icon` 组件已被 icon+ 替代、不再推荐，其 API 不再列入。
+> icon+ 用法来自 Icon 页 README 与 demo。`IconButton` 已弃用，可点击图标直接用 icon+ + `onClick` + 原生 `title`（见 §3）；其 API 不再列入。内置 `Icon/Icon` 组件已被 icon+ 替代、不再推荐，其 API 不再列入。
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
-| `IconButton.iconName` | `string \| ReactElement` | icon+ 组件（推荐，如 `<IconPlusIcPublicTrash />`）；也收 `ict_*` 名但不再推荐 |
-| `IconButton.iconUrl` / `hoverIconUrl` / `disabledIconUrl` | `string` | 图片三态，仅自定义图片；默认用 `iconName={<IconPlusIc* />}` |
-| `IconButton.iconProps` | `{ color, hoverColor, disabledColor }` | 配 `iconName` 用 |
-| `IconButton.tipText` / `tipContent` | `string` / `any` | 气泡文本 / 自定义内容（二选一） |
-| `IconButton.tipData` | `{ direction: 'top' \| 'bottom' \| 'left' \| 'right', arrowDirection?: 'none', disposeTimeOut? }` | 气泡方向 / 无箭头 |
-| `IconButton.enableClickHideTip` | `boolean`，默认 `false` | 点击后隐藏气泡 |
-| `IconButton.disabled` / `size` | `boolean` / `any` | 禁用 / 尺寸（数字、rem、px） |
-| `IconButton.onClick` / `onKeyDown` / `onMouseEnter` / `onMouseLeave` / `onFocus` / `onBlur` | `(event) => void` | 事件 |
 | icon+ 组件 `type` / `iconColor` / `iconSize` | `'filled' …` / `string[]` / 数字 / rem / px 字符串 | 风格 / 颜色数组 / 尺寸（B/C 原样透传；方案A shim 的 `size` 另吸附到 12/14/16/20/24/32/36/40/48/60，见渲染方式 A 行） |
+| icon+ 组件 `onClick` | `(event) => void` | 可点击图标直接挂（弃用 IconButton 后的目标态）；配 `title`（原生 hover） |
+| icon+ 组件 `title` / `style` / `className` | 原生 HTML 属性 | `title` 承载 hover 提示（原 antd Button `title`） |

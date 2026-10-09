@@ -12,7 +12,7 @@ Button 是发起命令的按钮。**单页面内只能有一个 `status="primary
 |-----------|--------|--------|
 | 文字按钮（主/次/危险/纯文字） | `Button` + `status` | antd `type="primary"`/`danger` |
 | 一排等宽按钮 | `ButtonGroup` + `data` | 手写多个 Button 调 margin |
-| 只有图标的按钮 | `IconButton`（[Icon.md](Icon.md)） | Button 只塞 icon 不给文字 |
+| 只有图标的按钮 | `<IconPlusIc* onClick={fn} title="…" />` 直接挂 icon+（[Icon.md](Icon.md) §3） | Button 只塞 icon 不给文字 |
 | 文字链接样式 | `status="text"` | `<a>` |
 
 `status`: `'default' | 'primary' | 'risk' | 'text'`（默认 `default`）。
@@ -45,20 +45,20 @@ const handleRowAction = (event: object, data: any) => { /* data 就是 additiona
 <ButtonGroup data={[{ text: '上一步', onClick: handlePrev }, { text: '下一步', status: 'primary', onClick: handleNext }]} />
 ```
 
-### 图标：leftIcon / rightIcon 用 icon+；纯图标按钮用 IconButton
+### 图标：leftIcon / rightIcon 用 icon+；纯图标按钮用 icon+ 直接挂 onClick
 
 ```tsx
 import { IconPlusIcPublicSave, IconPlusIcPublicRefresh } from '@nce/icon-plus';
-import IconButton from '@nce/eview-react/IconButton';
 
 // 文字 + 图标
 <Button status="primary" text="保存" leftIcon={<IconPlusIcPublicSave iconSize={14} iconColor={['currentcolor']} />} onClick={handleSave} />
 
-// antd 纯图标按钮（Button type="text" shape="circle" icon 无 children）→ IconButton，禁止退化成原生 <button>+<Icon>
-<IconButton iconName={<IconPlusIcPublicRefresh iconSize={14} iconColor={['currentcolor']} />} tipText="刷新" size="small" onClick={handleRefresh} />
+// antd 纯图标按钮（Button type="text" shape="circle" icon 无 children）→ 剥 Button 外壳，icon+ 直接挂 onClick + 原生 title
+//   脚本 --apply 已先把内层 <Icon>→<IconPlusIcPublicRefresh iconSize={14}/>，LLM 只需剥外壳 + 搬 onClick/title
+<IconPlusIcPublicRefresh onClick={handleRefresh} title="刷新" iconSize={14} iconColor={['currentcolor']} />
 ```
 
-> **图标尺寸别丢**：源 `size={15}` 不是丢掉，而是吸附到 `iconSize={14}` 写到**内层 `<IconPlusIcPublicRefresh />`** 上（默认 14；吸附规则见 [match-icons.cjs](../../scripts/match-icons.cjs)）。`IconButton` 自身的 `size="small"` 是**按钮**尺寸，与图标尺寸是两回事，**不要**把图标尺寸塞到 IconButton 的 `size` 上。antd `@ant-design/icons` 没有 `size` prop、尺寸走 `style.fontSize`，同样剥 `px` 取数字吸附到内层 `iconSize`。
+> **图标尺寸别丢**：源 `size={15}` 不是丢掉，而是吸附到 `iconSize={14}` 写到 `<IconPlusIcPublicRefresh />` 上（默认 14；吸附规则见 [match-icons.cjs](../../scripts/match-icons.cjs)）。纯图标按钮剥 Button 外壳后，onClick/title 直接挂到 icon+（`IconButton` 已弃用，不再有"按钮尺寸 vs 图标尺寸"之分）。antd `@ant-design/icons` 没有 `size` prop、尺寸走 `style.fontSize`，同样剥 `px` 取数字吸附到 `iconSize`。
 
 ## 3. 联动说明
 
@@ -69,9 +69,6 @@ import IconButton from '@nce/eview-react/IconButton';
 ```tsx
 // ❌ antd 习惯：没有 type="primary" / danger / loading / htmlType
 <Button type="primary" loading={submitting} htmlType="submit">提交</Button>
-
-// ❌ antd 纯图标 Button 退化为原生 <button>+<Icon>（应用 IconButton）
-<button type="button" onClick={notify}><Icon name="refresh-cw" /></button>
 
 // ❌ 没有 onClick 或没防重复
 <Button status="primary" text="提交" />
