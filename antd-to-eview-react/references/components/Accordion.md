@@ -222,4 +222,4 @@ export default function ConfigCenterNav() {
 | 其余 | — | `isControlSelectedValue` 外部控制选中、组件不维护（⚠️ 无 demo）/ `onItemRightClick(event, node)` 右键 / `headerText` · `headerIcon` · `headerIconPosition`（`'top' \| 'left'`）标题栏文字、图标及位置 / `hideHeaderIcon` / `hideTitleTips` / `id` / `className` / `style` |
 
 ## 10. 其他
-- 由于样式区别，`enableExpand`应设置为`false`，`hideIcons`应该设置为`true`
+- 由于样式区别，`enableExpand`应设置为`false`，`hideIcons`应该设置为`true`，`hideTitleBar`也应设置为`true`

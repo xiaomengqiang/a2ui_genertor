@@ -152,8 +152,11 @@ export function Icon({
   style,
   strokeWidth = 2,
   variant = "lined",
+  onClick,
+  title,
 }) {
   const resolvedSize = resolveSize(size);
+  const mergedStyle = onClick ? { cursor: "pointer", ...style } : style;
   const [plus, setPlus] = useState(plusState); // reuse already-probed result
   const [svg, setSvg] = useState(
     () => svgCache.get(`${name}&${variant}&${color}`) || ""
@@ -191,7 +194,9 @@ export function Icon({
       className: className,
       alt: "",
       "aria-hidden": true,
-      style: { ...style, display: "inline-block", verticalAlign: "middle" },
+      onClick,
+      title,
+      style: { ...mergedStyle, display: "inline-block", verticalAlign: "middle" },
     });
   }
 
@@ -215,7 +220,9 @@ export function Icon({
         strokeLinejoin: "round",
         className: className,
         "aria-hidden": true,
-        style: { ...style, stroke: color || "currentColor" },
+        onClick,
+        title,
+        style: { ...mergedStyle, stroke: color || "currentColor" },
       },
       nodes.map(([tag, attrs], i) =>
         React.createElement(tag, { key: i, ...attrs })
@@ -228,14 +235,18 @@ export function Icon({
     return React.createElement("span", {
       className,
       "aria-hidden": true,
-      style: { ...style, width: resolvedSize, height: resolvedSize },
+      onClick,
+      title,
+      style: { ...mergedStyle, width: resolvedSize, height: resolvedSize },
     });
   }
-  
+
   return React.createElement("span", {
     className,
     "aria-hidden": true,
-    style: { ...style, width: resolvedSize, height: resolvedSize },
+    onClick,
+    title,
+    style: { ...mergedStyle, width: resolvedSize, height: resolvedSize },
     dangerouslySetInnerHTML: { __html: svg },
   });
 }

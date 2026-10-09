@@ -13,6 +13,11 @@
  *     IconPlusIcPublicTransverseRectangleTemplate 顶替并带候选进 residual），render <Icon name={t.icon}/> → {t.icon}。
  *     标识符 name={x}（常量传播未命中）与链式/嵌套三元仍交 LLM 在 residual 阶段按 Icon.md recipe 解析。
  *     仅真运行时数据（接口/props、跨文件追源失败、数组含非字面量字段）退方案A。
+ *   - 图标-prop wrapper 组件（SoftTag/ToggleRow：自定义组件接收 icon prop、内部 <Icon name={icon}/> 渲染）
+ *     **Phase C 自动改写**：调用点 icon="lit"/icon={常量}/icon={扁平三元} → icon={<IconPlusIc…/>}（尺寸取自 wrapper
+ *     内部 <Icon/>）；icon={IDENT.field} 成员调用方透传 + 数据数组元素化；wrapper 内部 <Icon name={icon}/> → {icon}/裸
+ *     （按 wrapIfNeeded 上下文判 {}）。调用方 icon={expr} 不可静态解析（链式三元/未解析标识符/追不到数组源）→
+ *     安全闸整组退方案 A shim（修 shared/icon 路径），交 LLM。
  *   - .js→.jsx / .ts→.tsx：--apply 把因改写引入 JSX（替换串含 <IconPlusIc）的 .js/.ts 文件自动转扩展名，
  *     并扫 src/ 修引用了旧路径显式 .js/.ts 扩展名的 import（无扩展名 import 不动，解析器仍命中 .jsx）。
  *
@@ -438,13 +443,12 @@ function parseNameExpr(body) {
 // 用于把 name={someVar} 解析回字面量（同文件赋值场景），避免误落方案A。
 function buildConstMap(text) {
   const map = new Map();
+  // 仅匹配 const/let/var X = "lit" 声明。**不**用宽松赋值正则（\bIDENT\s*=\s*"lit"）——后者会误命中
+  // JSX 属性（如 <SoftTag icon="bell-ring">），把解构 prop 名 icon 伪解析成首个调用点的字面量，
+  // 与 Phase C 的 wrapper 内部改写冲突（confirmed 时会覆盖 {icon} 透传）。声明式正则有 const/let/var 前缀，安全。
   const decl = /\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*["']([^"']*)["']/g;
   let m;
   while ((m = decl.exec(text)) !== null) map.set(m[1], { literal: m[2], raw: m[0] });
-  const assign = /\b([A-Za-z_$][\w$]*)\s*=\s*["']([^"']*)["']/g;
-  while ((m = assign.exec(text)) !== null) {
-    if (!map.has(m[1])) map.set(m[1], { literal: m[2], raw: m[0] });
-  }
   return map;
 }
 
@@ -756,6 +760,96 @@ function wrapIfNeeded(expr, text, offset) {
   return expr; // 表达式位（括号/对象值/数组元素/prop 容器/箭头体/return 等）→ 裸
 }
 
+// ─── 图标-prop wrapper 组件（SoftTag/ToggleRow 模式）──────────────────────────
+// 自定义组件接收 icon="字面量"/icon={expr} prop，内部 <Icon name={icon}/> 渲染。
+// 调用点字面量不在 <Icon> 标签上 → scanIconComponent 看不见；内部 name={icon} 是解构 prop 参数
+// → scanDynamicIcons 归 variables（residual）。Phase C 耦合改写两半：调用点 icon= → icon={<IconPlusIc…/>}，
+// wrapper 内部 <Icon name={icon}/> → {icon}/裸透传（wrapIfNeeded 上下文判 {}）。
+// 调用方 icon={expr} 按 <Icon name={expr}/> 同套机制解析（常量传播/成员→数据数组/扁平三元）；
+// 任一调用方不可静态解析 → 安全闸：整组退方案 A shim（与"真运行时数据退 A"一致）。
+
+// 解构参数块里 icon 是否为独立绑定（排除 iconColor/iconSize 等同名前缀；icon 可为首项[{前}或逗号后)
+function isIconBinding(paramsBlock) {
+  return /(?:^|[{,])\s*icon\s*(?:[,=}]|$)/m.test(paramsBlock);
+}
+
+// 在 [start,end) 区间内找 <Icon name={icon}/>（name 表达式恰为裸标识符 icon）。返回 {offset, tag} 或 null。
+function findInternalIconSite(text, start, end) {
+  const re = /<Icon\b[\s\S]*?(?:\/>|<\/Icon>)/g;
+  re.lastIndex = start;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index >= end) break;
+    const tag = m[0];
+    const body = getBracedProp(tag, 'name');
+    if (body != null && body.trim() === 'icon') return { offset: m.index, tag };
+  }
+  return null;
+}
+
+// 安全检查：body 内（剔除内部 <Icon name={icon}/> 标签后）icon 是否被当字符串用（方法/索引/模板插值）。
+// 仅 truthy/render 用法（icon ?、icon &&、{icon}）兼容 ReactNode，放行。
+function safeIconUse(text, start, end, internalTag) {
+  const body = text.slice(start, end).replace(internalTag, '');
+  if (/\bicon\b\s*[.[]/.test(body)) return false; // icon.xxx / icon[i] 字符串操作
+  if (/\$\{icon\}/.test(body)) return false; // 模板插值
+  return true;
+}
+
+// 发现文件内所有图标-prop wrapper 组件定义。返回 [{ wrapperName, renderOffset, renderTag }]。
+// 形态：function NAME({...,icon,...}) {...} / const NAME = ({...,icon,...}) => {...}（均需 braced body）。
+function scanIconPropWrappers(text) {
+  const out = [];
+  const forms = [
+    /(?:\bexport\s+(?:default\s+)?)?function\s+([A-Z]\w*)\s*\(\s*(\{[^}]*\})\s*\)\s*\{/g,
+    /(?:\bexport\s+(?:default\s+)?)?(?:const|let|var)\s+([A-Z]\w*)\s*=\s*\(\s*(\{[^}]*\})\s*\)\s*=>\s*\{/g,
+  ];
+  for (const re of forms) {
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      const name = m[1];
+      const params = m[2];
+      if (!isIconBinding(params)) continue;
+      const bodyOpen = m.index + m[0].length - 1; // 指向 body '{'
+      const span = balancedSlice(text, bodyOpen);
+      if (!span) continue;
+      const bodyStart = bodyOpen + 1;
+      const bodyEnd = bodyStart + span.inner.length;
+      const site = findInternalIconSite(text, bodyStart, bodyEnd);
+      if (!site) continue;
+      if (!safeIconUse(text, bodyStart, bodyEnd, site.tag)) continue;
+      out.push({ wrapperName: name, renderOffset: site.offset, renderTag: site.tag });
+    }
+  }
+  return out;
+}
+
+// 取标签内某 prop 的完整 span（含 prop 名与值），返回 { kind, raw, offsetRel, value?/expr? } 或 null。
+// kind: 'literal'（icon="x"）/ 'braced'（icon={...}）。offsetRel 为 raw 在 tag 内的相对索引。
+function getPropSpan(tag, prop) {
+  const litRe = new RegExp(`\\b${prop}\\s*=\\s*["']([^"']*)["']`);
+  let m = tag.match(litRe);
+  if (m) return { kind: 'literal', raw: m[0], offsetRel: m.index, value: m[1] };
+  const brRe = new RegExp(`\\b${prop}\\s*=\\s*\\{`);
+  m = tag.match(brRe);
+  if (!m) return null;
+  const start = m.index + m[0].length; // 指向 '{' 之后
+  let depth = 1;
+  let i = start;
+  for (; i < tag.length; i++) {
+    const ch = tag[i];
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) break;
+    }
+  }
+  if (depth !== 0) return null;
+  const raw = tag.slice(m.index, i + 1);
+  const expr = tag.slice(start, i).trim();
+  return { kind: 'braced', raw, offsetRel: m.index, expr };
+}
+
 // ─── 报告 ───────────────────────────────────────────────────────────────────
 
 function fmtCandidates(cands) {
@@ -872,6 +966,30 @@ function reportConsole(scan, byName) {
       console.log(`    - ${r.original.trim()}`);
     }
   }
+
+  // 图标-prop wrapper（SoftTag/ToggleRow）：调用点 icon= → icon={<IconPlusIc…/>} + 内部 <Icon name={icon}/> → {icon}
+  if (scan.propWrapperSites && scan.propWrapperSites.length) {
+    console.log('');
+    console.log(`图标-prop wrapper 组件（调用点 icon= → icon={<IconPlusIc…/>}，内部 <Icon name={icon}/> → {icon}）: ${scan.propWrapperSites.length} 个`);
+    for (const pw of scan.propWrapperSites) {
+      console.log(`  ${rel(pw.wrapperFile)}:${pw.wrapperLine}  wrapper ${pw.wrapperName}  内部 → ${pw.internalReplacement}`);
+      for (const ce of pw.callerEdits) {
+        console.log(`    ${rel(ce.file)}  - ${ce.raw.trim()}  + ${ce.repl.trim()}${ce.isPlaceholder ? '  [含未命中→占位]' : ''}`);
+      }
+    }
+  }
+
+  // 安全闸退方案 A 的 wrapper（不可静态解析的 icon={expr} 调用方）
+  if (scan.propWrapperResidual && scan.propWrapperResidual.length) {
+    console.log('');
+    console.log(`图标-prop wrapper 安全闸退方案A（存在不可静态解析的 icon={expr} 调用方，整组保留 <Icon> shim）: ${scan.propWrapperResidual.length} 个`);
+    for (const pw of scan.propWrapperResidual) {
+      console.log(`  ${rel(pw.wrapperFile)}:${pw.wrapperLine}  wrapper ${pw.wrapperName}  [${pw.reason}]`);
+      for (const c of pw.callers) {
+        console.log(`    ${rel(c.file)}:${c.line}  icon={${c.expr}}  (${c.kind})`);
+      }
+    }
+  }
 }
 
 function rel(p) {
@@ -982,13 +1100,45 @@ function writeJson(scan, byName, outPath) {
     reason: r.reason,
     original: r.original.trim(),
   }));
+  const propWrapperSites = (scan.propWrapperSites || []).map((pw) => ({
+    wrapperName: pw.wrapperName,
+    wrapperFile: rel(pw.wrapperFile),
+    wrapperLine: pw.wrapperLine,
+    internalReplacement: pw.internalReplacement,
+    internalOriginal: pw.internalTag.trim(),
+    imports: pw.imports,
+    callerEdits: pw.callerEdits.map((ce) => ({
+      file: rel(ce.file),
+      raw: ce.raw.trim(),
+      repl: ce.repl.trim(),
+      isPlaceholder: ce.isPlaceholder === true,
+    })),
+  }));
+  const propWrapperResidual = (scan.propWrapperResidual || []).map((pw) => ({
+    wrapperName: pw.wrapperName,
+    wrapperFile: rel(pw.wrapperFile),
+    wrapperLine: pw.wrapperLine,
+    reason: pw.reason,
+    callers: pw.callers.map((c) => ({ file: rel(c.file), line: c.line, expr: c.expr, kind: c.kind })),
+  }));
   // data 数组改写引入的 import 也收进 imports（arrayFile）
   for (const d of scan.dataIconSites || []) {
     const f = rel(d.arrayFile);
     for (const e of d.entries) (imports[f] = imports[f] || new Set()).add(e.componentName);
   }
+  // 图标-prop wrapper 调用点改写引入的 import（caller 文件）
+  for (const pw of scan.propWrapperSites || []) {
+    for (const ce of pw.callerEdits) {
+      const f = rel(ce.file);
+      for (const imp of ce.imports || []) (imports[f] = imports[f] || new Set()).add(imp);
+    }
+  }
   const dataIconPlaceholderCount = (scan.dataIconSites || []).reduce(
     (acc, d) => acc + d.entries.filter((e) => e.isPlaceholder).length,
+    0
+  );
+  const propWrapperPlaceholderCount = (scan.propWrapperSites || []).reduce(
+    (acc, pw) => acc + pw.callerEdits.filter((ce) => ce.isPlaceholder).length,
     0
   );
   const residualCount = names.length - confirmedCount;
@@ -1003,7 +1153,10 @@ function writeJson(scan, byName, outPath) {
       dataIconSiteCount: dataIconSites.length,
       dataIconPlaceholderCount,
       runtimeDataCount: runtimeDataSites.length,
-      needsLlmReview: residualCount + ternarySites.filter((t) => !t.allConfirmed).length + chainedTernarySites.length + variableSites.length + dataIconPlaceholderCount + runtimeDataSites.length,
+      propWrapperSiteCount: propWrapperSites.length,
+      propWrapperResidualCount: propWrapperResidual.length,
+      propWrapperPlaceholderCount,
+      needsLlmReview: residualCount + ternarySites.filter((t) => !t.allConfirmed).length + chainedTernarySites.length + variableSites.length + dataIconPlaceholderCount + runtimeDataSites.length + propWrapperResidual.length,
     },
     icons,
     ternarySites,
@@ -1011,6 +1164,8 @@ function writeJson(scan, byName, outPath) {
     variableSites,
     dataIconSites,
     runtimeDataSites,
+    propWrapperSites,
+    propWrapperResidual,
     imports: Object.fromEntries(Object.entries(imports).map(([k, v]) => [k, [...v].sort()])),
   };
   fs.writeFileSync(outPath, JSON.stringify(out, null, 2) + '\n', 'utf8');
@@ -1062,11 +1217,26 @@ function applyRewrites(scan, byName, srcDir) {
     rp.edits.push({ tag: d.renderTag, offset: d.renderOffset, repl: d.renderReplacement });
   }
 
+  // 图标-prop wrapper：调用点 icon= → icon={<IconPlusIc…/>}（caller 文件）+ wrapper 内部 <Icon name={icon}/> → {icon}/裸（wrapper 文件）
+  for (const pw of scan.propWrapperSites || []) {
+    for (const ce of pw.callerEdits) {
+      const p = plan(ce.file);
+      for (const imp of ce.imports || []) p.imports.add(imp);
+      p.edits.push({ tag: ce.raw, offset: ce.offset, repl: ce.repl });
+    }
+    const wp = plan(pw.wrapperFile);
+    // 内部 edit：与 member dataIconSites 的 render edit 同位时由 seenFrom 去重
+    if (/<Icon\b/.test(pw.internalTag)) {
+      wp.edits.push({ tag: pw.internalTag, offset: pw.internalOffset, repl: pw.internalReplacement });
+    }
+  }
   // 旧 Icon import 清理正则（文件已无 <Icon 调用时移除）：覆盖 legacy 具名 shared/icon(s).jsx（scaffold 旧产物/源项目）与新默认 @/shared/Icon（scaffold 重构后）
   const oldIconImportRe = /^\s*import\s*(?:\{\s*Icon\s*\}|Icon)\s*from\s*['"](?:[^'"]*?(?:assets\/)?shared\/icons?\.jsx?|@\/shared\/Icon)['"];?\s*\r?\n?/gm;
 
-  // 运行时数据站点所在文件：保留 <Icon> 走方案A，仅修 shared/Icon shim 的 import 路径（assets/shared → @/shared/Icon，具名→默认）
-  const runtimeFiles = new Set((scan.runtimeDataSites || []).map((r) => r.file));
+  // 运行时数据站点所在文件 + 安全闸退 A 的 wrapper 文件：保留 <Icon> 走方案A，仅修 shared/icon shim 的 import 路径（assets/shared → @/shared/Icon，具名→默认）
+  const runtimeFiles = new Set(
+    (scan.runtimeDataSites || []).map((r) => r.file).concat(scan.shimKeepFiles || [])
+  );
   for (const f of runtimeFiles) plan(f); // 纳入 byFile 以触发 fixShimImportPath（即便无其他改写）
 
   let touched = 0;
@@ -1245,6 +1415,9 @@ function main() {
     variableSites: [],
     dataIconSites: [],
     runtimeDataSites: [],
+    propWrapperSites: [], // 图标-prop wrapper（自动改写）：调用点 icon= → icon={<IconPlusIc…/>} + 内部 → {icon}
+    propWrapperResidual: [], // 安全闸退方案 A 的 wrapper（不可静态解析的 icon={expr} 调用方）
+    shimKeepFiles: [], // 保留 <Icon> 走方案 A 的文件（修 shared/icon shim 路径）：skipped/歧义 wrapper
   };
   // byName: sourceName -> { normalized, match, sites: [{file,line,original,replacement,offset,tag}] }
   const byName = {};
@@ -1462,6 +1635,186 @@ function main() {
     });
   }
 
+  // Phase C：图标-prop wrapper 组件（SoftTag/ToggleRow）。自定义组件接收 icon prop、内部 <Icon name={icon}/> 渲染。
+  // 调用点字面量不在 <Icon> 上（scanIconComponent 看不见），内部 name={icon} 是解构 prop（scanDynamicIcons 归 variables）。
+  // 两半耦合改写：调用点 icon= → icon={<IconPlusIc…/>}（尺寸取自 wrapper 内部 <Icon/>）；内部 <Icon name={icon}/> → {icon}/裸透传。
+  // 调用方 icon={expr} 按 <Icon name={expr}/> 同套解析；任一不可静态解析 → 安全闸整组退方案 A。
+  {
+    const nameDefs = new Map(); // wrapperName -> [{ file, renderOffset, renderTag }]
+    const wrapperInternalSites = new Set(); // "file:offset" — 从 variableSites 剔除（Phase C 接管，避免双报）
+    for (const file of files) {
+      const t = textCache.get(file);
+      for (const w of scanIconPropWrappers(t)) {
+        if (!nameDefs.has(w.wrapperName)) nameDefs.set(w.wrapperName, []);
+        nameDefs.get(w.wrapperName).push({ file, renderOffset: w.renderOffset, renderTag: w.renderTag });
+        wrapperInternalSites.add(`${file}:${w.renderOffset}`);
+      }
+    }
+    // 剔除 wrapper 内部站点（已由 Phase C 接管，不重复进 variableSites residual）
+    scan.variableSites = (scan.variableSites || []).filter((v) => !wrapperInternalSites.has(`${v.file}:${v.offset}`));
+
+    for (const [wrapperName, defs] of nameDefs) {
+      if (defs.length !== 1) {
+        // 同名多定义歧义 → 全退 residual/方案 A
+        for (const d of defs) {
+          scan.propWrapperResidual.push({
+            wrapperName,
+            wrapperFile: d.file,
+            wrapperLine: lineOfOffset(textCache.get(d.file), d.renderOffset),
+            reason: 'ambiguous-wrapper-name',
+            callers: [],
+          });
+          scan.shimKeepFiles.push(d.file);
+        }
+        continue;
+      }
+      const { file: wrapperFile, renderOffset, renderTag } = defs[0];
+      const wrapperText = textCache.get(wrapperFile);
+      const wrapperLine = lineOfOffset(wrapperText, renderOffset);
+      const wrapperProps = extractIconProps(renderTag);
+      const wrapperContext = detectContext(wrapperText, renderOffset);
+      const internalReplacement = wrapIfNeeded('icon', wrapperText, renderOffset);
+      const escName = wrapperName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+      // 扫所有文件的 <WRAPPERNAME ...> 调用点，抽 icon prop 分类
+      const callers = [];
+      let skipped = false;
+      let skipReason = '';
+      for (const cf of files) {
+        const ct = textCache.get(cf);
+        const re = new RegExp(`<${escName}\\b[\\s\\S]*?(?:\\/>|>)`, 'g');
+        let cm;
+        while ((cm = re.exec(ct)) !== null) {
+          const tagStart = cm.index;
+          const tag = cm[0];
+          const span = getPropSpan(tag, 'icon');
+          if (!span) continue; // 无 icon prop → 忽略（icon undefined）
+          const propOffset = tagStart + span.offsetRel;
+          const callerLine = lineOfOffset(ct, tagStart);
+          const c = { file: cf, line: callerLine, tagStart, propOffset, raw: span.raw };
+          if (span.kind === 'literal') {
+            c.kind = 'literal';
+            c.value = span.value;
+            callers.push(c);
+            continue;
+          }
+          // braced
+          const parsed = parseNameExpr(span.expr);
+          if (!parsed) {
+            c.kind = 'unresolvable'; c.expr = span.expr; callers.push(c);
+            skipped = true; skipReason = skipReason || 'unresolvable-icon-expr'; continue;
+          }
+          if (parsed.kind === 'literal') {
+            c.kind = 'literal'; c.value = parsed.value; callers.push(c);
+          } else if (parsed.kind === 'ternary-flat') {
+            c.kind = 'ternary'; c.cond = parsed.cond; c.candidates = parsed.candidates; callers.push(c);
+          } else if (parsed.kind === 'ternary-chained') {
+            c.kind = 'unresolvable'; c.expr = span.expr; callers.push(c);
+            skipped = true; skipReason = skipReason || 'chained-ternary-icon';
+          } else {
+            const expr = parsed.expr;
+            const idMatch = expr.match(/^([A-Za-z_$][\w$]*)$/);
+            const memMatch = !idMatch && expr.match(/^([A-Za-z_$][\w$]*)(?:\[[^\]]+\])*\.([A-Za-z_$][\w$]*)$/);
+            if (idMatch) {
+              const cmap = buildConstMap(ct);
+              if (cmap.has(idMatch[1])) {
+                c.kind = 'literal'; c.value = cmap.get(idMatch[1]).literal; c.resolvedVar = idMatch[1]; callers.push(c);
+              } else {
+                c.kind = 'unresolvable'; c.expr = expr; callers.push(c);
+                skipped = true; skipReason = skipReason || 'unresolved-ident-icon';
+              }
+            } else if (memMatch) {
+              const ident = memMatch[1];
+              const fieldName = memMatch[2];
+              let arrName = findLoopBinding(ct, ident);
+              let directArray = false;
+              if (!arrName) { arrName = ident; directArray = true; }
+              const decl = resolveArrayDecl(arrName, cf, textCache);
+              if (!decl) {
+                c.kind = 'unresolvable'; c.expr = expr; callers.push(c);
+                skipped = true; skipReason = skipReason || 'no-array-source'; continue;
+              }
+              const arrText = textCache.get(decl.arrayFile);
+              if (hasNonLiteralField(arrText, decl.arrOpenIdx, fieldName)) {
+                c.kind = 'unresolvable'; c.expr = expr; callers.push(c);
+                skipped = true; skipReason = skipReason || 'non-literal-field'; continue;
+              }
+              const entries0 = extractDataIconFields(arrText, decl.arrOpenIdx, fieldName);
+              if (!entries0.length) {
+                c.kind = 'unresolvable'; c.expr = expr; callers.push(c);
+                skipped = true; skipReason = skipReason || 'no-string-literal-entries'; continue;
+              }
+              c.kind = 'member'; c.ident = ident; c.fieldName = fieldName; c.arrName = arrName; c.directArray = directArray; c.decl = decl; callers.push(c);
+            } else {
+              c.kind = 'unresolvable'; c.expr = expr; callers.push(c);
+              skipped = true; skipReason = skipReason || 'unparsable-icon-expr';
+            }
+          }
+        }
+      }
+
+      if (skipped) {
+        // 安全闸：整组退方案 A shim
+        scan.propWrapperResidual.push({
+          wrapperName, wrapperFile, wrapperLine, reason: skipReason,
+          callers: callers.map((c) => ({ file: c.file, line: c.line, expr: c.expr || c.value, kind: c.kind })),
+        });
+        scan.shimKeepFiles.push(wrapperFile);
+        continue;
+      }
+
+      // 非跳过：生成 callerEdits（字面量/常量/扁平三元）+ member→dataIconSites + wrapper 内部 edit
+      const callerEdits = [];
+      const importSet = new Set();
+      let hasConvertCaller = false;
+      for (const c of callers) {
+        if (c.kind === 'literal') {
+          const norm = normalizeSourceName(c.value);
+          const mres = byName[c.value] ? byName[c.value].match : match1(norm);
+          const comp = mres.status === 'confirmed' ? mres.componentName : PLACEHOLDER.componentName;
+          const el = buildDataIconElement(comp, wrapperProps, wrapperContext);
+          callerEdits.push({ file: c.file, offset: c.propOffset, raw: c.raw, repl: `icon={${el}}`, imports: [comp], isPlaceholder: mres.status !== 'confirmed' });
+          importSet.add(comp);
+          hasConvertCaller = true;
+        } else if (c.kind === 'ternary') {
+          const [aSrc, bSrc] = c.candidates;
+          const am = byName[aSrc] ? byName[aSrc].match : match1(normalizeSourceName(aSrc));
+          const bm = byName[bSrc] ? byName[bSrc].match : match1(normalizeSourceName(bSrc));
+          const ac = am.status === 'confirmed' ? am.componentName : PLACEHOLDER.componentName;
+          const bc = bm.status === 'confirmed' ? bm.componentName : PLACEHOLDER.componentName;
+          const aEl = buildDataIconElement(ac, wrapperProps, wrapperContext);
+          const bEl = buildDataIconElement(bc, wrapperProps, wrapperContext);
+          callerEdits.push({ file: c.file, offset: c.propOffset, raw: c.raw, repl: `icon={${c.cond} ? ${aEl} : ${bEl}}`, imports: [ac, bc], isPlaceholder: am.status !== 'confirmed' || bm.status !== 'confirmed' });
+          importSet.add(ac); importSet.add(bc);
+          hasConvertCaller = true;
+        } else if (c.kind === 'member') {
+          // 数据数组元素化 → push dataIconSite，render 站点 = wrapper 内部（与 propWrapperSites 内部 edit 同位，seenFrom 去重）
+          const arrText = textCache.get(c.decl.arrayFile);
+          const entries = extractDataIconFields(arrText, c.decl.arrOpenIdx, c.fieldName).map((e) => {
+            const norm = normalizeSourceName(e.value);
+            const mres = byName[e.value] ? byName[e.value].match : match1(norm);
+            const comp = mres.status === 'confirmed' ? mres.componentName : PLACEHOLDER.componentName;
+            const element = `${c.fieldName}: ${buildDataIconElement(comp, wrapperProps, wrapperContext)}`;
+            return { value: e.value, offset: e.offset, raw: e.raw, match: mres, componentName: comp, element, isPlaceholder: mres.status !== 'confirmed' };
+          });
+          scan.dataIconSites.push({
+            renderFile: wrapperFile, renderLine: wrapperLine, renderOffset, renderTag, renderOriginal: renderTag,
+            renderReplacement: internalReplacement, renderExpr: 'icon',
+            arrayFile: c.decl.arrayFile, arrayName: c.arrName, fieldName: c.fieldName, root: c.ident, directArray: c.directArray,
+            entries,
+          });
+          hasConvertCaller = true;
+        }
+      }
+      if (!hasConvertCaller) continue; // 无可改写调用方（wrapper 未被使用 / 全无 icon prop）→ 不动
+      scan.propWrapperSites.push({
+        wrapperName, wrapperFile, wrapperLine,
+        internalOffset: renderOffset, internalTag: renderTag, internalReplacement,
+        callerEdits, imports: [...importSet].sort(),
+      });
+    }
+  }
+
   reportConsole(scan, byName);
 
   // 报告写 OS 临时目录（不进产物根），供 LLM 在会话内复核 residual；控制台报告已是 in-context 真相源。
@@ -1473,7 +1826,8 @@ function main() {
     (scan.chainedTernarySites || []).length +
     (scan.variableSites || []).length +
     (scan.dataIconSites || []).reduce((a, d) => a + d.entries.filter((e) => e.isPlaceholder).length, 0) +
-    (scan.runtimeDataSites || []).length;
+    (scan.runtimeDataSites || []).length +
+    (scan.propWrapperResidual || []).length;
   console.log(`\n[match-icons] 报告写入临时目录 ${outPath}（residual ${residualCount} 处待 LLM 复核；不进产物）`);
 
   if (opts.apply) {

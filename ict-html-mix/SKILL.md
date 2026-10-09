@@ -101,7 +101,17 @@ description: A2UI 节点工作流：在承载页上生成、校验、替换、�
 | `<DirCoder>/scripts/previewdist/assets/`（整目录） | `previewdist/assets/` |
 | `<DirCoder>/scripts/previewdist/uploads/`（整目录） | `previewdist/uploads/` |
 
-用 bash 工具以**当前平台原生复制命令**执行（Windows 下该工具即 PowerShell：`New-Item` + `Copy-Item -Recurse`；Linux/macOS：`mkdir -p` + `cp -r`）；源中的 `data.js` **不拷**。
+用 bash 工具以**当前平台原生复制命令**执行；源中的 `data.js` **不拷**。
+
+**Windows（PowerShell 5.1）**——⚠️ `Copy-Item -Recurse` 将源目录整体拷到目标下会产生嵌套（见 WORKFLOW.md Pitfall #12），必须用 `\*` 通配符只拷目录内容：
+```powershell
+New-Item -ItemType Directory -Path '<页目录>\previewdist\assets','<页目录>\previewdist\uploads' -Force | Out-Null; Copy-Item '<DirCoder>\scripts\previewdist\index.prototype.html','<DirMix>\scripts\PreviewRenderer.js' '<页目录>\previewdist\' -Force; Copy-Item '<DirCoder>\scripts\previewdist\assets\*' '<页目录>\previewdist\assets\' -Recurse -Force; Copy-Item '<DirCoder>\scripts\previewdist\uploads\*' '<页目录>\previewdist\uploads\' -Recurse -Force
+```
+
+**Linux/macOS**：
+```bash
+mkdir -p '<页目录>/previewdist/assets' '<页目录>/previewdist/uploads' && cp '<DirCoder>/scripts/previewdist/index.prototype.html' '<DirMix>/scripts/PreviewRenderer.js' '<页目录>/previewdist/' && cp -r '<DirCoder>/scripts/previewdist/assets/'* '<页目录>/previewdist/assets/' && cp -r '<DirCoder>/scripts/previewdist/uploads/'* '<页目录>/previewdist/uploads/'
+```
 
 > ⚠️ 含二进制 assets（约 21.6MB），**禁止**用 Read/Write 工具复制（超长行截断 + 二进制损坏），必须走 shell 复制命令。
 

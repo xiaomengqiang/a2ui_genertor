@@ -17,6 +17,8 @@ const item = { icon: "home", label: "首页" };
 <Icon name={open ? "chevron-up" : "chevron-down"} />
 
 <Icon src="./assets/uploads/logo.svg" size="2rem" />
+
+<Icon name="trash-2" size="1rem" title="删除" onClick={() => del(row.id)} />
 ```
 
 ## 图标尺寸（Size）
@@ -47,6 +49,8 @@ const item = { icon: "home", label: "首页" };
 | `className` | string | `""` | CSS 类（间距/hover 效果写这里） |
 | `style` | object | — | 内联样式 |
 | `strokeWidth` | number | `2` | 描边宽度（name 模式） |
+| `onClick` | function | — | 点击回调；设置后自动带 `cursor: pointer` |
+| `title` | string | — | 悬停提示文案（可点击图标必须配，说明操作含义） |
 
 ## name 模式规则（默认）
 
