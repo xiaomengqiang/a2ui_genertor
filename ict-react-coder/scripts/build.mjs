@@ -252,7 +252,7 @@ if (bannedHits.length) {
 }
 
 // --- Banned antd props ---
-const PROPS_BANNED = ["addonAfter"];
+const PROPS_BANNED = ["addonAfter", "prefix"];
 const propBannedHits = [];
 for (const mod of modules) {
   for (const p of PROPS_BANNED) {
@@ -261,7 +261,7 @@ for (const mod of modules) {
   }
 }
 if (propBannedHits.length) {
-  console.error("FAIL  禁用的 antd 属性 — 附加文字/单位用 suffix 或控件外的独立文本:");
+  console.error("FAIL  禁用的 antd 属性 — 附加内容用 suffix 或控件外独立文本:");
   for (const h of [...new Set(propBannedHits)]) console.error(`  ${h}`);
   process.exit(1);
 }
