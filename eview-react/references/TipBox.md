@@ -13,7 +13,7 @@ TipBox 是悬停 / 点击 / 聚焦触发的气泡卡片：标题 + 内容（可 
 | 悬浮说明、字段帮助 | `TipBox type="simple" content="…"` 包裹目标 | antd `Tooltip title` / `Popover` |
 | 图标按钮的提示 | `IconButton tipText`（[Icon.md](Icon.md)，内部就是 TipBox） | 再包一层 TipBox |
 | 表格单元格溢出提示 | `Table` 列 `tipFormatter`（[Table.md](Table.md)） | 每格包 TipBox |
-| 需要用户操作的浮层 | `Dialog` / `PopUpMenu`（未覆盖） | TipBox 塞按钮 |
+| 需要用户操作的浮层 | [Dialog](Dialog.md) / [PopUpMenu](PopUpMenu.md) | TipBox 塞按钮 |
 
 ## 2. 典型场景
 

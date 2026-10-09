@@ -2,7 +2,7 @@
 
 > ⚠️ **组件不发请求**。用户点"上传"按钮只会触发 `handleSubmit({ event, data })`，请求、进度、成功失败都由业务代码做，再通过 `updateProgressStatus` / `fileUploadStatus` 两个按文件名索引的对象回写给组件（所有官方 demo 都是这个套路）。
 > ⚠️ 禁用属性是 **`disable`**（不是 `disabled`）。
-> ⚠️ `enableProgress` API 表注明"只支持单个文件"，但 `FileUploadMulti.jsx` 在 `type="multi"` 下也开了它 → 按 demo 可用，多文件时以实测为准。
+> ⚠️ 核验的 3.10 源码线不读取 `enableProgress` prop，传 true/false 都不能控制进度。单文件、多文件均通过 `updateProgressStatus` / `fileUploadStatus` 按文件名更新逐文件进度与状态。
 > ⚠️ `handleSubmit` 拿到的 `data` 每项在 demo 里按 `item.name` / `item.data`（原生 File）取用（`formData.append('uploads', files[file].data)`），类型表写的是 `File[]`，以 demo 为准。
 
 ## 1. 功能定位
@@ -67,12 +67,11 @@ const handleSubmit = async ({ data }: { event: any; data: any[] }) => {
   accept=".png,.svg,.xlsx"
   isAcceptValidate                                    // 不加这个，accept 只影响选择框过滤，不校验
   maxSize="10MB"
-  enableProgress
   updateProgressStatus={progress}
   fileUploadStatus={status}
   handleSubmit={handleSubmit}
   onReload={({ event, data }) => handleSubmit({ event, data: data.filter((f) => f.name === event.title) })}  // 失败重传
-  onFileClose={(event) => { /* 用户移除文件：同步删掉 progress/status/uploadedIds 里对应项 */ }}
+  onFileClose={(event, index) => { /* event.title 是文件名，index 是当前列表下标；同步清理对应记录 */ }}
   onCancelUpload={() => { /* 取消：中止请求，清空 progress/status */ }}
 />
 ```
@@ -120,7 +119,7 @@ interface UploadItem {
 - 选择文件 → `onChange(event, itemList)` → 可在此做业务侧预检或直接自动上传
 - 点上传 → `handleSubmit` → 每个文件 `loading` → 进度回写 → `success` / `fail`
 - `fail` 的文件出现"重新上传" → `onReload({ event, data })`，`event.title` 是文件名，只重传该文件
-- 用户删除文件 → `onFileClose(event)` → 同步清理 map 与已上传 id；`onCancelUpload` → 中止进行中的请求
+- 用户删除文件 → `onFileClose(event, index)`：`event = { event: 鼠标或键盘事件, title: 文件名 }`，没有 `id/uid/index` 字段；可用 `title` 或第二参下标定位，再清理 map 与已上传 id；`onCancelUpload` → 中止进行中的请求
 - 全部 `success` → 表单提交按钮解锁；有 `loading` 时提交按钮 `disabled`
 - 表单重置 → 清空两个 map 和 `uploadedIds`（`fileList` 可控制已上传列表）
 
@@ -173,11 +172,9 @@ export default function AttachmentUploader() {
     }
   };
 
-  const handleFileClose = (event: any) => {
-    // 用户移除文件后清理对应记录；event 结构按实际字段取文件名
-    const name: string | undefined = event?.title ?? event?.name;
-    if (!name) return;
-    const drop = (prev: Record<string, any>) => {
+  const handleFileClose = (event: { title: string }, index: number) => {
+    const name = event.title;                 // index 是当前列表下标；按文件名清理业务记录
+    const drop = <T,>(prev: Record<string, T>) => {
       const next = { ...prev };
       delete next[name];
       return next;
@@ -200,7 +197,6 @@ export default function AttachmentUploader() {
         accept=".png,.svg,.xlsx"
         isAcceptValidate
         maxSize="10MB"
-        enableProgress
         buttonText="开始上传"
         updateProgressStatus={progress}
         fileUploadStatus={status}
@@ -272,12 +268,12 @@ setProgress({ 0: 50 });
 | `validator` | `(itemList) => { result, message }` | 点上传时校验，`result: true` 放行 |
 | `handleSubmit` | `({ event, data }) => void` | 点上传按钮的回调，**业务在此发请求** |
 | `onChange` | `(event, itemList) => void` | 选择文件变化 |
-| `onFileClose` | `(event) => void` | 删除文件 |
+| `onFileClose` | `(event: { event, title: string }, index: number) => void` | title 为文件名，第二参为当前列表下标；事件无 id/uid/index |
 | `onCancelUpload` | `() => void` | 取消上传 |
 | `onReload` | `({ event, data }) => void` | 失败重传；`event.title` 是文件名 |
 | `onFileItemClick` | `({ event, index, data }) => void` | 点击某个文件 |
-| `enableProgress` | `boolean`，默认 `false` | 显示进度条（表注单文件；demo 多文件亦用） |
-| `updateProgressStatus` | `{ [fileName]: number }` | 进度百分比回写 |
+| `enableProgress` | `boolean`（历史声明） | 核验的 3.10 源码线不消费此 prop，无控制效果 |
+| `updateProgressStatus` | `{ [fileName]: number }` | 单 / 多文件均逐文件回写百分比，不是整体进度 |
 | `fileUploadStatus` | `{ [fileName]: 'loading' \| 'fail' \| 'success' \| 'added' \| '' }` | 状态回写 |
 | `IsStepFileUpload` | `boolean`，默认 `false` | multi 下按序逐个上传并显示第几个 |
 | `fileList` | `File[]` | 已上传文件列表 |

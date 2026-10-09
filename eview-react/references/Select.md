@@ -11,7 +11,7 @@ Select 是单选下拉框：`options` 数组驱动，每项 `text` 显示、`val
 | 多选下拉 | `MultipleSelect`（[MultipleSelect.md](MultipleSelect.md)） | `Select` 加 `multiple` |
 | 可输入 + 下拉建议 | `InputSelect`（[InputSelect.md](InputSelect.md)） | `Select` 加 `showSearch` |
 | 树形下拉 | `TreeSelect`（[TreeSelect.md](TreeSelect.md)） | — |
-| 级联 | `Cascader`（[Cascader.md](Cascader.md)） | — |
+| 级联 | 多个 Select 联动；[Cascader](Cascader.md) 仅在目标版本确认提供时使用 | 核验的3.10源码线无 Cascader |
 
 ## 2. 典型场景
 

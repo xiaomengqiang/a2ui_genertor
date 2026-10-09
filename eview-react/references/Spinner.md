@@ -1,7 +1,7 @@
 # Spinner 组件功能逻辑规格（数字微调器，即 InputNumber）
 
 > ⚠️ eview-react **没有 `InputNumber`**，数字输入 + 加减按钮就是 `Spinner`（"微调器允许用户通过鼠标或键盘，输入范围内的数值"）。它不是 loading 转圈——那是 `Loading` / `Loader`。
-> ⚠️ `value` 从外部更新时输入框默认会**抢焦点**（`doNotFocusWhenValueUpdate` 说明"默认会获取"），程序化改值（如重置、联动）要传 `doNotFocusWhenValueUpdate`。
+> 核验的 3.10 源码线中，程序化更新 `value` 默认不抢焦点；`doNotFocusWhenValueUpdate` 对应逻辑已注释，传入无效果。时间型会恢复光标选择范围，不等于调用 focus。
 
 ## 1. 功能定位
 
@@ -11,7 +11,7 @@ Spinner 是带加减按钮的数值输入框：范围、步长、精度、必填
 |-----------|--------|--------|
 | 数量 / 端口 / 超时秒数等数值输入 | `Spinner` | antd `InputNumber`、`TextField format="number"` 手写加减 |
 | 拖动选值、看范围 | `DragInput`（[DragInput.md](DragInput.md)） | Spinner |
-| 时:分:秒 输入 | `Spinner type="time"` | TimePicker（未覆盖，另有日期语义） |
+| 时:分:秒 输入 | 步进编辑用 `Spinner type="time"`；弹层选择用 [TimePicker](TimePicker.md) | 用日期组件处理纯时间步进输入 |
 | 加载中转圈 | `Loading` / `Loader`（[Loading.md](Loading.md)） | Spinner |
 
 ## 2. 典型场景
@@ -48,9 +48,8 @@ const [checkTime, setCheckTime] = useState<string>('08:00');
   required
   hintType="tip"
   value={retry}
-  doNotFocusWhenValueUpdate                       // 外部改值时不抢焦点
-  onChange={(value: number) => {                  // 有效值
-    setRetry(value);
+  onChange={(value: number | string) => {         // 有效值
+    setRetry(Number(value));
     setRetryError('');
   }}
   onInputError={(value) => setRetryError(`"${value}" 超出 0-10`)}   // 无效值（超范围 / 非数字）
@@ -61,15 +60,15 @@ const [checkTime, setCheckTime] = useState<string>('08:00');
 ### 离散范围 / 循环 / 精度
 
 ```tsx
-<Spinner rangeArray={[[1, 3], [6, 9], [12, 15]]} value={v} onChange={(n: number) => setV(n)} />   // 4、5、10、11 视为错误值
-<Spinner min={0} max={359} minMaxCycle value={angle} onChange={(n: number) => setAngle(n)} />        // 到最大值继续加回到最小值
-<Spinner min={0} max={1} step={0.05} precision={2} value={ratio} onChange={(n: number) => setRatio(n)} />
+<Spinner rangeArray={[[1, 3], [6, 9], [12, 15]]} value={v} onChange={(n: number | string) => setV(Number(n))} />   // 4、5、10、11 视为错误值
+<Spinner min={0} max={359} minMaxCycle value={angle} onChange={(n: number | string) => setAngle(Number(n))} />        // 到最大值继续加回到最小值
+<Spinner min={0} max={1} step={0.05} precision={2} value={ratio} onChange={(n: number | string) => setRatio(Number(n))} />
 ```
 
 ### 时间型
 
 ```tsx
-<Spinner type="time" timeFormat="hh:mm" value={checkTime} onChange={(v: string) => setCheckTime(v)} />
+<Spinner type="time" timeFormat="hh:mm" value={checkTime} onChange={(v: number | string) => setCheckTime(String(v))} />
 <Spinner type="time" timeFormat="hh:mm:ss" amPm value="11:33:26 AM" />
 ```
 
@@ -95,7 +94,7 @@ interface RetryPolicy {
 - 有效值变化 → 计算派生值（总时长 = 次数 × 间隔）实时显示
 - `onInputError` → 提交按钮 `disabled` 并显示错误；`onChange` 有效值后清除
 - 上级开关关闭（如"启用重试"取消勾选）→ Spinner `disabled`，值保留
-- 重置表单 → 程序化 `setRetry(默认)`，需 `doNotFocusWhenValueUpdate` 防止焦点跳到 Spinner
+- 重置表单 → 程序化 `setRetry(默认)`，不需要设置无效的焦点 prop；组件收到 props 时会再次同步 value，避免无意义回写。是否有特定光标跳动或死循环场景仍未确认，不据此宣称一定发生。
 - 在 Form.Item 内使用时不传 `value` / `onChange`，交给 Form
 
 ## 7. 完整代码示例
@@ -148,9 +147,8 @@ export default function RetryPolicyForm() {
         required
         hintType="tip"
         disabled={!enabled}
-        doNotFocusWhenValueUpdate
         value={policy.retryCount}
-        onChange={(value: number) => setField('retryCount', value)}
+        onChange={(value) => setField('retryCount', Number(value))}
         onInputError={(value) => setError('retryCount', `次数 "${value}" 超出 0-10`)}
       />
       <Spinner
@@ -159,9 +157,8 @@ export default function RetryPolicyForm() {
         max={300}
         step={5}
         disabled={!enabled}
-        doNotFocusWhenValueUpdate
         value={policy.intervalSec}
-        onChange={(value: number) => setField('intervalSec', value)}
+        onChange={(value) => setField('intervalSec', Number(value))}
         onInputError={(value) => setError('intervalSec', `间隔 "${value}" 超出 5-300`)}
       />
       <Spinner
@@ -169,9 +166,8 @@ export default function RetryPolicyForm() {
         type="time"
         timeFormat="hh:mm"
         disabled={!enabled}
-        doNotFocusWhenValueUpdate
         value={policy.windowStart}
-        onChange={(value: string) => setField('windowStart', value)}
+        onChange={(value) => setField('windowStart', String(value))}
       />
 
       <div style={{ color: hasError ? '#f43146' : '#676767' }}>
@@ -205,8 +201,8 @@ export default function RetryPolicyForm() {
 // ❌ 用 TextField + 两个 Button 手写加减，放弃了范围 / 步长 / 失焦修正
 <Button text="-" /><TextField format="number" value={n} /><Button text="+" />
 
-// ❌ 程序化改值不加 doNotFocusWhenValueUpdate，"重置"后焦点跳进 Spinner
-<Spinner value={policy.retryCount} onChange={...} />
+// ❌ 依赖历史 prop 改变聚焦行为；该源码线传 true/false 都无控制效果
+<Spinner doNotFocusWhenValueUpdate={false} value={policy.retryCount} />
 
 // ❌ 只接 onChange 不接 onInputError，用户输 999 时没有任何提示（onChange 不会触发）
 <Spinner min={0} max={10} value={n} onChange={setN} />
@@ -227,14 +223,14 @@ export default function RetryPolicyForm() {
 | `precision` | `number`，默认 `0` | 小数位 |
 | `rangeArray` | `number[][]`，如 `[[1,3],[6,7]]` | 离散合法区间 |
 | `minMaxCycle` | `boolean`，默认 `false` | 到边界后循环 |
-| `onChange` | `(value) => void` | **有效值**时触发 |
+| `onChange` | `(value: number \| string) => void` | **有效值**时触发 |
 | `onInputError` | `(value) => void` | 无效值时触发 |
 | `onBlur` | `(value) => void` | 失焦（组件已自动修正）；`disabledBlurFunction` 可禁用修正 |
 | `onFocus` | `(event) => void` | 聚焦 |
 | `onPressEnter` | `(value) => void` | 回车 |
 | `required` | `boolean`，默认 `false` | 必填 + 非空校验 |
 | `disabled` | `boolean`，默认 `false` | 灰化 |
-| `doNotFocusWhenValueUpdate` | `boolean` | 值更新时不抢焦点（默认会） |
+| `doNotFocusWhenValueUpdate` | `boolean`（历史声明） | 核验的 3.10 源码线无效，无须设置 |
 | `type` | `'number' \| 'time' \| 'customWithPrefixs'`，默认 `number` | 数字 / 时间 / 自定义前缀 |
 | `timeFormat` / `amPm` / `locale` | `'hh:mm:ss' \| 'hh:mm'` / `boolean` / `'en' \| 'zh'` | 时间型格式 |
 | `customPrefix` / `onCustomIncOrDecClick` | `string` / `(changeTag, direction, value) => void` | 自定义前缀型（demo SpinnerCustomPrefix） |

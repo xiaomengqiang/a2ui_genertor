@@ -1,6 +1,6 @@
 # Radio 组件功能逻辑规格（含 RadioGroup）
 
-> ⚠️ **资料矛盾，未决**：`RadioGroup.onChange` 的类型声明是 `(oldValue, value, event)`，而同一份 API 表的文字描述是"value 当前选中值，oldValue 上次选中值"（与 CheckboxGroup 一致）；全部官方示例里没有任何一处调用该回调。本文 §4 给出**两种顺序都正确**的写法，并在 TODO 里登记实测任务。
+> ⚠️ 核验的 3.10 源码线中，`RadioGroup.onChange(value, oldValue, event)` **第一参是新值、第二参是旧值**；类型声明的参数名称写反，按此运行时顺序处理。受控使用须传 `isControlled`。
 
 ## 1. 功能定位
 
@@ -41,7 +41,7 @@ const [mode, setMode] = useState<string>('quick');
 </Form.Item>
 ```
 
-### 独立使用：isControlled + value + onChange（回调参数顺序两头兼容）
+### 独立使用：isControlled + value + onChange（新值在第一参）
 
 ```tsx
 <RadioGroup
@@ -50,12 +50,7 @@ const [mode, setMode] = useState<string>('quick');
   required
   data={modeData}
   value={mode}
-  onChange={(a: string, b: string, event) => {
-    // ⚠️ 参数顺序在资料中冲突（见文件头）。两个参数里一个是旧值一个是新值，
-    // 与当前 state 相等的那个是旧值，另一个就是新值 —— 两种顺序下都成立。
-    const next = a === mode ? b : a;
-    setMode(next);
-  }}
+  onChange={(value: string, oldValue: string, event) => setMode(value)}
 />
 ```
 
@@ -122,11 +117,7 @@ export default function CreateWizardStep() {
   const [template, setTemplate] = useState<string>('');
   const [summary, setSummary] = useState<string>('');
 
-  // 兼容两种参数顺序：与当前值相等的是旧值，另一个是新值
-  const pickNext = (current: string, a: string, b: string) => (a === current ? b : a);
-
-  const handleModeChange = (a: string, b: string) => {
-    const next = pickNext(mode, a, b);
+  const handleModeChange = (next: string) => {
     setMode(next);
     if (next !== 'custom') setTemplate('');       // 切走时清空被隐藏字段
     setSummary('');
@@ -167,7 +158,7 @@ export default function CreateWizardStep() {
         isControlled
         data={rangeData}
         value={range}
-        onChange={(a: string, b: string) => setRange(pickNext(range, a, b))}
+        onChange={(value: string) => setRange(value)}
       />
 
       {summary ? <div>{summary}</div> : null}
@@ -198,11 +189,11 @@ export default function CreateWizardStep() {
 // ❌ 想用 state 驱动（重置回默认）却没传 isControlled，setMode 后界面不动
 <RadioGroup data={modeData} value={mode} onChange={...} />
 
-// ❌ 盲信某一个参数位置是新值（资料冲突未决），有 50% 概率永远拿到旧值
-<RadioGroup isControlled value={mode} onChange={(value) => setMode(value)} />
+// ❌ 把第二参当新值；它是上次选中值
+<RadioGroup isControlled value={mode} onChange={(value, oldValue) => setMode(oldValue)} />
 
 // ❌ 切换模式后不清理被隐藏区块的值，提交时带上脏数据
-const handleModeChange = (a, b) => setMode(a === mode ? b : a);   // 少了 setTemplate('')
+const handleModeChange = (value) => setMode(value);   // 少了 setTemplate('')
 ```
 
 ## 9. API 速查
@@ -222,7 +213,7 @@ const handleModeChange = (a, b) => setMode(a === mode ? b : a);   // 少了 setT
 | `Radio.isControlled` | `boolean` | 设为受控组件 |
 | `RadioGroup.data` | `Array<{ value, text, checked? }>` | 选项数据（**唯一**传选项的方式） |
 | `RadioGroup.value` | `any` | 选中值 |
-| `RadioGroup.onChange` | 类型 `(oldValue, value, event)`；描述 `(value, oldValue, event)` | **顺序冲突未决**，按 §4 写法兼容 |
+| `RadioGroup.onChange` | `(value, oldValue, event) => void` | 新值在第一参；未选中过时旧值为 `''`；旧类型参数名写反 |
 | `RadioGroup.isControlled` | `boolean` | 设为受控组件；要用 state 驱动必传 |
 | `RadioGroup.required` / `disabled` | `boolean`，默认 `false` | 必填 / 灰化 |
 | `RadioGroup.type` | `'vertical' \| 'horizontal'`，默认 `horizontal` | 排布方向 |

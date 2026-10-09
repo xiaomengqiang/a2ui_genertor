@@ -123,3 +123,8 @@ const handleSubmit = () => {
 | `inputStyle` / `labelStyle` / `containerStyle` / `tipStyle` | `CSSProperties` | 局部样式 |
 | `enableFixWidth` | `'small' \| 'middle' \| 'large' \| 'none'`，默认 `none` | label 与输入框间隔 |
 | `ref.getValue()` / `ref.validate()` / `ref.focus()` | 命令式方法 | 取值 / 触发校验（返回 boolean）/ 聚焦 |
+
+## 6. 常后缀单位的输入
+带后缀单位的输入：`suffix="Mbps"`
+后缀图标：`suffix={<Icon />}`
+如果Antd中的代码使用了前缀，用`suffix`代替前缀图标

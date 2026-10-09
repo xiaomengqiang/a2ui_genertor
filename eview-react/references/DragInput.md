@@ -1,6 +1,6 @@
 # DragInput 组件功能逻辑规格（官网页面名：Slider / 滑动输入器）
 
-> ⚠️ **导入名是 `DragInput`**：`import DragInput from '@nce/eview-react/DragInput'`。官网页面叫 Slider，但 `Slider` 不在导出清单里，demo 全部导入 `DragInput`。
+> 默认用 `DragInput` 导入。核验的 3.10 源码线中它是 Slider 的别名，但根入口只导出 `DragInput`，没有 `Slider`；发布包 3.10.28 已确认可用 `import Slider from '@nce/eview-react/Slider'` 默认导入，其他版本先核对。
 > ⚠️ `value` **永远是数组**：单滑块 `[v]`，区间 `[min, max]`；`onChange` 第一个参数也是数组。
 > ⚠️ demo 里用到的 `onBlur` / `onFocus` 不在 API 表中，不要依赖。
 
@@ -191,8 +191,8 @@ export default function QosConfig() {
 ## 8. 反面示例
 
 ```tsx
-// ❌ 导入不存在的名字（官网页面叫 Slider，导出名是 DragInput）
-import Slider from '@nce/eview-react/Slider';
+// ❌ 从根入口导入未导出的别名；默认使用 DragInput
+import { Slider } from '@nce/eview-react';
 
 // ❌ antd 习惯：没有 range 布尔、marks 对象、tooltip、onAfterChange
 <Slider range marks={{ 0: '0', 100: '100' }} tooltip={{ open: true }} onAfterChange={save} />

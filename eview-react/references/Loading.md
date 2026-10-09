@@ -2,6 +2,7 @@
 
 > ⚠️ `Loader` 与 `Loading` 是**同一个组件**（Loader 只是再导出），demo 全部 `import Loader from 'eview-react/Loader'`；本文按 `Loading` 写，两者任选其一即可，不要同时用两个名字。
 > ⚠️ 显隐是 **`isOpen`**；`type="local"` 覆盖的是**最近的 `position: relative` 父容器**（demo 给外层 div 加了 `position: 'relative'`）。
+> ⚠️ `iconUrl` 非必填，global / local / micro 都有主题默认图标；只在需要自定义时传。
 > ⚠️ 不是数字微调器 —— 那是 `Spinner`（[Spinner.md](Spinner.md)）。
 
 ## 1. 功能定位
@@ -174,6 +175,6 @@ import Loader from '@nce/eview-react/Loader'; import Loading from '@nce/eview-re
 | `isOpen` | `boolean`，默认 `false` | 显隐 |
 | `type` | `'global' \| 'local' \| 'micro'`，默认 `global` | 全页 / 局部（父容器 relative）/ 微型 |
 | `desc` | `string` | 说明文字 |
-| `iconUrl` | `string \| ReactElement` | 自定义图标，默认用 icon+ 组件（表注"必填"，demo 不传也可用默认图标） |
+| `iconUrl` | `string \| ReactElement` | 可选；不传使用主题默认图标，三种 type 一致；需要自定义时可用 icon+ 组件 |
 | `textClassName` | `string` | 说明文字样式 |
 | `id` / `className` / `style` | — | 最外层（局部遮罩常需 `zIndex`） |
