@@ -93,7 +93,7 @@ Chromium 对 `file://` 页面的 fetch/XHR 一律 CORS 拦截，但**经典 `<sc
     | background | 是 | 是 → **去重** | 去掉 data.js 的 `bg-*`（容器提供）或去掉容器的类名、迁移到 data.js |
 
     任一项重复即为缺陷。**特例（容器被清空后样式失效）**：原容器有视觉样式但路线 A 替换后被清空为 `<div id="xxx"></div>`，容器自身已无子元素撑开，CSS 视觉样式残缺——此时把容器的视觉样式（padding/shadow/rounded/background）**全部迁移**到 data.js root 的 className，容器 HTML 去掉视觉类名（如去掉 `class="chart-card"`）改为纯定位锚点 `<div id="xxx"></div>`。**id 必须保留**（nodes 登记的 container 选择器靠它命中，删掉 id 挂载即失败）；禁止保留容器 CSS 样式的同时又在 data.js 中重复设。
-
+12. **PowerShell `Copy-Item -Recurse` 目标目录嵌套**：Windows 本地化拷贝时，`Copy-Item "$源\assets" "$目标\assets" -Recurse` 在目标目录不存在时，会将源 `assets` 目录**整体**（而非其内容）拷到目标路径下，产生 `previewdist/assets/assets/` 双层嵌套。渲染器内嵌元数据引用 `./assets/index.js`，解析后路径为 `previewdist/assets/index.js`——实际文件在 `previewdist/assets/assets/index.js`，路径不匹配，bundle 加载失败（「Failed to load script: ./previewdist/assets/index.js」）。**修复**：源路径末尾加 `\*` 通配符（`assets\*`），强制只拷目录内容；同时用 `New-Item` 预创建目标子目录。正确命令模板见 SKILL.md 第 1 步。
 ---
 
 ## 数据存储规则
