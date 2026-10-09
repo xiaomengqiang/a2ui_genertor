@@ -5,7 +5,7 @@
 ## 使用规则
 
 - 数字类右对齐，其余优先左对齐，操作列必须左对齐。
-- 操作列使用纯图标 Button：设置 `icon`、`shape=circle`、`size=small`，不设置 `value`。
+- 操作列直接使用 `<Icon>` 组件，不套 Button：统一 `size="0.875rem"`，图标间距统一 `1rem`，hover 用 `--color-brand`，禁用态用 `--color-text-disabled`。
 - 数据列中的链接式操作（如点击名称查看详情）使用 `<a>` 标签 + `var(--interactive-link)` + `cursor: pointer`。**不使用 `<Button type="link">`**。
 - 状态使用文本、图标或 Tag，不使用 Badge。
 
@@ -20,4 +20,4 @@
 - 不要同时设置左右固定列（`fixed: "left"` + `fixed: "right"`）— 只允许固定一侧。
 - 不要手动画分页、复选列、排序或筛选。
 - 不要把标准表格行做成 Card。
-- 不要在操作列使用文字按钮、带文字的图标按钮或 `types=link`。
+- 不要在操作列使用 Button 组件，一律使用纯图标 `<Icon>`。

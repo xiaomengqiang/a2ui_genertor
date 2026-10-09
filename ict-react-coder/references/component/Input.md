@@ -25,6 +25,7 @@
 ## Don't
 
 - 不要给 Input 使用属于 Select 的 `showSearch` 属性。
+- 不要使用 `addonAfter` 附加文字；后缀信息用 `suffix` 或控件外独立文本。
 - 不要用普通 Input 代替数字、日期、时间等已有专用组件。
 - 不要使用开发组件不存在的属性或枚举值。
 - 不要试图用 Input 组件做多行输入，多行输入应当使用 TextArea 组件。
