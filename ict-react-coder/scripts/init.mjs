@@ -99,7 +99,7 @@ import "./app.css";
 export default function App() {
   return (
     <AppProvider>
-      <ConfigProvider locale={zhCN}>
+      <ConfigProvider locale={zhCN} wave={{ disabled: true }}>
         <div className="app-root">
           {/* view mount point */}
         </div>

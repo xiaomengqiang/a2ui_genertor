@@ -5,6 +5,8 @@
 ## 使用规则
 
 - 数字类右对齐，其余优先左对齐，操作列必须左对齐。
+- 数据列默认启用内置排序 `sorter`；取值有限的列（状态、类型、归属等）启用筛选 `filters` + `onFilter`。
+- 优先使用 `size="large"`（antd 默认尺寸），高密度场景使用 `middle`。
 - 操作列直接使用 `<Icon>` 组件，不套 Button：统一 `size="0.875rem"`，图标间距统一 `1rem`，hover 用 `--color-brand`，禁用态用 `--color-text-disabled`。
 - 数据列中的链接式操作（如点击名称查看详情）使用 `<a>` 标签 + `var(--interactive-link)` + `cursor: pointer`。**不使用 `<Button type="link">`**。
 - 状态使用文本、图标或 Tag，不使用 Badge。

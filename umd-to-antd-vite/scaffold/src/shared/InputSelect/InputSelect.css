@@ -1,0 +1,12 @@
+.evInputSelect-custom {
+    width: 100%;
+    min-width: 0;
+}
+
+.evInputSelect-custom .ev_select {
+    width: inherit;
+}
+
+.evInputSelect-custom .ev_select_div {
+    width: 100%;
+}

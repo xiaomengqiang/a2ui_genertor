@@ -23,15 +23,15 @@
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
 | `Input` | `TextField` | `onChange(value, oldValue, event)` 首参是值；`validator` 返回 `{result,message}`；`required` 自带星号；无 `allowClear`/`prefix`/`rules`/`onPressEnter`；⚠️ 导入 `@/shared/TextField`（包壳，非 `@nce/eview-react/TextField`） |
-| `Input.TextArea` | `TextArea` | `onChange(targetValue, value, event)`；`onBlur(event)` 无 value；`maxLength` 自带右下角计数（替代 `showCount`）；无 `autoSize`/`allowClear`；无 ref 方法 |
-| `Input.Search` | `SearchInput` | `onSearch` 值变化也触发（需防抖）；`onClear(value)`；`placeholder` 保留；`onSuggest` vs `popItems` 互斥 |
+| `Input.TextArea` | `TextArea` | `onChange(targetValue, value, event)`；`onBlur(event)` 无 value；`maxLength` 自带右下角计数（替代 `showCount`）；无 `autoSize`/`allowClear`；无 ref 方法；⚠️ 导入 `@/shared/TextArea`（包壳，非 `@nce/eview-react/TextArea`） |
+| `Input.Search` | `SearchInput` | `onSearch` 值变化也触发（需防抖）；`onClear(value)`；`placeholder` 保留；`onSuggest` vs `popItems` 互斥；⚠️ 导入 `@/shared/SearchInput`（包壳，非 `@nce/eview-react/SearchInput`） |
 | `Input.Password` | `TextField type="password"` | 需 `isAllowToModifyPasswordByProps` 才能 props 清空/回填；`autoComplete="off"` |
 | `InputNumber` | `Spinner` | `onChange(value)` 只在有效值触发；`onInputError(value)` 接无效值；重置加 `doNotFocusWhenValueUpdate`；`min/max/step/precision` |
 | `Mentions` | 手写 | 无对应 |
 | `Select` | `Select` | `options` 字段 `label`→`text`；`placeholder`→`defaultLabel`；`onChange(value, oldValue, text, oldText, event)` 五参；`enableClear`；`virtualScroll` >100 项；⚠️ 导入 `@/shared/Select`（包壳，非 `@nce/eview-react/Select`） |
-| `Select mode="multiple"` | `MultipleSelect` | 删 `mode`；`value` 数组；`onChange(value[], changeValue[], event)`；`placeholder`（不是 defaultLabel）；`selectAll`/`searchable` |
-| `Select showSearch` | `InputSelect` | `onlySelect` 决定输入是否可作值；`options=[{text,value}]` |
-| `AutoComplete` | `InputSelect` | 同上 |
+| `Select mode="multiple"` | `MultipleSelect` | 删 `mode`；`value` 数组；`onChange(value[], changeValue[], event)`；`placeholder`（不是 defaultLabel）；`selectAll`/`searchable`；⚠️ 导入 `@/shared/MultipleSelect`（包壳，非 `@nce/eview-react/MultipleSelect`） |
+| `Select showSearch` | `InputSelect` | `onlySelect` 决定输入是否可作值；`options=[{text,value}]`；⚠️ 导入 `@/shared/InputSelect`（包壳，非 `@nce/eview-react/InputSelect`） |
+| `AutoComplete` | `InputSelect` | 同上（⚠️ 导入 `@/shared/InputSelect`） |
 | `Cascader` | `PopupMenu` | 查阅 [PopupMenu.md](components/PopupMenu.md) |
 | `TreeSelect` | `TreeSelect` | `treeData`；`onChange(selectNode[])` 节点对象数组；`enableCheckbox` |
 | `Checkbox` | `Checkbox` | `onChange(value, checked, event, additionalData)`；`onPreChange` 拦截 |

@@ -1,5 +1,7 @@
 # SearchInput 组件功能逻辑规格
 
+> 导入：`import SearchInput from '@/shared/SearchInput'`（scaffold 包壳，透明转发 `@nce/eview-react/SearchInput`，API 不变）。
+
 > 资料来源：TypeDoc `SearchInput/type` + 官网 Search 页示例。
 > ⚠️ `onSearch` 的触发时机按 API 表是"点击搜索图标、按回车、**或文本值变化**"三种 —— 放在 `onSearch` 里的请求必须防抖 / 防重复，不要假设它只在回车时触发。
 > ⚠️ **资料冲突**：`onItemClick` 类型为 `(value, obj)`，但 demo 把**第一个参数**当成选项对象用（`obj.value` / `obj.text`）。§2 给出两种情况都成立的写法，已登记待实测。
