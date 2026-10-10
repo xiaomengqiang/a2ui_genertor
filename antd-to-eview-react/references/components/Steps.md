@@ -1,9 +1,8 @@
 # Steps 组件功能逻辑规格
 
-> 资料来源：官网 Steps 页 props 表（`__docs__/API.md`）+ 示例；旧名对照 TypeDoc `Wizards/Wizards`。
-> ⚠️ `Steps` 没有 TypeDoc 类型表，以官网组件页 props 表为准；组件页标题仍写 "Wizards"，示例也写 `import Wizards from 'eview-react/Steps'`，**导入路径是 `Steps`**，`Wizards` 是同时保留的旧组件。
 > ⚠️ `currentStep` 对应 `data[].value`（不是下标）；`onClick(index)` 给的是**下标**，与 `currentStep` 不同源。
 > ⚠️ `direction="vertical"` 只在 demo 出现，API 表未列 → 可用但标注来源。
+> ⚠️ **antd 默认形态（文字在图标右侧）对应 eview-react `labelPlacement="horizontal"`**——eview-react 默认是 `vertical`（文字在图标下方），迁移时务必显式设为 `horizontal`，否则视觉与 antd 不一致。
 
 ## 1. 功能定位
 
@@ -113,8 +112,8 @@ import Wizards from '@nce/eview-react/Wizards';
 | `currentStep` | `string \| number`，默认 `0` | 当前步骤，**对应 `data[].value`** |
 | `disabled` | `boolean`，默认 `false` | 整条禁用 |
 | `onClick` | `(index: number) => void`（3.5.16） | 点击步骤，参数是**下标** |
-| `labelPlacement` | `'vertical' \| 'horizontal'`，默认 `vertical`（3.6.10） | 文字在图标下方 / 右侧 |
-| `direction` | `'vertical'`（仅 demo） | 竖排步骤条 |
+| `labelPlacement` | `'vertical' \| 'horizontal'`，默认 `vertical`（3.6.10） | 文字在图标下方 / 右侧；**antd 默认 = `horizontal`，迁移须显式指定** |
+| `direction` | `'vertical'` | 竖排步骤条 |
 | `wizardTextStyle` | `CSSProperties` | 每步文字样式 |
 | `id` / `className` / `style` | — | 外层容器 |
 | `Item.text` / `Item.value` | `string` / `string \| number`，**必填** | 标题 / 序号 |

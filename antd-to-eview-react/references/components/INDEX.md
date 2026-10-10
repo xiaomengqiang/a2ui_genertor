@@ -14,7 +14,6 @@
 | InputSelect | [InputSelect.md](InputSelect.md) | 自动补全（AutoComplete） |
 | Select | [Select.md](Select.md) | 下拉选择（Select） |
 | MultipleSelect | [MultipleSelect.md](MultipleSelect.md) | 多选下拉（Select multiple） |
-| Cascader | [Cascader.md](Cascader.md) | 级联选择（Cascader） |
 | TreeSelect | [TreeSelect.md](TreeSelect.md) | 树选择（TreeSelect） |
 | Checkbox | [Checkbox.md](Checkbox.md) | 复选框（Checkbox/Checkbox.Group） |
 | Radio | [Radio.md](Radio.md) | 单选（Radio/Radio.Group） |

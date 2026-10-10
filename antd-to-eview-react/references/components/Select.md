@@ -16,7 +16,6 @@ Select 是单选下拉框：`options` 数组驱动，每项 `text` 显示、`val
 | 多选下拉 | `MultipleSelect`（[MultipleSelect.md](MultipleSelect.md)） | `Select` 加 `multiple` |
 | 可输入 + 下拉建议 | `InputSelect`（第二批） | `Select` 加 `showSearch` |
 | 树形下拉 | `TreeSelect`（[TreeSelect.md](TreeSelect.md)） | — |
-| 级联 | `Cascader`（[Cascader.md](Cascader.md)） | — |
 
 ## 2. 事件与交互逻辑
 
@@ -140,5 +139,5 @@ const handleProvinceChange = (v) => { setProvince(v); loadCities(v); };
 | `popupDirection` | `'top' \| 'bottom'`，默认 `bottom` | 弹出方向 |
 | `lazySearch` | `{ 总记录, onLoadRecords }` | 分页懒加载建议列表 |
 | `zindex` / `autoZindex` | `string` / `boolean` | 弹层层级 |
-| `selectStyle` / `selectClassName` / `optionStyle` / `optionClassName` | 样式 | 选择框 / 选项样式 |
+| `style` | `CSSProperties` | 样式 |
 | `ref.getValue()` / `ref.validate()` / `ref.focus()` / `ref.clear()` | 命令式方法 | 取值 / 校验 / 聚焦 / 清空 |

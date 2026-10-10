@@ -32,7 +32,7 @@
 | `Select mode="multiple"` | `MultipleSelect` | 删 `mode`；`value` 数组；`onChange(value[], changeValue[], event)`；`placeholder`（不是 defaultLabel）；`selectAll`/`searchable` |
 | `Select showSearch` | `InputSelect` | `onlySelect` 决定输入是否可作值；`options=[{text,value}]` |
 | `AutoComplete` | `InputSelect` | 同上 |
-| `Cascader` | `Cascader` | **唯一用 `label`**（不是 text）；`selectedValue` 路径数组；`changeOnSelect`；`multiple + multiLimit` |
+| `Cascader` | `PopupMenu` | 查阅 [PopupMenu.md](components/PopupMenu.md) |
 | `TreeSelect` | `TreeSelect` | `treeData`；`onChange(selectNode[])` 节点对象数组；`enableCheckbox` |
 | `Checkbox` | `Checkbox` | `onChange(value, checked, event, additionalData)`；`onPreChange` 拦截 |
 | `Checkbox.Group` | `CheckboxGroup` | `data=[{text,value}]`；`value[]`；`selectAll`；`rows` |
