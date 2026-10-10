@@ -2,6 +2,8 @@
 
 迁移时按需查阅对应文档。组件映射总表见 [../component-mapping.md](../component-mapping.md)。
 
+> **包壳组件**：`Select`、`TextField` 为 scaffold 预置包壳，从 `@/shared/<X>` 导入（API 同 `@nce/eview-react/<X>`，透明转发），不走 `@nce/eview-react/<X>`。清单见 SKILL.md 硬约束 #1。
+
 ## 表单与输入
 
 | 组件 | 文档 | 用途（antd 对应） |
@@ -60,4 +62,4 @@
 | Divider | [Divider.md](Divider.md) | 分割线（Divider） |
 | Steps | [Steps.md](Steps.md) | 步骤条（Steps） |
 | Paging | [Paging.md](Paging.md) | 分页（Pagination） |
-| Icon | [Icon.md](Icon.md) | 图标（icon+ / IconButton） |
+| Icon | [Icon.md](Icon.md) | 图标（icon+） |

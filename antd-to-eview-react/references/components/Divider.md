@@ -67,7 +67,7 @@ Divider 是内容分割线：水平（默认）或垂直，可虚线，可带标
 ```tsx
 import React, { useState } from 'react';
 import Divider from '@nce/eview-react/Divider';
-import TextField from '@nce/eview-react/TextField';
+import TextField from '@/shared/TextField';
 import Checkbox from '@nce/eview-react/Checkbox';
 import Button from '@nce/eview-react/Button';
 

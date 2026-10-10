@@ -99,7 +99,7 @@ index.page.html (~2000 行)
 
 ### 5.2 转换时保留原版
 
-本 skill **不剥离 Lucide 兜底**（那是 antd-to-eview-react scaffold shim 的工作）。搬入源项目的 `icon.jsx` 原版，保留三层结构。
+本 skill **不剥离 Lucide 兜底**（那是 antd-to-eview-react scaffold shim 的工作）。搬入源项目的 `icon.jsx` 内容到 `src/shared/Icon/Icon.jsx`（`export function Icon`→`export default function Icon`，scaffold 的 `index.jsx` 桶 `export { default } from './Icon.jsx'` 已就位），保留三层结构；shim 最终路径 `src/shared/Icon`（默认导出）。
 
 ### 5.3 vite.config.js 的 icon-plus proxy
 

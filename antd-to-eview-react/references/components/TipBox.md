@@ -13,7 +13,7 @@ TipBox 是悬停 / 点击 / 聚焦触发的气泡卡片：标题 + 内容（可 
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
 | 悬浮说明、字段帮助 | `TipBox type="simple" content="…"` 包裹目标 | antd `Tooltip title` / `Popover` |
-| 图标按钮的提示 | `IconButton tipText`（[Icon.md](Icon.md)，内部就是 TipBox） | 再包一层 TipBox |
+| 图标按钮的提示 | icon+ 原生 `title` 属性（`<IconPlusIc* onClick title/>`，[Icon.md](Icon.md)） | `IconButton tipText`（已弃用）/ 再包一层 TipBox |
 | 表格单元格溢出提示 | `Table` 列 `tipFormatter`（[Table.md](Table.md)） | 每格包 TipBox |
 | 需要用户操作的浮层 | `Dialog` / `PopUpMenu`（未覆盖） | TipBox 塞按钮 |
 
@@ -69,7 +69,7 @@ type Direction = 'top' | 'topLeft' | 'topRight' | 'bottom' | 'bottomLeft' | 'bot
 ```tsx
 import React, { useState } from 'react';
 import TipBox from '@nce/eview-react/TipBox';
-import TextField from '@nce/eview-react/TextField';
+import TextField from '@/shared/TextField';
 import Button from '@nce/eview-react/Button';
 import { IconPlusIcPublicQuestion } from '@nce/icon-plus';
 

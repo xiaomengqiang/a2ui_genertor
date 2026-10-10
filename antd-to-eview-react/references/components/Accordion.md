@@ -155,11 +155,12 @@ export default function ConfigCenterNav() {
         selectedValue={selectedValue}
         onClick={handleMenuClick}
         hideTitleBar
-        enableExpand
+        enableExpand={false}
         expanded={collapsed}
         onExpand={(flag: boolean) => setCollapsed(!flag)}
         keepExpandState
         style={{ height: '100%' }}
+        hideIcons={true}
       />
       <main style={{ flex: 1, padding: 24 }}>
         {/* 真实项目中角标由轮询或推送更新 */}
@@ -219,3 +220,6 @@ export default function ConfigCenterNav() {
 | `enableMultiOpen` | `boolean`，默认 `false` | 允许同时展开多个一级菜单 |
 | `keepExpandState` | `boolean`，默认 `false` | data 变更后保留上一次的展开收起状态 |
 | 其余 | — | `isControlSelectedValue` 外部控制选中、组件不维护（⚠️ 无 demo）/ `onItemRightClick(event, node)` 右键 / `headerText` · `headerIcon` · `headerIconPosition`（`'top' \| 'left'`）标题栏文字、图标及位置 / `hideHeaderIcon` / `hideTitleTips` / `id` / `className` / `style` |
+
+## 10. 其他
+- 由于样式区别，`enableExpand`应设置为`false`，`hideIcons`应该设置为`true`，`hideTitleBar`也应设置为`true`
