@@ -182,6 +182,7 @@
 /* Input 组件样式（占位，待填充 token 映射） */
 .ant-input {
   border-radius: var(--radius-base);
+  font-size: var(--font-size-md);
 }
 input.ant-input {
   padding: 0 0.75rem;
@@ -199,12 +200,10 @@ input.ant-input::placeholder {
 }
 input.ant-input.ant-input-lg {
   height: 2.5rem;
-  padding: 0 0.75rem;
   font-size: var(--font-size-md);
   border-radius: var(--radius-base);
 }
 input.ant-input.ant-input-sm {
-  padding: 0 0.75rem;
   height: 1.75rem;
   font-size: var(--font-size-base);
   border-radius: var(--radius-base);
@@ -213,13 +212,26 @@ input.ant-input.ant-input-sm {
   padding: 0 0.75rem;
   height: 2rem;
   border-radius: var(--radius-base);
+  font-size: var(--font-size-md);
+}
+.ant-input-affix-wrapper.ant-input-affix-wrapper-sm {
+  height: 1.75rem;
+  font-size: var(--font-size-base);
+}
+.ant-input-affix-wrapper.ant-input-affix-wrapper-lg {
+  height: 2.5rem;
+  font-size: var(--font-size-md);
 }
 .ant-input-affix-wrapper .ant-input {
   height: 100%;
+  padding: 0;
 }
 .ant-input-affix-wrapper .ant-input[type="password"] {
   letter-spacing: 0.5rem;
   color: var(--color-icon-primary);
+}
+.ant-input-affix-wrapper textarea.ant-input {
+  padding: 0.3125rem 0.75rem 1rem;
 }
 .ant-input-affix-wrapper > input.ant-input {
   color: var(--color-text-primary);
@@ -244,6 +256,7 @@ input.ant-input.ant-input-sm {
 }
 .ant-input-outlined:hover {
   border-color: var(--color-border-hover);
+  background-color: var(--color-fill-subtle);
 }
 .ant-input-outlined.ant-input-status-error:not(.ant-input-disabled) {
   border-color: var(--color-error);
@@ -385,13 +398,22 @@ input.ant-input.ant-input-sm {
   background-color: var(--color-border);
 }
 .ant-input-number .ant-input-number-handler-wrap .ant-input-number-handler-down::after {
-  content: '\2212';
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  content: '';
   width: 100%;
   height: 100%;
-  font-weight: 400;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 1rem 1rem;
+  background-image: url("data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='24px'%20height='24px'%20viewBox='0%200%2024%2024'%20version='1.1'%3e%3ctitle%3eic_minus_lined%3c/title%3e%3cg%20id='ic_minus_lined'%20stroke='none'%20stroke-width='1'%20fill='none'%20fill-rule='evenodd'%3e%3cg%20id='编组'%3e%3crect%20id='矩形'%20fill='%23D8D8D8'%20opacity='0'%20x='0'%20y='0'%20width='24'%20height='24'/%3e%3cpath%20d='M20,11.25%20C20.4142136,11.25%2020.75,11.5857864%2020.75,12%20C20.75,12.3796958%2020.4678461,12.693491%2020.1017706,12.7431534%20L20,12.75%20L4,12.75%20C3.58578644,12.75%203.25,12.4142136%203.25,12%20C3.25,11.6203042%203.53215388,11.306509%203.89822944,11.2568466%20L4,11.25%20L20,11.25%20Z'%20id='Stroke-1'%20fill='%23191919'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");
+}
+.ant-input-number .ant-input-number-handler-wrap .ant-input-number-handler-down.ant-input-number-handler-down-disabled {
+  cursor: not-allowed;
+}
+.ant-input-number .ant-input-number-handler-wrap .ant-input-number-handler-down.ant-input-number-handler-down-disabled::after {
+  background-image: url("data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='24px'%20height='24px'%20viewBox='0%200%2024%2024'%20version='1.1'%3e%3ctitle%3eic_minus_lined%3c/title%3e%3cg%20id='ic_minus_lined'%20stroke='none'%20stroke-width='1'%20fill='none'%20fill-rule='evenodd'%3e%3cg%20id='编组'%3e%3crect%20id='矩形'%20fill='%23D8D8D8'%20opacity='0'%20x='0'%20y='0'%20width='24'%20height='24'/%3e%3cpath%20d='M20,11.25%20C20.4142136,11.25%2020.75,11.5857864%2020.75,12%20C20.75,12.3796958%2020.4678461,12.693491%2020.1017706,12.7431534%20L20,12.75%20L4,12.75%20C3.58578644,12.75%203.25,12.4142136%203.25,12%20C3.25,11.6203042%203.53215388,11.306509%203.89822944,11.2568466%20L4,11.25%20L20,11.25%20Z'%20id='Stroke-1'%20fill='%23dfdfdf'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");
+}
+.ant-input-number .ant-input-number-handler-wrap .ant-input-number-handler-down:not(.ant-input-number-handler-down-disabled):hover::after {
+  background-image: url("data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='24px'%20height='24px'%20viewBox='0%200%2024%2024'%20version='1.1'%3e%3ctitle%3eic_minus_lined%3c/title%3e%3cg%20id='ic_minus_lined'%20stroke='none'%20stroke-width='1'%20fill='none'%20fill-rule='evenodd'%3e%3cg%20id='编组'%3e%3crect%20id='矩形'%20fill='%23D8D8D8'%20opacity='0'%20x='0'%20y='0'%20width='24'%20height='24'/%3e%3cpath%20d='M20,11.25%20C20.4142136,11.25%2020.75,11.5857864%2020.75,12%20C20.75,12.3796958%2020.4678461,12.693491%2020.1017706,12.7431534%20L20,12.75%20L4,12.75%20C3.58578644,12.75%203.25,12.4142136%203.25,12%20C3.25,11.6203042%203.53215388,11.306509%203.89822944,11.2568466%20L4,11.25%20L20,11.25%20Z'%20id='Stroke-1'%20fill='%232E86DE'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");
 }
 .ant-input-number .ant-input-number-handler-wrap .ant-input-number-handler-up::before {
   content: '';
@@ -404,13 +426,22 @@ input.ant-input.ant-input-sm {
   background-color: var(--color-border);
 }
 .ant-input-number .ant-input-number-handler-wrap .ant-input-number-handler-up::after {
-  content: '+';
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  content: '';
   width: 100%;
   height: 100%;
-  font-weight: 400;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 1rem 1rem;
+  background-image: url("data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='24px'%20height='24px'%20viewBox='0%200%2024%2024'%20version='1.1'%3e%3ctitle%3eic_plus_lined%3c/title%3e%3cg%20id='ic_plus_lined'%20stroke='none'%20stroke-width='1'%20fill='none'%20fill-rule='evenodd'%3e%3cg%20id='编组'%3e%3crect%20id='矩形'%20fill='%23D8D8D8'%20opacity='0'%20x='0'%20y='0'%20width='24'%20height='24'/%3e%3cpath%20d='M12,3.25%20C12.3796958,3.25%2012.693491,3.53215388%2012.7431534,3.89822944%20L12.75,4%20L12.75,11.25%20L20,11.25%20C20.4142136,11.25%2020.75,11.5857864%2020.75,12%20C20.75,12.3796958%2020.4678461,12.693491%2020.1017706,12.7431534%20L20,12.75%20L12.75,12.75%20L12.75,20%20C12.75,20.4142136%2012.4142136,20.75%2012,20.75%20C11.6203042,20.75%2011.306509,20.4678461%2011.2568466,20.1017706%20L11.25,20%20L11.25,12.75%20L4,12.75%20C3.58578644,12.75%203.25,12.4142136%203.25,12%20C3.25,11.6203042%203.53215388,11.306509%203.89822944,11.2568466%20L4,11.25%20L11.25,11.25%20L11.25,4%20C11.25,3.58578644%2011.5857864,3.25%2012,3.25%20Z'%20id='形状结合'%20fill='%23191919'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");
+}
+.ant-input-number .ant-input-number-handler-wrap .ant-input-number-handler-up.ant-input-number-handler-up-disabled {
+  cursor: not-allowed;
+}
+.ant-input-number .ant-input-number-handler-wrap .ant-input-number-handler-up.ant-input-number-handler-up-disabled::after {
+  background-image: url("data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='24px'%20height='24px'%20viewBox='0%200%2024%2024'%20version='1.1'%3e%3ctitle%3eic_plus_lined%3c/title%3e%3cg%20id='ic_plus_lined'%20stroke='none'%20stroke-width='1'%20fill='none'%20fill-rule='evenodd'%3e%3cg%20id='编组'%3e%3crect%20id='矩形'%20fill='%23D8D8D8'%20opacity='0'%20x='0'%20y='0'%20width='24'%20height='24'/%3e%3cpath%20d='M12,3.25%20C12.3796958,3.25%2012.693491,3.53215388%2012.7431534,3.89822944%20L12.75,4%20L12.75,11.25%20L20,11.25%20C20.4142136,11.25%2020.75,11.5857864%2020.75,12%20C20.75,12.3796958%2020.4678461,12.693491%2020.1017706,12.7431534%20L20,12.75%20L12.75,12.75%20L12.75,20%20C12.75,20.4142136%2012.4142136,20.75%2012,20.75%20C11.6203042,20.75%2011.306509,20.4678461%2011.2568466,20.1017706%20L11.25,20%20L11.25,12.75%20L4,12.75%20C3.58578644,12.75%203.25,12.4142136%203.25,12%20C3.25,11.6203042%203.53215388,11.306509%203.89822944,11.2568466%20L4,11.25%20L11.25,11.25%20L11.25,4%20C11.25,3.58578644%2011.5857864,3.25%2012,3.25%20Z'%20id='形状结合'%20fill='%23dfdfdf'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");
+}
+.ant-input-number .ant-input-number-handler-wrap .ant-input-number-handler-up:not(.ant-input-number-handler-up-disabled):hover::after {
+  background-image: url("data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%20width='24px'%20height='24px'%20viewBox='0%200%2024%2024'%20version='1.1'%3e%3ctitle%3eic_plus_lined%3c/title%3e%3cg%20id='ic_plus_lined'%20stroke='none'%20stroke-width='1'%20fill='none'%20fill-rule='evenodd'%3e%3cg%20id='编组'%3e%3crect%20id='矩形'%20fill='%23D8D8D8'%20opacity='0'%20x='0'%20y='0'%20width='24'%20height='24'/%3e%3cpath%20d='M12,3.25%20C12.3796958,3.25%2012.693491,3.53215388%2012.7431534,3.89822944%20L12.75,4%20L12.75,11.25%20L20,11.25%20C20.4142136,11.25%2020.75,11.5857864%2020.75,12%20C20.75,12.3796958%2020.4678461,12.693491%2020.1017706,12.7431534%20L20,12.75%20L12.75,12.75%20L12.75,20%20C12.75,20.4142136%2012.4142136,20.75%2012,20.75%20C11.6203042,20.75%2011.306509,20.4678461%2011.2568466,20.1017706%20L11.25,20%20L11.25,12.75%20L4,12.75%20C3.58578644,12.75%203.25,12.4142136%203.25,12%20C3.25,11.6203042%203.53215388,11.306509%203.89822944,11.2568466%20L4,11.25%20L11.25,11.25%20L11.25,4%20C11.25,3.58578644%2011.5857864,3.25%2012,3.25%20Z'%20id='形状结合'%20fill='%232E86DE'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e");
 }
 .ant-input-number .ant-input-number-input-wrap {
   position: relative;
@@ -431,6 +462,9 @@ input.ant-input.ant-input-sm {
   opacity: 1 !important;
   background: transparent !important;
 }
+.ant-input-number-outlined {
+  background: var(--color-fill-subtle);
+}
 .ant-input-number-outlined .ant-input-number-handler-down,
 .ant-input-number-filled .ant-input-number-handler-down,
 .ant-input-number-underlined .ant-input-number-handler-down {
@@ -438,17 +472,18 @@ input.ant-input.ant-input-sm {
 }
 .ant-input-number-outlined:hover {
   border-color: var(--color-border-hover);
+  background: var(--color-fill-subtle);
 }
 .ant-input-number-outlined:focus,
 .ant-input-number-outlined:focus-within,
 .ant-input-number-outlined:active {
   border-color: var(--color-border-focus);
   box-shadow: 0 0 0 1px var(--color-border-active);
+  background: var(--color-fill-subtle);
 }
 
 .ant-select {
   --ant-select-border-radius: var(--radius-base);
-  background: var(--color-bg-4);
   color: var(--color-text-primary);
 }
 .ant-select.ant-select-lg .ant-select-selector,
@@ -510,14 +545,39 @@ input.ant-input.ant-input-sm {
 .ant-select.ant-select-disabled .ant-select-suffix {
   color: var(--color-icon-disabled);
 }
-.ant-select .ant-select-suffix svg {
+.ant-select.ant-select-disabled .ant-select-arrow {
+  background: url("data:image/svg+xml,%3csvg%20width='10.004089'%20height='10.000000'%20viewBox='0%200%2010.0041%2010'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M9.86%202.98L5.36%207.67C5.24%207.79%205.1%207.86%204.99%207.86C4.87%207.86%204.75%207.79%204.64%207.67L0.14%202.98C-0.06%202.78%20-0.05%202.47%200.15%202.27C0.35%202.08%200.66%202.08%200.86%202.29L5%206.61L9.14%202.29C9.33%202.08%209.64%202.08%209.84%202.27C10.05%202.47%2010.05%202.78%209.86%202.98Z'%20fill='%23C9C9C9'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat;
+}
+.ant-select .ant-select-arrow {
   width: 0.625rem;
   height: 0.625rem;
+  background-size: 100%;
+  background: url("data:image/svg+xml,%3csvg%20width='10.004089'%20height='10.000000'%20viewBox='0%200%2010.0041%2010'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M9.86%202.98L5.36%207.67C5.24%207.79%205.1%207.86%204.99%207.86C4.87%207.86%204.75%207.79%204.64%207.67L0.14%202.98C-0.06%202.78%20-0.05%202.47%200.15%202.27C0.35%202.08%200.66%202.08%200.86%202.29L5%206.61L9.14%202.29C9.33%202.08%209.64%202.08%209.84%202.27C10.05%202.47%2010.05%202.78%209.86%202.98Z'%20fill='%23777777'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat;
+  transform: translateY(-50%);
+  vertical-align: middle;
+  margin-top: 0;
+}
+.ant-select .ant-select-suffix {
+  width: 0.625rem;
+  height: 0.625rem;
+  display: none;
 }
 .ant-select.ant-select-open .ant-select-selection-item,
 .ant-select.ant-select-lg.ant-select-single.ant-select-open .ant-select-selection-item,
 .ant-select.ant-select-sm.ant-select-single.ant-select-open .ant-select-selection-item {
   color: var(--color-text-primary);
+}
+.ant-select.ant-select-open .ant-select-arrow,
+.ant-select.ant-select-lg.ant-select-single.ant-select-open .ant-select-arrow,
+.ant-select.ant-select-sm.ant-select-single.ant-select-open .ant-select-arrow {
+  transform: translateY(-50%) rotate(180deg);
+}
+.ant-select .ant-select-selection-placeholder {
+  color: var(--color-text-placeholder);
+}
+.ant-select-outlined:not(.ant-select-customize-input):hover .ant-select-selector,
+.ant-select-outlined:not(.ant-select-customize-input) .ant-select-selector {
+  background: var(--color-fill-subtle);
 }
 .ant-select-single {
   font-size: var(--font-size-md);
@@ -629,6 +689,40 @@ input.ant-input.ant-input-sm {
 .ant-select-focused.ant-select-outlined:not(.ant-select-disabled):not(.ant-select-customize-input):not(.ant-pagination-size-changer) .ant-select-selector {
   border-color: var(--color-border-focus);
   box-shadow: 0 0 0 1px var(--color-border-active);
+}
+
+/* Cascader 组件样式（占位，待填充 token 映射） */
+.ant-cascader-dropdown .ant-cascader-menu {
+  height: auto;
+  padding: 0.25rem;
+  gap: 0.25rem;
+  display: flex;
+  flex-direction: column;
+}
+.ant-cascader-dropdown .ant-cascader-menu .ant-cascader-menu-item {
+  padding: 0 0.5rem;
+  height: 2rem;
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+}
+.ant-cascader-dropdown .ant-cascader-menu .ant-cascader-menu-item:hover {
+  background-color: var(--color-hover);
+}
+.ant-cascader-dropdown .ant-cascader-menu .ant-cascader-menu-item.ant-cascader-menu-item-expand .ant-cascader-menu-item-expand-icon {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+.ant-cascader-dropdown .ant-cascader-menu .ant-cascader-menu-item.ant-cascader-menu-item-disabled {
+  color: var(--color-text-disabled);
+}
+.ant-cascader-dropdown .ant-cascader-menu .ant-cascader-menu-item.ant-cascader-menu-item-disabled .ant-cascader-menu-item-expand-icon {
+  color: var(--color-text-disabled);
+}
+.ant-cascader-dropdown .ant-cascader-menu-item-active:not(.ant-cascader-menu-item-disabled),
+.ant-cascader-dropdown .ant-cascader-menu-item-active:not(.ant-cascader-menu-item-disabled):hover {
+  font-weight: normal;
+  color: var(--color-text-on);
+  background-color: var(--color-select);
 }
 
 .ant-select:not(.ant-select-customize-input) .ant-select-selector {
@@ -841,6 +935,13 @@ input.ant-input.ant-input-sm {
   width: 1rem;
   height: 1rem;
 }
+.ant-radio-wrapper .ant-radio-inner::after {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 1rem;
+  margin-block-start: -0.5rem;
+  margin-inline-start: -0.5rem;
+}
 .ant-radio-wrapper:hover .ant-radio:not(.ant-radio-checked):not(.ant-radio-disabled) .ant-radio-inner {
   border-color: var(--brand-40);
 }
@@ -867,6 +968,9 @@ input.ant-input.ant-input-sm {
 .ant-radio-wrapper .ant-radio-checked:not(.ant-radio-disabled) .ant-radio-inner {
   background-color: var(--brand-50);
   border-color: transparent;
+}
+.ant-radio-wrapper .ant-radio-checked .ant-radio-inner::after {
+  transform: scale(0.4375);
 }
 .dark .ant-radio-wrapper .ant-radio:not(.ant-radio-checked):not(.ant-radio-disabled) .ant-radio-inner {
   background-color: var(--gray-100);
@@ -1108,7 +1212,8 @@ input.ant-input.ant-input-sm {
 
 /* Table 组件样式（token 映射；单元格高度按尺寸区分，rem：大 2.5rem / 中 2rem / 小 1.75rem） */
 .ant-table {
-  font-family: var(--font-family);
+  font-family: var(--font-family) !important;
+  background-color: transparent !important;
 }
 .ant-table .ant-table-content {
   border-start-start-radius: 0 !important;
@@ -1337,6 +1442,7 @@ input.ant-input.ant-input-sm {
   border: none;
   padding: 0 0.5rem;
   line-height: 1.5rem;
+  font-size: var(--font-size-base);
   background-color: var(--color-tag-bg-none);
   color: var(--color-text-primary);
 }
@@ -1516,6 +1622,9 @@ input.ant-input.ant-input-sm {
   color: var(--color-text-placeholder);
   background-color: var(--color-fill);
 }
+.ant-steps .ant-steps-item.ant-steps-item-wait .ant-steps-item-container .ant-steps-item-icon > .ant-steps-icon {
+  color: var(--color-text-placeholder);
+}
 .ant-steps .ant-steps-item.ant-steps-item-wait .ant-steps-item-container .ant-steps-item-content .ant-steps-item-title {
   color: var(--color-text-secondary);
 }
@@ -1666,99 +1775,139 @@ input.ant-input.ant-input-sm {
 }
 
 /* Pagination 组件样式（占位，待填充 token 映射） */
-.ant-pagination {
+.ant-pagination,
+.ant-pagination.ant-pagination-mini {
   font-size: 0.875rem;
+  /* flex 容器默认 stretch 会把固定高度的子项顶对齐，统一垂直居中 */
+  align-items: center;
 }
-.ant-pagination .ant-pagination-total-text {
+.ant-pagination .ant-pagination-total-text,
+.ant-pagination.ant-pagination-mini .ant-pagination-total-text {
   color: var(--gray-90);
   margin-right: 0.5rem;
 }
 .ant-pagination .ant-pagination-prev,
-.ant-pagination .ant-pagination-next {
+.ant-pagination.ant-pagination-mini .ant-pagination-prev,
+.ant-pagination .ant-pagination-next,
+.ant-pagination.ant-pagination-mini .ant-pagination-next {
   margin-right: 0.5rem;
   height: 1.5rem !important;
   min-width: 1.5rem;
   margin-inline-end: 0.5rem;
+  /* antd 默认 line-height 32px 会把 icon 行框撑出 24px 盒子 */
+  line-height: 1.5rem;
 }
 .ant-pagination .ant-pagination-prev .ant-pagination-item-link,
-.ant-pagination .ant-pagination-next .ant-pagination-item-link {
+.ant-pagination.ant-pagination-mini .ant-pagination-prev .ant-pagination-item-link,
+.ant-pagination .ant-pagination-next .ant-pagination-item-link,
+.ant-pagination.ant-pagination-mini .ant-pagination-next .ant-pagination-item-link {
   width: 1.5rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .ant-pagination .ant-pagination-prev .ant-pagination-item-link .anticon,
-.ant-pagination .ant-pagination-next .ant-pagination-item-link .anticon {
+.ant-pagination.ant-pagination-mini .ant-pagination-prev .ant-pagination-item-link .anticon,
+.ant-pagination .ant-pagination-next .ant-pagination-item-link .anticon,
+.ant-pagination.ant-pagination-mini .ant-pagination-next .ant-pagination-item-link .anticon {
   width: 0.625rem;
   height: 0.625rem;
 }
-.ant-pagination .ant-pagination-item {
+.ant-pagination .ant-pagination-item,
+.ant-pagination.ant-pagination-mini .ant-pagination-item {
   margin-right: 0.5rem;
-  color: var(--gray-90);
   width: 2rem;
   height: 2rem;
-  line-height: 2rem;
+  /* 减去上下 1px 边框，数字垂直居中（antd 惯例 itemSize-2） */
+  line-height: calc(2rem - 2px);
+  background: transparent;
 }
-.ant-pagination .ant-pagination-item a:hover {
-  text-decoration: none;
-  background-color: color-mix(in srgb, var(--gray-90) 5%, transparent);
+.ant-pagination .ant-pagination-item:not(.ant-pagination-item-active):hover,
+.ant-pagination.ant-pagination-mini .ant-pagination-item:not(.ant-pagination-item-active):hover {
+  background-color: rgb(from var(--gray-90) r g b / 0.05);
+}
+.ant-pagination .ant-pagination-item a,
+.ant-pagination.ant-pagination-mini .ant-pagination-item a {
   color: var(--gray-90);
 }
-.ant-pagination .ant-pagination-item-active {
+.ant-pagination .ant-pagination-item-active,
+.ant-pagination.ant-pagination-mini .ant-pagination-item-active {
   background-color: var(--brand-05);
   border: none;
   font-weight: var(--font-weight-normal);
+}
+.ant-pagination .ant-pagination-item-active a,
+.ant-pagination.ant-pagination-mini .ant-pagination-item-active a {
   color: var(--brand-50);
 }
-.ant-pagination .ant-pagination-item-active:hover a {
-  color: var(--brand-50);
-  font-weight: var(--font-weight-normal);
-}
-.ant-pagination .ant-pagination-options {
+.ant-pagination .ant-pagination-options,
+.ant-pagination.ant-pagination-mini .ant-pagination-options {
   margin-inline-start: 0;
 }
-.ant-pagination .ant-pagination-options .ant-select-dropdown .ant-select-item .ant-select-item-option-content {
+.ant-pagination .ant-pagination-options .ant-select-dropdown .ant-select-item .ant-select-item-option-content,
+.ant-pagination.ant-pagination-mini .ant-pagination-options .ant-select-dropdown .ant-select-item .ant-select-item-option-content {
   font-weight: var(--font-weight-normal) !important;
 }
-.ant-pagination .ant-pagination-options .ant-select-dropdown .ant-select-item-option-selected {
-  background-color: var(--brand-05);
-}
-.ant-pagination .ant-pagination-options .ant-pagination-options-quick-jumper input {
+.ant-pagination .ant-pagination-options .ant-pagination-options-quick-jumper input,
+.ant-pagination.ant-pagination-mini .ant-pagination-options .ant-pagination-options-quick-jumper input {
   color: var(--gray-90);
   font-size: 0.875rem;
 }
 .dark {
   /* Pagination 组件样式（占位，待填充 token 映射） */
 }
-.dark .ant-pagination .ant-pagination-total-text {
+.dark .ant-pagination .ant-pagination-total-text,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-total-text {
   color: var(--gray-0);
 }
-.dark .ant-pagination .ant-pagination-item {
+.dark .ant-pagination .ant-pagination-prev,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-prev,
+.dark .ant-pagination .ant-pagination-next,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-next {
+  /* antd 把箭头颜色直接写在 button 上(浅色主题 rgba(0,0,0,0.88))，
+               本工程深色只切 .dark class + CSS 变量时 antd 不会重新生成，需手动覆盖 */
+}
+.dark .ant-pagination .ant-pagination-prev button,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-prev button,
+.dark .ant-pagination .ant-pagination-next button,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-next button {
   color: var(--gray-0);
 }
-.dark .ant-pagination .ant-pagination-item a:hover {
-  background-color: color-mix(in srgb, var(--brand-05) 20%, transparent);
+.dark .ant-pagination .ant-pagination-prev.ant-pagination-disabled button,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-prev.ant-pagination-disabled button,
+.dark .ant-pagination .ant-pagination-next.ant-pagination-disabled button,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-next.ant-pagination-disabled button {
+  color: var(--gray-40);
+}
+.dark .ant-pagination .ant-pagination-prev:hover .ant-pagination-item-link,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-prev:hover .ant-pagination-item-link,
+.dark .ant-pagination .ant-pagination-next:hover .ant-pagination-item-link,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-next:hover .ant-pagination-item-link {
+  background-color: rgb(from var(--gray-05) r g b / 0.2);
+}
+.dark .ant-pagination .ant-pagination-item:not(.ant-pagination-item-active):hover,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-item:not(.ant-pagination-item-active):hover {
+  background-color: rgb(from var(--gray-05) r g b / 0.2);
+}
+.dark .ant-pagination .ant-pagination-item a,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-item a {
   color: var(--gray-0);
 }
-.dark .ant-pagination .ant-pagination-item-active {
-  background-color: color-mix(in srgb, var(--brand-50) 40%, transparent);
+.dark .ant-pagination .ant-pagination-item-active,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-item-active {
+  background-color: rgb(from var(--brand-50) r g b / 0.4);
   font-weight: var(--font-weight-normal);
-  color: var(--gray-0) !important;
 }
-.dark .ant-pagination .ant-pagination-item-active a {
-  background-color: color-mix(in srgb, var(--brand-50) 40%, transparent);
-  font-weight: var(--font-weight-normal);
-  color: var(--gray-0) !important;
-}
-.dark .ant-pagination .ant-pagination-item-active:hover a {
+.dark .ant-pagination .ant-pagination-item-active a,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-item-active a {
   color: var(--gray-0);
-  background-color: color-mix(in srgb, var(--brand-50) 40%, transparent);
-  font-weight: var(--font-weight-normal);
 }
-.dark .ant-pagination .ant-pagination-options .ant-select-dropdown .ant-select-item .ant-select-item-option-content {
+.dark .ant-pagination .ant-pagination-options .ant-select-dropdown .ant-select-item .ant-select-item-option-content,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-options .ant-select-dropdown .ant-select-item .ant-select-item-option-content {
   font-weight: var(--font-weight-normal) !important;
 }
-.dark .ant-pagination .ant-pagination-options .ant-select-dropdown .ant-select-item-option-selected {
-  background-color: var(--brand-05);
-}
-.dark .ant-pagination .ant-pagination-options .ant-pagination-options-quick-jumper input {
+.dark .ant-pagination .ant-pagination-options .ant-pagination-options-quick-jumper input,
+.dark .ant-pagination.ant-pagination-mini .ant-pagination-options .ant-pagination-options-quick-jumper input {
   color: var(--gray-90);
 }
 
