@@ -12,7 +12,7 @@ TreeSelect 是下拉树选择：输入框里预览已选，下拉展开一棵 Tr
 | 表单里选组织 / 区域（层级） | `TreeSelect` | antd `TreeSelect treeData treeCheckable` |
 | 页面左侧常驻的树 | `Tree`（[Tree.md](Tree.md)） | TreeSelect |
 | 扁平选项 | `Select` / `MultipleSelect` | TreeSelect |
-| 一级一级选（省 / 市 / 区） | 先核实目标包是否有 `Cascader`（[版本限制](Cascader.md)） | 直接假设组件存在 |
+| 一级一级选（省 / 市 / 区） | 多个 [Select](Select.md) 联动 | 导入已核验版本不存在的 Cascader |
 
 ## 2. 典型场景
 

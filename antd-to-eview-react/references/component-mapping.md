@@ -22,13 +22,13 @@
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Input` | `TextField` | `onChange(value, oldValue, event)` 首参是值；`validator` 返回 `{result,message}`；`required` 自带星号；无 `allowClear`/`prefix`/`rules`/`onPressEnter` |
+| `Input` | `TextField` | `onChange(value, oldValue, event)` 首参是值；`validator` 返回 `{result,message}`；`required` 自带星号；无 `allowClear`/`prefix`/`rules`/`onPressEnter`；⚠️ 导入 `@/shared/TextField`（包壳，非 `@nce/eview-react/TextField`） |
 | `Input.TextArea` | `TextArea` | `onChange(targetValue, value, event)`；`onBlur(event)` 无 value；`maxLength` 自带右下角计数（替代 `showCount`）；无 `autoSize`/`allowClear`；无 ref 方法 |
 | `Input.Search` | `SearchInput` | `onSearch` 值变化也触发（需防抖）；`onClear(value)`；`placeholder` 保留；`onSuggest` vs `popItems` 互斥 |
 | `Input.Password` | `TextField type="password"` | 需 `isAllowToModifyPasswordByProps` 才能 props 清空/回填；`autoComplete="off"` |
 | `InputNumber` | `Spinner` | `onChange(value)` 只在有效值触发；`onInputError(value)` 接无效值；重置加 `doNotFocusWhenValueUpdate`；`min/max/step/precision` |
 | `Mentions` | 手写 | 无对应 |
-| `Select` | `Select` | `options` 字段 `label`→`text`；`placeholder`→`defaultLabel`；`onChange(value, oldValue, text, oldText, event)` 五参；`enableClear`；`virtualScroll` >100 项 |
+| `Select` | `Select` | `options` 字段 `label`→`text`；`placeholder`→`defaultLabel`；`onChange(value, oldValue, text, oldText, event)` 五参；`enableClear`；`virtualScroll` >100 项；⚠️ 导入 `@/shared/Select`（包壳，非 `@nce/eview-react/Select`） |
 | `Select mode="multiple"` | `MultipleSelect` | 删 `mode`；`value` 数组；`onChange(value[], changeValue[], event)`；`placeholder`（不是 defaultLabel）；`selectAll`/`searchable` |
 | `Select showSearch` | `InputSelect` | `onlySelect` 决定输入是否可作值；`options=[{text,value}]` |
 | `AutoComplete` | `InputSelect` | 同上 |
@@ -104,4 +104,4 @@
 | `@ant-design/icons` | `@nce/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 尺寸（支持rem、px、数字）；icon+ 名**按迁移环境二选一匹配**：内网（`https://octo.hdesign.huawei.com/` 可达）走方案 B 的 `getIconInfo` 在线匹配，外网（octo 不可达）走方案 C 的 `icons/icon-plus-names.json` 离线匹配；**命中后均静态 import**。见 [Icon.md 渲染方式](components/Icon.md)；C 算法见 [match-icons.cjs](../scripts/match-icons.cjs) |
 | 可点击图标 | `<IconPlusIc* onClick={fn} title="…" />` 直接挂 icon+ | `IconButton` 已弃用——给 icon+ 挂 `onClick`+原生 `title`（hover）是目标态；不要退化成原生 `<button>+<Icon>` |
 
-> 迁移期**先探测 `https://octo.hdesign.huawei.com/` 可达性定项目级方案**：内网（可达）→ B（`getIconInfo` 在线名匹配 → icon+ 静态 import）；外网（不可达）→ C（catalog 离线匹配 → icon+ 静态 import，跑 `scripts/match-icons.cjs`）。B/C 仅名匹配方式不同，命中后均静态 import。scaffold 自定义 `<Icon>` shim 为**方案 A**，作 B 与 C 的兜底：当 LLM（B）或本地算法（C）实在识别不出 icon+ 名的调用点零改动保留；切定后 `src/shared/icon.jsx` 保留不删。详见 [Icon.md 渲染方式](components/Icon.md)。
+> 迁移期**先探测 `https://octo.hdesign.huawei.com/` 可达性定项目级方案**：内网（可达）→ B（`getIconInfo` 在线名匹配 → icon+ 静态 import）；外网（不可达）→ C（catalog 离线匹配 → icon+ 静态 import，跑 `scripts/match-icons.cjs`）。B/C 仅名匹配方式不同，命中后均静态 import。scaffold 自定义 `<Icon>` shim 为**方案 A**，作 B 与 C 的兜底：当 LLM（B）或本地算法（C）实在识别不出 icon+ 名的调用点零改动保留；切定后 `src/shared/Icon` 保留不删。详见 [Icon.md 渲染方式](components/Icon.md)。

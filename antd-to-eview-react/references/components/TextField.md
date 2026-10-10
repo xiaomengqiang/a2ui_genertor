@@ -1,5 +1,7 @@
 # TextField 组件功能逻辑规格
 
+> 导入：`import TextField from '@/shared/TextField'`（scaffold 包壳，透明转发 `@nce/eview-react/TextField`，API 不变）。
+
 > 资料来源：TypeDoc `TextField/TextField` + 官网 TextField 页示例。
 > ⚠️ `validator` 返回值 `result` 语义：API 表写"是否有错误"，但官方示例都是 **`result: true` = 校验通过**、`message` 只在失败时展示 → 以示例为准。
 > ⚠️ 密码框（`type="password"`）默认不允许通过 props 改 value；想"重置表单"清空 / 回填密码必须开 `isAllowToModifyPasswordByProps`（默认 `false`）。

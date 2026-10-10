@@ -214,7 +214,8 @@ export default function LoginPage() {
 | `disabled` | `boolean`，默认 `false` | 灰化；处理中也用它表达 |
 | `focused` | `boolean`，默认 `false` | 是否默认聚焦 |
 | `leftIcon` / `rightIcon` | `string \| React.ReactElement` | 图标路径或 icon+ 组件（`IconPlus.tsx`） |
-| `leftIconProps` / `rightIconProps` | `{ leftHoverIcon, leftDisabledIcon, leftIconClass, leftIconDisabledClass }` | 悬浮 / 禁用态图标 |
+| `leftIconProps` | `{ leftHoverIcon, leftDisabledIcon, leftIconClass, leftIconDisabledClass }` | 左侧悬浮 / 禁用态图标 |
+| `rightIconProps` | `{ rightHoverIcon, rightDisabledIcon, rightIconClass, rightIconDisabledClass }` | 右侧悬浮 / 禁用态图标 |
 | `onClick` | `(event: object, additionalData: any) => void` | **第二个参数**是 `additionalData` |
 | `additionalData` | `object` | 透传给 `onClick` 的业务数据 |
 | `onFocus` / `onBlur` / `onKeyDown` / `onMouseLeave` | 回调 | 原生事件透传 |

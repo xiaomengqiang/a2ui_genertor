@@ -1,6 +1,6 @@
 # TextArea 组件功能逻辑规格
 
-> ⚠️ 与 TextField 的差别：`onBlur` / `onFocus` 只给 `event`（TextField 的 `onBlur` 是 `(event, value)`）；没有 `type` / `format` / `isCharacterAllowed` / `suffix`；`maxLength` 会在右下角显示字数统计。官方 demo 没有 ref 命令式方法，不要假设有 `validate()`。
+> ⚠️ 与 TextField 的差别：`onBlur` / `onFocus` 只给 `event`（TextField 的 `onBlur` 是 `(event, value)`）；没有 `type` / `format` / `isCharacterAllowed` / `suffix`；`maxLength` 会在右下角显示字数统计。当前资料尚未核验 ref 命令式方法，不直接调用 `validate()`；示例未演示不等于方法不存在。
 
 ## 1. 功能定位
 
@@ -92,7 +92,7 @@ interface TicketForm {
 
 - `required` 的 TextArea 为空 → 提交按钮 `disabled`；有 `validator` 时以校验结果为准
 - 字数达到 `maxLength` → 组件自动截断输入；业务侧不用再写长度判断，但提交前仍要 `trim()` 判空
-- 与 TextField 同在一个表单：TextField 走 `ref.validate()`，TextArea 官方 demo 无 ref 方法 → 用 state 派生判断（或整体放进 Form 由 Form 统一校验）
+- 与 TextField 同在一个表单：TextField 走 `ref.validate()`；TextArea 的 ref 方法尚未核验，先用 state 派生判断（或整体放进 Form 由 Form 统一校验）
 - 选择不同"类型"（Select / RadioGroup）→ 切换 TextArea 的 `placeholder` / `ruleText`
 
 ## 7. 完整代码示例
@@ -180,7 +180,7 @@ export default function TicketForm() {
 // ❌ 借用 TextField 的属性：TextArea 没有 isCharacterAllowed / format / suffix / type
 <TextArea format="number" suffix="字" />
 
-// ❌ 假设有 ref.validate()（官方 demo 没有），运行时报 undefined
+// ❌ 尚未核验目标版本的 ref 方法，就直接调用 validate()
 textAreaRef.current.validate();
 
 // ❌ onBlur 想拿第二个参数取值（那是 TextField 的签名，TextArea 只有 event）

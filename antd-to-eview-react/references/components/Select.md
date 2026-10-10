@@ -1,5 +1,7 @@
 # Select 组件功能逻辑规格
 
+> 导入：`import Select from '@/shared/Select'`（scaffold 包壳，透明转发 `@nce/eview-react/Select`，API 不变）。
+
 > 资料来源：TypeDoc `Select/Select` + 官网 Select 页示例。
 > ⚠️ `onChange(value, oldValue, text, oldText, event)`——**五个参数**，前四个都是值，`event` 是第五个；eview-react 没有 `mode` / `showSearch` / `placeholder`，占位用 `defaultLabel`，多选用 `MultipleSelect`、可输入用 `InputSelect`。
 > ⚠️ 选项字段是 `text`（不是 `label`）；`value` 可 string/number/boolean/object，为 object 时对象里必须含 key 为 `value` 的属性；受控 `value` 存选中项的 value（不是 text / index），`null` = 未选。

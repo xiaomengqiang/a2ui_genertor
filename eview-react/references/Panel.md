@@ -65,7 +65,8 @@ interface Section {
 
 ## 6. 联动说明
 
-- 表单校验失败 → 把出错字段所在面板的下标加进 `openIdx`，确保用户能看到错误
+- 分组表单 → 每个 `PanelItem` 内放一个 `Form`，`Form.Item` 保持为该 Form 的直接子级；不要在外层 Form 内隔着 Panel / PanelItem 放字段
+- 保存 → 提交各组 Form，全部成功后合并值；某组校验失败则展开该面板，确保用户能看到错误
 - "全部展开 / 收起"按钮 → `setOpenIdx(all)` / `setOpenIdx([])`
 - 手风琴模式下切换面板 → 上一块的编辑状态保留在 state 里（`destroyInactivePanel` 默认 false，DOM 也保留）
 - 面板移除 → 同步删掉对应表单字段
@@ -79,49 +80,63 @@ import Form from '@nce/eview-react/Form';
 import TextField from '@nce/eview-react/TextField';
 import Button from '@nce/eview-react/Button';
 
-// 分组长表单：三块面板，默认展开前两块，校验失败自动展开出错块
+// 每组一个 Form：保留直接子级布局，全部校验通过后才保存
 export default function GroupedResourceForm() {
   const [openIdx, setOpenIdx] = useState<number[]>([0, 1]);
-  const [message, setMessage] = useState<string>('');
-  const formRef = useRef<any>(null);
-  const FIELD_PANEL: Record<string, number> = { name: 0, ip: 1, note: 2 };   // 字段 → 面板下标
+  const [message, setMessage] = useState('');
+  const basicRef = useRef<React.ElementRef<typeof Form>>(null);
+  const networkRef = useRef<React.ElementRef<typeof Form>>(null);
+  const advancedRef = useRef<React.ElementRef<typeof Form>>(null);
+  const pending = useRef<{ remaining: number; values: object; failed: number[] } | null>(null);
+
+  const complete = (index: number, values: object, failed = false) => {
+    const batch = pending.current;
+    if (!batch) return;
+    Object.assign(batch.values, values);
+    if (failed) batch.failed.push(index);
+    if (--batch.remaining > 0) return;
+    pending.current = null;
+    if (batch.failed.length) {
+      setOpenIdx((prev) => Array.from(new Set([...prev, ...batch.failed])));
+      setMessage('请修正标红字段');
+    } else setMessage(`已保存：${JSON.stringify(batch.values)}`);
+  };
+  const save = () => {
+    const forms = [basicRef.current, networkRef.current, advancedRef.current];
+    if (forms.some((form) => !form)) { setMessage('表单尚未就绪'); return; }
+    pending.current = { remaining: forms.length, values: {}, failed: [] };
+    forms.forEach((form) => form?.submit());
+  };
 
   return (
     <div style={{ width: 640, padding: 24 }}>
-      <Form
-        ref={formRef}
-        initialValues={{ name: '', ip: '', note: '' }}
-        layout="vertical"
-        validateErrorType="tip"
-        onSuccess={(values) => setMessage(`已保存：${JSON.stringify(values)}`)}
-        onFailed={(errorFields: Record<string, any>) => {
-          const idx = Object.keys(errorFields).map((k) => FIELD_PANEL[k]).filter((i) => i !== undefined);
-          setOpenIdx((prev) => Array.from(new Set([...prev, ...idx])));     // 展开出错面板
-          setMessage('请修正标红字段');
-        }}
+      <Panel
+        enableMultiExpand destroyInactivePanel={false} selectedIndex={openIdx}
+        onExpand={(index) => setOpenIdx((prev) => (prev.includes(index) ? prev : [...prev, index]))}
+        onClose={(index, _event, collapsed) => { if (collapsed) setOpenIdx((prev) => prev.filter((i) => i !== index)); }}
       >
-        <Panel
-          enableMultiExpand
-          selectedIndex={openIdx}
-          onExpand={(index: number) => setOpenIdx((prev) => (prev.includes(index) ? prev : [...prev, index]))}
-          onClose={(index: number, event: any, collapsed: boolean) => { if (collapsed) setOpenIdx((prev) => prev.filter((i) => i !== index)); }}
-        >
-          <PanelItem title="基本信息" closable={false}>
+        <PanelItem title="基本信息" closable={false}>
+          <Form ref={basicRef} initialValues={{ name: '' }} layout="vertical" validateErrorType="tip"
+            onSuccess={(values) => complete(0, values)} onFailed={(_errors, values) => complete(0, values, true)}>
             <Form.Item label="名称" name="name" rules={[{ required: true }]}><TextField maxLength={32} /></Form.Item>
-          </PanelItem>
-          <PanelItem title="网络配置" closable={false}>
+          </Form>
+        </PanelItem>
+        <PanelItem title="网络配置" closable={false}>
+          <Form ref={networkRef} initialValues={{ ip: '' }} layout="vertical" validateErrorType="tip"
+            onSuccess={(values) => complete(1, values)} onFailed={(_errors, values) => complete(1, values, true)}>
             <Form.Item label="管理 IP" name="ip" rules={[{ required: true }, { ipv4: true }]}><TextField /></Form.Item>
-          </PanelItem>
-          <PanelItem title="高级选项（可选）" closable={false}>
+          </Form>
+        </PanelItem>
+        <PanelItem title="高级选项（可选）" closable={false}>
+          <Form ref={advancedRef} initialValues={{ note: '' }} layout="vertical" validateErrorType="tip"
+            onSuccess={(values) => complete(2, values)} onFailed={(_errors, values) => complete(2, values, true)}>
             <Form.Item label="备注" name="note"><TextField maxLength={100} /></Form.Item>
-          </PanelItem>
-        </Panel>
-        <Form.Item colon={false}>
-          <Button status="primary" text="保存" onClick={() => formRef.current.submit()} />
-          <Button text="全部展开" onClick={() => setOpenIdx([0, 1, 2])} style={{ marginLeft: 12 }} />
-          <Button text="全部收起" onClick={() => setOpenIdx([])} style={{ marginLeft: 12 }} />
-        </Form.Item>
-      </Form>
+          </Form>
+        </PanelItem>
+      </Panel>
+      <Button status="primary" text="保存" onClick={save} />
+      <Button text="全部展开" onClick={() => setOpenIdx([0, 1, 2])} style={{ marginLeft: 12 }} />
+      <Button text="全部收起" onClick={() => setOpenIdx([])} style={{ marginLeft: 12 }} />
       {message ? <div>{message}</div> : null}
     </div>
   );
@@ -145,6 +160,9 @@ onClose={(index) => setSections((prev) => prev.filter((_, i) => i !== index))}
 
 // ❌ 校验失败不展开出错面板，用户看不到红字
 onFailed={() => setMessage('有错误')}
+
+// ❌ Form.Item 隔着 Panel / PanelItem，不再是 Form 的直接子级，标签与栅格失效
+<Form initialValues={{ name: '' }}><Panel><PanelItem><Form.Item name="name"><TextField /></Form.Item></PanelItem></Panel></Form>
 ```
 
 ## 9. API 速查

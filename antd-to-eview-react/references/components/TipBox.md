@@ -69,7 +69,7 @@ type Direction = 'top' | 'topLeft' | 'topRight' | 'bottom' | 'bottomLeft' | 'bot
 ```tsx
 import React, { useState } from 'react';
 import TipBox from '@nce/eview-react/TipBox';
-import TextField from '@nce/eview-react/TextField';
+import TextField from '@/shared/TextField';
 import Button from '@nce/eview-react/Button';
 import { IconPlusIcPublicQuestion } from '@nce/icon-plus';
 

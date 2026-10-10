@@ -34,7 +34,7 @@ description: >-
 
 ## scaffold 预制骨架
 
-骨架由本 skill 的 `scaffold/` 目录维护，步骤 1 一键拷贝。骨架已含 eview-react 依赖、`aui3_1` body 类、`ConfigProvider` + `IntlProvider`、HarmonyOS 字体、icon shim。`src/styles/` 下 `tokens.css` / `theme-dark.css` 为空壳占位，步骤 2 填充；`base.css` / `font.css` 预制不用改。
+骨架由本 skill 的 `scaffold/` 目录维护，步骤 1 一键拷贝。骨架已含 eview-react 依赖、`aui3_1` body 类、`ConfigProvider` + `IntlProvider`、HarmonyOS 字体、icon shim（`src/shared/Icon/`，folder + 默认导出）；`vite.config.js` 预配 `@`→`./src` 别名 + icon-plus proxy/transform；`src/shared/` 下 Select/TextField 包壳组件（透明转发 `@nce/eview-react`，供下游 antd-to-eview-react 从 `@/shared/X` 导入）。`src/styles/` 下 `tokens.css` / `theme-dark.css` 为空壳占位，步骤 2 填充；`base.css` / `font.css` 预制不用改。
 
 用法：`node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标题] [--force]`
 
@@ -110,8 +110,8 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 3. **保留源项目暗色方案（CSS 类切换）**：`.dark` 挂 `<html>`（token 变量翻转）+ `aui3_1_dark` 挂 `<body>`（eview 暗色 CSS），步骤 3 删除 antd `ConfigProvider theme.darkAlgorithm`；antd 组件暗色留待下游替换为 eview-react 后由暗色 CSS 覆盖
 4. **token CSS 外置**：`:root` 变量只放 `tokens.css`，`.dark` 只放 `theme-dark.css`，不混在选择器规则里
 5. **相对导入不能有 `./src/...`**：`src/app.jsx` 导入同级用 `./context.jsx`，导入视图用 `./views/X.jsx`；`src/views/X.jsx` 导入上层数据用 `../data.js`
-6. **图标组件保留源项目原版**：搬入源项目的 `icon.jsx`（含 Lucide 兜底 + icon-plus 在线），不剥离 Lucide、不换 icon+ 静态 import（那是 antd-to-eview-react 的工作）。vite.config.js 已配 icon-plus proxy + transform
-7. **不在业务代码引入额外 eview-react 依赖**：scaffold package.json 已预设 `@nce/eview-react` / `react-intl` / `@cloudsop/horizon` 等（骨架自带，不算转换时引入）；业务代码保持 antd 组件导入，不替换为 `@nce/eview-react` 组件、不另装额外依赖（组件替换是 antd-to-eview-react 的工作）
+6. **图标组件保留源项目原版**：搬入源项目的 `icon.jsx` 内容到 `src/shared/Icon/Icon.jsx`（`export function Icon`→`export default function Icon`，scaffold 的 `index.jsx` 桶 `export { default } from './Icon.jsx'` 已就位），不剥离 Lucide、不换 icon+ 静态 import（那是 antd-to-eview-react 的工作）。vite.config.js 已配 icon-plus proxy + transform
+7. **不在业务代码引入额外 eview-react 依赖**：scaffold package.json 已预设 `@nce/eview-react` / `react-intl` / `@cloudsop/horizon` 等（骨架自带，不算转换时引入）；scaffold 预置的 `src/shared/` 包壳组件（Select/TextField 等）属 baseline，同上不算转换时引入——新增包壳须同步 antd-to-eview-react 的「包壳组件清单」（硬约束 #1）。业务代码保持 antd 组件导入，不替换为 `@nce/eview-react` 组件、不另装额外依赖（组件替换是 antd-to-eview-react 的工作）
 
 ## 步骤 3：搬代码 + 修路径
 
@@ -128,7 +128,7 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 操作：
 1. 把源项目 src/ 下的独立文件（或 _extracted/ 下的提取文件）搬入 <目标工程根>/src/
    - 保持目录结构（src/views/、src/components/ 等）
-   - 搬入源项目的 icon.jsx 到 src/shared/icon.jsx 或 src/assets/shared/icon.jsx（保持源项目路径）
+   - 搬入源项目 icon.jsx 内容到 src/shared/Icon/Icon.jsx（`export function Icon`→`export default function Icon`，scaffold 的 index.jsx 桶 `export { default } from './Icon.jsx'` 已就位）；业务代码 `import { Icon } from ".../assets/shared/icon.jsx"` → `import Icon from "@/shared/Icon"`（默认导入，`@` 别名已由 vite.config.js 预配）
    - app.jsx 用源项目的版本替换 scaffold 的空壳 app.jsx，同时转换暗色模式：
      a. 删除 antd ConfigProvider（含 locale + theme.darkAlgorithm），eview-react ConfigProvider + IntlProvider 已在 main.jsx 配好
      b. 保留源项目的 isDark 状态和切换 UI

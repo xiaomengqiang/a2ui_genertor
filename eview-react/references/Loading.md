@@ -35,7 +35,6 @@ const [panelLoading, setPanelLoading] = useState<boolean>(false);  // local，�
 无事件，纯受控显隐：
 
 ```tsx
-import { IconPlusIcPublicLoading } from '@nce/icon-plus';
 // 全局
 <Loading type="global" isOpen={pageLoading} />
 
@@ -48,9 +47,9 @@ import { IconPlusIcPublicLoading } from '@nce/icon-plus';
 // 微型 + 说明
 <Loading type="micro" isOpen={submitting} desc="提交中" />
 
-// 自定义图标（demo MicroIconExample），默认用 icon+ 组件
-<Loading type="micro" isOpen iconUrl={<IconPlusIcPublicLoading />} desc="加载说明文字" />
 ```
+
+省略 `iconUrl` 使用主题默认图标；自定义时传图片 URL 字符串，现有类型与示例未确认该属性接受 JSX。
 
 请求骨架：
 
@@ -175,6 +174,6 @@ import Loader from '@nce/eview-react/Loader'; import Loading from '@nce/eview-re
 | `isOpen` | `boolean`，默认 `false` | 显隐 |
 | `type` | `'global' \| 'local' \| 'micro'`，默认 `global` | 全页 / 局部（父容器 relative）/ 微型 |
 | `desc` | `string` | 说明文字 |
-| `iconUrl` | `string \| ReactElement` | 可选；不传使用主题默认图标，三种 type 一致；需要自定义时可用 icon+ 组件 |
+| `iconUrl` | `string` | 可选的图片 URL；不传使用主题默认图标，三种 type 一致 |
 | `textClassName` | `string` | 说明文字样式 |
 | `id` / `className` / `style` | — | 最外层（局部遮罩常需 `zIndex`） |
