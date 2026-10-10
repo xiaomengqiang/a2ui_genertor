@@ -1,5 +1,7 @@
 # InputSelect 组件功能逻辑规格
 
+> 导入：`import InputSelect from '@/shared/InputSelect'`（scaffold 包壳，透明转发 `@nce/eview-react/InputSelect`，API 不变）。
+
 > 资料来源：TypeDoc `InputSelect/InputSelect` + 官网 InputSelect 页示例。
 > ⚠️ 它是"可输入的 Select"：`options=[{ text, value }]` 与 Select 一致（字段是 `text` 不是 `label`），输入框可敲字过滤；**`onlySelect`** 决定输入文字是只用于过滤（失焦清空）还是可作为值保留。
 > ⚠️ `onChange(value, oldValue)`，API 描述还提到第三个参数 `type: 'input' | 'select'` 区分触发来源，但类型签名里没写 → 待实测，不要依赖。

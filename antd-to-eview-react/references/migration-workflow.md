@@ -82,7 +82,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 ### 3.1 A 类（有对应）：改 props
 
 对每个有对应的组件，执行：
-1. 改导入路径：`from 'antd'` → `from '@nce/eview-react/<Component>'`（**例外**：包壳组件 Select/TextField → `from '@/shared/<X>'`，见 SKILL.md 硬约束 #1）
+1. 改导入路径：`from 'antd'` → `from '@nce/eview-react/<Component>'`（**例外**：包壳组件 Select/TextField/InputSelect/MultipleSelect/SearchInput/TextArea → `from '@/shared/<X>'`，见 SKILL.md 硬约束 #1）
 2. 改属性名：对照 [component-mapping.md](component-mapping.md) 逐项替换（含文末「属性拼写异常」+「回调签名差异」速查表）
 3. 改回调签名：首参从 event 改为 value
 4. 改数据格式：`options` 的 `label`→`text`，`items`→`data` 等

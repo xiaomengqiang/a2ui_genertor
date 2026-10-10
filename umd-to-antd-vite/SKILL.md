@@ -34,7 +34,7 @@ description: >-
 
 ## scaffold 预制骨架
 
-骨架由本 skill 的 `scaffold/` 目录维护，步骤 1 一键拷贝。骨架已含 eview-react 依赖、`aui3_1` body 类、`ConfigProvider` + `IntlProvider`、HarmonyOS 字体、icon shim（`src/shared/Icon/`，folder + 默认导出）；`vite.config.js` 预配 `@`→`./src` 别名 + icon-plus proxy/transform；`src/shared/` 下 Select/TextField 包壳组件（透明转发 `@nce/eview-react`，供下游 antd-to-eview-react 从 `@/shared/X` 导入）。`src/styles/` 下 `tokens.css` / `theme-dark.css` 为空壳占位，步骤 2 填充；`base.css` / `font.css` 预制不用改。
+骨架由本 skill 的 `scaffold/` 目录维护，步骤 1 一键拷贝。骨架已含 eview-react 依赖、`aui3_1` body 类、`ConfigProvider` + `IntlProvider`、HarmonyOS 字体、icon shim（`src/shared/Icon/`，folder + 默认导出）；`vite.config.js` 预配 `@`→`./src` 别名 + icon-plus proxy/transform；`src/shared/` 下 Select/TextField/InputSelect/MultipleSelect/SearchInput/TextArea 包壳组件（透明转发 `@nce/eview-react`，供下游 antd-to-eview-react 从 `@/shared/X` 导入）。`src/styles/` 下 `tokens.css` / `theme-dark.css` 为空壳占位，步骤 2 填充；`base.css` / `font.css` 预制不用改。
 
 用法：`node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标题] [--force]`
 
