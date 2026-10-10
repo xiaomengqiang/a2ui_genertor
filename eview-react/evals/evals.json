@@ -81,10 +81,10 @@
     {
       "id": 6,
       "prompt": "用 eview-react 写一个新建用户表单：账号（必填，字母开头 3-20 位）、邮箱（必填）、端口（1-65535 的数字）、级别下拉（必填），点击创建时统一校验并聚焦第一个错误项",
-      "expected_output": "TextField 用 required + validator（自定义返回 {result,message}，内置用 TextField.defaultValidator.email() / range(1,65535)）；端口 format=\"number\"；Select 必填 + options；每个控件 useRef，提交时依次 ref.current.validate()，首个失败 focus()；提交按钮 disabled 防重复",
+      "expected_output": "TextField 用 required + validator（自定义返回 {result,message}，内置用 TextField.defaultValidator.email() / rangeAndInteger(1,65535)）；端口 format=\"number\"；Select 必填 + options；每个控件 useRef，提交时依次 ref.current.validate()，首个失败 focus()；提交按钮 disabled 防重复",
       "assertions": [
         { "text": "自定义 validator 返回 { result, message } 且 result 为 true 表示通过", "type": "eview_compliance" },
-        { "text": "邮箱使用 TextField.defaultValidator.email()，端口使用 defaultValidator.range 或 min/max", "type": "contains_pattern" },
+        { "text": "邮箱使用 TextField.defaultValidator.email()；端口使用 rangeAndInteger(1,65535) 或整数与范围组合校验，不仅用 range/min/max 而漏掉小数。", "type": "contains_pattern" },
         { "text": "端口输入框设置 format=\"number\"", "type": "contains_pattern" },
         { "text": "必填字段设置 required", "type": "contains_pattern" },
         { "text": "提交前对所有字段都执行 ref.current.validate() 并收集结果，不在第一个失败处中断（所有错误同时显示），之后再对第一个失败项调用 focus()", "type": "behavioral" },
@@ -159,7 +159,7 @@
         { "text": "多行描述使用 TextArea，字数统计依赖 maxLength 而不是 showCount", "type": "eview_compliance" },
         { "text": "TextArea.onChange 使用第一个参数作为新值，没有 e.target.value", "type": "eview_compliance" },
         { "text": "TextArea 设置 required 与 validator，validator 返回 { result, message } 且 result 为 true 表示通过", "type": "contains_pattern" },
-        { "text": "没有在 TextArea 上调用 ref.validate()（官方无此 ref 方法），而是用 state 派生判断", "type": "eview_compliance" },
+        { "text": "TextArea 的 ref.validate() 尚未核验，默认用 state 派生判断；不能因示例未调用就断言运行时没有该方法。", "type": "eview_compliance" },
         { "text": "提交按钮 disabled 由标题非空与描述 trim 后长度 10-500 派生", "type": "behavioral" },
         { "text": "提交有 submitting 防重复并在完成后复位", "type": "behavioral" }
       ]
@@ -198,7 +198,7 @@
       "prompt": "用 eview-react 做一个服务评价面板：可打半星的五星评分，鼠标划过时预览分数，2 分及以下必须填写至少 5 字的评价，提交后变为只读",
       "expected_output": "Rating 用 onClick(value) 取值（没有 onChange），onMouseOver/onMouseLeave 维护独立的 hover 预览 state，half 允许半星；评价用 TextArea required 随分数联动；未评分或低分评论不足时提交 disabled；提交后 Rating disabled",
       "assertions": [
-        { "text": "评分使用 Rating 并从 @nce/eview-react/Rating 导入，没有使用 antd Rate", "type": "eview_compliance" },
+        { "text": "评分使用 Rating 并从 @nce/eview-react/Rating 导入，没有使用 antd Rate；不向仅声明 string 的 iconName 传图标 JSX。", "type": "eview_compliance" },
         { "text": "取值使用 Rating.onClick 而不是 onChange", "type": "eview_compliance" },
         { "text": "悬浮预览用独立的 hover state（onMouseOver 写入、onMouseLeave 清空），没有直接修改正式分值", "type": "behavioral" },
         { "text": "Rating 设置 half 允许半星", "type": "contains_pattern" },
@@ -214,8 +214,8 @@
       "assertions": [
         { "text": "未读数使用 Badge 的 content 与 max 属性，没有使用 antd 的 count / overflowCount", "type": "eview_compliance" },
         { "text": "状态点使用 Badge dot + status + text 独立使用，status 只取 default/success/error/warning/off", "type": "eview_compliance" },
-        { "text": "等级标签使用 Tag color 且只取 default/primary/success/warning/caution/danger，没有 antd 色名", "type": "eview_compliance" },
-        { "text": "筛选 Tag 通过 onClick 切换 Set 中的选中项，并用 fill=\"solid\"/\"outline\" 表达选中态；没有使用 closable/CheckableTag", "type": "eview_compliance" },
+        { "text": "等级标签使用 Tag color 的语义色 default/primary/success/warning/caution/danger，但不将它们宣称为 string 类型的全部合法值；不向 Tag.iconName 传图标 JSX。", "type": "eview_compliance" },
+        { "text": "筛选 Tag 通过 onClick 切换 Set 中的选中项，并用 fill=\"solid\"/\"outline\" 表达选中态；本场景不需 closable，不能把类型与旧 API 表冲突写成确定不支持；不使用未记录的 CheckableTag。", "type": "eview_compliance" },
         { "text": "业务状态码到 Badge.status 与 Tag.color 的映射集中在一个映射表中", "type": "behavioral" },
         { "text": "分组之间使用 Divider 并通过 orientation 与 children 显示分组标题", "type": "contains_pattern" },
         { "text": "筛选后无匹配项时显示空态文案", "type": "behavioral" }
@@ -227,7 +227,7 @@
       "expected_output": "Crumbs、Tree 是已覆盖组件；Card/CardGrid 无 Reference 且工程无现成用法，使用原生 section 与 CSS grid 实现普通非折叠卡片，接入业务样式、标 TODO 和交付补位清单；不猜这两个组件的 props、不用 antd。",
       "assertions": [
         {
-          "text": "面包屑使用 Crumbs，任务树使用 Tree 的 data/nodeKey/enableMultiSelect={false}/selectedKeys/onSelect，不手写这两个已覆盖组件",
+          "text": "面包屑使用 Crumbs，splitIcon 省略或传图片 URL，不照搬 data[].icon 的 JSX 用法；任务树使用 Tree 的 data/nodeKey/enableMultiSelect={false}/selectedKeys/onSelect，不手写这两个已覆盖组件",
           "type": "eview_compliance"
         },
         {
@@ -323,11 +323,11 @@
       "prompt": "用 eview-react 写一个网元接入表单：所属区域用省/市/区级联选择，归属分组用树形下拉单选，设备型号用可输入过滤的下拉（只能选列表里的），管理 IP 用 IPv4 分段输入，表单按\"基本信息 / 网络配置\"两块可折叠分组，提交后成功或失败要有提示 目标采用核验的 3.10 源码线，不提供 Cascader，请用已覆盖组件完成逐级选择。",
       "expected_output": "已核验版本以省/市/区三个联动 Select 组合，父级变化清空下级；TreeSelect treeData + enableMultiSelect={false}，回调对象数组取 id 存业务 key，value 是文案不可作标识；仅改 value/[] 不会同步树勾选，外部回填/清空用 revision/key 重建，普通选择不每次重挂。InputSelect onlySelect；IPInput type=\"v4\"；Panel/PanelItem 按分组展示与错误展开；提交防重并反馈。",
       "assertions": [
-        { "text": "目标3.10源码线不导入不存在的 Cascader；省市区用联动 Select，父级变化清空并更新后代选项；只有其它目标版本明确提供 Cascader 且已有用法验证时才采用其独立Reference。", "type": "eview_compliance" },
+        { "text": "不导入或生成已核验版本不存在的 Cascader；省市区用联动 Select，父级变化清空后代值并更新后代选项，不引用已撤回的 Cascader Reference。", "type": "eview_compliance" },
         { "text": "树形单选用 TreeSelect treeData/enableMultiSelect={false}，onChange 按对象数组取 id；初值/回填用 id 数组，不把 value 文案回填。该线单改 value 或 [] 不能同步树勾选；外部回填/清空时同步业务值并更新独立 key 重建，普通 onChange 不重挂，或复用目标工程已验证的兼容处理。", "type": "eview_compliance" },
         { "text": "设备型号使用 InputSelect onlySelect，onChange(value,oldValue,type,event?) 的第三参为 input/select，第四参可缺省；选择与输入按业务需要区分。", "type": "eview_compliance" },
         { "text": "管理 IP 使用 IPInput type=\"v4\"，onChange 第一个参数作为完整 IP 字符串使用", "type": "eview_compliance" },
-        { "text": "分组使用 Panel + PanelItem，selectedIndex 为数组，PanelItem 传 closable={false}", "type": "eview_compliance" },
+        { "text": "分组使用 Panel + PanelItem，selectedIndex 为数组，PanelItem 传 closable={false}；如结合 Form，每个 Form.Item 必须是所属 Form 的直接子级，不能在两者之间插入 Panel/PanelItem。", "type": "eview_compliance" },
         { "text": "校验失败时把出错字段所在面板下标加入 selectedIndex 展开", "type": "behavioral" },
         { "text": "提交成功 / 失败通过 DivMessage 或 MessageDialog 反馈，且提交按钮防重复", "type": "behavioral" }
       ]
@@ -337,7 +337,7 @@
       "prompt": "用 eview-react 写一个概览卡片区：三张统计卡片各自可刷新，刷新中只盖住自己；接口失败显示失败空态并可重试，数据为 0 显示成功空态；卡片右上角是带气泡提示的图标按钮；页面首屏整体加载",
       "expected_output": "首屏 Loading type=\"global\"；每张卡片父容器 position: relative + Loading type=\"local\" 各自 isOpen；失败 Empty type=\"fail\" + 重试按钮，为 0 Empty type=\"success\"；卡片右上角 IconButton iconName={<IconPlusIc* />} tipText tipData.direction 或 TipBox 包裹 icon+ 组件；请求在 finally 关闭 loading",
       "assertions": [
-        { "text": "首屏使用 Loading type=\"global\" isOpen，卡片局部使用 Loading type=\"local\" 且父容器 position: relative", "type": "eview_compliance" },
+        { "text": "首屏使用 Loading type=\"global\" isOpen，卡片局部使用 Loading type=\"local\" 且父容器 position: relative；iconUrl 省略使用默认图标，或传图片 URL，不传 JSX。", "type": "eview_compliance" },
         { "text": "Loading 的关闭写在 finally 中，失败时不会一直转", "type": "behavioral" },
         { "text": "接口失败使用 Empty type=\"fail\" 并在 description 中放重试按钮；数据为 0 使用 Empty type=\"success\"", "type": "eview_compliance" },
         { "text": "卡片右上角使用 IconButton（iconName={<IconPlusIc* />} + tipText + tipData.direction）或 TipBox 包裹 icon+ 组件，没有给图标组件直接挂 onClick 当按钮", "type": "eview_compliance" },

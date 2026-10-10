@@ -92,9 +92,9 @@ export default function NetAddressForm() {
   const [result, setResult] = useState<string>('');
   const ipRef = useRef<any>(null);
 
-  const handleTypeChange = (a: string, b: string) => {          // RadioGroup 参数顺序冲突，取与当前值不同的那个
-    const next = (a === ipType ? b : a) as 'v4' | 'v6';
-    setIpType(next);
+  const handleTypeChange = (newValue: string) => {            // RadioGroup 第一个参数是新值
+    if (newValue !== 'v4' && newValue !== 'v6') return;
+    setIpType(newValue);
     setIp('');
     setDupMsg('');
   };

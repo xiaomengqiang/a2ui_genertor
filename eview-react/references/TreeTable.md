@@ -71,20 +71,9 @@ const dataset = [
 />
 ```
 
-### 三态图标用 icon+
+### 三态图标
 
-```tsx
-import { IconPlusIcPublicFile, IconPlusIcPublicFolderOpen, IconPlusIcPublicFolder } from '@nce/icon-plus';
-<TreeTable
-  columns={columns}
-  dataset={dataset}
-  nodeKey="id"
-  iconLeaf={<IconPlusIcPublicFile />}
-  iconExpanded={<IconPlusIcPublicFolderOpen />}
-  iconCollapsed={<IconPlusIcPublicFolder />}
-  …
-/>
-```
+默认省略图标配置。需要自定义时，`iconLeaf` / `iconExpanded` / `iconCollapsed` 要一起传图片 URL 字符串；现有类型与示例未确认这些属性接受 JSX，不能直接传 icon+ 组件。
 
 ## 5. 数据结构
 
@@ -206,6 +195,6 @@ export default function DeviceConfigTree() {
 | `virtualScroll` / `virtualShowNum` | `boolean` / `number` | 虚拟滚动 |
 | `enableColumnFilter` / `itemOrderChanger` / `onFilterOkClick` | — | 列筛选弹窗 |
 | `enableColumnDrag` / `onColumnSizeChange` | `boolean`（默认 true）/ 回调 | 列宽拖拽 |
-| `iconLeaf` / `iconExpanded` / `iconCollapsed`（及 Class） | `string \| ReactNode` | 三态图标，默认用 icon+ 组件 |
+| `iconLeaf` / `iconExpanded` / `iconCollapsed`（及 Class） | `string` | 三态图标 URL，三项一起配置；对应 Class 为类名 |
 | `showEmptyImage` / `rowStyle` / `customRowStyle` / `tableStyle` / `style` / `className` / `id` | — | 空图 / 样式 |
 | `ref.expandAll()` / `ref.collapseAll()` | 命令式方法 | 全展开 / 全收起（demo） |

@@ -5,15 +5,15 @@
 
 ## 0. 什么时候读本文
 
-- 设计稿 / 需求里出现了 SKILL.md 组件索引之外的控件（卡片、进度条、时间轴、轮播、穿梭框、键值详情……）
+- 设计稿 / 需求里出现了 SKILL.md 组件索引之外的控件（卡片、穿梭框、键值详情……）
 - 用户说"用 eview-react 做"，但某个区块找不到对应 Reference
-- 生成结果里准备写 `import X from '@nce/eview-react/X'` 而 `X` 不在 48 个已覆盖组件里
+- 生成结果里准备写 `import X from '@nce/eview-react/X'` 而 `X` 不在 47 个已覆盖组件里
 
 ## 1. 三层判定（按顺序，命中即停）
 
 | 层 | 条件 | 做法 | 产出标记 |
 |----|------|------|---------|
-| **一：已覆盖组件** | 需求能用 48 个已覆盖组件（或其组合）表达 | 读对应 Reference 照规格写；优先用组合替代（见 §2） | 无 |
+| **一：已覆盖组件** | 需求能用 47 个已覆盖组件（或其组合）表达 | 读对应 Reference 照规格写；优先用组合替代（见 §2） | 无 |
 | **二：工程里已有用法** | 目标工程 `src/` 里已经 `import X from '@nce/eview-react/X'` 并在用 | **只照抄该工程里出现过的 props / 回调 / 数据结构**，不新增任何未出现过的属性；注释标出参考文件 | `// 用法参考：src/xxx/Yyy.tsx` |
 | **三：手写补位** | 前两层都不命中 | 用原生 HTML / JSX 自己实现，按 §3 接入业务项目样式；复杂组件只做最小可用版并标 TODO（§5） | `// TODO(eview-react): 建议替换为 <X>，本 Skill 暂无其规格` |
 
@@ -23,17 +23,18 @@
 2. **第三层不模仿组件库的 DOM 结构和 `ev_` 类名去"借样式"**。`ev_` 是组件库内部前缀（官网开发规范），业务手写用自己的前缀（如 `app-`），避免被组件库样式权重覆盖或反向污染。
 3. **每处手写补位都要在最终回复里向用户列出**：位置、用什么替代的、建议后续换成哪个组件。
 
-### 第二层导入核对：历史入口与版本差异
+### 第二层导入核对：目标包入口与已确认差异
 
-以下 87 个名字是旧资料的入口快照，**不能据此认定目标发布包都支持**；当前核验的 3.10.36 源码线已有命名和可用性差异。先按下方差异与目标包声明核对导出，未覆盖组件仍须满足工程 `src/` 已有用法的条件：
+历史资料目录、示例导入和入口快照不能证明当前发布包提供某个组件，也不能仅因历史清单未收录就认定不存在。核对目标工程实际安装版本及相关 `.d.ts` 中的根导出、子路径默认导出与子组件形式；类型存在仍不等于运行通过。未覆盖组件继续要求工程 `src/` 已有相应用法，不能凭名字或目录补写 API。
 
-`Accordion Anchor Badge BrowseButton Button ButtonGroup ButtonMenu Card CardGrid Carousel Cascader CategoryInput CategorySearch Checkbox CheckboxGroup Col ConfigProvider Crumbs DatePicker Dialog Divider DivMessage DoubleSelect DragInput Drawer DropDown Empty FileUpload Form FormMessage GridLayout HelpTip HexField Icon IconButton IconButtonGroup InputSelect IPInput JList LabelField Layout LinkField Loader Loading Menu MessageDialog MultipleSelect PageMessage Paging PagingTree Panel Popup PopUpMenu ProgressBar Radio RadioGroup Rating Row ScrollBar ScrollTable SearchInput Select SelectCard Shade Spinner Split Steps Switch Tab TabItem Table Tag TextArea TextButton TextField TimeLine TimePicker TimeRangeSelector TimescaleAxis TipBox Toggle Tree TreeDataEngine TreeSelect TreeSelector TreeTable Wizards`
+已确认的入口差异：
 
-另有 [ColorPicker](../ColorPicker.md) 已覆盖子路径默认导入 `@nce/eview-react/ColorPicker`，不把它当作已核验的根命名导出。
+- 3.10 核验源码的时间根导出为 `TimeSelector`；根名 `SelectCard` / `DragInput` 分别对应 Segmented / Slider，不从根包导入 `TimePicker` / `Segmented` / `Slider`。
+- 发布包 **3.10.28** 已确认 `/Segmented`、`/Slider`、`/TimePicker`、`/Transfer` 的子路径默认导出。前三者按对应 Reference 使用；Transfer 的 API 尚未覆盖，仍按三层流程处理。
+- [ColorPicker](../ColorPicker.md) 使用子路径默认导入 `@nce/eview-react/ColorPicker`，已核验根入口不导出它。
+- 已核验的两条源码线与 3.10.28 包均无 Cascader，不生成它的导入或用法；级联需求使用联动 [Select](../Select.md)。
 
-3.10 源码线的明确差异：**没有 Cascader；时间组件根名为 TimeSelector，不是 TimePicker；根名仍为 SelectCard / DragInput，没有 Segmented / Slider**。时间选择按 [TimePicker](../TimePicker.md) 用 `import { TimeSelector as TimePicker } from '@nce/eview-react'`。发布包 **3.10.28** 已核对 Segmented / Slider / TimePicker / Transfer 的直接子路径均可默认导入；入口确认不等于 Transfer 的 API 已覆盖，仍按未覆盖组件流程处理。Cascader 在 3.10.28 包与核验的 4.0.607 + 15 源码中也不存在；其他版本仅在目标包和工程已有用法均确认后复用，否则用联动 Select 组合。
-
-不在清单中的 `Upload` / `Tabs` / `Input` / `Modal` / `Option` / `Step` 等不能作为本包组件导入；表单子项写 `Form.Item`。工程没有可核验用法时继续第三层。
+不要把其他库的 `Upload` / `Tabs` / `Input` / `Modal` / `Option` / `Step` 等名称直接当成本包导出；表单子项写 `Form.Item`。目标工程没有可核验用法时继续第三层。
 
 ## 2. 先想"能不能用已覆盖组件组合出来"
 
@@ -46,7 +47,7 @@
 | 面包屑 / 折叠分组 / 空态 / 加载 | `Crumbs` / `Panel` / `Empty` / `Loading`（均已覆盖） |
 | 侧边多级导航菜单 | `Accordion`（[Accordion.md](../Accordion.md)）；内容折叠仍用 `Panel` |
 | 树 / 树选择 / 树表 | `Tree` / `TreeSelect` / `TreeTable`（按各自 Reference） |
-| 省市区等逐级选择 | 联动 `Select`；[Cascader](../Cascader.md) 仅用于已确认提供该组件的其他版本 |
+| 省市区等逐级选择 | 多个 [Select](../Select.md) 联动，父级变化清空后代值并更新选项 |
 | 状态列 / 分组标题 | `Badge status` / `Tag color` / `Divider orientation` |
 | 时间点选择 | [TimePicker](../TimePicker.md) 选择时分秒；需日期时用 [DatePicker](../DatePicker.md)，步进输入用 [Spinner](../Spinner.md) |
 | 相对时间范围 | `SelectCard`（近 1 天 / 7 天 / 30 天） |
@@ -82,7 +83,7 @@ function AppCard({ title, extra, children }: { title: string; extra?: React.Reac
 }
 ```
 
-### 4.2 键值详情块（Descriptions 类组件不存在）
+### 4.2 键值详情块（未覆盖 Descriptions API）
 
 ```tsx
 function KeyValueList({ items, columns = 2 }: { items: Array<{ label: string; value: React.ReactNode }>; columns?: number }) {

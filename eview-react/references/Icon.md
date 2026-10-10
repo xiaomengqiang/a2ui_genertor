@@ -1,12 +1,12 @@
 # 图标（icon+ 与 IconButton）功能逻辑规格
 
-> ⚠️ 官网首推 **icon+ 图标库**：`import { IconPlusIcPublicSearch } from '@nce/icon-plus'`，按需引入，2000+ 图标，`type="filled"` 换风格、`iconColor={['red']}` 换色、`iconSize` 换尺寸（只能取 12/14/16/20/24/32/36/40/48/60）。
-> ⚠️ 内置 `Icon name="ict_xxx"` 组件**已被 icon+ 替代、不再推荐**；下文示例统一用 icon+ 组件。真实 icon+ 名迁移时用 icon-plus 接口（`getIconInfo`）按 antd/Lucide 名 keyword 查得（见 antd-to-eview-react/source-project-guidelines §3.3），本文示例的 icon+ 组件名仅为示意。
+> ⚠️ 图标使用 **icon+**：`import { IconPlusIcPublicSearch } from '@nce/icon-plus'`。`type="filled"` 换风格、`iconColor={['red']}` 换色，iconSize 默认选设计推荐尺寸；API 支持范围按目标包类型核对，不把推荐值当作全部合法值。
+> ⚠️ 按用户确认，内置 `Icon name="ict_xxx"` **已下线，禁止生成其导入或用法**；本文仅覆盖 icon+ 与 IconButton。真实 icon+ 名迁移时用 icon-plus 接口（`getIconInfo`）按 antd/Lucide 名 keyword 查得（见 antd-to-eview-react/source-project-guidelines §3.3），本文示例的 icon+ 组件名仅为示意。
 > ⚠️ 只有图标、要点击、要气泡提示 → 用 **`IconButton`**，不要给图标组件挂 onClick 再自己写 title。
 
 ## 1. 功能定位
 
-icon+（`@nce/icon-plus`）是组件库首推的图标方案，按需引入、2000+ 图标，可换风格 / 颜色 / 尺寸；IconButton 是"纯图标按钮 + 气泡提示"，用于表格操作列、卡片角落等小面积区域。内置 `Icon` 组件已被 icon+ 替代、不再推荐。
+icon+（`@nce/icon-plus`）按需引入，可换风格 / 颜色 / 尺寸；IconButton 是"纯图标按钮 + 气泡提示"，用于表格操作列、卡片角落等小面积区域。旧内置 Icon 不在本 Skill 的生成范围。
 
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
@@ -25,7 +25,7 @@ icon+（`@nce/icon-plus`）是组件库首推的图标方案，按需引入、20
 ## 3. 状态声明
 
 ```tsx
-// 图标本身无状态；IconButton 的 disabled / loading 由业务 state 派生
+// 图标本身无状态；IconButton 的 disabled 由业务忙碌状态派生
 const [deleting, setDeleting] = useState<Set<string>>(new Set());
 ```
 
@@ -39,6 +39,8 @@ import { IconPlusIcPublicSearch, IconPlusIcPublicTrash, IconPlusIcPublicEdit } f
 <IconPlusIcPublicEdit />
 <IconPlusIcPublicTrash type="filled" iconColor={['currentColor']} iconSize={20} />   // 示例继承业务容器的文字颜色
 ```
+
+设计推荐尺寸为 12 / 14 / 16 / 20 / 24 / 32 / 36 / 40 / 48 / 60，默认按这些值生成。需要百分比、rem 等非数字尺寸时核对目标包类型和实际显示；这些单位尚未在当前 @nce/icon-plus 包验证，推荐尺寸也不代表 API 只接受这些值。
 
 ### IconButton：图标操作 + 气泡
 
@@ -54,7 +56,7 @@ import { IconPlusIcPublicSearch, IconPlusIcPublicTrash, IconPlusIcPublicEdit } f
 // 操作列配置：集中定义图标、提示、权限
 interface RowAction<T> {
   key: string;
-  iconName: string | React.ReactElement;
+  iconName: React.ReactElement; // 本业务配置仅使用已核验的 icon+ 元素
   tip: string;
   visible?: (row: T) => boolean;
   onClick: (row: T) => void;
@@ -129,8 +131,8 @@ import { EditOutlined } from '@ant-design/icons';
 // ❌ 给图标组件挂 onClick 当按钮用，没有气泡提示、没有禁用态、键盘不可达 → 用 IconButton
 <IconPlusIcPublicTrash onClick={remove} />
 
-// ❌ icon+ 尺寸随意写（只能 12/14/16/20/24/32/36/40/48/60）
-<IconPlusIcPublicTrash iconSize={18} />
+// ❌ 未核验目标包就假定支持字符串尺寸
+<IconPlusIcPublicTrash iconSize="3rem" /> // 使用前须核对目标包，不能无条件照搬
 
 // ❌ IconButton 的提示同时传 tipText 和 tipContent（二选一）
 <IconButton tipText="删除" tipContent={<div>删除</div>} />
@@ -138,11 +140,11 @@ import { EditOutlined } from '@ant-design/icons';
 
 ## 9. API 速查
 
-> 压缩自 `IconButton/IconButton`；icon+ 用法来自 Icon 页 README 与 demo。内置 `Icon/Icon` 组件已被 icon+ 替代、不再推荐，其 API 不再列入。
+> icon+ 的具体类型按目标 @nce 包核对；内置 Icon 已下线，不生成其用法。
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
-| `IconButton.iconName` | `string \| ReactElement` | icon+ 组件（推荐，如 `<IconPlusIcPublicTrash />`）；也收 `ict_*` 名但不再推荐 |
+| `IconButton.iconName` | `string \| ReactElement`（原声明） | 本页只传已核验的 icon+ 元素，不生成旧 ict_* 图标名用法 |
 | `IconButton.iconUrl` / `hoverIconUrl` / `disabledIconUrl` | `string` | 图片三态，仅自定义图片；默认用 `iconName={<IconPlusIc* />}` |
 | `IconButton.iconProps` | `{ color, hoverColor, disabledColor }` | 配 `iconName` 用 |
 | `IconButton.tipText` / `tipContent` | `string` / `any` | 气泡文本 / 自定义内容（二选一） |
@@ -150,4 +152,4 @@ import { EditOutlined } from '@ant-design/icons';
 | `IconButton.enableClickHideTip` | `boolean`，默认 `false` | 点击后隐藏气泡 |
 | `IconButton.disabled` / `size` | `boolean` / `any` | 禁用 / 尺寸（数字、rem、px） |
 | `IconButton.onClick` / `onKeyDown` / `onMouseEnter` / `onMouseLeave` / `onFocus` / `onBlur` | `(event) => void` | 事件 |
-| icon+ 组件 `type` / `iconColor` / `iconSize` | `'filled' …` / `string[]` / `12…60` | 风格 / 颜色数组 / 尺寸 |
+| icon+ 组件 `type` / `iconColor` / `iconSize` | 具体类型以目标 @nce/icon-plus 包为准 | 示例用 filled、颜色数组、数字尺寸；推荐尺寸与单位边界见 §4 |

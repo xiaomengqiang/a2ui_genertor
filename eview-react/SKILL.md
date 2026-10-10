@@ -28,7 +28,7 @@ description: >-
 
 ## 必须遵守
 
-- 按 Reference 确认导入方式：根命名导出或组件子路径默认导出；3.10 源码线的时间组件根名为 `TimeSelector`，`ColorPicker` 使用子路径，`Cascader` 在已核验的 3.10 / 4.x 源码及 3.10.28 包中均不存在，先核验目标版本。不能用源码别名 `eview-react/…` 或 antd 顶替。入口引入 `aui3_1.css`，运行时切深色同时引 `aui3_1_dark.css`；给 `body` 加 `aui3_1`（深色另加 `aui3_1_dark`），覆盖挂在 body 下的弹层，详见工程 Pattern。
+- 按 Reference 确认导入方式：根命名导出或组件子路径默认导出；3.10 源码线的时间组件根名为 `TimeSelector`，`ColorPicker` 使用子路径。已核验版本不提供 Cascader，级联需求组合联动 `Select`，不生成 Cascader 导入或用法。不能用源码别名 `eview-react/…` 或 antd 顶替。入口引入 `aui3_1.css`，运行时切深色同时引 `aui3_1_dark.css`；给 `body` 加 `aui3_1`（深色另加 `aui3_1_dark`），覆盖挂在 body 下的弹层，详见工程 Pattern。
 - 平常尽量不用 `ConfigProvider`：已有 `IntlProvider` 且无动画配置需求时沿用；没有 `IntlProvider`，或需要控制 `animation` 时，再使用 `ConfigProvider` 替代。无动画配置时只透传 children，有需求时传布尔值；复用已有根 Provider，不逐页重复包裹。替换前核对业务国际化上下文依赖，未确认兼容时保留必要的 IntlProvider；3.10 核验线的 ConfigProvider.locale/messages 无实际消费者，不靠它迁移文案，也不强制嵌套两者。
 - **图标默认用 icon+**（`import { IconPlusIc* } from '@nce/icon-plus'` 按需引入），不用内置 `Icon name='ict_…'`（已下线）；可点击图标用 `IconButton iconName={<IconPlus* />}`，不给图标组件挂 onClick。
 - **props、导出名、回调参数顺序和 ref 方法都以对应 Reference 为准，查不到不推断**；不按其他库 API 或原生 event 猜写法。资料冲突按文档兼容方案处理，保留待实测说明，不能擅自认定某一版正确。
@@ -43,7 +43,9 @@ description: >-
 
 ## 组件索引
 
-当前 48 份组件 Reference，包含版本受限的历史组件说明；索引中的名称不代表目标版本均可导入。每份保留 API、回调、状态、联动、完整示例与反例。
+当前 47 份组件 Reference，表示已编写用法规格，不代表已逐个验证目标发布包。每份保留 API、回调、状态、联动、完整示例与反例。
+
+TextArea、Paging、MultipleSelect、TreeTable、IPInput、Empty、Crumbs、Panel、Rating、Tag、Badge、Divider、TipBox 的目标版本入口与实现尚未确认；首次使用前核对已安装包声明或目标工程现有用法。其余组件也只确认核验涉及的接口，不将父组件结论自动扩展到子组件、别名或全部 API。
 
 | 组件 / 场景 | 读取 |
 |-------------|------|
@@ -76,7 +78,6 @@ description: >-
 | `Tree` / 树 / 组织架构 | [references/Tree.md](references/Tree.md) |
 | `TreeSelect` / 树形下拉 | [references/TreeSelect.md](references/TreeSelect.md) |
 | `TreeTable` / 树表 / 层级表格 | [references/TreeTable.md](references/TreeTable.md) |
-| `Cascader` / 级联 / 省市区（已核验版本不提供；优先联动 Select） | [references/Cascader.md](references/Cascader.md) |
 | `Drawer` / 抽屉 / 侧滑面板 | [references/Drawer.md](references/Drawer.md) |
 | `IPInput` / IP / MAC 输入 | [references/IPInput.md](references/IPInput.md) |
 | `DivMessage` / 提示条 / 操作反馈 | [references/DivMessage.md](references/DivMessage.md) |
@@ -106,7 +107,7 @@ description: >-
 
 ## 未覆盖组件的处理
 
-按顺序命中即停：**组合已覆盖组件 → 复用目标工程 src/ 已有用法 → 原生 HTML/JSX 补位**。第二层只用工程已出现的 props / 回调 / 数据结构，并注释来源；导出名先核对补位 Pattern 中的清单，可只读已安装包的 `.d.ts` 核验。没有记录的能力也走此流程，不仅凭类型声明新增用法、不用他库顶替；原始资料不随 Skill 打包。
+按顺序命中即停：**组合已覆盖组件 → 复用目标工程 src/ 已有用法 → 原生 HTML/JSX 补位**。第二层只用工程已出现的 props / 回调 / 数据结构，并注释来源；导入路径按补位 Pattern 核对目标包声明与已有用法，不能把历史资料目录或导出快照当作可用清单。没有记录的能力也走此流程，不仅凭类型声明新增用法、不用他库顶替；原始资料不随 Skill 打包。
 
 手写前读补位 Pattern：使用业务样式和语义化元素，不借 `ev_` 内部类名；按能力边界实现并标 `TODO(eview-react)`，最终回复列明补位位置、替代方式和可核验的后续组件。
 

@@ -47,13 +47,14 @@ const crumbs: Crumb[] = useMemo(() => [
 // 带标题 / 图标 / 折叠阈值
 <Crumbs title="当前位置" data={crumbs} countLimit={4} itemTip />
 
-// 项图标 / 分隔图标用 icon+
-import { IconPlusIcPublicHome, IconPlusIcPublicChevronRight } from '@nce/icon-plus';
+// 项图标可用 icon+；分隔图标省略，沿用默认值
+import { IconPlusIcPublicHome } from '@nce/icon-plus';
 <Crumbs
   data={[{ title: '首页', url: '/', icon: <IconPlusIcPublicHome /> }, { title: '用户管理' }]}
-  splitIcon={<IconPlusIcPublicChevronRight />}
 />
 ```
+
+`data[].icon` 的 JSX 示例不能推导为 `splitIcon` 也接受 JSX；自定义 `splitIcon` 使用图片 URL 字符串。
 
 ## 5. 数据结构
 
@@ -149,7 +150,7 @@ data={[{ title: '用户管理', url: '/users' }, { title: '编辑', url: '/users
 | `onClick` | `(data, event) => void` | 点击带链接的项 |
 | `title` | `string` | 面包屑前的标题，如"当前位置" |
 | `seprator` | `string`，默认 `>` | 分隔符（拼写照官方） |
-| `splitIcon` | `string \| ReactElement` | 自定义分隔图标，默认用 icon+ 组件 |
+| `splitIcon` | `string` | 自定义分隔图标 URL；不传使用默认图标 |
 | `countLimit` | `number`，默认 `6` | 超过则折叠为下拉 |
 | `itemTip` | `boolean`，默认 `false` | 悬浮显示项文本提示 |
 | `itemStyle` / `style` / `className` / `id` | — | 样式与标识 |

@@ -1,7 +1,8 @@
 # Tag 组件功能逻辑规格
 
 > 版本要求：3.4.11 起支持。
-> ⚠️ eview Tag **没有 `closable` / `onClose`**（antd 最常用的可关闭标签在这里不存在）。需要"可删除的标签列表"时，用业务数组 + `onClick` 或旁边放 `IconButton`（[Icon.md](Icon.md)）自己实现。
+> ⚠️ closable / onClose / disabled 及 size 的声明存在差异，尚未确认对应发布版本，不能断言关闭功能不存在。默认不启用内置关闭或禁用；可删除标签用业务数组 + onClick，或旁边放 [IconButton](Icon.md)。
+> ⚠️ `iconName` 在两份类型资料中均为 string，不能扩成 ReactElement。默认不定制图标；需要装饰图标时放在 Tag 旁边，不生成旧内置 Icon。
 
 ## 1. 功能定位
 
@@ -9,7 +10,7 @@ Tag 是关键词 / 状态 / 分类的小标签：`color` 六种语义色，`fill
 
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
-| 表格 / 卡片里的状态（正常 / 告警 / 危险） | `<Tag color="success">正常</Tag>` | antd 的 `color="green"` |
+| 表格 / 卡片里的状态（正常 / 告警 / 危险） | `<Tag color="success">正常</Tag>` | 把其他库的颜色示例当成本库状态语义 |
 | 对象的属性 / 类别关键词 | `<Tag isMessageTag>` | Badge |
 | 可选中的筛选标签组 | `Tag` + `onClick` + 选中态用 `fill` 切换 | `Tag.CheckableTag`（不存在） |
 | 小圆点状态 | `Badge status`（[Badge.md](Badge.md)） | Tag |
@@ -17,7 +18,7 @@ Tag 是关键词 / 状态 / 分类的小标签：`color` 六种语义色，`fill
 ## 2. 典型场景
 
 - 表格状态列：按告警等级映射 `color`（`danger` / `warning` / `caution` / `success` / `primary` / `default`）
-- 详情页关键属性：多个 `isMessageTag` 并排，可带 `iconName`
+- 详情页关键属性：多个 `isMessageTag` 并排，默认不定制图标
 - 分类标签：自定义 `style` 的 `color` / `background` / `borderColor`（`TagClassify.jsx`）
 - 可点击筛选：点击切换选中，选中用 `fill="solid"`、未选用 `fill="outline"`
 
@@ -64,7 +65,7 @@ const toggle = (key: string) => {
 ))}
 ```
 
-### 可删除标签列表：Tag 没有 closable，用数组 + 点击移除
+### 可删除标签列表：默认由业务数组管理移除
 
 ```tsx
 {tags.map((t) => (
@@ -74,12 +75,13 @@ const toggle = (key: string) => {
 ))}
 ```
 
-### 信息标签带图标
+### 信息标签
 
 ```tsx
-import { IconPlusIcPublicAbout } from '@nce/icon-plus';
-<Tag isMessageTag hasIcon iconName={<IconPlusIcPublicAbout />}>已认证</Tag>
+<Tag isMessageTag>已认证</Tag>
 ```
+
+需要额外图标时，在 Tag 旁放已核验的 icon+ 元素。禁用交互默认由业务处理器检查权限 / 忙碌态，不依赖尚未核验版本的 Tag.disabled。
 
 ## 5. 数据结构
 
@@ -188,13 +190,15 @@ export default function AlarmTags() {
 ## 8. 反面示例
 
 ```tsx
-// ❌ antd 习惯：eview Tag 没有 closable / onClose / CheckableTag / icon 属性
-<Tag closable onClose={remove} icon={<IconPlusIcPublicXxx />}>标签</Tag>
+// ❌ antd 的 icon 属性与 CheckableTag 没有对应声明
+<Tag icon={<IconPlusIcPublicXxx />}>标签</Tag>
 <Tag.CheckableTag checked={on} onChange={setOn}>筛选</Tag.CheckableTag>
 
-// ❌ 颜色写 antd 的色名，eview 只认 default/primary/success/warning/caution/danger（或自定义 style）
-<Tag color="green">正常</Tag>
-<Tag color="red">紧急</Tag>
+// ❌ 未核对版本差异就默认依赖内置关闭；不是断言这些字段在所有版本都不存在
+<Tag closable onClose={remove}>标签</Tag>
+
+// ❌ iconName 仅声明 string，不能照搬 IconButton 的元素用法
+<Tag hasIcon iconName={<IconPlusIcPublicAbout />}>已认证</Tag>
 
 // ❌ 想要描边效果去改 style，应该用 fill="outline"
 <Tag style={{ background: '#fff', border: '1px solid #0067d1' }}>描边</Tag>
@@ -210,16 +214,18 @@ export default function AlarmTags() {
 
 > 压缩自 `Tag/types`。
 
+size 默认取共同尺寸范围 normal / large；small 及 closable / onClose / disabled 须核验目标包声明与实现后才使用，不作已支持或已移除的统一结论。
+
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
 | `children` | `ReactNode` | 标签文字 |
 | `color` | `'default' \| 'primary' \| 'success' \| 'warning' \| 'caution' \| 'danger' \| string`，默认 `default` | 语义色；`solid` 时为背景色，`outline` 时为文字 / 边框色 |
 | `fill` | `'solid' \| 'outline'`，默认 `solid` | 实心 / 描边 |
 | `round` | `boolean`，默认 `true` | 圆角 |
-| `size` | `'small' \| 'normal' \| 'large'`，默认 `normal` | 尺寸（`normal` 为小尺寸，`large` 为大尺寸） |
-| `onClick` | `(e: MouseEvent) => void` | 点击 |
+| `size` | `'normal' \| 'large'`，默认 `normal` | 默认使用的共同范围；small 存在资料差异，不默认生成 |
+| `onClick` | `(e: React.MouseEvent<HTMLSpanElement>) => void` | 点击 |
 | `isMessageTag` | `boolean`，默认 `false` | 信息标签样式 |
-| `hasIcon` / `iconName` | `boolean` / `string \| ReactElement` | 信息标签图标（默认用 `iconName={<IconPlusIc* />}`） |
-| `tagIconProps` | `{ iconUrl, hoverColor, style, className }` | 自定义图标；`iconUrl` 仅自定义图片，默认用 `iconName` 走 icon+ |
-| `style` | `{ color?, background?, borderColor?, borderRadius?, border? }` | 自定义颜色（分类标签用法） |
+| `hasIcon` / `iconName` | `boolean` / `string` | 历史图标配置，默认省略；不传 icon+ 元素或生成旧内置 Icon |
+| `tagIconProps` | `{ iconUrl, hoverColor, style, className }` | 历史图标配置记录，默认省略；iconUrl 声明为图片路径字符串 |
+| `style` | `React.CSSProperties` | 自定义颜色（分类标签用法）；color 属性类型允许 string，不将六种语义色写成全部合法值 |
 | `id` / `className` | — | 最外层 |
