@@ -1,0 +1,21 @@
+.evSpinner-custom {
+    width: 6.5rem;
+    min-width: 0px;
+}
+
+.evSpinner-custom:where(:has(.ev_spinner_container_width_time)) {
+    width: 7.5rem;
+    min-width: 0px;
+}
+
+.evSpinner-custom .ev_spinner {
+    width: 100%;
+}
+
+.evSpinner-custom .ev_spinner_wrap {
+    width: 100%;
+}
+
+.evSpinner-custom .ev_spinner_container {
+    width: 100%;
+}

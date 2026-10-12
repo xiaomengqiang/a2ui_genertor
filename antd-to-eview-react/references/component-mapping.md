@@ -26,7 +26,7 @@
 | `Input.TextArea` | `TextArea` | `onChange(targetValue, value, event)`；`onBlur(event)` 无 value；`maxLength` 自带右下角计数（替代 `showCount`）；无 `autoSize`/`allowClear`；无 ref 方法；⚠️ 导入 `@/shared/TextArea`（包壳，非 `@nce/eview-react/TextArea`） |
 | `Input.Search` | `SearchInput` | `onSearch` 值变化也触发（需防抖）；`onClear(value)`；`placeholder` 保留；`onSuggest` vs `popItems` 互斥；⚠️ 导入 `@/shared/SearchInput`（包壳，非 `@nce/eview-react/SearchInput`） |
 | `Input.Password` | `TextField type="password"` | 需 `isAllowToModifyPasswordByProps` 才能 props 清空/回填；`autoComplete="off"` |
-| `InputNumber` | `Spinner` | `onChange(value)` 只在有效值触发；`onInputError(value)` 接无效值；重置加 `doNotFocusWhenValueUpdate`；`min/max/step/precision` |
+| `InputNumber` | `Spinner` | `onChange(value)` 只在有效值触发；`onInputError(value)` 接无效值；重置加 `doNotFocusWhenValueUpdate`；`min/max/step/precision`；⚠️ 导入 `@/shared/Spinner`（包壳，非 `@nce/eview-react/Spinner`） |
 | `Mentions` | 手写 | 无对应 |
 | `Select` | `Select` | `options` 字段 `label`→`text`；`placeholder`→`defaultLabel`；`onChange(value, oldValue, text, oldText, event)` 五参；`enableClear`；`virtualScroll` >100 项；⚠️ 导入 `@/shared/Select`（包壳，非 `@nce/eview-react/Select`） |
 | `Select mode="multiple"` | `MultipleSelect` | 删 `mode`；`value` 数组；`onChange(value[], changeValue[], event)`；`placeholder`（不是 defaultLabel）；`selectAll`/`searchable`；⚠️ 导入 `@/shared/MultipleSelect`（包壳，非 `@nce/eview-react/MultipleSelect`） |
@@ -41,9 +41,9 @@
 | `Switch` | `Toggle` | `checked`→`toggled`；`onChange`→`onToggle(value)`；`data=[关,开]`；`taggledChildren`（拼错）；`Switch isControlToggled` 二次确认 |
 | `Slider` | `DragInput` | `value` **永远是数组**；`type="range"` 开双滑块；`markIndexes` 数组；导出名是 DragInput 不是 Slider |
 | `Rate` | `Rating` | 取值是 `onClick(value)` 不是 onChange；`onMouseOver/Leave` 悬浮预览；`half`；`disabled` 只读 |
-| `DatePicker` | `DatePicker` | **不要无条件回写** `onChange` 的字符串到 `value`（官方反例）；用 `defaultValue`+`ref.getValue()` 或有效 Date 才回写 |
-| `DatePicker.RangePicker` | `DatePicker range={...}` | **不要用 `onOkClick`**（实测不返回 `fromDateObj/toDateObj`，分两次回调只返回单日期）；改用 `onChange` 的 `target` 参数（`'from'`/`'to'`）分别收集起止日期。详见 [DatePicker.md](components/DatePicker.md) § 范围选择 |
-| `TimePicker` | `Spinner type="time"` | 值是字符串 `"hh:mm:ss"`；`timeFormat` |
+| `DatePicker` | `DatePicker` | **不要无条件回写** `onChange` 的字符串到 `value`（官方反例）；用 `defaultValue`+`ref.getValue()` 或有效 Date 才回写；⚠️ 导入 `@/shared/DatePicker`（包壳，非 `@nce/eview-react/DatePicker`） |
+| `DatePicker.RangePicker` | `DatePicker range={...}` | **不要用 `onOkClick`**（实测不返回 `fromDateObj/toDateObj`，分两次回调只返回单日期）；改用 `onChange` 的 `target` 参数（`'from'`/`'to'`）分别收集起止日期；⚠️ 导入 `@/shared/DatePicker`（包壳）。详见 [DatePicker.md](components/DatePicker.md) § 范围选择 |
+| `TimePicker` | `Spinner type="time"` | 值是字符串 `"hh:mm:ss"`；`timeFormat`；⚠️ 导入 `@/shared/Spinner`（包壳） |
 | `Upload` | `FileUpload` | 组件不发请求；`handleSubmit({event,data})` 自己发；`updateProgressStatus`/`fileUploadStatus` 回写；`disable`（不是 disabled）；`onReload` 重传 |
 
 ## 数据展示
