@@ -79,6 +79,10 @@ Radio 是单个单选框；RadioGroup 是 `data` 驱动的互斥单选组，自�
 // ❌ 盲信某一个参数位置是新值（资料冲突未决），有 50% 概率永远拿到旧值
 <RadioGroup isControlled value={mode} onChange={(value) => setMode(value)} />
 
+// ❌ 导入路径错误：RadioGroup 不是 @nce/eview-react/Radio 的导出
+import { RadioGroup } from '@nce/eview-react/Radio';   // 编译报错，RadioGroup 在独立包中
+import RadioGroup from '@nce/eview-react/RadioGroup';  // ✅ 正确
+
 // ❌ 切换模式后不清理被隐藏区块的值，提交时带上脏数据
 const handleModeChange = (a, b) => setMode(a === mode ? b : a);   // 少了 setTemplate('')
 ```
