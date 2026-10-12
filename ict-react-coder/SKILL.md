@@ -81,6 +81,7 @@ NOT supported:
 - `import * as`
 - aliased imports (`{ a as b }`)
 - npm packages beyond react/react-dom/antd/dayjs/react-intl
+- importing asset files (`.svg` / `.png` / `.jpg` / etc.) — use runtime path strings (e.g. `<img src="./assets/uploads/x.png" />`) instead
 - `import ... from "@ant-design/icons"` is **banned**; page icons are Lucide-only via `<Icon name="..." />`
 - `export default` must be a named function declaration (`export default function App()`)
 - Page entry file must be `app.jsx`
