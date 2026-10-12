@@ -11,10 +11,17 @@
 - 横向 Steps 不承载长文案；长说明放在步骤下方内容区。
 - 横向空间不足时改用纵向，不压缩步骤或截断关键信息。
 
+## 自行实现（不用 Steps）
+
+以下场景不使用 antd Steps，用 div + CSS 自行实现：
+
+- `type="inline"`（inline 步骤）
+- `type="navigation"`（箭头步骤）
+- **表格单元格**、**行内标签**、进度点等空间受限场景
+
 ## Don't
 
-- 不使用 Steps 的 `type="inline"` 形态；inline 场景用 div + CSS 自行实现。
-- 不使用 Steps 的 `type="navigation"` 形态；箭头场景用 div + CSS 自行实现。
+- 不使用 `type="inline"` 和 `type="navigation"`。
 - 不要用 Steps 替代 Tabs 或普通导航。
 - 不要把非线性状态强行组织成步骤。
 - 不要在步骤节点内放复杂表单或图表。
