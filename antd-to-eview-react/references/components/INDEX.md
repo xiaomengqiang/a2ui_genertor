@@ -2,7 +2,7 @@
 
 迁移时按需查阅对应文档。组件映射总表见 [../component-mapping.md](../component-mapping.md)。
 
-> **包壳组件**：`Select`、`TextField` 为 scaffold 预置包壳，从 `@/shared/<X>` 导入（API 同 `@nce/eview-react/<X>`，透明转发），不走 `@nce/eview-react/<X>`。清单见 SKILL.md 硬约束 #1。
+> **包壳组件**：`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea` 为 scaffold 预置包壳，从 `@/shared/<X>` 导入（API 同 `@nce/eview-react/<X>`，透明转发），不走 `@nce/eview-react/<X>`。清单见 SKILL.md 硬约束 #1。
 
 ## 表单与输入
 
@@ -14,7 +14,6 @@
 | InputSelect | [InputSelect.md](InputSelect.md) | 自动补全（AutoComplete） |
 | Select | [Select.md](Select.md) | 下拉选择（Select） |
 | MultipleSelect | [MultipleSelect.md](MultipleSelect.md) | 多选下拉（Select multiple） |
-| Cascader | [Cascader.md](Cascader.md) | 级联选择（Cascader） |
 | TreeSelect | [TreeSelect.md](TreeSelect.md) | 树选择（TreeSelect） |
 | Checkbox | [Checkbox.md](Checkbox.md) | 复选框（Checkbox/Checkbox.Group） |
 | Radio | [Radio.md](Radio.md) | 单选（Radio/Radio.Group） |

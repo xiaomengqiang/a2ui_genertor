@@ -1,5 +1,7 @@
 # MultipleSelect 组件功能逻辑规格
 
+> 导入：`import MultipleSelect from '@/shared/MultipleSelect'`（scaffold 包壳，透明转发 `@nce/eview-react/MultipleSelect`，API 不变）。
+
 > 资料来源：TypeDoc `MultipleSelect/MultipleSelect` + 官网 Multiple Select 页示例。
 > ⚠️ 与单选 `Select` 的三个差别：`value` 是**数组**；占位用 **`placeholder`**（Select 是 `defaultLabel`）；选项禁用字段是 **`disabled`**（SelectCard 是 `disable`）。
 > ⚠️ `onChange(value[], changeValue[], event)`：第一个是当前全部选中值，第二个是本次勾上 / 取消的值。

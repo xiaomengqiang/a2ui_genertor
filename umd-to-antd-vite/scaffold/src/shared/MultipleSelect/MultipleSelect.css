@@ -1,0 +1,8 @@
+.evMultipleSelect-custom {
+    width: 100%;
+    min-width: 0;
+}
+
+.evMultipleSelect-custom .ev_multiple_select {
+    width: 100%;
+}

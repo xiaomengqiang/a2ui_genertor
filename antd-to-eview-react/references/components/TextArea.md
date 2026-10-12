@@ -1,5 +1,7 @@
 # TextArea 组件功能逻辑规格
 
+> 导入：`import TextArea from '@/shared/TextArea'`（scaffold 包壳，透明转发 `@nce/eview-react/TextArea`，API 不变）。
+
 > 资料来源：TypeDoc `TextArea/TextArea` + 官网 TextArea 页示例。
 > ⚠️ 与 TextField 的差别：`onBlur` / `onFocus` 只给 `event`（TextField 的 `onBlur` 是 `(event, value)`）；`onChange` 是 `(targetValue, value, event)` 第一参为新值。没有 `type` / `format` / `isCharacterAllowed` / `suffix`；`maxLength` 会在右下角显示字数统计。官方 demo 没有 ref 命令式方法，不要假设有 `validate()`。
 
