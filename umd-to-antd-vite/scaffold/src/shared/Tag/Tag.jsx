@@ -36,39 +36,53 @@ function resolveColor(color) {
   return { customColor: color }; // hex/rgb/hsl/命名色 → style
 }
 
-// 匿名默认导出，避免与 import Tag 同名冲突；内部 <Tag> 即 eview Tag
-export default function ({
+/**
+ * 包壳 Tag：props 按 antd 原样传入，内部适配到 @nce/eview-react/Tag。
+ * （import 已别名 EvTag，故包装器可命名为 Tag，无命名冲突。）
+ *
+ * antd API：color / bordered / closable / onClose / closeIcon / icon / children
+ *           + 原生 DOM（onClick / style / className / id）。
+ * 映射：color→Tag.css token；bordered/fill→eview fill（显式变体时移除 ev_tag_fill，否则 ev_tag_fill 默认存在）；非状态色（自定义 CSS 色）也移除 ev_tag_fill 走 style；
+ *       icon→iconName（+isMessageTag/hasIcon）；closable/onClose 原样透传；closeIcon 丢弃。
+ * fill/isMessageTag/hasIcon 从 rest 摘出作逃生口（显式传值覆盖派生）；
+ * round/size/tagIconProps 等经 ...rest 原样透传给 eview。
+ */
+export default function Tag({
+  // —— antd 原样 prop ——
   color,
   bordered,
-  icon,
   closable,
   onClose,
-  closeIcon: _closeIcon, // antd closeIcon 无 eview 对应项，丢弃不透传
-  fill,
-  round,
-  size,
+  closeIcon: _closeIcon, // eview 无 closeIcon，丢弃不透传
+  icon,
   onClick,
-  isMessageTag,
-  hasIcon,
   style,
   className,
   id,
   children,
-  ...rest
-}) {
+  // —— eview 内部派生（摘出避免与下方计算值重复透传；显式传值作逃生口）——
+  fill,
+  isMessageTag,
+  hasIcon,
+  ...rest // round / size / tagIconProps 等原样透传
+} = {}) {
   const { token, customColor } = resolveColor(color);
 
-  // outline 判定：fill 优先 → bordered → 默认 solid
-  let outline = false;
-  if (fill === "outline") outline = true;
-  else if (fill === "solid") outline = false;
-  else if (bordered === true) outline = true;
-  else if (bordered === false) outline = false;
+  // 解析 eview fill：fill 逃生口优先 → bordered（true→outline / false→solid）→ 否则不传
+  let evFill;
+  if (fill === "outline" || fill === "solid") evFill = fill;
+  else if (bordered === true) evFill = "outline";
+  else if (bordered === false) evFill = "solid";
 
-  // className：token + outline 时加 ev_tag_fill（仅 token 色生效）+ 用户 className
+  // ev_tag_fill（Tag.css 的"填充/浅色"态）默认存在；仅在显式变体（fill 或 bordered）
+  // 或非状态色（无 token）时移除——此时改由 eview fill prop / 自定义 style 接管
+  const fillExplicit = evFill != null;
+  const keepEvFill = !fillExplicit && token != null;
+
+  // className：token + 默认态加 ev_tag_fill + 用户 className
   const cls = [
     token,
-    outline && token ? "ev_tag_fill" : "",
+    keepEvFill ? "ev_tag_fill" : "",
     className,
   ]
     .filter(Boolean)
@@ -78,27 +92,25 @@ export default function ({
   let evStyle = style;
   if (customColor != null) {
     evStyle = {
-      ...(outline
+      ...(evFill === "outline"
         ? { color: customColor, borderColor: customColor }
         : { background: customColor }),
       ...style,
     };
   }
 
-  // icon 由调用方传入 icon+ 组件节点，原样塞进 eview iconName 槽
+  // icon 由调用方按 antd 传入（icon+ 组件节点），原样塞进 eview iconName 槽
   const hasIconProp = icon != null;
 
   return (
     <EvTag
-      fill={outline ? "outline" : "solid"}
-      round={round}
-      size={size}
-      onClick={onClick}
+      fill={evFill}
       isMessageTag={hasIconProp ? (isMessageTag ?? true) : isMessageTag}
       hasIcon={hasIconProp ? (hasIcon ?? true) : hasIcon}
       iconName={icon}
       closable={closable}
       onClose={onClose}
+      onClick={onClick}
       style={evStyle}
       className={cls || undefined}
       id={id}
