@@ -1050,6 +1050,7 @@ input.ant-input.ant-input-sm {
 .ant-checkbox-wrapper .ant-checkbox-inner {
   width: 1rem;
   height: 1rem;
+  border-radius: 0.125rem;
 }
 .ant-checkbox-wrapper .ant-checkbox-inner::after {
   width: 0.357rem;
@@ -1271,6 +1272,36 @@ input.ant-input.ant-input-sm {
 .ant-table .ant-table-content {
   border-start-start-radius: 0 !important;
   border-start-end-radius: 0 !important;
+  /* 横向滚动条（scroll.x 的滚动容器就是 .ant-table-content；Firefox 用 scrollbar-width/color） */
+  scrollbar-width: thin;
+  scrollbar-color: #dfdfdf transparent;
+  /* 隐藏两端三角按钮与角落 */
+}
+.ant-table .ant-table-content::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+  border: none;
+}
+.ant-table .ant-table-content::-webkit-scrollbar-thumb {
+  background: #dfdfdf;
+  border-radius: 2px;
+  border: none;
+}
+.ant-table .ant-table-content::-webkit-scrollbar-thumb:hover {
+  background: #dededf;
+}
+.ant-table .ant-table-content::-webkit-scrollbar-track {
+  background: transparent;
+  border: none;
+}
+.ant-table .ant-table-content::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.ant-table .ant-table-content::-webkit-scrollbar-corner {
+  background: transparent;
 }
 .ant-table .ant-table-content .ant-table-column-sorters {
   justify-content: flex-start;
@@ -1287,6 +1318,22 @@ input.ant-input.ant-input-sm {
   align-items: center;
   line-height: 0;
   margin-inline-start: 0.5rem;
+}
+.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner {
+  display: inline-block;
+  width: 1rem;
+  height: 1.5rem;
+  margin-left: 0;
+  content: "";
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M4.44%2011.5C4.44%2011.78%204.22%2012%203.94%2012C3.66%2012%203.44%2011.78%203.44%2011.5L3.44%201.7L1.72%203.41C1.53%203.61%201.22%203.61%201.02%203.41C0.82%203.22%200.82%202.91%201.02%202.71L3.58%200.14C3.63%200.09%203.69%200.06%203.75%200.03C3.8%200.01%203.87%200%203.94%200C4.1%200%204.23%200.04%204.31%200.12C4.4%200.2%204.44%200.33%204.44%200.5L4.44%2011.5ZM7.85%200C7.57%200%207.35%200.21%207.35%200.5L7.35%2011.5C7.35%2011.66%207.39%2011.79%207.47%2011.87C7.56%2011.95%207.68%2012%207.85%2012C7.99%2012%208.1%2011.95%208.2%2011.85L10.77%209.28C10.97%209.08%2010.97%208.77%2010.77%208.58C10.57%208.38%2010.26%208.38%2010.06%208.58L8.35%2010.29L8.35%200.5C8.35%200.21%208.13%200%207.85%200Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat;
+  background-size: 0.75rem;
+}
+.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner > span {
+  display: none;
+}
+.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:hover {
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M4.44%2011.5C4.44%2011.78%204.22%2012%203.94%2012C3.66%2012%203.44%2011.78%203.44%2011.5L3.44%201.7L1.72%203.41C1.53%203.61%201.22%203.61%201.02%203.41C0.82%203.22%200.82%202.91%201.02%202.71L3.58%200.14C3.63%200.09%203.69%200.06%203.75%200.03C3.8%200.01%203.87%200%203.94%200C4.1%200%204.23%200.04%204.31%200.12C4.4%200.2%204.44%200.33%204.44%200.5L4.44%2011.5ZM7.85%200C7.57%200%207.35%200.21%207.35%200.5L7.35%2011.5C7.35%2011.66%207.39%2011.79%207.47%2011.87C7.56%2011.95%207.68%2012%207.85%2012C7.99%2012%208.1%2011.95%208.2%2011.85L10.77%209.28C10.97%209.08%2010.97%208.77%2010.77%208.58C10.57%208.38%2010.26%208.38%2010.06%208.58L8.35%2010.29L8.35%200.5C8.35%200.21%208.13%200%207.85%200Z'%20fill='%232E86DE'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat !important;
+  background-size: 0.75rem;
 }
 .ant-table .ant-table-content .ant-table-filter-column {
   justify-content: flex-start;
@@ -1308,9 +1355,38 @@ input.ant-input.ant-input-sm {
   order: 1;
   margin-inline-start: 0.5rem;
   margin-inline-end: 0;
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  border: none;
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M7.98%209.25L7.98%206.96C7.98%206.68%207.76%206.46%207.48%206.46C7.2%206.46%206.98%206.68%206.98%206.96L6.98%209.25C6.98%209.33%206.96%209.4%206.92%209.46C6.9%209.49%206.8%209.6%206.77%209.62L4.88%2010.71L4.88%205.5C4.88%205.36%204.83%205.25%204.74%205.15L1.41%201.71C1.36%201.66%201.33%201.61%201.31%201.55C1.3%201.47%201.29%201.33%201.32%201.25C1.36%201.18%201.41%201.11%201.47%201.07C1.54%201.02%201.62%201%201.71%201L10.24%201C10.3%201%2010.37%201.01%2010.42%201.04C10.44%201.05%2010.52%201.1%2010.54%201.12C10.58%201.16%2010.6%201.2%2010.63%201.26C10.66%201.33%2010.67%201.41%2010.66%201.49C10.64%201.58%2010.6%201.65%2010.54%201.72L7.12%205.14C6.93%205.34%206.93%205.65%207.13%205.85C7.32%206.05%207.64%206.05%207.83%205.85L11.24%202.42C11.46%202.21%2011.59%201.95%2011.64%201.66C11.66%201.54%2011.67%201.42%2011.66%201.3C11.64%201.16%2011.61%201.01%2011.55%200.87C11.49%200.73%2011.41%200.6%2011.32%200.49C11.24%200.4%2011.15%200.32%2011.05%200.25C10.81%200.08%2010.54%200%2010.24%200L1.71%200C1.54%200%201.38%200.02%201.23%200.08C1.11%200.12%201%200.18%200.9%200.25C0.8%200.32%200.71%200.4%200.63%200.49C0.54%200.6%200.46%200.72%200.4%200.86C0.34%201%200.31%201.14%200.29%201.29C0.28%201.41%200.29%201.53%200.31%201.65C0.33%201.77%200.36%201.89%200.41%202C0.48%202.15%200.57%202.28%200.69%202.41L3.88%205.7L3.88%2010.77C3.88%2010.95%203.93%2011.12%204.02%2011.27C4.1%2011.41%204.22%2011.52%204.36%2011.61C4.51%2011.69%204.66%2011.73%204.83%2011.73C4.91%2011.74%204.99%2011.73%205.06%2011.71C5.15%2011.69%205.24%2011.65%205.32%2011.61L7.27%2010.48C7.49%2010.36%207.66%2010.18%207.79%209.96C7.91%209.74%207.98%209.51%207.98%209.25Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat;
+  background-size: 0.75rem;
+}
+.ant-table .ant-table-content .ant-table-filter-column .ant-table-filter-trigger > span {
+  display: none;
+}
+.ant-table .ant-table-content .ant-table-filter-column .ant-table-filter-trigger:hover {
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M7.98%209.25L7.98%206.96C7.98%206.68%207.76%206.46%207.48%206.46C7.2%206.46%206.98%206.68%206.98%206.96L6.98%209.25C6.98%209.33%206.96%209.4%206.92%209.46C6.9%209.49%206.8%209.6%206.77%209.62L4.88%2010.71L4.88%205.5C4.88%205.36%204.83%205.25%204.74%205.15L1.41%201.71C1.36%201.66%201.33%201.61%201.31%201.55C1.3%201.47%201.29%201.33%201.32%201.25C1.36%201.18%201.41%201.11%201.47%201.07C1.54%201.02%201.62%201%201.71%201L10.24%201C10.3%201%2010.37%201.01%2010.42%201.04C10.44%201.05%2010.52%201.1%2010.54%201.12C10.58%201.16%2010.6%201.2%2010.63%201.26C10.66%201.33%2010.67%201.41%2010.66%201.49C10.64%201.58%2010.6%201.65%2010.54%201.72L7.12%205.14C6.93%205.34%206.93%205.65%207.13%205.85C7.32%206.05%207.64%206.05%207.83%205.85L11.24%202.42C11.46%202.21%2011.59%201.95%2011.64%201.66C11.66%201.54%2011.67%201.42%2011.66%201.3C11.64%201.16%2011.61%201.01%2011.55%200.87C11.49%200.73%2011.41%200.6%2011.32%200.49C11.24%200.4%2011.15%200.32%2011.05%200.25C10.81%200.08%2010.54%200%2010.24%200L1.71%200C1.54%200%201.38%200.02%201.23%200.08C1.11%200.12%201%200.18%200.9%200.25C0.8%200.32%200.71%200.4%200.63%200.49C0.54%200.6%200.46%200.72%200.4%200.86C0.34%201%200.31%201.14%200.29%201.29C0.28%201.41%200.29%201.53%200.31%201.65C0.33%201.77%200.36%201.89%200.41%202C0.48%202.15%200.57%202.28%200.69%202.41L3.88%205.7L3.88%2010.77C3.88%2010.95%203.93%2011.12%204.02%2011.27C4.1%2011.41%204.22%2011.52%204.36%2011.61C4.51%2011.69%204.66%2011.73%204.83%2011.73C4.91%2011.74%204.99%2011.73%205.06%2011.71C5.15%2011.69%205.24%2011.65%205.32%2011.61L7.27%2010.48C7.49%2010.36%207.66%2010.18%207.79%209.96C7.91%209.74%207.98%209.51%207.98%209.25Z'%20fill='%232E86DE'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat;
+  background-size: 0.75rem;
 }
 .ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter {
   order: 2;
+}
+.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner {
+  display: inline-block;
+  width: 1rem;
+  height: 1.5rem;
+  margin-left: 0;
+  content: "";
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M4.44%2011.5C4.44%2011.78%204.22%2012%203.94%2012C3.66%2012%203.44%2011.78%203.44%2011.5L3.44%201.7L1.72%203.41C1.53%203.61%201.22%203.61%201.02%203.41C0.82%203.22%200.82%202.91%201.02%202.71L3.58%200.14C3.63%200.09%203.69%200.06%203.75%200.03C3.8%200.01%203.87%200%203.94%200C4.1%200%204.23%200.04%204.31%200.12C4.4%200.2%204.44%200.33%204.44%200.5L4.44%2011.5ZM7.85%200C7.57%200%207.35%200.21%207.35%200.5L7.35%2011.5C7.35%2011.66%207.39%2011.79%207.47%2011.87C7.56%2011.95%207.68%2012%207.85%2012C7.99%2012%208.1%2011.95%208.2%2011.85L10.77%209.28C10.97%209.08%2010.97%208.77%2010.77%208.58C10.57%208.38%2010.26%208.38%2010.06%208.58L8.35%2010.29L8.35%200.5C8.35%200.21%208.13%200%207.85%200Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat;
+  background-size: 0.75rem;
+}
+.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner > span {
+  display: none;
+}
+.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner:hover {
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M4.44%2011.5C4.44%2011.78%204.22%2012%203.94%2012C3.66%2012%203.44%2011.78%203.44%2011.5L3.44%201.7L1.72%203.41C1.53%203.61%201.22%203.61%201.02%203.41C0.82%203.22%200.82%202.91%201.02%202.71L3.58%200.14C3.63%200.09%203.69%200.06%203.75%200.03C3.8%200.01%203.87%200%203.94%200C4.1%200%204.23%200.04%204.31%200.12C4.4%200.2%204.44%200.33%204.44%200.5L4.44%2011.5ZM7.85%200C7.57%200%207.35%200.21%207.35%200.5L7.35%2011.5C7.35%2011.66%207.39%2011.79%207.47%2011.87C7.56%2011.95%207.68%2012%207.85%2012C7.99%2012%208.1%2011.95%208.2%2011.85L10.77%209.28C10.97%209.08%2010.97%208.77%2010.77%208.58C10.57%208.38%2010.26%208.38%2010.06%208.58L8.35%2010.29L8.35%200.5C8.35%200.21%208.13%200%207.85%200Z'%20fill='%232E86DE'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat !important;
+  background-size: 0.75rem;
 }
 .ant-table .ant-table-content .ant-table-thead > tr > th {
   height: 2.5rem;
