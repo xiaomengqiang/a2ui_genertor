@@ -60,7 +60,7 @@
 | `Skeleton` | 手写 | 无导出 |
 | `Avatar` | 手写 | 无导出；见 [handwrite-templates.md](handwrite-templates.md) §2 |
 | `Badge` | `Badge` | `count`→`content`；`dot`；`status` 五态+`text`；`max`/`showZero` |
-| `Tag` | `Tag` | **无 `closable`**（删除靠数组+onClick）；`color` 六语义色（default/primary/success/warning/caution/danger）；`fill="outline"` 描边 |
+| `Tag` | `Tag`（`@/shared/Tag` 适配类包壳） | 导入 `@/shared/Tag`（非 `@nce/eview-react/Tag`）；**调用点保留 antd 写法、不逐个改 props**——wrapper 内部映射 `color`→className token（`shared/Tag/Tag.css` 词汇：info/error/alert/warning/success/default/green/rose/pink/purple/indigo/cyan）、`bordered`→`fill`/`ev_tag_fill`、`icon`→`iconName`、`closable`/`onClose` 原样透传、antd `closeIcon` 丢弃；eview Tag **原生支持 `closable`+`onClose`**（非"无 closable"）；`Tag.CheckableTag` 仍无对应，用 `Tag`+`onClick`+`fill` 切换 |
 | `Tooltip` | `TipBox` | 包裹式（`<TipBox content><目标/></TipBox>`）；`direction` 12 方位；`trigger="hover"/"click"/"focus"` |
 | `Popover` | `TipBox` | `trigger="click"`；`content` 自定义 |
 | `Popconfirm` | `MessageDialog type="confirm"` | `buttons={{ok,cancel}}` 对象；`isOpen` 受控 |

@@ -35,8 +35,7 @@
         "Radio.Button 替换为 SelectCard",
         "SelectCard data 用 text 不是 label",
         "SelectCard 禁用用 disable 不是 disabled",
-        "Tag 无 closable 属性",
-        "Tag color 用语义色不是自定义颜色名",
+        "Tag color 保留 antd 色由 shared/Tag 包壳映射 className token（不手改语义色）",
         "Badge 用 content 不是 count"
       ]
     },
