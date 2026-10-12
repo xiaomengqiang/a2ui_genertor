@@ -1,7 +1,8 @@
 # Tag 组件功能逻辑规格
 
-> 资料来源：TypeDoc `Tag/types`（3.4.11 起）+ 官网 Tag 页示例。
-> ⚠️ eview Tag **没有 `closable` / `onClose`**（antd 最常用的可关闭标签在这里不存在）。需要"可删除的标签列表"时，用业务数组 + `onClick` 或旁边放 `<IconPlusIc* onClick={fn} title="…" />` 直接挂 icon+ 自己实现（`IconButton` 已弃用）。
+> 导入：`import Tag from '@/shared/Tag'`（scaffold 适配类包壳 `@nce/eview-react/Tag`，**调用点保留 antd 写法、仅改 import 路径**：`color`→className token（词汇见 `shared/Tag/Tag.css`：info/error/alert/warning/success/default/green/rose/pink/purple/indigo/cyan）、`bordered`→`fill`/`ev_tag_fill`、`icon`→`iconName`、`closable`/`onClose` 原样透传、antd `closeIcon` 丢弃）。
+> 资料来源：TypeDoc `Tag/types`（3.4.11 起）+ 官网 Tag 页示例 + 实测 `closable`/`onClose`。
+> ℹ️ eview Tag **原生支持 `closable` + `onClose`**（点击 × 触发 `onClose(e)`，由 wrapper 原样透传）。antd 的 `closeIcon`（自定义关闭图标）无对应 prop，wrapper 丢弃、eview 渲染默认关闭图标；需要"可删除标签列表"时直接用 `closable`+`onClose`（`IconButton` 已弃用）。
 
 ## 1. 功能定位
 
@@ -42,12 +43,12 @@ const toggle = (key: string) => {
 ))}
 ```
 
-### 可删除标签列表：Tag 没有 closable，用数组 + 点击移除
+### 可删除标签列表：closable + onClose（eview 原生支持，wrapper 透传）
 
 ```tsx
 {tags.map((t) => (
-  <Tag key={t} isMessageTag onClick={() => setTags((prev) => prev.filter((x) => x !== t))} style={{ marginRight: 8 }}>
-    {t} ×
+  <Tag key={t} color="default" closable onClose={() => setTags((prev) => prev.filter((x) => x !== t))} style={{ marginRight: 8 }}>
+    {t}
   </Tag>
 ))}
 ```
@@ -69,8 +70,10 @@ import { IconPlusIcPublicAbout } from '@nce/icon-plus';
 ## 4. 反面示例
 
 ```tsx
-// ❌ antd 习惯：eview Tag 没有 closable / onClose / CheckableTag / icon 属性
+// ✅ closable/onClose/icon 由 shared/Tag 包壳支持（eview 原生 closable+onClose，wrapper 透传；icon→iconName）——调用点保留 antd 写法
 <Tag closable onClose={remove} icon={<IconPlusIcPublicXxx />}>标签</Tag>
+
+// ❌ Tag.CheckableTag 仍无对应（包壳未提供），用 Tag + onClick + fill 切换
 <Tag.CheckableTag checked={on} onChange={setOn}>筛选</Tag.CheckableTag>
 
 // ❌ 颜色写 antd 的色名，eview 只认 default/primary/success/warning/caution/danger（或自定义 style）
@@ -89,16 +92,18 @@ import { IconPlusIcPublicAbout } from '@nce/icon-plus';
 
 ## 5. API 速查
 
-> 压缩自 `Tag/types`。
+> 压缩自 `Tag/types`。下表为底层 eview Tag API；`@/shared/Tag` 包壳另接收 antd 变体 prop（`color`/`bordered`/`icon`/`closable`/`onClose`/`closeIcon`）并在内部映射，调用点保留 antd 写法。
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
 | `children` | `ReactNode` | 标签文字 |
-| `color` | `'default' \| 'primary' \| 'success' \| 'warning' \| 'caution' \| 'danger' \| string`，默认 `default` | 语义色；`solid` 时为背景色，`outline` 时为文字 / 边框色 |
+| `color` | `'default' \| 'primary' \| 'success' \| 'warning' \| 'caution' \| 'danger' \| string`，默认 `default` | 语义色；`solid` 时为背景色，`outline` 时为文字 / 边框色（注：`@/shared/Tag` 包壳不透传 `color`，改用 `className` token 配色，见导入说明） |
 | `fill` | `'solid' \| 'outline'`，默认 `solid` | 实心 / 描边 |
 | `round` | `boolean`，默认 `true` | 圆角 |
 | `size` | `'small' \| 'normal' \| 'large'`，默认 `normal` | 尺寸（`normal` 为小尺寸，`large` 为大尺寸） |
 | `onClick` | `(e: MouseEvent) => void` | 点击 |
+| `closable` | `boolean`，默认 `false` | 是否可关闭（显示 ×；eview 原生支持，wrapper 原样透传） |
+| `onClose` | `(e) => void` | 点击 × 关闭回调（eview 原生支持，wrapper 原样透传） |
 | `isMessageTag` | `boolean`，默认 `false` | 信息标签样式 |
 | `hasIcon` / `iconName` | `boolean` / `string \| ReactElement` | 信息标签图标（默认用 `iconName={<IconPlusIc* />}`） |
 | `tagIconProps` | `{ iconUrl, hoverColor, style, className }` | 自定义图标；`iconUrl` 仅自定义图片，默认用 `iconName` 走 icon+ |

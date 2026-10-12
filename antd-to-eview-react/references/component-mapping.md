@@ -50,7 +50,7 @@
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Table` | `Table` | `dataSource`→`dataset`；`rowKey`→（`keyIndex` 已废弃，勾选回调 `onRowCheck` 改用行序号）；`columns[].dataIndex`→`key`；`columns[].fixed: 'left'/'right'`→列 `freezeCol: true` + 表 `freezeColPosition`（取值待实测确认，见 [Table.md](components/Table.md) §9）；`pagination`→`enablePagination`+`pagingProps`+`onPageChange`；`rowSelection`→`enableCheckBox`+`onRowCheck`；`emptyText`→`emptyTableMsg`；**render 函数保留——行数据取第 4 参 `row.rawData`（不是第 2 参 `rowData`，且 `row.rawData` 可能为 undefined，访问字段写 `row.rawData?.xxx`，见 [Table.md](components/Table.md) 顶部）；并需检查 i18n key 对齐**（见 [migration-workflow.md](migration-workflow.md) §3.5） |
+| `Table` | `Table` | `dataSource`→`dataset`；`rowKey`→（`keyIndex` 已废弃，勾选回调 `onRowCheck` 改用行序号）；`columns[].dataIndex`→`key`；**`columns[].fixed` 默认不迁移 freezeCol——eview `freezeCol` 无条件冻结（sticky+阴影），antd `fixed` 仅横向溢出时才有视觉效果，源列写了 `fixed` ≠ 源页面视觉冻结；仅当源列有 `fixed` 且源表 `scroll.x`/列宽合计明显超出容器宽（真的会横向滚动）时才加列 `freezeCol: true` + 表 `freezeColPosition`，其余情况列与表上都不写**（见 [Table.md](components/Table.md) §5 冻结列行）；`pagination`→`enablePagination`+`pagingProps`+`onPageChange`；`rowSelection`→`enableCheckBox`+`onRowCheck`；`emptyText`→`emptyTableMsg`；**render 函数保留——行数据取第 4 参 `row.rawData`（不是第 2 参 `rowData`，且 `row.rawData` 可能为 undefined，访问字段写 `row.rawData?.xxx`，见 [Table.md](components/Table.md) 顶部）；并需检查 i18n key 对齐**（见 [migration-workflow.md](migration-workflow.md) §3.5）；**操作列按钮用 flex div + gap 代替 Fragment，避免间距缺失**（见 [Table.md](components/Table.md) §2 列定义示例）；**排序：eview-react 的 `allowSort` 默认 true，源 antd 列未设 `sorter` 的需显式加 `allowSort: false`，否则所有列表头都带排序箭头**（见 [Table.md](components/Table.md) 列定义形状） |
 | `Tabs` / `TabPane` | `Tab` / `TabItem` | children 驱动（`<TabItem title>`）；切换回调是 `onClick(index,title,event)`（不是 `onChange`）；`draggable` 默认 true 需关；`items` 不存在 |
 | `Collapse` / `Panel` | `Panel` / `PanelItem` | `selectedIndex` 数组；`enableMultiExpand` 手风琴；`closable` 默认 true 要关 |
 | `List` | 手写或 `Table` | 无导出 |
@@ -60,7 +60,7 @@
 | `Skeleton` | 手写 | 无导出 |
 | `Avatar` | 手写 | 无导出；见 [handwrite-templates.md](handwrite-templates.md) §2 |
 | `Badge` | `Badge` | `count`→`content`；`dot`；`status` 五态+`text`；`max`/`showZero` |
-| `Tag` | `Tag` | **无 `closable`**（删除靠数组+onClick）；`color` 六语义色（default/primary/success/warning/caution/danger）；`fill="outline"` 描边 |
+| `Tag` | `Tag`（`@/shared/Tag` 适配类包壳） | 导入 `@/shared/Tag`（非 `@nce/eview-react/Tag`）；**调用点保留 antd 写法、不逐个改 props**——wrapper 内部映射 `color`→className token（`shared/Tag/Tag.css` 词汇：info/error/alert/warning/success/default/green/rose/pink/purple/indigo/cyan）、`bordered`→`fill`/`ev_tag_fill`、`icon`→`iconName`、`closable`/`onClose` 原样透传、antd `closeIcon` 丢弃；eview Tag **原生支持 `closable`+`onClose`**（非"无 closable"）；`Tag.CheckableTag` 仍无对应，用 `Tag`+`onClick`+`fill` 切换 |
 | `Tooltip` | `TipBox` | 包裹式（`<TipBox content><目标/></TipBox>`）；`direction` 12 方位；`trigger="hover"/"click"/"focus"` |
 | `Popover` | `TipBox` | `trigger="click"`；`content` 自定义 |
 | `Popconfirm` | `MessageDialog type="confirm"` | `buttons={{ok,cancel}}` 对象；`isOpen` 受控 |

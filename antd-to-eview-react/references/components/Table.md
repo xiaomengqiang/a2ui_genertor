@@ -25,18 +25,18 @@ Table 是行列数据集展示：列定义驱动、自带分页 / 排序 / 勾�
 ```tsx
 const columns = [
   { title: 'ID', key: 'id', width: 80, display: false },                 // 隐藏列（display: false）
-  { title: '名称', key: 'name', width: '30%', ellipsis: true },
+  { title: '名称', key: 'name', width: '30%', ellipsis: true },          // 未设 allowSort，默认 true → 带排序箭头
   { title: '状态', key: 'state', allowSort: false, render: (cell: string) => <Tag color={STATE_COLOR[cell]}>{cell}</Tag> },
-  { title: 'IP', key: 'ip' },
+  { title: 'IP', key: 'ip' },                                            // 未设 allowSort，默认 true → 带排序箭头
   {
     title: '操作', key: 'op', allowSort: false, width: 160,
     render: (cell: any, rowData: any[], options: any, row: any) => {        // render(cellValue, rowData, options, row, isEdit) —— 行数据在 row.rawData（可能 undefined），取字段写 row.rawData?.xxx
       const r = row?.rawData;
       return (
-        <>
+        <div style={{ display: 'flex', gap: '12px' }}>
           <Button status="text" text="编辑" onClick={() => openEdit(r)} />
           <Button status="text" text="删除" onClick={() => askDelete(r)} />
-        </>
+        </div>
       );
     },
   },
@@ -53,7 +53,7 @@ interface TableColumn {
   key?: string;                             // 对象行取值 / 自定义排序时的字段名
   width?: string | number;                  // 不填自适应
   align?: 'left' | 'center' | 'right';
-  allowSort?: boolean;                      // 默认 true
+  allowSort?: boolean;                      // 默认 true——源 antd 未设 sorter 的列迁移时需显式设 false，否则所有列表头都带排序箭头
   sort?: 'asc' | 'desc' | 'origin';         // 初始排序态
   display?: boolean;                        // 默认 true；false 隐藏（配合列筛选）
   ellipsis?: boolean;
@@ -102,7 +102,7 @@ type TableRow = any[] | Record<string, any>;
 ### 前台分页 / 行点击 / 行展开
 
 ```tsx
-<Table columns={columns} dataset={allRows} enablePagination enableAutoPaging pageSizeOptions={[10, 20, 50]} maxHeight={500} />   // 前台分页：recordCount 不传，取 dataset.length
+<Table columns={columns} dataset={allRows} enablePagination enableAutoPaging pageSizeOptions={[10, 20, 50]} maxHeight={500} />   // 前台分页：recordCount 不传，取 dataset.length；maxHeight 约束表格高度，分页栏固定在表格底部以内
 
 // row.rawData 才是行数据（可能 undefined），需要完整行数据时从源数组查找，并加空值保护
 const expandedRow = (row: any) => {
@@ -171,11 +171,11 @@ onRowCheck={(row) => setChecked([...checked, row])}
 | `onColumnSort` / `onColumnSorted` / `customSortFun` | `(sortColumn, sortType)` / `(data)` / `(key, a, b) => number` | 排序回调 / 完成 / 自定义比较 |
 | `enableLoading` | `boolean` | 加载态 |
 | `emptyTableMsg` / `showEmptyImage` | `string` / `boolean` | 空态文案 / 图 |
-| `height` / `minHeight` / `maxHeight` / `width` | `number \| string` | 尺寸（含表头与分页） |
+| `height` / `minHeight` / `maxHeight` / `width` | `number \| string` | 尺寸（含表头与分页）。**分页栏渲染在 Table 内部底部**，组件库用 `height: calc(100% - 3rem)` 计算表格内容区高度（`Table/index.css` 第 423-425 行）。当外层容器有 `padding` 且未设固定高度时，`calc(100% - 3rem)` 计算可能失效，分页栏被推出 padding 区域外。**两种修复方式**：(1) 设 `maxHeight` 约束内容区高度；(2) 在业务 CSS 中覆盖 `.device-table .ev_table_has_paging { height: auto; }` 让内容区自然撑开，分页栏紧随其后被父容器 padding 包裹。`maxHeight` 不含分页栏高度，`maxHeight + 分页栏` = 表格总高度。 |
 | `enableZebraCrossing` | `boolean`，默认 `true` | 斑马纹 |
 | `enableColumnFilter` / `itemOrderChanger` / `onFilterOkClick` | `boolean` / `boolean` / `(hideRow, displayRow, columns) => boolean` | 列筛选弹窗 |
 | `enableRowExpand` / `onRowExpend` / `expandedRow` / `enableMulitiExpand` | `boolean` / `(row) => ReactNode` / `(string \| number)[]` / `boolean` | 行展开 |
 | `enableColumnDrag` / `enableColumnWidthFit` / `freezeColPosition` / `virtualScroll` / `virtualShowNum` | — | 列宽拖拽（默认开）/ 自适应 / 冻结列位置 / 虚拟滚动（3.5.10） |
-| `freezeCol`（列级）/ `freezeColPosition`（表级） | `boolean` / `string` | 冻结列：列上设 `freezeCol: true` 标记冻结，表上 `freezeColPosition` 设位置。映射 antd `columns[].fixed: 'left'/'right'`：列 `fixed:'right'` → `freezeCol:true` + 表 `freezeColPosition="right"`，`fixed:'left'` → `freezeCol:true` + `freezeColPosition="left"`。示例：`<Table freezeColPosition="right" />` + 操作列 `{ ..., freezeCol: true }`。 |
+| `freezeCol`（列级）/ `freezeColPosition`（表级） | `boolean` / `string` | 冻结列：列上设 `freezeCol: true` 标记冻结，表上 `freezeColPosition` 设位置。⚠️ eview 的 `freezeCol` **无条件冻结**（sticky+阴影），antd 的 `columns[].fixed` 仅在表格横向滚动（`scroll.x` 溢出）时才有视觉效果——源列写了 `fixed` ≠ 源页面视觉冻结。**迁移默认不写 `freezeCol`/`freezeColPosition`**；仅当源列有 `fixed:'left'/'right'` **且**源表 `scroll.x`/列宽合计明显超出容器宽（迁移后真的会横向滚动）时才映射：`fixed:'right'`→列 `freezeCol:true` + 表 `freezeColPosition="right"`，`fixed:'left'`→表 `freezeColPosition="left"`。 |
 | `isRequiredToUpdateColumns` / `enableColumnCompareUpdate` | `boolean` | 更新 columns 是否生效 / 比较后再更新 |
 | `ref.getCheckedRowsData()` / `getCheckedRowsIndexes()` / `getSelectedRowData()` / `getSelectedRowIndex()` / `setCheckedRows(indexes)` / `getDataset()` / `setRowEditable(id, columns)` | 命令式方法 | 取勾选 / 选中 / 设勾选 / 取数据 / 设行可编辑 |

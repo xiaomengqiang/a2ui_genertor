@@ -30,7 +30,7 @@ description: >-
 
 ## eview-react 硬约束（迁移时必须遵守）
 
-1. **导入路径**：`import Button from '@nce/eview-react/Button'`，不是 `import { Button } from 'antd'`。**例外——包壳组件**：被包壳组件（清单：`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`）从 `@/shared/<X>` 导入（scaffold 预置包壳，透明转发 `@nce/eview-react/<X>`，API 不变，props 规则仍按本 skill 映射表/组件文档迁移）；清单本约束维护，新增包壳同步更新
+1. **导入路径**：`import Button from '@nce/eview-react/Button'`，不是 `import { Button } from 'antd'`。**例外——包壳组件**：被包壳组件（清单：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`）从 `@/shared/<X>` 导入（scaffold 预置包壳，透明转发 `@nce/eview-react/<X>`，API 不变，props 规则仍按本 skill 映射表/组件文档迁移）；清单本约束维护，新增包壳同步更新
 2. **样式**：scaffold `main.jsx` 已写好六处 CSS import（`aui3_1` / `aui3_1_dark` / `base` / `font` / `tokens` / `theme-dark`），不要删
 3. **Provider**：scaffold `main.jsx` 已配好 `ConfigProvider` + `IntlProvider`（`messages={componentsLocales[locale]}`）；i18n 静态接线（scenario A/B 合并业务包）已由 `umd-to-antd-vite` 步骤 3 前置完成（`i18nScenario.wired=true`），本 skill 步骤 1 只在 `wired=false`（scenario C）时做决策。**IntlProvider 必须在 `main.jsx`，是 `ConfigProvider` 的直接子级**（不是在 `app.jsx`/AppShell 里），否则弹层（Dialog 等 portal）取不到业务文案报 `MISSING_TRANSLATION`；**locale 用 `"zh"` 不是 `"zh-CN"`**
 4. **回调签名**：第一个参数通常是值不是 event（TextField `onChange(value, ...)`、Select `onChange(value, oldValue, text, oldText, event)`）
@@ -50,7 +50,7 @@ description: >-
 
 | antd 页面模式 | eview-react 迁移要点 |
 |--------------|---------------------|
-| **筛选列表页** | `Input.Search`→`SearchInput`+防抖；`Select` 换 `options` 格式；`Table` 换 `dataset`；分页用 Table 自带 `enablePagination` |
+| **筛选列表页** | `Input.Search`→`SearchInput`+防抖；`Select` 换 `options` 格式；`Table` 换 `dataset`；分页用 Table 自带 `enablePagination`；**注意给 Table 设 `maxHeight` 或 `height` 让分页栏固定在表格底部**（否则父容器 padding 导致分页栏位置偏移） |
 | **列表 CRUD** | `Modal`→`Dialog`；`Modal.confirm()`→`MessageDialog type="confirm"` |
 | **多步向导** | `Steps current={i}`→`Steps currentStep={data[i].value}` |
 | **表单提交页** | 输入组件逐个替换（源项目用 div+输入组件拼合，无 Form 包装）；提交逻辑不变 |
@@ -72,6 +72,7 @@ description: >-
 - **命名拼写异常**：`seprator`/`taggledChildren`/`disable` 等官方拼错；见 [component-mapping.md](references/component-mapping.md) 文末「属性拼写异常」表
 - **import 路径失效**：scaffold 后 `app.jsx` 在 `src/`，`./src/context.jsx` 须改 `./context.jsx`；脚本 `scripts/check-relative-imports.cjs` 按需排查（见 [§4.1](references/migration-workflow.md)）；步骤 4 默认跳过（路径已由前置 skill 修正）
 - **`antdIcons:[]` 误判无图标 → 跳过 `match-icons.cjs` → 全落方案A**：`antdIcons` 只统计 `@ant-design/icons` 命名导入，ict-react-coder 产物用自定义 `<Icon name>` 运行时 shim、`antdIcons` 恒 `[]` 但有大量 `<Icon name>` 调用点；**触发条件看 `<Icon name` 站点（`grep -rl "<Icon\b" src/`）不看 `antdIcons`**，`antdIcons: []` 禁止跳过 `match-icons.cjs`；见 [migration-workflow.md](references/migration-workflow.md) §0.1 警告 + §3.0
+- **`columns[].fixed` 误加 `freezeCol`（冻结列视觉回归）**：eview 的 `freezeCol` **无条件冻结**（sticky+阴影），antd 的 `fixed` 仅在表格横向滚动（`scroll.x` 溢出）时才有视觉效果——源列写了 `fixed` ≠ 源页面视觉冻结。迁移**默认不写** `freezeCol`/`freezeColPosition`；仅当源列有 `fixed` **且**源表 `scroll.x`/列宽合计明显超出容器宽（迁移后真的会横向滚动）时才加列 `freezeCol: true` + 表 `freezeColPosition`；见 [component-mapping.md](references/component-mapping.md) Table 行
 - **图表 option 漏 `a2ui: true`/`theme`**：源 Chart 封装的注入行为不随包导入自动生效，所有图表 option 必须显式携带两项（theme 随暗色派生）；见 [components/Chart.md](references/components/Chart.md)
 
 ## 已知坑点与已解决问题
@@ -93,3 +94,65 @@ description: >-
 **问题**：源项目 Chart 封装（`assets/shared/chart.jsx`）在 `setSimpleOption` 前对**每个图表**统一注入 `theme`（随 `.dark` 切 `hdesign-dark` / `hdesign-light`）与 `a2ui: true`（源封装写法：`setSimpleOption(name, { theme: isDark ? "hdesign-dark" : "hdesign-light", a2ui: true, ...option })`）。迁移到 `@nce/eview-react/Chart` 只改 import 路径时，业务 option 不含这两项且**不会自动补**——图表 a2ui 视觉规范失效、暗色切换后图表主题不跟随（preview2 实测坑）。
 
 **解决**：所有图表 option 显式携带 `a2ui: true` 与 `theme`；`theme` 从全局暗色状态派生（如 `useApp().isDark ? "hdesign-dark" : "hdesign-light"`），暗色切换 → option 变化 → 图表按新主题重建。推荐在图表组件内聚合 `const chartBase = { a2ui: true, theme: ... }` 后展开进各 option（参考 preview2/src/views/dashboard-overview/index.jsx）。详见 [Chart.md](references/components/Chart.md)。
+
+### Table 操作列按钮间距缺失
+
+**问题**：antd 中操作列按钮用 `<Space>` 或 `<Space size="middle">` 包裹获得间距。迁移到 eview-react 后，直接在 render 中用 `<>...</>` Fragment 包裹按钮，多个按钮之间**无任何间距**，视觉上紧贴在一起。
+
+**解决**：用 `<div style={{ display: 'flex', gap: '1rem' }}>` 代替 Fragment 包裹操作列按钮（gap 默认 `1rem`；源 antd `<Space>` 有显式 `size` 的按源值取，如 `size={24}`→`gap:'24px'`）。如需竖线分隔符见 [Divider.md](references/components/Divider.md) § 操作列。详见 [Table.md](references/components/Table.md) §2 列定义示例。
+
+### Table 分页栏位置偏移（超出表格底部 / 超出父容器白色卡片）
+
+**问题**：antd 的 Table 分页默认在表格外部底部，通过 `pagination` 的 `position` 控制位置。eview-react 的 Table 自带分页栏渲染在**表格组件内部**底部（`Table/index.css` 第 423-425 行 `.ev_table_has_paging { height: calc(100% - 3rem); }`），这个百分比高度相对于 Table 外层容器计算。当 Table 外层容器无固定高度（由内容撑开）且父容器有 `padding`（如卡片容器 `.device-table { padding: var(--spacing-inset); }`）时：
+
+- 方案 A — **无 `maxHeight`**：`height: calc(100% - 3rem)` 计算失效（父容器无固定高度），表格内容撑开后分页栏被推到父容器 padding 区域之外，视觉上超出白色卡片底部。
+- 方案 B — **设 `maxHeight`**：表格内容区被约束在 `maxHeight` 内，分页栏在内部底部，不会超出。但是如果表格内容很少（行数少于分页高度），`maxHeight` 会留下过多空白，不够灵活。
+
+**解决**：
+
+**方案 A（推荐 —— 覆盖组件库 CSS，适合内容动态变化场景）**：
+
+```css
+/* 在业务 CSS 中覆盖组件库的百分比高度，让表格内容由内容自然撑开 */
+.device-table .ev_table_has_paging {
+  height: auto;
+}
+.device-table .ev_paging.ev_table_paging {
+  height: auto;
+  padding-top: 1rem;
+}
+```
+
+这样表格内容区 `height: auto` 由行数自然决定，分页栏紧随其后排列在内容区下方，被父容器的 `padding` 完整包裹。
+
+**方案 B（适合固定高度卡片场景）**：
+
+```jsx
+<Table
+  dataset={rows}
+  enablePagination
+  enableAutoPaging
+  pageSize={8}
+  maxHeight={480}      // 约束表格内容区高度，让分页栏在表格底部以内
+/>
+```
+
+> `maxHeight` 不含分页栏高度，分页栏渲染在表格内部底部，设此值可确保表格总高度不超过 `maxHeight + 分页栏高度`，分页栏不会超出。详见 [Table.md](references/components/Table.md) §5 API 速查 `height`/`minHeight`/`maxHeight`。
+
+### Table 排序项默认全部开启（源 antd 未配排序的列也带排序箭头）
+
+**问题**：eview-react 的 Table 列 `allowSort` 默认值为 `true`，所有列头默认显示排序箭头。antd 的 Table 列 `sorter` 默认无（不排序），只有显式设了 `sorter` 的列才显示排序图标。迁移后源项目未配排序的列（如名称、编号、区域等纯展示列）也带上了排序箭头，不符合原设计。
+
+**解决**：迁移时逐列检查源 antd 的 `columns` 定义：
+- 源列有 `sorter` 的 → 保持 `allowSort: true`（或不设，利用默认值）
+- 源列无 `sorter` 的 → 显式加 `allowSort: false`
+- 操作列、状态列等无排序意义的列 → 显式加 `allowSort: false`
+
+```jsx
+// 迁移后：仅源项目有 sorter 的列保留排序
+const columns = [
+  { title: "设备名称", key: "name", allowSort: false },   // 源无 sorter
+  { title: "负载率", key: "load", allowSort: true },      // 源有 sorter
+  { title: "操作", key: "action", allowSort: false },     // 操作列不排序
+];
+```

@@ -82,7 +82,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 ### 3.1 A 类（有对应）：改 props
 
 对每个有对应的组件，执行：
-1. 改导入路径：`from 'antd'` → `from '@nce/eview-react/<Component>'`（**例外**：包壳组件 Select/TextField/InputSelect/MultipleSelect/SearchInput/TextArea → `from '@/shared/<X>'`，见 SKILL.md 硬约束 #1）
+1. 改导入路径：`from 'antd'` → `from '@nce/eview-react/<Component>'`（**例外**：包壳组件 Select/TextField/InputSelect/MultipleSelect/SearchInput/TextArea/Tag → `from '@/shared/<X>'`，见 SKILL.md 硬约束 #1）
 2. 改属性名：对照 [component-mapping.md](component-mapping.md) 逐项替换（含文末「属性拼写异常」+「回调签名差异」速查表）
 3. 改回调签名：首参从 event 改为 value
 4. 改数据格式：`options` 的 `label`→`text`，`items`→`data` 等
@@ -114,6 +114,12 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 - [component-mapping.md](component-mapping.md) — 查"关键 API 差异"列 + 文末拼写/回调速查表
 - [components/<组件>.md](components/INDEX.md) — 查完整 API
 - 无对应组件读 [handwrite-templates.md](handwrite-templates.md) — 手写模板
+
+> **Table 操作列间距**：操作列 `render` 中多个按钮不要用 `<>...</>` Fragment 包裹（无间距），改用 `<div style={{ display: 'flex', gap: '12px' }}>`。源项目用 antd `<Space>` 的，迁移后统一按此模式处理。
+>
+> **Table 排序项**：eview-react 的 `allowSort` 默认 `true`（所有列表头带排序箭头），antd 的 `sorter` 默认无。**迁移时必须逐列比对**：源列有 `sorter` 的保留排序，无 `sorter` 的显式加 `allowSort: false`。操作列、状态列等固定无排序。见 [Table.md](components/Table.md) 列定义形状。
+>
+> **Table 冻结列**：eview 的 `freezeCol` **无条件冻结**（sticky+阴影），antd 的 `fixed` 仅表格横向溢出（`scroll.x` 生效）时才有视觉效果——源列写了 `fixed` ≠ 源页面视觉冻结。迁移**默认不写** `freezeCol`/`freezeColPosition`；仅源列有 `fixed` 且源表 `scroll.x`/列宽合计明显超出容器宽（真的会横向滚动）时才映射。见 [Table.md](components/Table.md) §5 冻结列行。
 
 **硬约束**：遵守 SKILL.md 的"eview-react 硬约束"章节（10 条）。导入路径改为 `import X from '@nce/eview-react/X'`。
 
