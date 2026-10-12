@@ -121,3 +121,86 @@ import Wizards from '@nce/eview-react/Wizards';
 | `Item.iconUrl` | `string \| ReactElement`（3.6.10） | 自定义图标 |
 | `Item.status` | `string`，可选 `error`（3.6.10） | 报错态 |
 | `Item.className` | `string` | 每步类名 |
+
+## 6. 尺寸覆盖（CSS 类名）
+
+Wizards/Steps 组件无 `size` API，通过给容器加 CSS 类名选择三种尺寸。**只覆盖尺寸相关属性（`width`/`height`/`left`/`background-size`/`border-width`），颜色、`z-index`、文字样式（`.ev_wizard_text`）等一律保持组件默认**：
+
+| 尺寸 | 容器类名 | 圆点大小 |
+|------|---------|---------|
+| 小 | `ev_wizard_container_xs` | 16px |
+| 中（默认） | `ev_wizard_container_sm` | 24px |
+| 大 | `ev_wizard_container_lg` | 32px |
+
+```css
+/* 中尺寸（默认）：圆点 24px */
+.ev_wizard_container_sm .ev_wizard_order,
+.ev_wizard_container_sm .ev_wizard_order_active,
+.ev_wizard_container_sm .ev_wizard_order_visited {
+  width: 1.5rem;
+  height: 1.5rem;
+  left: calc(50% - 0.75rem);
+  background-size: 1.5rem 1.5rem;
+  border-width: 2px;
+}
+.ev_wizard_container_sm .ev_wizard_item {
+  height: 1.75rem;
+}
+.ev_wizard_container_sm .ev_wizard_stick {
+  height: 0.125rem;
+}
+.ev_wizard_container_sm .ev_wizard_step.active .ev_wizard_stick,
+.ev_wizard_container_sm .ev_wizard_step.visited .ev_wizard_stick {
+  height: 0.25rem;
+}
+
+/* 小尺寸：圆点 16px */
+.ev_wizard_container_xs .ev_wizard_order,
+.ev_wizard_container_xs .ev_wizard_order_active,
+.ev_wizard_container_xs .ev_wizard_order_visited {
+  width: 1rem;
+  height: 1rem;
+  left: calc(50% - 0.5rem);
+  background-size: 1rem 1rem;
+  border-width: 1.5px;
+}
+.ev_wizard_container_xs .ev_wizard_item {
+  height: 1.25rem;
+}
+.ev_wizard_container_xs .ev_wizard_stick {
+  height: 0.1rem;
+}
+.ev_wizard_container_xs .ev_wizard_step.active .ev_wizard_stick,
+.ev_wizard_container_xs .ev_wizard_step.visited .ev_wizard_stick {
+  height: 0.2rem;
+}
+
+/* 大尺寸：圆点 32px */
+.ev_wizard_container_lg .ev_wizard_order,
+.ev_wizard_container_lg .ev_wizard_order_active,
+.ev_wizard_container_lg .ev_wizard_order_visited {
+  width: 2rem;
+  height: 2rem;
+  left: calc(50% - 1rem);
+  background-size: 2rem 2rem;
+  border-width: 2.5px;
+}
+.ev_wizard_container_lg .ev_wizard_item {
+  height: 2.25rem;
+}
+.ev_wizard_container_lg .ev_wizard_stick {
+  height: 0.15rem;
+}
+.ev_wizard_container_lg .ev_wizard_step.active .ev_wizard_stick,
+.ev_wizard_container_lg .ev_wizard_step.visited .ev_wizard_stick {
+  height: 0.3rem;
+}
+```
+
+用法：
+
+```tsx
+<Steps className="ev_wizard_container_sm" data={...} />   // 中尺寸（默认）
+<Steps className="ev_wizard_container_lg" data={...} />   // 大尺寸
+<Steps className="ev_wizard_container_xs" data={...} />   // 小尺寸
+```

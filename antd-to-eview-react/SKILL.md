@@ -41,6 +41,7 @@ description: >-
 9. **相对导入解析**：路径已由 `umd-to-antd-vite` 修正并验证通过（`.umd-conversion.json` 的 `verification.relativeImports=PASS`），步骤 3 **跳过** `check-relative-imports.cjs`。步骤 2 替换组件时新增的 import 不要写 `./src/...`（同级用 `./`、上层用 `../`）。
 10. **DivMessage 通知浮层避免与表单输入组件同渲染树**：`DivMessage` 通过 `setNotice` 渲染在父组件中时，每次通知会触发父组件重渲染，导致 eview-react 输入组件（TextField、Select 等）丢失焦点。**应在用户输入回调（`setField`/`onChange`）中关闭浮层**，或将通知浮层抽离为独立组件（`createPortal` 到 `document.body` + 独立 `useState`）。
 11. **所有图表 option 必含 `a2ui: true` 与 `theme`**：源项目 Chart 封装（`assets/shared/chart.jsx`）在 `setSimpleOption` 前统一注入这两项，改 `@nce/eview-react/Chart` 包导入后**不会自动补**——漏写则图表 a2ui 视觉规范失效、暗色切换后主题不跟随。`theme` 从全局暗色状态派生（`isDark ? "hdesign-dark" : "hdesign-light"`）。见 [components/Chart.md](references/components/Chart.md)
+12. **Wizards/Steps 无 `size` API，通过 CSS 类名控制三种尺寸**：小尺寸 `ev_wizard_container_xs`（圆点 16px）、中尺寸（默认）`ev_wizard_container_sm`（圆点 24px）、大尺寸 `ev_wizard_container_lg`（圆点 32px）。CSS 覆盖代码见 [components/Steps.md](references/components/Steps.md) §6。
 
 ## 命名异常速查
 
