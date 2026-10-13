@@ -1,0 +1,90 @@
+/* Steps.css - Wizards/Steps 尺寸类名（xs/sm/lg）与 dot 模式预置样式（由 Steps.jsx 引入，业务侧勿重复复制） */
+
+/* ——— 尺寸覆盖 ——— */
+
+/* 中尺寸（默认） */
+.ev_wizard_container_sm .ev_wizard_step .ev_wizard_order,
+.ev_wizard_container_sm .ev_wizard_step .ev_wizard_order_active,
+.ev_wizard_container_sm .ev_wizard_step .ev_wizard_order_visited {
+  width: 1.5rem; height: 1.5rem;
+  left: calc(50% - 0.75rem);
+  background-size: 1.5rem 1.5rem;
+  border-width: 2px;
+}
+.ev_wizard_container_sm .ev_wizard_step .ev_wizard_stick {
+  height: 0.125rem;
+  left: calc(-50% + 1.25rem);
+  width: calc(100% - 2.5rem);
+}
+.ev_wizard_container_sm .ev_wizard_step.active .ev_wizard_stick,
+.ev_wizard_container_sm .ev_wizard_step.visited .ev_wizard_stick { height: 0.25rem; }
+.ev_wizard_container_sm .ev_wizard_step .ev_wizard_item { height: 1.75rem; }
+.ev_wizard_container_sm .ev_wizard_step .ev_wizard_text,
+.ev_wizard_container_sm .ev_wizard_step .ev_wizard_item_title { font-size: 0.875rem; }
+.ev_wizard_container_sm .ev_wizard_step .ev_wizard_description,
+.ev_wizard_container_sm .ev_wizard_step .ev_wizard_item_description,
+.ev_wizard_container_sm .ev_wizard_step .ev_wizard_item_customdes { font-size: 0.75rem; }
+
+/* 小尺寸 */
+.ev_wizard_container_xs .ev_wizard_step .ev_wizard_order,
+.ev_wizard_container_xs .ev_wizard_step .ev_wizard_order_active,
+.ev_wizard_container_xs .ev_wizard_step .ev_wizard_order_visited {
+  width: 0.5rem; height: 0.5rem;
+  left: calc(50% - 0.25rem);
+  background-size: 0.5rem 0.5rem;
+  border-width: 1px;
+}
+.ev_wizard_container_xs .ev_wizard_step .ev_wizard_stick {
+  height: 0.075rem;
+  left: calc(-50% + 0.5rem);
+  width: calc(100% - 1rem);
+}
+.ev_wizard_container_xs .ev_wizard_step.active .ev_wizard_stick,
+.ev_wizard_container_xs .ev_wizard_step.visited .ev_wizard_stick { height: 0.15rem; }
+.ev_wizard_container_xs .ev_wizard_step .ev_wizard_item { height: 1rem; }
+.ev_wizard_container_xs .ev_wizard_step .ev_wizard_text,
+.ev_wizard_container_xs .ev_wizard_step .ev_wizard_item_title { font-size: 0.75rem; }
+.ev_wizard_container_xs .ev_wizard_step .ev_wizard_description,
+.ev_wizard_container_xs .ev_wizard_step .ev_wizard_item_description,
+.ev_wizard_container_xs .ev_wizard_step .ev_wizard_item_customdes { font-size: 0.625rem; }
+
+/* 大尺寸 */
+.ev_wizard_container_lg .ev_wizard_step .ev_wizard_order,
+.ev_wizard_container_lg .ev_wizard_step .ev_wizard_order_active,
+.ev_wizard_container_lg .ev_wizard_step .ev_wizard_order_visited {
+  width: 2rem; height: 2rem;
+  left: calc(50% - 1rem);
+  background-size: 2rem 2rem;
+  border-width: 2.5px;
+}
+.ev_wizard_container_lg .ev_wizard_step .ev_wizard_stick {
+  height: 0.15rem;
+  left: calc(-50% + 1.5rem);
+  width: calc(100% - 3rem);
+}
+.ev_wizard_container_lg .ev_wizard_step.active .ev_wizard_stick,
+.ev_wizard_container_lg .ev_wizard_step.visited .ev_wizard_stick { height: 0.3rem; }
+.ev_wizard_container_lg .ev_wizard_step .ev_wizard_item { height: 2.25rem; }
+.ev_wizard_container_lg .ev_wizard_step .ev_wizard_text,
+.ev_wizard_container_lg .ev_wizard_step .ev_wizard_item_title { font-size: 1rem; }
+.ev_wizard_container_lg .ev_wizard_step .ev_wizard_description,
+.ev_wizard_container_lg .ev_wizard_step .ev_wizard_item_description,
+.ev_wizard_container_lg .ev_wizard_step .ev_wizard_item_customdes { font-size: 0.875rem; }
+
+/* ——— dot 模式 ——— */
+.aui3_1 .ev_wizard_dot .ev_wizard_step .ev_wizard_stick + div:before {
+  display: none;
+}
+.aui3_1 .ev_wizard_dot .ev_wizard_step .ev_wizard_order,
+.aui3_1 .ev_wizard_dot .ev_wizard_step .ev_wizard_order_active,
+.aui3_1 .ev_wizard_dot .ev_wizard_step .ev_wizard_order_visited {
+  background: #e6e6e6;
+  border-radius: 50%;
+  background-size: auto;
+}
+.aui3_1 .ev_wizard_dot .ev_wizard_step.active .ev_wizard_order_active {
+  background: var(--color-brand-focus, #2f54eb);
+}
+.aui3_1 .ev_wizard_dot .ev_wizard_step.visited .ev_wizard_order_visited {
+  background: var(--color-icon-primary, #94cc5c);
+}
