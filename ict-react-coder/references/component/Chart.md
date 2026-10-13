@@ -58,6 +58,40 @@ The chart's height has two valid setups — never pair `flex: 1` with `height` o
 </div>
 ```
 
+## Stability — height feedback & render loops
+
+Elastic chart cards (Pattern A/C) can enter self-amplifying loops when chart-rendered heights feed back into layout, or when dozens of live echarts instances keep repainting off-screen. EVERY chart card MUST apply:
+
+1. **Break the height loop** — card body: `flex: 1 1 0` + `overflow: hidden` + `min-height: <fallback px>`. TWO feedback channels must both be cut:
+   - `overflow: hidden` zeroes the flex item's automatic minimum size — content can no longer raise the card's minimum height;
+   - basis `0` (**never `flex: 1 1 auto`**) — with basis auto the body's content height IS the growth baseline, so heights written back by echarts push the card taller on every resize (the classic "cards grow while dragging" bug).
+   Chart wrapper style: `{ flex: 1, minWidth: 0, minHeight: 0 }` — height comes from flex allocation only.
+2. **Skip off-screen rendering** — card root: `content-visibility: auto; contain-intrinsic-size: auto 360px;`. Off-screen cards stop painting (echarts repaints and ResizeObserver callbacks pause), eliminating "page renders forever" CPU loops; the intrinsic size keeps the scrollbar stable. Gracefully degrades in unsupporting browsers.
+3. **Instance budget** — many charts on one page: group them into Tabs with `destroyInactiveTabPane`, so only the active pane holds live echarts instances.
+4. **Non-elastic siblings** — lists / text / KPI blocks next to charts: `flex: 0 0 auto` with an explicit height (fixed px / `aspect-ratio` / natural + `max-height` scroll). Never give `flex: 1` to content that cannot resize itself.
+
+Symptoms when these rules are skipped: cards growing taller every frame or while dragging resizers (`ResizeObserver loop`); constant repaint / high CPU with the page idle.
+
+```css
+/* card root */
+.chart-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 360px;
+}
+
+/* chart body — basis 0 (never 1 1 auto), min-height as layout fallback, overflow kills the min-size feedback */
+.chart-card__body {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 300px;
+  overflow: hidden;
+}
+```
+
+```jsx
+<Chart name="LineChart" option={lineOption} style={{ flex: 1, minWidth: 0, minHeight: 0 }} />
+```
+
 ## Props
 
 | Prop | Type | Default | Description |
