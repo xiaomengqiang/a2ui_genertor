@@ -11,7 +11,11 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 **Rules** — any sizing method works (style / className / flex / grid) as long as the height is computable:
 
 - Percentages (`height: 50%`) only when the ancestor chain resolves to a definite height (e.g. `100vh` layouts) — inside an auto-height parent they collapse to 0
-- `min-height` / `max-height` alone are NOT computable
+- **`flex: 1` computes its height from the parent or its own floor — never from `height` on the same element** (`flex: 1` = `flex-basis: 0%`, which overrides `height`: dead code, build FAILs; in auto-height parents the chart collapses to ~0 and echarts misreads the wrapper's `height: 100%` as 100px). Two valid setups:
+  1. **Parent height + chart layer `flex: 1`** — fixed-height card / `100vh` shell (Pattern A); `flex: 1` fills the parent
+  2. **Chart layer `flex: 1` + `min-height: <value>`** — elastic cards (Pattern C); the floor survives flex resolution, `flex: 1` absorbs any stretched height
+- `max-height` alone gives no computable height; `min-height` alone does — used height = max(content, min-height)
+
 - Grid `auto` rows are not computable; `1fr` rows in a definite-height grid are
 - Hidden containers (antd Tabs / Collapse / Drawer panes) init at 0×0 but self-heal via ResizeObserver — no conditional rendering needed
 
@@ -35,7 +39,12 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 
 **Pattern C — elastic card (recommended for card grids):**
 
-In equal-height grids (`align-items: stretch`), fixed heights leave dead space below the chart. Make the card `flex column`, give the chart `flex: 1`:
+In equal-height grids (`align-items: stretch`), fixed heights leave dead space below the chart. Make the card `flex column`, give the chart `flex: 1`.
+
+The chart's height has two valid setups — never pair `flex: 1` with `height` on the same element (dead code, build FAILs):
+
+1. **Parent height + chart layer `flex: 1`** — fixed-height card / `100vh` shell (Pattern A territory); `flex: 1` fills the parent.
+2. **Chart layer `flex: 1` + `min-height`** — elastic cards (this pattern); `min-height` is the guaranteed floor, `flex: 1` absorbs any stretched height.
 
 ```jsx
 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "stretch" }}>
@@ -44,7 +53,7 @@ In equal-height grids (`align-items: stretch`), fixed heights leave dead space b
   // elastic card — flex column, chart absorbs the stretched height
   <div className="card" style={{ display: "flex", flexDirection: "column" }}>
     <h3>月度发电量</h3>
-    <Chart name="BarChart" option={barOption} style={{ flex: 1 }} />
+    <Chart name="BarChart" option={barOption} style={{ flex: 1, minHeight: 240 }} />
   </div>
 </div>
 ```
