@@ -1267,7 +1267,6 @@ input.ant-input.ant-input-sm {
 /* Table 组件样式（token 映射；单元格高度按尺寸区分，rem：大 2.5rem / 中 2rem / 小 1.75rem） */
 .ant-table {
   font-family: var(--font-family) !important;
-  background-color: transparent !important;
 }
 .ant-table .ant-table-content {
   border-start-start-radius: 0 !important;
@@ -1319,6 +1318,13 @@ input.ant-input.ant-input-sm {
   line-height: 0;
   margin-inline-start: 0.5rem;
 }
+.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-up.active) {
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_45'%3e%3crect%20id='ic_public_sort_up'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_45)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%201.95L10.02%205.46C10.22%205.66%2010.53%205.66%2010.72%205.46C10.92%205.26%2010.92%204.95%2010.72%204.75L6.35%200.39C6.25%200.29%206.13%200.25%206%200.25C5.86%200.25%205.74%200.29%205.64%200.39L1.27%204.75C1.07%204.95%201.07%205.26%201.27%205.46C1.46%205.66%201.77%205.66%201.97%205.46L5.5%201.95L5.5%2011.25C5.5%2011.53%205.72%2011.75%206%2011.75C6.28%2011.75%206.5%2011.53%206.5%2011.25L6.5%201.95Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat !important;
+  background-size: 0.75rem;
+}
+.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-down.active) {
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_45'%3e%3crect%20id='ic_public_sort_up'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_45)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%201.95L10.02%205.46C10.22%205.66%2010.53%205.66%2010.72%205.46C10.92%205.26%2010.92%204.95%2010.72%204.75L6.35%200.39C6.25%200.29%206.13%200.25%206%200.25C5.86%200.25%205.74%200.29%205.64%200.39L1.27%204.75C1.07%204.95%201.07%205.26%201.27%205.46C1.46%205.66%201.77%205.66%201.97%205.46L5.5%201.95L5.5%2011.25C5.5%2011.53%205.72%2011.75%206%2011.75C6.28%2011.75%206.5%2011.53%206.5%2011.25L6.5%201.95Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat !important;
+}
 .ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner {
   display: inline-block;
   width: 1rem;
@@ -1333,6 +1339,18 @@ input.ant-input.ant-input-sm {
 }
 .ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:hover {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M4.44%2011.5C4.44%2011.78%204.22%2012%203.94%2012C3.66%2012%203.44%2011.78%203.44%2011.5L3.44%201.7L1.72%203.41C1.53%203.61%201.22%203.61%201.02%203.41C0.82%203.22%200.82%202.91%201.02%202.71L3.58%200.14C3.63%200.09%203.69%200.06%203.75%200.03C3.8%200.01%203.87%200%203.94%200C4.1%200%204.23%200.04%204.31%200.12C4.4%200.2%204.44%200.33%204.44%200.5L4.44%2011.5ZM7.85%200C7.57%200%207.35%200.21%207.35%200.5L7.35%2011.5C7.35%2011.66%207.39%2011.79%207.47%2011.87C7.56%2011.95%207.68%2012%207.85%2012C7.99%2012%208.1%2011.95%208.2%2011.85L10.77%209.28C10.97%209.08%2010.97%208.77%2010.77%208.58C10.57%208.38%2010.26%208.38%2010.06%208.58L8.35%2010.29L8.35%200.5C8.35%200.21%208.13%200%207.85%200Z'%20fill='%232E86DE'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat !important;
+  background-size: 0.75rem;
+}
+.ant-table .ant-table-content .ant-table-thead > tr > th.ant-table-column-has-sorters:hover .ant-table-column-sorter .ant-table-column-sorter-inner {
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M4.44%2011.5C4.44%2011.78%204.22%2012%203.94%2012C3.66%2012%203.44%2011.78%203.44%2011.5L3.44%201.7L1.72%203.41C1.53%203.61%201.22%203.61%201.02%203.41C0.82%203.22%200.82%202.91%201.02%202.71L3.58%200.14C3.63%200.09%203.69%200.06%203.75%200.03C3.8%200.01%203.87%200%203.94%200C4.1%200%204.23%200.04%204.31%200.12C4.4%200.2%204.44%200.33%204.44%200.5L4.44%2011.5ZM7.85%200C7.57%200%207.35%200.21%207.35%200.5L7.35%2011.5C7.35%2011.66%207.39%2011.79%207.47%2011.87C7.56%2011.95%207.68%2012%207.85%2012C7.99%2012%208.1%2011.95%208.2%2011.85L10.77%209.28C10.97%209.08%2010.97%208.77%2010.77%208.58C10.57%208.38%2010.26%208.38%2010.06%208.58L8.35%2010.29L8.35%200.5C8.35%200.21%208.13%200%207.85%200Z'%20fill='%232E86DE'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat !important;
+  background-size: 0.75rem;
+}
+.ant-table .ant-table-content .ant-table-thead > tr > th.ant-table-column-has-sorters:hover .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-up.active) {
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_45'%3e%3crect%20id='ic_public_sort_up'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_45)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%201.95L10.02%205.46C10.22%205.66%2010.53%205.66%2010.72%205.46C10.92%205.26%2010.92%204.95%2010.72%204.75L6.35%200.39C6.25%200.29%206.13%200.25%206%200.25C5.86%200.25%205.74%200.29%205.64%200.39L1.27%204.75C1.07%204.95%201.07%205.26%201.27%205.46C1.46%205.66%201.77%205.66%201.97%205.46L5.5%201.95L5.5%2011.25C5.5%2011.53%205.72%2011.75%206%2011.75C6.28%2011.75%206.5%2011.53%206.5%2011.25L6.5%201.95Z'%20fill='%232E86DE'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat !important;
+  background-size: 0.75rem;
+}
+.ant-table .ant-table-content .ant-table-thead > tr > th.ant-table-column-has-sorters:hover .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-down.active) {
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_31'%3e%3crect%20id='ic_public_sort_down'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_31)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%200.75C6.5%200.47%206.28%200.25%206%200.25C5.72%200.25%205.5%200.47%205.5%200.75L5.5%2010.04L1.97%206.53C1.77%206.33%201.46%206.33%201.27%206.53C1.07%206.73%201.07%207.04%201.27%207.24L5.64%2011.6C5.74%2011.7%205.86%2011.75%206%2011.75C6.13%2011.75%206.25%2011.7%206.35%2011.6L10.72%207.24C10.92%207.04%2010.92%206.73%2010.72%206.53C10.53%206.33%2010.22%206.33%2010.02%206.53L6.5%2010.04L6.5%200.75Z'%20fill='%232E86DE'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat !important;
   background-size: 0.75rem;
 }
 .ant-table .ant-table-content .ant-table-filter-column {
@@ -1372,6 +1390,14 @@ input.ant-input.ant-input-sm {
 .ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter {
   order: 2;
 }
+.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-up.active) {
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_45'%3e%3crect%20id='ic_public_sort_up'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_45)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%201.95L10.02%205.46C10.22%205.66%2010.53%205.66%2010.72%205.46C10.92%205.26%2010.92%204.95%2010.72%204.75L6.35%200.39C6.25%200.29%206.13%200.25%206%200.25C5.86%200.25%205.74%200.29%205.64%200.39L1.27%204.75C1.07%204.95%201.07%205.26%201.27%205.46C1.46%205.66%201.77%205.66%201.97%205.46L5.5%201.95L5.5%2011.25C5.5%2011.53%205.72%2011.75%206%2011.75C6.28%2011.75%206.5%2011.53%206.5%2011.25L6.5%201.95Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat;
+  background-size: 0.75rem;
+}
+.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-down.active) {
+  background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_31'%3e%3crect%20id='ic_public_sort_down'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_31)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%200.75C6.5%200.47%206.28%200.25%206%200.25C5.72%200.25%205.5%200.47%205.5%200.75L5.5%2010.04L1.97%206.53C1.77%206.33%201.46%206.33%201.27%206.53C1.07%206.73%201.07%207.04%201.27%207.24L5.64%2011.6C5.74%2011.7%205.86%2011.75%206%2011.75C6.13%2011.75%206.25%2011.7%206.35%2011.6L10.72%207.24C10.92%207.04%2010.92%206.73%2010.72%206.53C10.53%206.33%2010.22%206.33%2010.02%206.53L6.5%2010.04L6.5%200.75Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat !important;
+  background-size: 0.75rem;
+}
 .ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner {
   display: inline-block;
   width: 1rem;
@@ -1397,7 +1423,7 @@ input.ant-input.ant-input-sm {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--color-text-primary);
-  background-color: var(--gray-05);
+  background-color: var(--gray-05) !important;
   border-top: none !important;
   border-bottom: 1px solid var(--gray-05);
   font-size: var(--font-size-md);
@@ -1433,16 +1459,33 @@ input.ant-input.ant-input-sm {
   white-space: nowrap;
 }
 .ant-table .ant-table-content .ant-table-tbody .ant-table-row > .ant-table-cell-row-hover {
-  background-color: rgb(from var(--gray-90) r g b / 0.05) !important;
+  background-color: var(--brand-10) !important;
 }
 .ant-table .ant-table-content .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell {
-  background-color: initial;
+  background-color: var(--brand-05);
 }
 .ant-table .ant-table-content .ant-table-tbody .ant-table-expanded-row .ant-table-cell {
   background-color: rgb(from var(--gray-90) r g b / 0.05);
 }
 .ant-table .ant-table-content .ant-table-tbody .ant-table-column-sort {
   background: initial;
+}
+.ant-table .ant-table-content .ant-table-cell.ant-table-cell-fix-right {
+  background-color: var(--gray-0);
+  overflow: visible !important;
+}
+.ant-table .ant-table-content .ant-table-cell.ant-table-cell-fix-right::after {
+  position: absolute;
+  top: 0;
+  bottom: -1px;
+  left: 1px;
+  width: 1.25rem;
+  content: "";
+  transition: box-shadow 0.3s;
+  transform: translate(-100%);
+  pointer-events: none;
+  background: none !important;
+  box-shadow: inset -8px 0 12px -8px rgb(from var(--gray-90) r g b / 0.3);
 }
 .ant-table.ant-table-middle .ant-table-content .ant-table-thead > tr > th {
   height: 2rem;
@@ -1464,9 +1507,12 @@ input.ant-input.ant-input-sm {
   line-height: 1.5714;
   padding: 0 0.5rem;
 }
+.ant-table-wrapper .ant-table-ping-left:not(.ant-table-has-fix-left) .ant-table-container::before {
+  box-shadow: none;
+}
 .dark .ant-table .ant-table-content .ant-table-thead > tr > th {
   color: var(--color-text-primary);
-  background-color: var(--gray-70);
+  background-color: var(--gray-70) !important;
   border-bottom: 1px solid rgb(from var(--gray-05) r g b / 0.1);
 }
 .dark .ant-table .ant-table-content .ant-table-thead > tr > th::before {
@@ -1475,16 +1521,21 @@ input.ant-input.ant-input-sm {
 .dark .ant-table .ant-table-content .ant-table-tbody > tr > td {
   color: var(--color-text-primary);
   border-bottom: 1px solid rgb(from var(--gray-05) r g b / 0.1);
-  background-color: transparent;
 }
 .dark .ant-table .ant-table-content .ant-table-tbody .ant-table-row > .ant-table-cell-row-hover {
-  background-color: rgb(from var(--gray-70) r g b / 0.4) !important;
+  background-color: rgb(from var(--brand-50) r g b / 0.4) !important;
 }
 .dark .ant-table .ant-table-content .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell {
-  background-color: initial;
+  background-color: rgb(from var(--brand-50) r g b / 0.2);
 }
 .dark .ant-table .ant-table-content .ant-table-tbody .ant-table-expanded-row .ant-table-cell {
   background-color: rgb(from var(--gray-05) r g b / 0.1);
+}
+.dark .ant-table .ant-table-content .ant-table-cell.ant-table-cell-fix-right {
+  background-color: var(--gray-70) !important;
+}
+.dark .ant-table .ant-table-content .ant-table-cell.ant-table-cell-fix-right::after {
+  box-shadow: inset -8px 0 12px -8px rgb(from var(--gray-100) r g b / 0.7);
 }
 
 /* Tabs 组件样式（占位，待填充 token 映射） */
