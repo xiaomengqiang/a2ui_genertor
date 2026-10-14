@@ -2056,6 +2056,7 @@ input.ant-input.ant-input-sm {
   order: 1;
   margin-right: 0.5rem;
   height: 1.5rem !important;
+  width: 1.5rem;
   min-width: 1.5rem;
   margin-inline-end: 0.5rem;
   /* antd 默认 line-height 32px 会把 icon 行框撑出 24px 盒子 */
@@ -2077,15 +2078,30 @@ input.ant-input.ant-input-sm {
   width: 0.625rem;
   height: 0.625rem;
 }
+.ant-pagination .ant-select-single,
+.ant-pagination.ant-pagination-mini .ant-select-single {
+  height: 2rem;
+}
+.ant-pagination .ant-select-single .ant-select-selector,
+.ant-pagination.ant-pagination-mini .ant-select-single .ant-select-selector {
+  padding: 0 0.75rem;
+}
+.ant-pagination .ant-select-single .ant-select-selection-item,
+.ant-pagination.ant-pagination-mini .ant-select-single .ant-select-selection-item {
+  font-size: var(--font-size-md);
+  line-height: calc(2rem - 2px);
+}
 .ant-pagination .ant-pagination-item,
 .ant-pagination.ant-pagination-mini .ant-pagination-item {
   order: 1;
   margin-right: 0.5rem;
   width: 2rem;
   height: 2rem;
+  min-width: 2rem;
   /* 减去上下 1px 边框，数字垂直居中（antd 惯例 itemSize-2） */
-  line-height: calc(2rem - 2px);
+  line-height: 2rem;
   background: transparent;
+  border: none;
 }
 .ant-pagination .ant-pagination-item:not(.ant-pagination-item-active):hover,
 .ant-pagination.ant-pagination-mini .ant-pagination-item:not(.ant-pagination-item-active):hover {
@@ -2122,11 +2138,16 @@ input.ant-input.ant-input-sm {
 .ant-pagination.ant-pagination-mini .ant-pagination-options-quick-jumper {
   order: 2;
   margin-inline-start: 0.5rem;
+  height: 2rem;
+  line-height: 2rem;
 }
 .ant-pagination .ant-pagination-options-quick-jumper input,
 .ant-pagination.ant-pagination-mini .ant-pagination-options-quick-jumper input {
   color: var(--gray-90);
   font-size: 0.875rem;
+  height: 2rem;
+  border-radius: 0.25rem;
+  padding: 0 0.75rem;
 }
 @media (max-width: 480px) {
   .ant-pagination .ant-pagination-options-size-changer,
