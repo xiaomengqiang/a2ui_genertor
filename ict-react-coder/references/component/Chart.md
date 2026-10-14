@@ -49,6 +49,14 @@ In equal-height grids (`align-items: stretch`), fixed heights leave dead space b
 </div>
 ```
 
+## Card action area
+
+Prefer this structure for the chart card's top-right action area: filter dropdown (Dropdown) → vertical divider → icon group, right-aligned, `1rem` gap within the group.
+
+- Filter uses Dropdown.
+- Vertical divider is hand-drawn: 1px wide, 0.75rem tall, background `--color-border`.
+- Icon group uses `<Icon>`: refresh `refresh-cw`, settings `settings`, more `ellipsis`; `size="1rem"`, hover `--color-brand`, must have `title`.
+
 ## Props
 
 | Prop | Type | Default | Description |
