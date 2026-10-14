@@ -11,11 +11,10 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 **Rules** — any sizing method works (style / className / flex / grid) as long as the height is computable:
 
 - Percentages (`height: 50%`) only when the ancestor chain resolves to a definite height (e.g. `100vh` layouts) — inside an auto-height parent they collapse to 0
-- **`flex: 1` computes its height from the parent or its own floor — never from `height` on the same element** (`flex: 1` = `flex-basis: 0%`, which overrides `height`: dead code, build FAILs; in auto-height parents the chart collapses to ~0 and echarts misreads the wrapper's `height: 100%` as 100px). Two valid setups:
-  1. **Parent height + chart layer `flex: 1`** — fixed-height card / `100vh` shell (Pattern A); `flex: 1` fills the parent
-  2. **Chart layer `flex: 1` + `min-height: <value>`** — elastic cards (Pattern C); the floor survives flex resolution, `flex: 1` absorbs any stretched height
-- `max-height` alone gives no computable height; `min-height` alone does — used height = max(content, min-height)
-
+- **Never pair `flex: 1` with `height` on the same element** — `flex: 1` = `flex-basis: 0%` overrides `height`; height comes from the parent or `min-height`. Two valid setups:
+  1. **Parent height + chart layer `flex: 1`** — fixed-height card (Pattern A); `flex: 1` fills the parent.
+  2. **Chart layer `flex: 1` + `min-height`** — elastic cards (Pattern C); `min-height` is the guaranteed floor, `flex: 1` absorbs any stretched height.
+- `min-height` / `max-height` alone are NOT computable
 - Grid `auto` rows are not computable; `1fr` rows in a definite-height grid are
 - Hidden containers (antd Tabs / Collapse / Drawer panes) init at 0×0 but self-heal via ResizeObserver — no conditional rendering needed
 
@@ -41,9 +40,8 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 
 In equal-height grids (`align-items: stretch`), fixed heights leave dead space below the chart. Make the card `flex column`, give the chart `flex: 1`.
 
-The chart's height has two valid setups — never pair `flex: 1` with `height` on the same element (dead code, build FAILs):
-
-1. **Parent height + chart layer `flex: 1`** — fixed-height card / `100vh` shell (Pattern A territory); `flex: 1` fills the parent.
+The chart's height has two valid setups — never pair `flex: 1` with `height` on the same element:
+1. **Parent height + chart layer `flex: 1`** — fixed-height card (Pattern A territory); `flex: 1` fills the parent.
 2. **Chart layer `flex: 1` + `min-height`** — elastic cards (this pattern); `min-height` is the guaranteed floor, `flex: 1` absorbs any stretched height.
 
 ```jsx
