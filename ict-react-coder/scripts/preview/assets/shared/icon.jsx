@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 
 // ---- Lucide (offline fallback, table injected at build time) ----
 const ICONS = typeof LUCIDE !== "undefined" ? LUCIDE : {};
@@ -27,8 +27,45 @@ let plusState = null; // null = probing, true = icon-plus available, false = fal
 let plusPromise = null; // singleton getConfig probe promise
 let iconConfig = null;
 let defaultColorId = "";
-const iconInfoMap = {}; // name -> { name, url }
-const svgCache = new Map(); // "name&variant&color" -> svg text
+const iconInfoMap = {}; // name -> { name, url } (结果缓存)
+const iconInfoPromiseMap = {}; // name -> 进行中 Promise (in-flight 去重)
+const svgCache = new Map(); // "name&variant&color&size" -> svg text (结果缓存)
+const svgPromiseMap = new Map(); // "name&variant&color&size" -> 进行中 Promise (in-flight 去重)
+
+// 动态获取当前 rem 基准 px（html font-size 随视口媒体查询变化：12/14/16/20px）
+function getRootFontSize() {
+  if (typeof document === "undefined") return 16;
+  const fs = getComputedStyle(document.documentElement).fontSize;
+  return parseFloat(fs) || 16;
+}
+
+// 将 getComputedStyle 返回的 rgb()/rgba() 字符串转为 #RRGGBB，用于 icon-plus API 颜色匹配
+function rgbToHex(rgb) {
+  if (!rgb) return null;
+  const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+  if (!m) return null;
+  return "#" + [1, 2, 3].map(function (i) { return parseInt(m[i], 10).toString(16).padStart(2, "0"); }).join("").toUpperCase();
+}
+
+// getIcon 接口的 size 参数需数字 px。源 size 可能是 rem/px/数字，转 px 后吸附到 icon-plus 标准尺寸。
+const API_SIZES = [12, 14, 16, 20, 24, 32, 36, 40, 48, 60];
+function toApiSize(size) {
+  let n = null;
+  if (size != null) {
+    const m = String(size).trim().match(/(-?\d+(?:\.\d+)?)\s*(rem|px)?/i);
+    if (m) {
+      n = Number(m[1]);
+      if (m[2] && m[2].toLowerCase() === "rem") n = n * getRootFontSize();
+    }
+  }
+  if (n == null || Number.isNaN(n)) return 16;
+  let best = API_SIZES[0], bestDiff = Math.abs(n - best);
+  for (const s of API_SIZES) {
+    const d = Math.abs(n - s);
+    if (d < bestDiff) { bestDiff = d; best = s; }
+  }
+  return best;
+}
 
 // variant prop -> getConfig style key (matches previewpc's shapeToStyleKey)
 const STYLE_KEY = {
@@ -93,51 +130,77 @@ function selectBestIcon(icons, keyword) {
   );
 }
 
-// name -> { name, url } via getIconInfo (cached in iconInfoMap)
+// name -> { name, url } via getIconInfo (结果缓存在 iconInfoMap；并发去重靠 iconInfoPromiseMap)
 async function resolveIconInfo(name) {
   if (iconInfoMap[name]) return iconInfoMap[name];
-  try {
-    const resp = await fetch(
-      `${GET_ICON_INFO}?keyword=${encodeURIComponent(name)}&topK=2&source_id=6`
-    );
-    const data = await resp.json(); // [{ keyword, icons: [{ icon_id, name, category, group[], url }] }]
-    const entry = (Array.isArray(data) ? data : [data]).find(
-      (d) => d.icons?.length
-    );
-    const selected = selectBestIcon(entry?.icons || [], name);
-    if (!selected?.url) return null;
-    iconInfoMap[name] = { name: selected.name, url: selected.url };
-    return iconInfoMap[name];
-  } catch (e) {
-    return null;
-  }
+  // 同 name 并发请求共享同一个进行中 Promise，避免 N 个相同图标各发一次 getIconInfo
+  if (iconInfoPromiseMap[name]) return iconInfoPromiseMap[name];
+  const p = (async () => {
+    try {
+      const resp = await fetch(
+        `${GET_ICON_INFO}?keyword=${encodeURIComponent(name)}&topK=2&source_id=6`
+      );
+      const data = await resp.json(); // [{ keyword, icons: [{ icon_id, name, category, group[], url }] }]
+      const entry = (Array.isArray(data) ? data : [data]).find(
+        (d) => d.icons?.length
+      );
+      const selected = selectBestIcon(entry?.icons || [], name);
+      if (!selected?.url) return null;
+      iconInfoMap[name] = { name: selected.name, url: selected.url };
+      return iconInfoMap[name];
+    } catch (e) {
+      return null;
+    }
+  })();
+  iconInfoPromiseMap[name] = p;
+  // 落定后清除 in-flight 条目（失败也清除，允许下次重试，不永久缓存 rejected 结果）
+  p.finally(() => {
+    delete iconInfoPromiseMap[name];
+  });
+  return p;
 }
 
 // fetch the SVG text for a name via getIcon (url + size + variant + colorId + fileType=svg)
-async function fetchSvg(name, variant, colorHex) {
-  const info = await resolveIconInfo(name);
-  if (!info) return "";
-  const styleValue = getStyleValue(STYLE_KEY[variant] || "border");
-  const colorId = resolveColorId(variant, colorHex);
-  try {
-    const resp = await fetch(
-      `${GET_ICON}?url=${encodeURIComponent(info.url)}&size=16&style=${encodeURIComponent(
-        styleValue
-      )}&color=${encodeURIComponent(colorId)}&fileType=svg`
-    );
-    const data = await resp.json(); // { url, name, data } or array
-    const item = Array.isArray(data) ? data[0] : data;
-    return item?.data || ""; // raw SVG text, injected as-is
-  } catch (e) {
-    return "";
-  }
+// 结果缓存在 svgCache；并发去重靠 svgPromiseMap，相同 key 共享同一进行中 Promise
+// key 含 size：不同尺寸取回的 SVG 不同，不可复用
+function fetchSvg(name, variant, colorHex, size) {
+  const key = `${name}&${variant}&${colorHex}&${size}`;
+  if (svgCache.has(key)) return Promise.resolve(svgCache.get(key));
+  if (svgPromiseMap.has(key)) return svgPromiseMap.get(key);
+  const p = (async () => {
+    const info = await resolveIconInfo(name);
+    if (!info) return "";
+    const styleValue = getStyleValue(STYLE_KEY[variant] || "border");
+    const colorId = resolveColorId(variant, colorHex);
+    try {
+      const resp = await fetch(
+        `${GET_ICON}?url=${encodeURIComponent(info.url)}&size=${toApiSize(size)}&style=${encodeURIComponent(
+          styleValue
+        )}&color=${encodeURIComponent(colorId)}&fileType=svg`
+      );
+      const data = await resp.json(); // { url, name, data } or array
+      const item = Array.isArray(data) ? data[0] : data;
+      return item?.data || ""; // raw SVG text, injected as-is
+    } catch (e) {
+      return "";
+    }
+  })();
+  svgPromiseMap.set(key, p);
+  // 落定后写入结果缓存并清除 in-flight 条目；空结果（失败）不缓存，允许下次重试
+  p.then((s) => {
+    if (s) svgCache.set(key, s);
+  }).finally(() => {
+    svgPromiseMap.delete(key);
+  });
+  return p;
 }
 
 // size → rem 字符串;数字(设计画布 px)兜底转换为 rem
 function resolveSize(size) {
   if (typeof size === "number") {
     console.warn(`[Icon] size={${size}} is a number — use rem string instead (e.g. size="${(size / 16).toFixed(4).replace(/\.?0+$/, "")}rem")`);
-    const rem = size / 16;
+    const rootFontSize = getRootFontSize();
+    const rem = size / rootFontSize;
     return `${parseFloat(rem.toFixed(4))}rem`;
   }
   return size;
@@ -157,9 +220,22 @@ export function Icon({
 }) {
   const resolvedSize = resolveSize(size);
   const mergedStyle = onClick ? { cursor: "pointer", ...style } : style;
+  const wrapRef = useRef(null);
+  const [inheritedColor, setInheritedColor] = useState(null);
+  const effectiveColor = color || inheritedColor;
   const [plus, setPlus] = useState(plusState); // reuse already-probed result
+
+    // 无显式 color 时，同步读取父元素计算色，转 hex 后回填 inheritedColor
+  useLayoutEffect(function () {
+    if (color) return; // 显式传了 color，无需继承
+    const el = wrapRef.current;
+    if (!el) return; // 尚未挂载（首次 plus===null 返回 null）
+    const hex = rgbToHex(getComputedStyle(el).color);
+    if (hex && hex !== inheritedColor) setInheritedColor(hex);
+  });
+
   const [svg, setSvg] = useState(
-    () => svgCache.get(`${name}&${variant}&${color}`) || ""
+    () => svgCache.get(`${name}&${variant}&${effectiveColor}&${size}`) || ""
   );
 
   useEffect(() => {
@@ -169,21 +245,20 @@ export function Icon({
       if (!alive) return;
       setPlus(ok);
       if (!ok) return; // getConfig probe failed → Lucide branch
-      const key = `${name}&${variant}&${color}`;
+      const key = `${name}&${variant}&${effectiveColor}&${size}`;
       if (svgCache.has(key)) {
         setSvg(svgCache.get(key));
         return;
       }
-      fetchSvg(name, variant, color).then((s) => {
-        if (!alive) return;
-        svgCache.set(key, s);
+      fetchSvg(name, variant, effectiveColor, size).then((s) => {
+        if (!alive || !s) return; // 空结果（失败）不写入 state，允许下次重试
         setSvg(s);
       });
     });
     return () => {
       alive = false;
     };
-  }, [src, name, variant, color]);
+  }, [src, name, variant, effectiveColor, size]);
 
   // user-provided asset (svg/png/jpg) via relative path — overrides name when both are set
   if (src) {
@@ -233,6 +308,7 @@ export function Icon({
   // icon-plus available → render fetched SVG text as-is (only width/height on the wrapper)
   if (!svg) {
     return React.createElement("span", {
+      ref: wrapRef,
       className,
       "aria-hidden": true,
       onClick,
@@ -242,6 +318,7 @@ export function Icon({
   }
 
   return React.createElement("span", {
+    ref: wrapRef,
     className,
     "aria-hidden": true,
     onClick,

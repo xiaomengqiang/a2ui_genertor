@@ -8,6 +8,12 @@ const GET_CONFIG = `${ICON_API_BASE}/assetRepository/iconPlus/getConfig`;
 const GET_ICON_INFO = `${ICON_API_BASE}/assetRepository/iconPlus/getIconInfo`;
 const GET_ICON = `${ICON_API_BASE}/assetRepository/iconPlus/getIcon`;
 
+// 动态获取当前 rem 基准 px（html font-size 随视口媒体查询变化：12/14/16/20px）
+function getRootFontSize() {
+  if (typeof document === "undefined") return 16;
+  const fs = getComputedStyle(document.documentElement).fontSize;
+  return parseFloat(fs) || 16;
+}
 // 方案A：getIcon 接口的 size 参数需数字 px。源 size 可能是 rem/px/数字，转 px 后吸附到 icon+ 标准尺寸。
 // （icon+ 静态 import 的 iconSize 支持 rem，无需转换；仅此 shim 的 API 调用要数字）
 const API_SIZES = [12, 14, 16, 20, 24, 32, 36, 40, 48, 60];
@@ -17,7 +23,7 @@ function toApiSize(size) {
     const m = String(size).trim().match(/(-?\d+(?:\.\d+)?)\s*(rem|px)?/i);
     if (m) {
       n = Number(m[1]);
-      if (m[2] && m[2].toLowerCase() === "rem") n = n * 16;
+      if (m[2] && m[2].toLowerCase() === "rem") n = n * getRootFontSize();
     }
   }
   if (n == null || Number.isNaN(n)) return 16;
