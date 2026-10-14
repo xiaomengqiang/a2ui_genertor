@@ -183,6 +183,7 @@
 .ant-input {
   border-radius: var(--radius-base);
   font-size: var(--font-size-md);
+  color: var(--color-text-primary);
 }
 input.ant-input {
   padding: 0 0.75rem;
@@ -2321,6 +2322,11 @@ input.ant-input.ant-input-sm {
 }
 
 /* Segmented 组件样式（占位，待填充 token 映射） */
+.ant-segmented {
+  border-radius: var(--radius-md);
+  /* 尺寸变体：label 基础样式固定了行高/字号，需按 antd 的 lg/sm 类分别覆盖
+     （分段控制器整体高 = label 行高 + 轨道上下内边距 4px：大 40，小 28） */
+}
 .ant-segmented .ant-segmented-group {
   gap: 0.25rem;
   background: var(--color-fill);
@@ -2329,6 +2335,9 @@ input.ant-input.ant-input-sm {
 }
 .ant-segmented .ant-segmented-group .ant-segmented-item-label {
   padding: 0 1rem;
+  font-size: var(--font-size-md);
+  line-height: 1.75rem;
+  min-height: initial;
 }
 .ant-segmented .ant-segmented-group .ant-segmented-item:not(.ant-segmented-item-disabled):hover {
   color: var(--gray-90);
@@ -2348,6 +2357,14 @@ input.ant-input.ant-input-sm {
 .ant-segmented .ant-segmented-group .ant-segmented-item-selected.ant-segmented-item-disabled {
   color: var(--gray-0);
   background: var(--brand-20);
+}
+.ant-segmented.ant-segmented-lg .ant-segmented-item-label {
+  font-size: var(--font-size-md);
+  line-height: 2.5rem;
+}
+.ant-segmented.ant-segmented-sm .ant-segmented-item-label {
+  font-size: var(--font-size-base);
+  line-height: 1.75rem;
 }
 .dark .ant-segmented-group .ant-segmented-item .ant-segmented-item-icon {
   color: var(--gray-30);
