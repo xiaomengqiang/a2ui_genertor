@@ -10,10 +10,8 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 
 **Rules** — any sizing method works (style / className / flex / grid) as long as the height is computable:
 
-- Percentages (`height: 50%`) only when the ancestor chain resolves to a definite height (e.g. `100vh` layouts) — inside an auto-height parent they collapse to 0
-- **Never pair `flex: 1` with `height` on the same element** — `flex: 1` = `flex-basis: 0%` overrides `height`; height comes from the parent or `min-height`. Two valid setups:
-  1. **Parent height + chart layer `flex: 1`** — fixed-height card (Pattern A); `flex: 1` fills the parent.
-  2. **Chart layer `flex: 1` + `min-height`** — elastic cards (Pattern C); `min-height` is the guaranteed floor, `flex: 1` absorbs any stretched height.
+- Percentages (`height: 50%`) only when the ancestor chain resolves to a definite height (e.g. a parent with `height: 30rem`) — inside an auto-height parent they collapse to 0
+- Never pair `flex: 1` with `height` on the same element — in a column flex container, `flex: 1` (`flex-basis: 0%`) overrides `height`
 - `min-height` / `max-height` alone are NOT computable
 - Grid `auto` rows are not computable; `1fr` rows in a definite-height grid are
 - Hidden containers (antd Tabs / Collapse / Drawer panes) init at 0×0 but self-heal via ResizeObserver — no conditional rendering needed
@@ -21,7 +19,7 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 **Pattern A — parent fixed height, chart fills:**
 
 ```jsx
-<div style={{ height: 320, display: "flex", gap: 16 }}>
+<div style={{ height: "20rem", display: "flex", gap: "1rem" }}>
   <Chart name="BarChart" option={barOption} style={{ flex: 1 }} />
   <Chart name="PieChart" option={pieOption} style={{ flex: 1 }} />
 </div>
@@ -31,27 +29,23 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 
 ```jsx
 // use style
-<Chart name="BarChart" option={{ ... }} style={{ height: 300 }} />
-// with .chart-box { height: 300px }
+<Chart name="BarChart" option={{ ... }} style={{ height: "19rem" }} />
+// with .chart-box { height: 19rem }
 <Chart name="PieChart" option={{ ... }} className="chart-box" /> 
 ```
 
 **Pattern C — elastic card (recommended for card grids):**
 
-In equal-height grids (`align-items: stretch`), fixed heights leave dead space below the chart. Make the card `flex column`, give the chart `flex: 1`.
-
-The chart's height has two valid setups — never pair `flex: 1` with `height` on the same element:
-1. **Parent height + chart layer `flex: 1`** — fixed-height card (Pattern A territory); `flex: 1` fills the parent.
-2. **Chart layer `flex: 1` + `min-height`** — elastic cards (this pattern); `min-height` is the guaranteed floor, `flex: 1` absorbs any stretched height.
+In equal-height grids (`align-items: stretch`), fixed heights leave dead space below the chart. Make the card `flex column`, give the chart `flex: 1` with `min-height` as the guaranteed floor — `flex: 1` absorbs any stretched height.
 
 ```jsx
-<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "stretch" }}>
+<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", alignItems: "stretch" }}>
   // tall card — stretches the sibling to its height
-  <div className="card">…400px tall content…</div>
+  <div className="card">…25rem tall content…</div>
   // elastic card — flex column, chart absorbs the stretched height
   <div className="card" style={{ display: "flex", flexDirection: "column" }}>
     <h3>月度发电量</h3>
-    <Chart name="BarChart" option={barOption} style={{ flex: 1, minHeight: 240 }} />
+    <Chart name="BarChart" option={barOption} style={{ flex: 1, minHeight: "15rem" }} />
   </div>
 </div>
 ```

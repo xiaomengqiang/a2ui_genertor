@@ -13,7 +13,7 @@
 
 ## 自行实现（不用 Steps）
 
-以下场景不使用 antd Steps，用 div + CSS 自行实现：
+以下场景不使用 antd Steps，用原生 HTML + CSS 自行实现：
 
 - `type="inline"`（inline 步骤）
 - `type="navigation"`（箭头步骤）
