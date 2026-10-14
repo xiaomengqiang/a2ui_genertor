@@ -1,5 +1,7 @@
 # DatePicker 组件功能逻辑规格
 
+> 导入：`import DatePicker from '@/shared/DatePicker'`（scaffold 包壳，透明转发 `@nce/eview-react/DatePicker`，API 不变）。
+
 > 资料来源：TypeDoc `DatePicker/types` + 官网 Date Picker 页示例（含官方反例 `DatePickerBadExample.jsx`）。
 > ⚠️ **唯一一个官方明确给出"反例 demo"的组件**：`DatePickerBadExample.jsx` 标题写着"onChange 回调中，和 value 的状态'双向绑定'了"——它把 `onChange` 第一个参数（字符串）**无条件**回写 `value`。原因（FAQ）：组件会对 value 做修正 / 格式化，原样回写会打断用户输入。对照 `DatePickerEvent.jsx`（正例）：只在第二个参数 `date` 为有效 Date 时才回写（`if (obj)`）。**其他组件通用的 `value` + `onChange` 直接回写，在 DatePicker 上要改成"有效 Date 才回写"或干脆用 `defaultValue` + `ref.getValue()`。**
 > ⚠️ `DatePickerUpdate.jsx` 注释："传给组件的 value 值要是 24 小时制的（不建议使用字符串，容易出错）"，"onOkClick 里一定要设置延时（setTimeout）再 setState"。

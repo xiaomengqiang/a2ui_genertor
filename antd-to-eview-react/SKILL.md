@@ -30,7 +30,7 @@ description: >-
 
 ## eview-react 硬约束（迁移时必须遵守）
 
-1. **导入路径**：`import Button from '@nce/eview-react/Button'`，不是 `import { Button } from 'antd'`。**例外——包壳组件**：被包壳组件（清单：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`）从 `@/shared/<X>` 导入（scaffold 预置包壳，透明转发 `@nce/eview-react/<X>`，API 不变，props 规则仍按本 skill 映射表/组件文档迁移）；清单本约束维护，新增包壳同步更新。**特别注意——`RadioGroup` 包与 `Radio` 包分离**：`RadioGroup` 必须从 `@nce/eview-react/RadioGroup` **默认导入**（`import RadioGroup from '@nce/eview-react/RadioGroup'`），`@nce/eview-react/Radio` 只导出 `Radio` 组件本身、**不导出** `RadioGroup`，禁止写 `import { RadioGroup } from '@nce/eview-react/Radio'`。
+1. **导入路径**：`import Button from '@nce/eview-react/Button'`，不是 `import { Button } from 'antd'`。**例外——包壳组件**：被包壳组件（清单：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`、`DatePicker`、`Spinner`、`Steps`）从 `@/shared/<X>` 导入（scaffold 预置包壳，透明转发 `@nce/eview-react/<X>`，API 不变，props 规则仍按本 skill 映射表/组件文档迁移）；清单本约束维护，新增包壳同步更新。**特别注意——`RadioGroup` 包与 `Radio` 包分离**：`RadioGroup` 必须从 `@nce/eview-react/RadioGroup` **默认导入**（`import RadioGroup from '@nce/eview-react/RadioGroup'`），`@nce/eview-react/Radio` 只导出 `Radio` 组件本身、**不导出** `RadioGroup`，禁止写 `import { RadioGroup } from '@nce/eview-react/Radio'`。
 2. **样式**：scaffold `main.jsx` 已写好六处 CSS import（`aui3_1` / `aui3_1_dark` / `base` / `font` / `tokens` / `theme-dark`），不要删
 3. **Provider**：scaffold `main.jsx` 已配好 `ConfigProvider` + `IntlProvider`（`messages={componentsLocales[locale]}`）；i18n 静态接线（scenario A/B 合并业务包）已由 `umd-to-antd-vite` 步骤 3 前置完成（`i18nScenario.wired=true`），本 skill 步骤 1 只在 `wired=false`（scenario C）时做决策。**IntlProvider 必须在 `main.jsx`，是 `ConfigProvider` 的直接子级**（不是在 `app.jsx`/AppShell 里），否则弹层（Dialog 等 portal）取不到业务文案报 `MISSING_TRANSLATION`；**locale 用 `"zh"` 不是 `"zh-CN"`**
 4. **回调签名**：第一个参数通常是值不是 event（TextField `onChange(value, ...)`、Select `onChange(value, oldValue, text, oldText, event)`）
@@ -41,6 +41,7 @@ description: >-
 9. **相对导入解析**：路径已由 `umd-to-antd-vite` 修正并验证通过（`.umd-conversion.json` 的 `verification.relativeImports=PASS`），步骤 3 **跳过** `check-relative-imports.cjs`。步骤 2 替换组件时新增的 import 不要写 `./src/...`（同级用 `./`、上层用 `../`）。
 10. **DivMessage 通知浮层避免与表单输入组件同渲染树**：`DivMessage` 通过 `setNotice` 渲染在父组件中时，每次通知会触发父组件重渲染，导致 eview-react 输入组件（TextField、Select 等）丢失焦点。**应在用户输入回调（`setField`/`onChange`）中关闭浮层**，或将通知浮层抽离为独立组件（`createPortal` 到 `document.body` + 独立 `useState`）。
 11. **所有图表 option 必含 `a2ui: true` 与 `theme`**：源项目 Chart 封装（`assets/shared/chart.jsx`）在 `setSimpleOption` 前统一注入这两项，改 `@nce/eview-react/Chart` 包导入后**不会自动补**——漏写则图表 a2ui 视觉规范失效、暗色切换后主题不跟随。`theme` 从全局暗色状态派生（`isDark ? "hdesign-dark" : "hdesign-light"`）。见 [components/Chart.md](references/components/Chart.md)
+12. **Wizards/Steps 无 `size` API，通过 CSS 类名控制三种尺寸**：小尺寸 `ev_wizard_container_xs`（圆点 8px / 间距 4px / 文字 12px）、中尺寸（默认）`ev_wizard_container_sm`（圆点 24px / 间距 8px / 文字 14px）、大尺寸 `ev_wizard_container_lg`（圆点 32px / 间距 8px / 文字 16px）。**须通过 `@/shared/Steps` 包壳组件使用**（转发 `@nce/eview-react/Steps`），该包壳支持 `type="dot"` 开启实心圆点模式（圆内无数字）。**小尺寸（xs）默认即为 dot 模式**。包壳与样式由 scaffold 预置（`src/shared/Steps/`），业务侧只写 `className`/`type`、**无需复制 CSS**；用法见 [components/Steps.md](references/components/Steps.md) §6/§7。
 
 ## 命名异常速查
 

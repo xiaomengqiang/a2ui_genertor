@@ -83,7 +83,7 @@ setSizeOptions(next); // 少了 if (!next.some(o => o.value === size)) setSize(.
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
-| `data` | `Array<{ value, text, disable?, tipsText? }>` | 选项数据 |
+| `data` | `Array<{ value, text, disable?, tipsText? }>` | 选项数据，其中 `text` 是显示内容，既可以是字符串又可以是dom节点 |
 | `value` | `string \| number` | 选中项的 value |
 | `onChange` | `(value, event) => void` | 切换回调，第一个参数是选中值 |
 | `type` | `'default' \| 'small'`，默认 `default` | 大 / 小尺寸 |

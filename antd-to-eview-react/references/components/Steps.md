@@ -121,3 +121,39 @@ import Wizards from '@nce/eview-react/Wizards';
 | `Item.iconUrl` | `string \| ReactElement`（3.6.10） | 自定义图标 |
 | `Item.status` | `string`，可选 `error`（3.6.10） | 报错态 |
 | `Item.className` | `string` | 每步类名 |
+
+## 6. 尺寸覆盖（CSS 类名）
+
+Wizards/Steps 组件无 `size` API，通过给容器加 CSS 类名选择三种尺寸。**须通过包壳组件 `@/shared/Steps` 使用**（scaffold 预置：`umd-to-antd-vite` 骨架 `src/shared/Steps/`，透明转发 `@nce/eview-react/Steps`），该包壳支持 `type` 透传：
+
+```tsx
+import Steps from "@/shared/Steps";
+
+// 普通模式（圆内有数字）
+<Steps className="ev_wizard_container_sm" data={...} />
+// dot 模式（实心圆点，无数字）
+<Steps type="dot" className="ev_wizard_container_sm" data={...} />
+```
+
+| 尺寸 | 容器类名 | 圆点大小 | 圆与线条间距 | 文字大小 |
+|------|---------|---------|-------------|---------|
+| 小 | `ev_wizard_container_xs` | 8px | 4px | 12px |
+| 中（默认） | `ev_wizard_container_sm` | 24px | 8px | 14px |
+| 大 | `ev_wizard_container_lg` | 32px | 8px | 16px |
+
+尺寸与 dot 样式已预置在 scaffold 包壳内（`umd-to-antd-vite/scaffold/src/shared/Steps/Steps.css`，随 `@/shared/Steps` import 自动生效）——**业务侧不写、不复制任何 CSS**，只写 `className`/`type`；样式细节直接查看该文件。老骨架（包壳加入前转化的工程）把三件套 `index.jsx`/`Steps.jsx`/`Steps.css` 拷入 `src/shared/Steps/` 即可。
+
+## 7. dot 模式
+
+通过 `@/shared/Steps` 包壳组件的 `type="dot"` 开启实心圆点模式（圆内无数字）。**小尺寸（`xs`）默认即为 dot 模式，无需传 `type`**。
+
+```tsx
+import Steps from "@/shared/Steps";
+
+// dot 模式 — 中尺寸
+<Steps type="dot" className="ev_wizard_container_sm" data={...} />
+// dot 模式 — 大尺寸
+<Steps type="dot" className="ev_wizard_container_lg" data={...} />
+// 小尺寸默认就是圆点（不传 type 即可，传 type="dot" 也可以）
+<Steps className="ev_wizard_container_xs" data={...} />
+```

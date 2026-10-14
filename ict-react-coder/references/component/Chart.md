@@ -11,7 +11,11 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 **Rules** — any sizing method works (style / className / flex / grid) as long as the height is computable:
 
 - Percentages (`height: 50%`) only when the ancestor chain resolves to a definite height (e.g. `100vh` layouts) — inside an auto-height parent they collapse to 0
-- `min-height` / `max-height` alone are NOT computable
+- **`flex: 1` computes its height from the parent or its own floor — never from `height` on the same element** (`flex: 1` = `flex-basis: 0%`, which overrides `height`: dead code, build FAILs; in auto-height parents the chart collapses to ~0 and echarts misreads the wrapper's `height: 100%` as 100px). Two valid setups:
+  1. **Parent height + chart layer `flex: 1`** — fixed-height card / `100vh` shell (Pattern A); `flex: 1` fills the parent
+  2. **Chart layer `flex: 1` + `min-height: <value>`** — elastic cards (Pattern C); the floor survives flex resolution, `flex: 1` absorbs any stretched height
+- `max-height` alone gives no computable height; `min-height` alone does — used height = max(content, min-height)
+
 - Grid `auto` rows are not computable; `1fr` rows in a definite-height grid are
 - Hidden containers (antd Tabs / Collapse / Drawer panes) init at 0×0 but self-heal via ResizeObserver — no conditional rendering needed
 
@@ -35,7 +39,12 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 
 **Pattern C — elastic card (recommended for card grids):**
 
-In equal-height grids (`align-items: stretch`), fixed heights leave dead space below the chart. Make the card `flex column`, give the chart `flex: 1`:
+In equal-height grids (`align-items: stretch`), fixed heights leave dead space below the chart. Make the card `flex column`, give the chart `flex: 1`.
+
+The chart's height has two valid setups — never pair `flex: 1` with `height` on the same element (dead code, build FAILs):
+
+1. **Parent height + chart layer `flex: 1`** — fixed-height card / `100vh` shell (Pattern A territory); `flex: 1` fills the parent.
+2. **Chart layer `flex: 1` + `min-height`** — elastic cards (this pattern); `min-height` is the guaranteed floor, `flex: 1` absorbs any stretched height.
 
 ```jsx
 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "stretch" }}>
@@ -44,7 +53,7 @@ In equal-height grids (`align-items: stretch`), fixed heights leave dead space b
   // elastic card — flex column, chart absorbs the stretched height
   <div className="card" style={{ display: "flex", flexDirection: "column" }}>
     <h3>月度发电量</h3>
-    <Chart name="BarChart" option={barOption} style={{ flex: 1 }} />
+    <Chart name="BarChart" option={barOption} style={{ flex: 1, minHeight: 240 }} />
   </div>
 </div>
 ```
@@ -56,6 +65,40 @@ Prefer this structure for the chart card's top-right action area: filter dropdow
 - Filter uses Dropdown.
 - Vertical divider is hand-drawn: 1px wide, 0.75rem tall, background `--color-border`.
 - Icon group uses `<Icon>`: refresh `refresh-cw`, settings `settings`, more `ellipsis`; `size="1rem"`, hover `--color-brand`, must have `title`.
+
+## Stability — height feedback & render loops
+
+Elastic chart cards (Pattern A/C) can enter self-amplifying loops when chart-rendered heights feed back into layout, or when dozens of live echarts instances keep repainting off-screen. EVERY chart card MUST apply:
+
+1. **Break the height loop** — card body: `flex: 1 1 0` + `overflow: hidden` + `min-height: <fallback px>`. TWO feedback channels must both be cut:
+   - `overflow: hidden` zeroes the flex item's automatic minimum size — content can no longer raise the card's minimum height;
+   - basis `0` (**never `flex: 1 1 auto`**) — with basis auto the body's content height IS the growth baseline, so heights written back by echarts push the card taller on every resize (the classic "cards grow while dragging" bug).
+   Chart wrapper style: `{ flex: 1, minWidth: 0, minHeight: 0 }` — height comes from flex allocation only.
+2. **Skip off-screen rendering** — card root: `content-visibility: auto; contain-intrinsic-size: auto 360px;`. Off-screen cards stop painting (echarts repaints and ResizeObserver callbacks pause), eliminating "page renders forever" CPU loops; the intrinsic size keeps the scrollbar stable. Gracefully degrades in unsupporting browsers.
+3. **Instance budget** — many charts on one page: group them into Tabs with `destroyInactiveTabPane`, so only the active pane holds live echarts instances.
+4. **Non-elastic siblings** — lists / text / KPI blocks next to charts: `flex: 0 0 auto` with an explicit height (fixed px / `aspect-ratio` / natural + `max-height` scroll). Never give `flex: 1` to content that cannot resize itself.
+
+Symptoms when these rules are skipped: cards growing taller every frame or while dragging resizers (`ResizeObserver loop`); constant repaint / high CPU with the page idle.
+
+```css
+/* card root */
+.chart-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 360px;
+}
+
+/* chart body — basis 0 (never 1 1 auto), min-height as layout fallback, overflow kills the min-size feedback */
+.chart-card__body {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 300px;
+  overflow: hidden;
+}
+```
+
+```jsx
+<Chart name="LineChart" option={lineOption} style={{ flex: 1, minWidth: 0, minHeight: 0 }} />
+```
 
 ## Props
 
