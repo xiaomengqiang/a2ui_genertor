@@ -2381,14 +2381,17 @@ input.ant-input.ant-input-sm {
 /* Segmented 组件样式（占位，待填充 token 映射） */
 .ant-segmented {
   border-radius: var(--radius-md);
+  padding: 0.125rem;
+  background: var(--color-fill);
   /* 尺寸变体：label 基础样式固定了行高/字号，需按 antd 的 lg/sm 类分别覆盖
      规格高度为最外层（.ant-segmented）高度 = label 行高 + 轨道上下内边距 4px：大 40 = 36+4，小 28 = 24+4 */
 }
 .ant-segmented .ant-segmented-group {
   gap: 0.25rem;
-  background: var(--color-fill);
   color: var(--color-text-secondary);
   border-radius: var(--radius-md);
+  /* 滑块（切换动效中滑动的元素）默认是 antd 的白色 itemSelectedBg，
+       改为与选中项一致的背景/圆角，滑动结束与 item-selected 无缝衔接 */
 }
 .ant-segmented .ant-segmented-group .ant-segmented-item-label {
   padding: 0 1rem;
@@ -2406,6 +2409,7 @@ input.ant-input.ant-input-sm {
 .ant-segmented .ant-segmented-group .ant-segmented-item-selected {
   color: var(--gray-0);
   background: var(--brand-50);
+  border-radius: var(--radius-base);
 }
 .ant-segmented .ant-segmented-group .ant-segmented-item-selected:not(.ant-segmented-item-disabled):hover {
   color: var(--gray-0);
@@ -2414,6 +2418,10 @@ input.ant-input.ant-input-sm {
 .ant-segmented .ant-segmented-group .ant-segmented-item-selected.ant-segmented-item-disabled {
   color: var(--gray-0);
   background: var(--brand-20);
+}
+.ant-segmented .ant-segmented-group .ant-segmented-thumb {
+  background: var(--brand-50);
+  border-radius: var(--radius-base);
 }
 .ant-segmented.ant-segmented-lg .ant-segmented-item-label {
   font-size: var(--font-size-md);
