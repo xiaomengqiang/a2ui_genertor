@@ -11,7 +11,7 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 **Rules** — any sizing method works (style / className / flex / grid) as long as the height is computable:
 
 - Percentages (`height: 50%`) only when the ancestor chain resolves to a definite height (e.g. a parent with `height: 30rem`) — inside an auto-height parent they collapse to 0
-- Never pair `flex: 1` with `height` on the same element — in a column flex container, `flex: 1` (`flex-basis: 0%`) overrides `height`
+- In a column flex container, never pair `flex: 1` with `height` on the same element, `flex: 1` (`flex-basis: 0%`) overrides `height`
 - `min-height` / `max-height` alone are NOT computable
 - Grid `auto` rows are not computable; `1fr` rows in a definite-height grid are
 - Hidden containers (antd Tabs / Collapse / Drawer panes) init at 0×0 but self-heal via ResizeObserver — no conditional rendering needed
@@ -58,39 +58,16 @@ Prefer this structure for the chart card's top-right action area: filter dropdow
 - Vertical divider is hand-drawn: 1px wide, 0.75rem tall, background `--color-border`.
 - Icon group uses `<Icon>`: refresh `refresh-cw`, settings `settings`, more `ellipsis`; `size="1rem"`, hover `--color-brand`, must have `title`.
 
-## Stability — height feedback & render loops
+## Stability — height feedback loop
 
-Elastic chart cards (Pattern A/C) can enter self-amplifying loops when chart-rendered heights feed back into layout, or when dozens of live echarts instances keep repainting off-screen. EVERY chart card MUST apply:
+A definite height anywhere in the chain — a `height` on the chart itself (Pattern B) or a fixed-height ancestor (Pattern A) — makes the layout safe. Risk only arises when the height comes purely from stretch allocation and no ancestor provides a definite height (Pattern C's stretch grids, a bare chart as a flex item): sizes written back by echarts re-enter layout, and the card grows on every resize.
 
-1. **Break the height loop** — card body: `flex: 1 1 0` + `overflow: hidden` + `min-height: <fallback px>`. TWO feedback channels must both be cut:
-   - `overflow: hidden` zeroes the flex item's automatic minimum size — content can no longer raise the card's minimum height;
-   - basis `0` (**never `flex: 1 1 auto`**) — with basis auto the body's content height IS the growth baseline, so heights written back by echarts push the card taller on every resize (the classic "cards grow while dragging" bug).
-   Chart wrapper style: `{ flex: 1, minWidth: 0, minHeight: 0 }` — height comes from flex allocation only.
-2. **Skip off-screen rendering** — card root: `content-visibility: auto; contain-intrinsic-size: auto 360px;`. Off-screen cards stop painting (echarts repaints and ResizeObserver callbacks pause), eliminating "page renders forever" CPU loops; the intrinsic size keeps the scrollbar stable. Gracefully degrades in unsupporting browsers.
-3. **Instance budget** — many charts on one page: group them into Tabs with `destroyInactiveTabPane`, so only the active pane holds live echarts instances.
-4. **Non-elastic siblings** — lists / text / KPI blocks next to charts: `flex: 0 0 auto` with an explicit height (fixed px / `aspect-ratio` / natural + `max-height` scroll). Never give `flex: 1` to content that cannot resize itself.
+Stretch-only layouts (no definite height in the chain) MUST cut both feedback channels (on the column flex container hosting the chart):
 
-Symptoms when these rules are skipped: cards growing taller every frame or while dragging resizers (`ResizeObserver loop`); constant repaint / high CPU with the page idle.
+- `flex: 1 1 0` — never `flex: 1 1 auto` (basis auto makes content height the growth baseline)
+- `min-height: 0`, a fixed rem value, or `overflow: hidden` — anything but the default `auto` kills the content-based minimum size
 
-```css
-/* card root */
-.chart-card {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 360px;
-}
-
-/* chart body — basis 0 (never 1 1 auto), min-height as layout fallback, overflow kills the min-size feedback */
-.chart-card__body {
-  display: flex;
-  flex: 1 1 0;
-  min-height: 300px;
-  overflow: hidden;
-}
-```
-
-```jsx
-<Chart name="LineChart" option={lineOption} style={{ flex: 1, minWidth: 0, minHeight: 0 }} />
-```
+Chart wrapper: `flex: 1` + `minHeight: 0` or a fixed rem floor (vertical); `minWidth: 0` for horizontal shrinking.
 
 ## Props
 

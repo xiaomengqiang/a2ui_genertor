@@ -103,7 +103,7 @@ Use `<Chart>` (`import Chart from "./assets/shared/chart.jsx"`) — React wrappe
 - All charts come with legend, units, and axis — do not generate these UI elements, just pass data via `option`.
 - Charts fill their container (100% × 100%) — **the parent must have an explicit height** (fixed px card or flex-fill area), or set `style={{ height }}` directly.
 - Dark mode is automatic (hdesign-light/hdesign-dark themes switch with `.dark`).
-- **Card stability (CRITICAL)** — every elastic chart/content card MUST break the height-feedback and render loops: card body `flex: 1 1 0` + `overflow: hidden` (**never `1 1 auto`** — basis auto lets chart-written heights re-enter card sizing and grow it every resize), chart wrapper `minHeight: 0`, card root `content-visibility: auto`; non-elastic content `flex: 0 0 auto` with fixed/capped height; many charts → Tabs `destroyInactiveTabPane`. Rules & snippets: [references/component/Chart.md](references/component/Chart.md) § Stability
+- **Card stability (CRITICAL)** — elastic chart layouts without a definite height in the chain (height purely from stretch allocation) MUST cut both feedback channels: column flex container `flex: 1 1 0` (never `1 1 auto`) + `min-height: 0` / fixed rem / `overflow: hidden` (never the default `auto`); chart wrapper `flex: 1` + `minHeight: 0` (or fixed rem), `minWidth: 0`. Rules: [references/component/Chart.md](references/component/Chart.md) § Stability
 
 ### Internationalization
 
@@ -193,7 +193,7 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 - No page-level antd override CSS — see Styling rule 4
 - No antd darkAlgorithm or React-state theme switching — see Styling rule 3
 - No inventing antd component props — use standard Ant Design 5.29.3 API; every component must follow `references/component/{Name}.md` specs
-- No elastic chart/content card without loop protection (body `flex: 1 1 0` + `overflow: hidden`, never `1 1 auto`; chart `minHeight: 0`; card `content-visibility: auto`) — see Charts § Card stability
+- No stretch-only elastic chart layout without the height-feedback loop cuts — see [references/component/Chart.md](references/component/Chart.md) § Stability
 
 ---
 
