@@ -47,6 +47,26 @@ function rgbToHex(rgb) {
   return "#" + [1, 2, 3].map(function (i) { return parseInt(m[i], 10).toString(16).padStart(2, "0"); }).join("").toUpperCase();
 }
 
+// #RGB / #RRGGBB -> [r,g,b]；非法输入返回 null
+function hexToRgb(hex) {
+  if (!hex) return null;
+  let h = String(hex).replace(/^#/, "").trim();
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return null;
+  const n = parseInt(h, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+// 两个 hex 颜色的欧氏距离（RGB 空间），用于 icon-plus 颜色就近匹配
+function colorDistance(a, b) {
+  const ra = hexToRgb(a);
+  const rb = hexToRgb(b);
+  if (!ra || !rb) return Infinity;
+  return Math.sqrt(
+    (ra[0] - rb[0]) ** 2 + (ra[1] - rb[1]) ** 2 + (ra[2] - rb[2]) ** 2
+  );
+}
+
 // getIcon 接口的 size 参数需数字 px。源 size 可能是 rem/px/数字，转 px 后吸附到 icon-plus 标准尺寸。
 const API_SIZES = [12, 14, 16, 20, 24, 32, 36, 40, 48, 60];
 function toApiSize(size) {
@@ -81,15 +101,29 @@ function getStyleValue(styleKey) {
 }
 
 // resolve an API color id from the requested hex against getConfig colors
+// 精确命中 → 就近匹配（RGB 欧氏距离最小）→ defaultColorId 兜底
 function resolveColorId(variant, colorHex) {
   const styleValue = getStyleValue(STYLE_KEY[variant] || "border");
   const colors = (iconConfig?.colors || []).filter((c) => c.style === styleValue);
   if (colorHex) {
-    const m = colors.find((c) =>
-      c.value.split(",").map((v) => v.trim()).includes(colorHex)
+    const target = colorHex.toUpperCase();
+    // 1. 精确匹配：某个 color 的 value 列表里直接包含目标色
+    const exact = colors.find((c) =>
+      String(c.value).split(",").map((v) => v.trim().toUpperCase()).includes(target)
     );
-    if (m) return m.id;
+    if (exact) return exact.id;
+    // 2. 就近匹配：取与目标色 RGB 距离最小的 color（多色值取其中最近的）
+    let best = null;
+    let bestDist = Infinity;
+    for (const c of colors) {
+      for (const v of String(c.value).split(",")) {
+        const d = colorDistance(target, v.trim());
+        if (d < bestDist) { bestDist = d; best = c; }
+      }
+    }
+    if (best) return best.id;
   }
+  // 3. 兜底：线性通用色 → 该 style 下第一个 → 空串
   return defaultColorId || colors[0]?.id || "";
 }
 
@@ -225,9 +259,10 @@ export function Icon({
   const effectiveColor = color || inheritedColor;
   const [plus, setPlus] = useState(plusState); // reuse already-probed result
 
-    // 无显式 color 时，同步读取父元素计算色，转 hex 后回填 inheritedColor
+    // 仅 icon-plus 模式（plus 就绪、非 src 资源、无显式 color）才需要继承父元素颜色；
+  // Lucide / img 模式颜色由 CSS（currentColor）或属性直接处理，不读计算色、不监听主题
   useLayoutEffect(function () {
-    if (color) return; // 显式传了 color，无需继承
+    if (src || plus !== true || color) return;
     const el = wrapRef.current;
     if (!el) return; // 尚未挂载（首次 plus===null 返回 null）
     const hex = rgbToHex(getComputedStyle(el).color);
@@ -237,6 +272,31 @@ export function Icon({
   const [svg, setSvg] = useState(
     () => svgCache.get(`${name}&${variant}&${effectiveColor}&${size}`) || ""
   );
+
+    // 主题切换时 <html> class 变化不会触发 React 重渲染，需 MutationObserver 主动监听。
+  // antd Button 等组件有 transition: color 0.2s，getComputedStyle 在 transition 期间返回中间色值；
+  // 立即读一次覆盖无 transition 的图标，200ms 后再读一次覆盖 Button 等带 transition 的图标。
+  // 仅 icon-plus 模式（plus 就绪、非 src 资源、无显式 color）才挂观察者，依赖变化时重建
+  useEffect(() => {
+    if (src || plus !== true || color) return;
+    const readColor = () => {
+      const el = wrapRef.current;
+      if (!el) return;
+      const hex = rgbToHex(getComputedStyle(el).color);
+      if (hex) setInheritedColor(function (prev) { return hex !== prev ? hex : prev; });
+    };
+    let timer = null;
+    const observer = new MutationObserver(() => {
+      readColor();
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(readColor, 300);
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return function () {
+      observer.disconnect();
+      if (timer) clearTimeout(timer);
+    };
+  }, [plus, src, color]);
 
   useEffect(() => {
     if (src) return; // user-asset mode: no network needed
