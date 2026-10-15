@@ -2139,16 +2139,70 @@ input.ant-input.ant-input-sm {
 .ant-pagination.ant-pagination-mini .ant-pagination-options-quick-jumper {
   order: 2;
   margin-inline-start: 0.5rem;
-  height: 2rem;
-  line-height: 2rem;
+  /* 隐藏 "跳至"/"页" 文本节点，将 input + 按钮拼成一体 */
+  display: inline-flex;
+  align-items: stretch;
+  font-size: 0;
+  line-height: 0;
+  /* goButton 渲染为 <span>，样式化为附加在 input 右侧的文本按钮 */
 }
 .ant-pagination .ant-pagination-options-quick-jumper input,
 .ant-pagination.ant-pagination-mini .ant-pagination-options-quick-jumper input {
-  color: var(--gray-90);
-  font-size: 0.875rem;
-  height: 2rem;
-  border-radius: 0.25rem;
+  font-size: var(--font-size-md);
+  line-height: calc(2rem - 2px);
+  width: 3rem !important;
+  height: 2rem !important;
+  margin: 0 !important;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+  text-align: center;
+  color: var(--color-text-primary);
+  background-color: var(--color-fill-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base) 0 0 var(--radius-base);
+  caret-color: var(--brand-50);
+}
+.ant-pagination .ant-pagination-options-quick-jumper input:hover,
+.ant-pagination.ant-pagination-mini .ant-pagination-options-quick-jumper input:hover {
+  border-color: var(--color-border-hover);
+}
+.ant-pagination .ant-pagination-options-quick-jumper input:focus,
+.ant-pagination.ant-pagination-mini .ant-pagination-options-quick-jumper input:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 1px var(--color-border-active);
+  outline: none;
+  position: relative;
+  z-index: 1;
+}
+.ant-pagination .ant-pagination-options-quick-jumper input::placeholder,
+.ant-pagination.ant-pagination-mini .ant-pagination-options-quick-jumper input::placeholder {
+  color: var(--color-text-placeholder);
+}
+.ant-pagination .ant-pagination-options-quick-jumper > span,
+.ant-pagination.ant-pagination-mini .ant-pagination-options-quick-jumper > span {
+  font-size: var(--font-size-md);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(2rem - 2px);
   padding: 0 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+  background-color: var(--color-fill-subtle);
+  border: 1px solid var(--color-border);
+  margin-left: -1px;
+  border-radius: 0 var(--radius-base) var(--radius-base) 0;
+  transition: border-color 0.2s, color 0.2s, background-color 0.2s;
+}
+.ant-pagination .ant-pagination-options-quick-jumper > span:hover,
+.ant-pagination.ant-pagination-mini .ant-pagination-options-quick-jumper > span:hover {
+  border-color: var(--color-border-hover);
+  color: var(--brand-50);
+  background-color: var(--color-hover);
+  z-index: 1;
 }
 @media (max-width: 480px) {
   .ant-pagination .ant-pagination-options-size-changer,
@@ -2213,7 +2267,7 @@ input.ant-input.ant-input-sm {
 }
 .dark .ant-pagination .ant-pagination-options .ant-pagination-options-quick-jumper input,
 .dark .ant-pagination.ant-pagination-mini .ant-pagination-options .ant-pagination-options-quick-jumper input {
-  color: var(--gray-90);
+  color: var(--color-text-primary);
 }
 
 .ant-tooltip {
