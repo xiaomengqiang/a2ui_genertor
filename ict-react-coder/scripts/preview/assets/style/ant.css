@@ -185,6 +185,9 @@
   font-size: var(--font-size-md);
   color: var(--color-text-primary);
 }
+.ant-input::placeholder {
+  color: var(--color-text-placeholder);
+}
 input.ant-input {
   padding: 0 0.75rem;
   height: 2rem;
@@ -2512,30 +2515,30 @@ input.ant-input.ant-input-sm {
 .ant-drawer .ant-drawer-content-wrapper {
   box-shadow: var(--shadow-l-base);
 }
-.ant-drawer .ant-drawer-content-wrapper .ant-drawer-section .ant-drawer-header {
+.ant-drawer .ant-drawer-content-wrapper .ant-drawer-content .ant-drawer-header {
   padding: 1.25rem 1.5rem 1rem;
   border-bottom: none;
 }
-.ant-drawer .ant-drawer-content-wrapper .ant-drawer-section .ant-drawer-header .ant-drawer-header-title .ant-drawer-title {
+.ant-drawer .ant-drawer-content-wrapper .ant-drawer-content .ant-drawer-header .ant-drawer-header-title .ant-drawer-title {
   font-size: var(--font-size-2xl);
   color: var(--color-text-primary);
   font-weight: var(--font-weight-medium);
 }
-.ant-drawer .ant-drawer-content-wrapper .ant-drawer-section .ant-drawer-header .ant-drawer-header-title .ant-drawer-close {
+.ant-drawer .ant-drawer-content-wrapper .ant-drawer-content .ant-drawer-header .ant-drawer-header-title .ant-drawer-close {
   order: 2;
   margin-inline-start: auto;
 }
-.ant-drawer .ant-drawer-content-wrapper .ant-drawer-section .ant-drawer-header .ant-drawer-header-title .ant-drawer-close .anticon {
+.ant-drawer .ant-drawer-content-wrapper .ant-drawer-content .ant-drawer-header .ant-drawer-header-title .ant-drawer-close .anticon {
   font-size: var(--font-size-md);
 }
-.ant-drawer .ant-drawer-content-wrapper .ant-drawer-section .ant-drawer-header .ant-drawer-header-title .ant-drawer-close .anticon svg {
+.ant-drawer .ant-drawer-content-wrapper .ant-drawer-content .ant-drawer-header .ant-drawer-header-title .ant-drawer-close .anticon svg {
   width: 0.875rem;
   height: 0.875rem;
 }
-.ant-drawer .ant-drawer-content-wrapper .ant-drawer-section .ant-drawer-body {
+.ant-drawer .ant-drawer-content-wrapper .ant-drawer-content .ant-drawer-body {
   padding: 0 1.5rem 1.5rem;
 }
-.dark .ant-drawer .ant-drawer-content-wrapper .ant-drawer-section {
+.dark .ant-drawer .ant-drawer-content-wrapper .ant-drawer-content {
   background-color: var(--gray-80);
 }
 
