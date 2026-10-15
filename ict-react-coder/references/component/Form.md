@@ -30,7 +30,7 @@
 
 - Input / TextArea / Select / TreeSelect / Cascader / Slider：显式设置宽度，占满可用空间用 `style={{ width: "100%" }}`，或取固定 rem 值（筛选区等控件并排场景、宽容器中需限定宽度场景）。
 - InputNumber / DatePicker / RangePicker / TimePicker：显式设置固定 rem 宽度，不随控件列拉长；仅在窄容器场景（抽屉、窄列等）可用 `100%`。
-- Checkbox / Radio / Switch / Rate / ColorPicker / Segmented 内容自适应，不设宽度。
+- Checkbox / Radio / Switch / Rate / ColorPicker / Segmented / IpInput 内容自适应，不设宽度。
 - 同一区域同类控件宽度保持一致；宽度用 `style` 写在控件上，其余样式写组件 CSS。
 
 ### 校验文案
@@ -87,4 +87,5 @@
 
 - 不使用 `Form` / `Form.Item` / `Form.List`（构建 FAIL）。
 - 不依赖浏览器原生校验气泡（原生 `required` / `type="email"` 提示）。
+- 不要用普通 `Input` 拼接 IP / IPv6 / MAC 字段；使用 `IpInput`。
 - 不手画红框代替 `status="error"`；错误信息不弹 message / notification，固定在控件下方。

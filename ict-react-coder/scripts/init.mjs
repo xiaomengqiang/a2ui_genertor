@@ -102,7 +102,7 @@ export default function App() {
       <ConfigProvider
         locale={zhCN}
         wave={{ disabled: true }}
-        renderEmpty={() => <Empty />}
+        renderEmpty={() => <Empty style={{ padding: "2rem 0" }} />}
         empty={{ image: "./assets/uploads/empty.svg" }}
         spin={{ indicator: <img src="./assets/uploads/loading.svg" alt="" className="custom-spin-indicator" /> }}
       >

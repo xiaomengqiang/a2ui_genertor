@@ -58,6 +58,8 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 
 Read and follow `references/component/{Name}.md` before using any antd component — the spec overrides general API knowledge.
 
+Beyond antd, the skill ships built-in components: `<Icon>` (Lucide icons), `<Chart>` (HUICharts wrapper), `<IpInput>` (IP / IPv6 / MAC segmented input) — read their corresponding `references/component/{Name}.md` before use.
+
 Forms are the exception: antd `Form`/`Form.Item` is banned. Before writing any form (a `<form>` element or any multi-field input area), read `references/component/Form.md` for the H5 skeleton, label/asterisk/error-text rules, and the validation pattern.
 
 ### Import contract (ES Modules, build-time bundled)
@@ -72,6 +74,7 @@ import { IntlProvider, FormattedMessage, useIntl } from "react-intl"; // → Rea
 import zhCN from "./assets/shared/antd-zh.js";        // antd zh-CN locale (dayjs zh-cn + antd zhCN)
 import { Icon } from "./assets/shared/icon.jsx";      // Lucide icon component
 import Chart from "./assets/shared/chart.jsx";         // HUICharts React wrapper
+import IpInput from "./assets/shared/ip-input.jsx";    // IP / IPv6 / MAC segmented input
 import { AppProvider, useApp } from "./src/context.jsx"; // relative imports for own modules
 import DeviceTable from "./src/views/device-table/index.jsx"; // component import (optional)
 import "./src/views/device-table/index.css";          // component CSS (optional)
