@@ -29,6 +29,7 @@ description: >-
 ## 必须遵守
 
 - 按 Reference 确认导入方式：根命名导出或组件子路径默认导出；3.10 源码线的时间组件根名为 `TimeSelector`，`ColorPicker` 使用子路径。已核验版本不提供 Cascader，级联需求组合联动 `Select`，不生成 Cascader 导入或用法。不能用源码别名 `eview-react/…` 或 antd 顶替。入口引入 `aui3_1.css`，运行时切深色同时引 `aui3_1_dark.css`；给 `body` 加 `aui3_1`（深色另加 `aui3_1_dark`），覆盖挂在 body 下的弹层，详见工程 Pattern。
+- `TreeSelect` 已废弃，不生成其导入或用法；树形下拉改用 [TreeSelector](references/TreeSelector.md)，按其单选字符串、多选数组及回调边界接入，不沿用旧组件的对象数组取值或回显补救逻辑。
 - 平常尽量不用 `ConfigProvider`：已有 `IntlProvider` 且无动画配置需求时沿用；没有 `IntlProvider`，或需要控制 `animation` 时，再使用 `ConfigProvider` 替代。无动画配置时只透传 children，有需求时传布尔值；复用已有根 Provider，不逐页重复包裹。替换前核对业务国际化上下文依赖，未确认兼容时保留必要的 IntlProvider；3.10 核验线的 ConfigProvider.locale/messages 无实际消费者，不靠它迁移文案，也不强制嵌套两者。
 - **图标默认用 icon+**（`import { IconPlusIc* } from '@nce/icon-plus'` 按需引入），不用内置 `Icon name='ict_…'`（已下线）；可点击图标用 `IconButton iconName={<IconPlus* />}`，不给图标组件挂 onClick。
 - **props、导出名、回调参数顺序和 ref 方法都以对应 Reference 为准，查不到不推断**；不按其他库 API 或原生 event 猜写法。资料冲突按文档兼容方案处理，保留待实测说明，不能擅自认定某一版正确。
@@ -45,7 +46,7 @@ description: >-
 
 当前 47 份组件 Reference，表示已编写用法规格，不代表已逐个验证目标发布包。每份保留 API、回调、状态、联动、完整示例与反例。
 
-TextArea、Paging、MultipleSelect、TreeTable、IPInput、Empty、Crumbs、Panel、Rating、Tag、Badge、Divider、TipBox 的目标版本入口与实现尚未确认；首次使用前核对已安装包声明或目标工程现有用法。其余组件也只确认核验涉及的接口，不将父组件结论自动扩展到子组件、别名或全部 API。
+TextArea、Paging、MultipleSelect、TreeSelector、TreeTable、IPInput、Empty、Crumbs、Panel、Rating、Tag、Badge、Divider、TipBox 的目标版本入口与实现尚未确认；首次使用前核对已安装包声明或目标工程现有用法。其余组件也只确认核验涉及的接口，不将父组件结论自动扩展到子组件、别名或全部 API。
 
 | 组件 / 场景 | 读取 |
 |-------------|------|
@@ -76,7 +77,7 @@ TextArea、Paging、MultipleSelect、TreeTable、IPInput、Empty、Crumbs、Pane
 | `MultipleSelect` / 多选下拉 | [references/MultipleSelect.md](references/MultipleSelect.md) |
 | `InputSelect` / 可输入下拉 / 搜索选择 | [references/InputSelect.md](references/InputSelect.md) |
 | `Tree` / 树 / 组织架构 | [references/Tree.md](references/Tree.md) |
-| `TreeSelect` / 树形下拉 | [references/TreeSelect.md](references/TreeSelect.md) |
+| `TreeSelector` / 树形下拉 / 树选择 / 部门选择 | [references/TreeSelector.md](references/TreeSelector.md) |
 | `TreeTable` / 树表 / 层级表格 | [references/TreeTable.md](references/TreeTable.md) |
 | `Drawer` / 抽屉 / 侧滑面板 | [references/Drawer.md](references/Drawer.md) |
 | `IPInput` / IP / MAC 输入 | [references/IPInput.md](references/IPInput.md) |

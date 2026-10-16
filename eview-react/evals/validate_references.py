@@ -46,11 +46,20 @@ EVIEW_FORBIDDEN = [
     (r"\bconsole\.log\(", "正例代码不应遗留 console.log"),
 ]
 
+# 废弃组件只允许出现在说明/反例中；整块匹配兼容多行 import，名称边界不匹配 TreeSelector。
+DEPRECATED_TREE_SELECT = [
+    (r"\b(?:from\s+|import\s*(?:\(\s*)?|require\s*\(\s*)['\"]@nce/eview-react/TreeSelect(?:/[^'\"]*)?['\"]",
+     "导入废弃子路径 @nce/eview-react/TreeSelect，应使用 TreeSelector"),
+    (r"\bimport\s+(?:type\s+)?(?:[A-Za-z_$][\w$]*\s*,\s*)?\{(?:[^}]*,)?\s*(?:type\s+)?TreeSelect(?=\s*(?:as\b|[,}]))[^}]*\}\s*from\s*['\"]@nce/eview-react['\"]",
+     "从根包导入废弃 TreeSelect，应使用 TreeSelector"),
+    (r"<\s*TreeSelect(?=[\s/>])", "使用废弃 <TreeSelect>，应使用 <TreeSelector>"),
+]
+
 # SKILL.md 里用反引号标出、但不是组件（不需要 Reference）的词
 NON_COMPONENTS = {"IntlProvider", "Set", "TextButton", "ScrollTable", "Option",
                   "Wizards", "BrowseButton", "TabPane", "Step", "Upload",
                   "Input", "TimeRangeSelector", "CheckableTag", "Modal", "Tabs", "Transfer",
-                  "Chart", "ChartCard", "HexField", "PagingTree", "TreeSelector", "PageMessage", "Card",
+                  "Chart", "ChartCard", "HexField", "PagingTree", "TreeSelect", "PageMessage", "Card",
                   "ButtonMenu", "AutoComplete",
                   "Breadcrumb", "Collapse", "Tooltip", "Popover", "Spin", "Alert", "Descriptions"}
 # eval 文本中出现的子组件 / 旧名 / 他库别名 → 收编到哪份父 Reference
@@ -151,13 +160,26 @@ def check_counts() -> None:
 
 
 # ── 5. 正例代码中的 eview-react 反模式 ─────────────────────
+def check_deprecated_tree_select(file: str, code: str, first_line: int) -> None:
+    for pattern, desc in DEPRECATED_TREE_SELECT:
+        for match in re.finditer(pattern, code):
+            line = first_line + code.count("\n", 0, match.start())
+            add(file, "ERROR", f"第 {line} 行正例代码使用废弃组件 [{desc}]")
+
+
 def check_eview_compliance() -> None:
     for md in list(ref_files()) + [SKILL_MD] + sorted(PATTERNS_DIR.glob("*.md")):
         text = md.read_text(encoding="utf-8")
         in_code, in_bad = False, False
+        positive_lines: list[str] = []
+        first_line = 1
         for i, line in enumerate(text.split("\n"), 1):
             if line.strip().startswith("```"):
+                if in_code:
+                    check_deprecated_tree_select(md.name, "\n".join(positive_lines), first_line)
                 in_code = not in_code
+                positive_lines = []
+                first_line = i + 1
                 continue
             if not in_code:
                 # §8 反面示例整节跳过；其他 H2 标题退出反例区
@@ -165,7 +187,9 @@ def check_eview_compliance() -> None:
                     in_bad = "反面示例" in line
                 continue
             if in_bad or "❌" in line or line.strip().startswith("//"):
+                positive_lines.append("")  # 保留行号；反例和注释不参与跨行匹配
                 continue
+            positive_lines.append(line)
             for pattern, desc in EVIEW_FORBIDDEN:
                 if re.search(pattern, line):
                     add(md.name, "WARN", f"第 {i} 行正例代码疑似反模式 [{desc}]：{line.strip()[:80]}")

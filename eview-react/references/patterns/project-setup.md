@@ -14,7 +14,7 @@
 
 **版本边界**：实现核验主要针对 R26.0-NCE 的 `3.10.36-6-g2c9e16b83`。内网已安装包中发现 3.10.28 与 3.10.7；本轮产物入口及声明核验针对 **3.10.28**，不把全部源码行为视为这两个包均已验证。目标业务工程的实际安装版本仍未知。
 
-4.x 仅对比 `4.0.607-15-ga873ca561` 源码：RadioGroup 参数顺序、SearchInput、Switch.onToggle、Form.onFailed、DropDown.selectedIndex、InputSelect.type 与核验的 3.10 实现一致，TimePicker.getValue 存在；该线没有 L4 目录或 Cascader。**未验证任何 4.x 发布包**，其他行为需按目标版本核对。TreeSelect 的回显缺陷有内网隔离运行探针反馈，其余标为类型或源码的结论不等于运行验证。
+4.x 仅对比 `4.0.607-15-ga873ca561` 源码：RadioGroup 参数顺序、SearchInput、Switch.onToggle、Form.onFailed、DropDown.selectedIndex、InputSelect.type 与核验的 3.10 实现一致，TimePicker.getValue 存在；该线没有 L4 目录或 Cascader。**未验证任何 4.x 发布包**，其他行为需按目标版本核对。[TreeSelector](../TreeSelector.md) 尚无实现或发布包核验结论；类型或源码结论不等于运行验证。
 
 ```ini
 # .npmrc —— 先配源，否则 @nce 包装不上

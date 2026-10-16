@@ -1,6 +1,6 @@
 {
   "skill_name": "eview-react",
-  "reference_scope": "实现断言主要按用户提供的 R26.0-NCE / 3.10.36+6 源码核验；3.10.28 的部分入口/声明有发布包证据，4.0.607+15 仅部分源码对比，TreeSelect 有内网隔离运行反馈。目标业务工程版本未知，不能把声明或源码核验当作目标工程运行通过。",
+  "reference_scope": "各组件按对应 Reference 区分证据：内网 R26.0-NCE / 3.10.36+6 源码核验、3.10.28 部分入口/声明的发布包证据、4.0.607+15 部分源码对比，以及本地 TypeDoc/示例。TreeSelector 仅有 TypeDoc/示例依据，尚无实现、发布包入口或运行核验。单个组件的源码或运行结果不能转移为另一组件的验证结论；目标业务工程版本未知，声明、示例或源码确认均不等于目标工程运行通过。",
   "evals": [
     {
       "id": 1,
@@ -320,15 +320,15 @@
     },
     {
       "id": 21,
-      "prompt": "用 eview-react 写一个网元接入表单：所属区域用省/市/区级联选择，归属分组用树形下拉单选，设备型号用可输入过滤的下拉（只能选列表里的），管理 IP 用 IPv4 分段输入，表单按\"基本信息 / 网络配置\"两块可折叠分组，提交后成功或失败要有提示 目标采用核验的 3.10 源码线，不提供 Cascader，请用已覆盖组件完成逐级选择。",
-      "expected_output": "已核验版本以省/市/区三个联动 Select 组合，父级变化清空下级；TreeSelect treeData + enableMultiSelect={false}，回调对象数组取 id 存业务 key，value 是文案不可作标识；仅改 value/[] 不会同步树勾选，外部回填/清空用 revision/key 重建，普通选择不每次重挂。InputSelect onlySelect；IPInput type=\"v4\"；Panel/PanelItem 按分组展示与错误展开；提交防重并反馈。",
+      "prompt": "用 eview-react 写一个网元接入表单：所属区域用省/市/区级联选择，归属分组用 TreeSelector 树形下拉单选且必须是有效节点，设备型号用可输入过滤的下拉（只能选列表里的），管理 IP 用 IPv4 分段输入，表单按\"基本信息 / 网络配置\"两块可折叠分组，提交后成功或失败要有提示。异常选择回调不能导致继续提交旧分组。已核验版本不提供 Cascader，请用已覆盖组件完成逐级选择；TreeSelector 按其 TypeDoc 与示例接入，不宣称已通过实现或真实包运行核验。",
+      "expected_output": "省/市/区用三个联动 Select，父级变化清空下级。TreeSelector 使用 treeData 的 id/text/children，默认单选或 enableCheckbox={false}，value 为字符串 ID；onChange 第一参按 TypeDoc 的 string|string[] 契约校验，在单选边界规范化为当前已知节点的字符串 ID，不套用旧对象数组取 id。声明与旧注释冲突尚未实现核验，形状异常、空值或未知 ID 应使选择不可提交并反馈，不能默默保留旧分组提交。不强制 ref、完整 Form 托管或 key 重建，允许独立 state + 提交前业务校验。InputSelect onlySelect；IPInput type=\"v4\"；Panel/PanelItem 按分组展示与错误展开；提交防重并反馈。",
       "assertions": [
         { "text": "不导入或生成已核验版本不存在的 Cascader；省市区用联动 Select，父级变化清空后代值并更新后代选项，不引用已撤回的 Cascader Reference。", "type": "eview_compliance" },
-        { "text": "树形单选用 TreeSelect treeData/enableMultiSelect={false}，onChange 按对象数组取 id；初值/回填用 id 数组，不把 value 文案回填。该线单改 value 或 [] 不能同步树勾选；外部回填/清空时同步业务值并更新独立 key 重建，普通 onChange 不重挂，或复用目标工程已验证的兼容处理。", "type": "eview_compliance" },
+        { "text": "树形单选使用 TreeSelector，treeData 用 id/text/children，保持默认单选或 enableCheckbox={false}，value 为字符串 ID。onChange 第一参按 TypeDoc 的 string|string[] 契约校验，不取旧对象数组的 id，不套用 enableMultiSelect，也不导入或生成废弃 TreeSelect。", "type": "eview_compliance" },
         { "text": "设备型号使用 InputSelect onlySelect，onChange(value,oldValue,type,event?) 的第三参为 input/select，第四参可缺省；选择与输入按业务需要区分。", "type": "eview_compliance" },
         { "text": "管理 IP 使用 IPInput type=\"v4\"，onChange 第一个参数作为完整 IP 字符串使用", "type": "eview_compliance" },
-        { "text": "分组使用 Panel + PanelItem，selectedIndex 为数组，PanelItem 传 closable={false}；如结合 Form，每个 Form.Item 必须是所属 Form 的直接子级，不能在两者之间插入 Panel/PanelItem。", "type": "eview_compliance" },
-        { "text": "校验失败时把出错字段所在面板下标加入 selectedIndex 展开", "type": "behavioral" },
+        { "text": "分组使用 Panel + PanelItem，selectedIndex 为数组，PanelItem 传 closable={false}；如结合 Form，每个 Form.Item 必须是所属 Form 的直接子级。TreeSelector 的 ref 与完整 Form 托管未核验，允许独立 state + 业务校验，不强制未证实方法或 revision/key 方案。", "type": "eview_compliance" },
+        { "text": "TreeSelector 入口检查回调类型与当前 treeData 的已知 ID，单选规范化后仍须复核节点有效性；空值、未知 ID 或不符声明的回调形状会清除可提交选择或设置阻断提交的错误，不能忽略异常后继续提交旧分组。提交前业务校验，失败时把出错字段所在面板下标加入 selectedIndex 展开。", "type": "behavioral" },
         { "text": "提交成功 / 失败通过 DivMessage 或 MessageDialog 反馈，且提交按钮防重复", "type": "behavioral" }
       ]
     },

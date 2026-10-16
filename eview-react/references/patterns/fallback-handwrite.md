@@ -33,6 +33,7 @@
 - 发布包 **3.10.28** 已确认 `/Segmented`、`/Slider`、`/TimePicker`、`/Transfer` 的子路径默认导出。前三者按对应 Reference 使用；Transfer 的 API 尚未覆盖，仍按三层流程处理。
 - [ColorPicker](../ColorPicker.md) 使用子路径默认导入 `@nce/eview-react/ColorPicker`，已核验根入口不导出它。
 - 已核验的两条源码线与 3.10.28 包均无 Cascader，不生成它的导入或用法；级联需求使用联动 [Select](../Select.md)。
+- TreeSelect 已废弃，树形下拉使用 [TreeSelector](../TreeSelector.md)；不因工程保留旧用法而重新生成 TreeSelect。
 
 不要把其他库的 `Upload` / `Tabs` / `Input` / `Modal` / `Option` / `Step` 等名称直接当成本包导出；表单子项写 `Form.Item`。目标工程没有可核验用法时继续第三层。
 
@@ -46,7 +47,7 @@
 | 表单弹窗 / 侧边编辑 | `Dialog`（[Dialog.md](../Dialog.md)）/ `Drawer`（[Drawer.md](../Drawer.md)） |
 | 面包屑 / 折叠分组 / 空态 / 加载 | `Crumbs` / `Panel` / `Empty` / `Loading`（均已覆盖） |
 | 侧边多级导航菜单 | `Accordion`（[Accordion.md](../Accordion.md)）；内容折叠仍用 `Panel` |
-| 树 / 树选择 / 树表 | `Tree` / `TreeSelect` / `TreeTable`（按各自 Reference） |
+| 树 / 树选择 / 树表 | `Tree` / [TreeSelector](../TreeSelector.md) / `TreeTable`（按各自 Reference） |
 | 省市区等逐级选择 | 多个 [Select](../Select.md) 联动，父级变化清空后代值并更新选项 |
 | 状态列 / 分组标题 | `Badge status` / `Tag color` / `Divider orientation` |
 | 时间点选择 | [TimePicker](../TimePicker.md) 选择时分秒；需日期时用 [DatePicker](../DatePicker.md)，步进输入用 [Spinner](../Spinner.md) |
@@ -106,7 +107,7 @@ function KeyValueList({ items, columns = 2 }: { items: Array<{ label: string; va
 
 | 需求 | 建议的真实组件 | 手写版明确不做的能力 |
 |------|--------------|------------------|
-| 滚动加载表格 / 树选择器 / 分页树 | `ScrollTable` / `TreeSelector` / `PagingTree` | 无限滚动分页、双栏树选择、树分页懒加载 |
+| 滚动加载表格 / 分页树 | `ScrollTable` / `PagingTree` | 无限滚动分页、树分页懒加载 |
 | 穿梭框 | `Transfer`：3.10.28 已确认子路径默认导出，API 尚未覆盖；按三层流程处理 | 双栏穿梭、搜索、全选 |
 | 上传路径浏览 / 十六进制 | `BrowseButton` / `HexField` | 路径校验、格式修正 |
 | 图表 | 暂无已核验导出；补规格后确定 | 一律不手写，直接标 TODO |
