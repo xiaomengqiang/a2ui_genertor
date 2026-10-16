@@ -54,7 +54,7 @@ export default function IpInput({ type = "ipv4", value, onChange, onFocus, onBlu
     return next.join(cfg.sep);
   }
 
-  const borderColor = status === "error" ? "var(--color-error)" : focused ? "var(--color-brand)" : "var(--gray-20)";
+  const borderColor = status === "error" ? "var(--color-error)" : focused ? "var(--color-border-focus)" : "var(--gray-20)";
 
   const children = [];
   for (let i = 0; i < cfg.count; i++) {
@@ -124,7 +124,8 @@ export default function IpInput({ type = "ipv4", value, onChange, onFocus, onBlu
         padding: "0 0.5rem",
         border: `1px solid ${borderColor}`,
         borderRadius: "4px",
-        background: disabled ? "var(--gray-05)" : "transparent",
+        boxShadow: focused ? "0 0 0 1px var(--color-brand-disabled)" : "none",
+        background: disabled ? "var(--color-fill-disabled-subtle)" : "transparent",
         opacity: disabled ? 0.6 : 1,
         cursor: disabled ? "not-allowed" : "text",
         ...style,
