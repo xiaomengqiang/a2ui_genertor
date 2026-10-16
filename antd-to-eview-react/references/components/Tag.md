@@ -56,7 +56,7 @@ const toggle = (key: string) => {
 ### 信息标签带图标
 
 ```tsx
-import { IconPlusIcPublicAbout } from '@nce/icon-plus';
+import { IconPlusIcPublicAbout } from '@hui/icon-plus';
 <Tag isMessageTag hasIcon iconName={<IconPlusIcPublicAbout />}>已认证</Tag>
 ```
 

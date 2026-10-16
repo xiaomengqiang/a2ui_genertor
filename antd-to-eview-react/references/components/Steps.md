@@ -30,7 +30,7 @@ const stepData = [
 ### 自定义步骤图标：iconUrl 用 icon+
 
 ```tsx
-import { IconPlusIcPublicConfig, IconPlusIcPublicCheck } from '@nce/icon-plus';
+import { IconPlusIcPublicConfig, IconPlusIcPublicCheck } from '@hui/icon-plus';
 const stepData = [
   { text: '配置', value: '1', iconUrl: <IconPlusIcPublicConfig /> },
   { text: '确认', value: '2', iconUrl: <IconPlusIcPublicCheck /> },

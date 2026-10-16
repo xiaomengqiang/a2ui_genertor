@@ -34,7 +34,7 @@
  *   2. 读 references/icons/icon-plus-names.json，按 matchOne 分 confirmed/residual（见上方策略）
  *   3. 输出控制台报告（confirmed 段 + residual 段带 top-K 候选 + 动态名段）
  *   4. 写 OS 临时目录 `icon-match-<工程名>.json`（供 LLM 按 residual 候选复核；**不进产物根**，控制台报告亦为 in-context 真相源）
- *   5. --apply：仅改写 confirmed 调用点 + 注入 @nce/icon-plus import；residual 不动；结束清理临时报告
+ *   5. --apply：仅改写 confirmed 调用点 + 注入 @hui/icon-plus import；residual 不动；结束清理临时报告
  *
  * 用法：
  *   node match-icons.cjs <目标工程根>                       # 扫描 + 报告（不改文件）
@@ -892,7 +892,7 @@ function reportConsole(scan, byName) {
       for (const s of e.sites) {
         console.log(`  ${rel(s.file)}:${s.line}`);
         console.log(`    - ${s.original.trim()}`);
-        console.log(`    + import { ${e.match.componentName} } from '@nce/icon-plus';`);
+        console.log(`    + import { ${e.match.componentName} } from '@hui/icon-plus';`);
         console.log(`    + ${s.replacement}`);
       }
     }
@@ -911,7 +911,7 @@ function reportConsole(scan, byName) {
       console.log(`    - ${t.original.trim()}`);
       console.log(`    + ${a.sourceName} → ${a.match.componentName} (${st(a)})`);
       console.log(`    + ${b.sourceName} → ${b.match.componentName} (${st(b)})`);
-      console.log(`    + import { ${importNames } } from '@nce/icon-plus';`);
+      console.log(`    + import { ${importNames } } from '@hui/icon-plus';`);
       console.log(`    + ${t.replacement}`);
     }
   }
@@ -1174,7 +1174,7 @@ function writeJson(scan, byName, outPath) {
 // ─── --apply 改写 ───────────────────────────────────────────────────────────
 
 function applyRewrites(scan, byName, srcDir) {
-  // 按文件聚合改写计划：edits（标签替换）+ 所需 @nce/icon-plus 组件名
+  // 按文件聚合改写计划：edits（标签替换）+ 所需 @hui/icon-plus 组件名
   const byFile = new Map();
   const plan = (file) => {
     if (!byFile.has(file)) byFile.set(file, { edits: [], imports: new Set() });
@@ -1269,7 +1269,7 @@ function applyRewrites(scan, byName, srcDir) {
     for (const e of resolved) {
       text = text.slice(0, e.from) + e.repl + text.slice(e.to);
     }
-    // 注入 @nce/icon-plus import（幂等：已有则合并去重）
+    // 注入 @hui/icon-plus import（幂等：已有则合并去重）
     if (imports.size) text = ensureImport(text, [...imports].sort());
     // 若文件已无 <Icon 调用，移除旧的 shared/Icon(默认) 或 legacy shared/icon(x)(具名) Icon import
     if (!/<Icon\b/.test(text)) {
@@ -1350,7 +1350,7 @@ function fixExplicitExtensionImports(renamed, srcDir) {
 }
 
 
-// 确保文件含 `import { ... } from '@nce/icon-plus'`；已有则合并去重，无则插到首个 import 之后
+// 确保文件含 `import { ... } from '@hui/icon-plus'`；已有则合并去重，无则插到首个 import 之后
 function ensureImport(text, names) {
   const re = /import\s*\{([^}]*)\}\s*from\s*['"]@nce\/icon-plus['"];?/g;
   const existing = new Set();
@@ -1361,10 +1361,10 @@ function ensureImport(text, names) {
     m[1].split(',').map((s) => s.trim()).filter(Boolean).forEach((n) => existing.add(n));
   }
   for (const n of names) existing.add(n);
-  const merged = `import { ${[...existing].sort().join(', ')} } from '@nce/icon-plus';`;
+  const merged = `import { ${[...existing].sort().join(', ')} } from '@hui/icon-plus';`;
 
   if (firstPos !== -1) {
-    // 删除所有 @nce/icon-plus import 行（含前导空白与换行），再在首个 import 处插入合并行
+    // 删除所有 @hui/icon-plus import 行（含前导空白与换行），再在首个 import 处插入合并行
     const stripped = text.replace(
       /^\s*import\s*\{[^}]*\}\s*from\s*['"]@nce\/icon-plus['"];?\s*\r?\n?/gm,
       ''
@@ -1377,7 +1377,7 @@ function ensureImport(text, names) {
     return merged + '\n' + stripped;
   }
 
-  // 无现有 @nce/icon-plus import：插到首个 import 之后，否则文件头
+  // 无现有 @hui/icon-plus import：插到首个 import 之后，否则文件头
   const head = text.match(/^\s*import[^\n]*\r?\n/m);
   if (head) {
     const at = head.index + head[0].length;

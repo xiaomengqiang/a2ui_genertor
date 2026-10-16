@@ -44,7 +44,7 @@ TreeSelect 是下拉树选择：输入框里预览已选，下拉展开一棵 Tr
 > 同 Tree / TreeTable，节点三态图标收 `string | ReactNode`，默认用 icon+ 组件（需成套设置）。也可在 `treeData` 单节点上覆盖。
 
 ```tsx
-import { IconPlusIcPublicFile, IconPlusIcPublicFolderOpen, IconPlusIcPublicFolder } from '@nce/icon-plus';
+import { IconPlusIcPublicFile, IconPlusIcPublicFolderOpen, IconPlusIcPublicFolder } from '@hui/icon-plus';
 <TreeSelect
   label="所属部门"
   treeData={orgTree}

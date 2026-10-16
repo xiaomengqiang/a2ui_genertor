@@ -71,7 +71,7 @@ const handleProvinceChange = async (value) => {
 ### 选项图标：icon / iconActive 用 icon+
 
 ```tsx
-import { IconPlusIcPublicUser, IconPlusIcPublicUserActive } from '@nce/icon-plus';
+import { IconPlusIcPublicUser, IconPlusIcPublicUserActive } from '@hui/icon-plus';
 const userOptions = [
   { text: '管理员', value: 'admin', icon: <IconPlusIcPublicUser />, iconActive: <IconPlusIcPublicUserActive /> },
   { text: '访客', value: 'guest' },

@@ -89,7 +89,7 @@ interface AccordionItem {
 import React, { useMemo, useState } from 'react';
 import Accordion from '@nce/eview-react/Accordion';
 import Button from '@nce/eview-react/Button';
-import { IconPlusIcHuaweiCloudNetwork, IconPlusIcPublicSecurity } from '@nce/icon-plus';  
+import { IconPlusIcHuaweiCloudNetwork, IconPlusIcPublicSecurity } from '@hui/icon-plus';  
 
 interface AccordionItem {
   title: string;                 // 本例标题都用字符串，便于拼路径

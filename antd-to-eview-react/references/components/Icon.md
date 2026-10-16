@@ -2,7 +2,7 @@
 
 > **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Icon/Icon`；官网组件页 Icon 及示例 `IconBasic.jsx` / `IconPlusBasic.jsx` / `IconPlusType.jsx` / `IconPlusSize.jsx`。`IconButton` 已弃用，可点击图标直接用 icon+ 挂 `onClick`+`title`（见 §3）。
 >
-> 官网首推 **icon+ 图标库**：`import { IconPlusIcPublicSearch } from '@nce/icon-plus'`，按需引入、2000+ 图标；`type="filled"` 换风格、`iconColor` 换色、`iconSize` 换尺寸（B/C 静态 import 支持任意数字 / rem / px 字符串如 `"1.25rem"`，原样透传；**方案A shim 的 `getIcon` API 另需吸附到离散集 12/14/16/20/24/32/36/40/48/60**，见下表 A 行）。组件名合成 = `"IconPlusIc" + Domain + Name`（`Public`+`Search` → `IconPlusIcPublicSearch`，算法见 [match-icons.cjs](../../scripts/match-icons.cjs) `matchOne`）。eview-react 内置 `Icon name="ict_*"` 已下线；scaffold 同名自定义 `<Icon>` 是源项目契约保留件（方案A 范式），底层走 icon-plus 在线，**两者不同**。
+> 官网首推 **icon+ 图标库**：`import { IconPlusIcPublicSearch } from '@hui/icon-plus'`，按需引入、2000+ 图标；`type="filled"` 换风格、`iconColor` 换色、`iconSize` 换尺寸（B/C 静态 import 支持任意数字 / rem / px 字符串如 `"1.25rem"`，原样透传；**方案A shim 的 `getIcon` API 另需吸附到离散集 12/14/16/20/24/32/36/40/48/60**，见下表 A 行）。组件名合成 = `"IconPlusIc" + Domain + Name`（`Public`+`Search` → `IconPlusIcPublicSearch`，算法见 [match-icons.cjs](../../scripts/match-icons.cjs) `matchOne`）。eview-react 内置 `Icon name="ict_*"` 已下线；scaffold 同名自定义 `<Icon>` 是源项目契约保留件（方案A 范式），底层走 icon-plus 在线，**两者不同**。
 
 ## 渲染方式（三种）
 
@@ -10,8 +10,8 @@
 
 | 方式 | 是什么 | 迁移成本 | 何时用 |
 |------|--------|---------|--------|
-| **B. 在线名匹配 + 静态 import**（内网） | `import { IconPlusIcXxx } from '@nce/icon-plus'`，名靠在线 `getIconInfo?keyword=&topK=2&source_id=6&type=icon&tags=基础图标` 接口匹配；与 C 共用静态 import 范式，仅名匹配方式不同 | **中**：逐个查名替换调用点 | `https://octo.hdesign.huawei.com/` 可达（内网）；名查不到 → 方案A shim 兜底 |
-| **C. catalog 离线匹配 + 静态 import**（外网，默认） | 读 skill 自带 `../icons/icon-plus-names.json`（顶层 key 是按图标名前置词分的桶，**非语义领域**）离线匹配 → `import { IconPlusIcXxx } from '@nce/icon-plus'` 静态 import（scaffold 已预置依赖）；混合策略：**confirmed**（SEMANTIC/L1-L4，含多桶同名按最短完整名 tie-break）`--apply` 自动改写，**residual**（前缀/fuzzy/未命中/链式三元/未追源变量）带 top-K 候选交 LLM 选、不自动 apply，UNMATCHED **不落占位而是带候选**；iconSize 原样透传（支持 rem/px/数字） | **低-中**：`node scripts/match-icons.cjs <工程根> [--apply]` | octo 接口不可达（外网）；无网络依赖、彻底离线；算法见 [match-icons.cjs](../../scripts/match-icons.cjs) |
+| **B. 在线名匹配 + 静态 import**（内网） | `import { IconPlusIcXxx } from '@hui/icon-plus'`，名靠在线 `getIconInfo?keyword=&topK=2&source_id=6&type=icon` 接口匹配；与 C 共用静态 import 范式，仅名匹配方式不同 | **中**：逐个查名替换调用点 | `https://octo.hdesign.huawei.com/` 可达（内网）；名查不到 → 方案A shim 兜底 |
+| **C. catalog 离线匹配 + 静态 import**（外网，默认） | 读 skill 自带 `../icons/icon-plus-names.json`（顶层 key 是按图标名前置词分的桶，**非语义领域**）离线匹配 → `import { IconPlusIcXxx } from '@hui/icon-plus'` 静态 import（scaffold 已预置依赖）；混合策略：**confirmed**（SEMANTIC/L1-L4，含多桶同名按最短完整名 tie-break）`--apply` 自动改写，**residual**（前缀/fuzzy/未命中/链式三元/未追源变量）带 top-K 候选交 LLM 选、不自动 apply，UNMATCHED **不落占位而是带候选**；iconSize 原样透传（支持 rem/px/数字） | **低-中**：`node scripts/match-icons.cjs <工程根> [--apply]` | octo 接口不可达（外网）；无网络依赖、彻底离线；算法见 [match-icons.cjs](../../scripts/match-icons.cjs) |
 | **A. 自定义 `<Icon>` 组件**（B/C 兜底） | scaffold `src/shared/Icon`，保留源项目 `<Icon name="search" size={14} />` 契约；运行时 fetch icon-plus（getConfig → getIconInfo → getIcon 取 SVG 注入），probe 失败渲染 `null`。props：`name`/`src`/`size`（rem/px/数字，shim 内 `toApiSize` 吸附到 **12/14/16/20/24/32/36/40/48/60** 供 getIcon API）/`color`/`variant`/`className`/`style` | **最低**：调用点零改动，只改 import 路径 | B/C 实在识别不出 icon+ 名的调用点；转换后代码运行于内网，运行时 fetch 恒可达 |
 
 > **方案 A/B/C 的选择只由图标名决定**：`size`/`color`/`variant` 是独立 props（B/C 原样透传 icon+，A 由 shim 内部处理），不影响方案选择——尺寸/颜色异常不因此退方案A，名匹配命中即落对应方案。
@@ -21,7 +21,7 @@
 ```tsx
 // 源项目（ict-react-coder 产物）→ 迁移后（B/C 静态 import）
 <Icon name="search" size={14} />
-import { IconPlusIcPublicSearch } from '@nce/icon-plus';
+import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 <IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />   // 无 color 时传 currentcolor 继承容器文字色；type="filled" 换风格
 ```
 
@@ -37,7 +37,7 @@ import { IconPlusIcPublicSearch } from '@nce/icon-plus';
 
 ### 硬规则
 
-- eview-react 内置 `Icon name="ict_*"` 已下线，**不要用**；也不要用 `@ant-design/icons`——一律用 `@nce/icon-plus` 的 `IconPlusIc*` 静态 import。
+- eview-react 内置 `Icon name="ict_*"` 已下线，**不要用**；也不要用 `@ant-design/icons`——一律用 `@hui/icon-plus` 的 `IconPlusIc*` 静态 import。
 - **方案 A（`src/shared/Icon` shim）仅用于真运行时数据**：`name` 的值在迁移时不可预知（来自接口/props 字段、或成员表达式绑不到任何已扫文件中的静态数组常量）。字面量、同文件常量、三元、**成员表达式 `name={t.icon}` / `name={MENU[0].icon}`（绑到静态数组）一律走 B/C 静态 import**（`match-icons.cjs --apply` 自动改写），不许默认退方案 A。**自定义 wrapper 组件**（`icon` prop + 内部 `<Icon name={icon}/>`）同理自动转 B/C，仅当调用方 `icon={expr}` 不可静态解析（安全闸）才整组退方案 A。
 - 可点击图标（编辑/删除/刷新等）直接给 icon+ 挂 `onClick` + 原生 `title` 属性（hover 提示），**`IconButton` 已弃用**：`<IconPlusIcPublicTrash onClick={remove} title="删除" />`；禁用态见 §3）。
 - **antd 纯图标按钮（`Button type="text" shape="circle" icon={...}` 无 children）→ 剥 Button 外壳，`onClick`/`title` 直接搬到内层 `<IconPlusIc* />`**（见 [component-mapping.md](../component-mapping.md) 图标行；脚本 `--apply` 已先把内层 `<Icon>`→`<IconPlusIc>` 并吸附 `iconSize`，LLM 只需剥外壳 + 搬 onClick/title）。
@@ -60,7 +60,7 @@ const data = [
 <Icon name={data[0].icon} size={16} />        // 直接索引同样处理
 
 // 后：icon+ 元素塞进 data（命中用真实组件，未命中用占位 IconPlusIcPublicTransverseRectangleTemplate）；render 改 {t.icon}
-import { IconPlusIcPublicServer, IconPlusIcPublicUser, IconPlusIcPublicTransverseRectangleTemplate } from '@nce/icon-plus';
+import { IconPlusIcPublicServer, IconPlusIcPublicUser, IconPlusIcPublicTransverseRectangleTemplate } from '@hui/icon-plus';
 const data = [
   { key: 'device', icon: <IconPlusIcPublicServer iconSize={16} iconColor={['currentcolor']} /> },
   { key: 'user',   icon: <IconPlusIcPublicUser iconSize={16} iconColor={['currentcolor']} /> },
@@ -122,7 +122,7 @@ const data = [
 
 ## 1. 功能定位
 
-icon+（`@nce/icon-plus`）是组件库首推的图标方案，按需引入、2000+ 图标，可换风格 / 颜色 / 尺寸；可点击图标操作（编辑/删除/刷新等）直接给 icon+ 挂 `onClick`+原生 `title`，不再用 `IconButton`（已弃用）。内置 `Icon` 组件已被 icon+ 替代、不再推荐。
+icon+（`@hui/icon-plus`）是组件库首推的图标方案，按需引入、2000+ 图标，可换风格 / 颜色 / 尺寸；可点击图标操作（编辑/删除/刷新等）直接给 icon+ 挂 `onClick`+原生 `title`，不再用 `IconButton`（已弃用）。内置 `Icon` 组件已被 icon+ 替代、不再推荐。
 
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
@@ -146,7 +146,7 @@ scaffold 预置 `src/shared/Icon`（folder + 默认导出），保留源项目 `
 ### icon+ 图标（首选）
 
 ```tsx
-import { IconPlusIcPublicSearch, IconPlusIcPublicTrash, IconPlusIcPublicEdit } from '@nce/icon-plus';
+import { IconPlusIcPublicSearch, IconPlusIcPublicTrash, IconPlusIcPublicEdit } from '@hui/icon-plus';
 <IconPlusIcPublicSearch />
 <IconPlusIcPublicTrash type="filled" iconColor={['currentcolor']} iconSize="1.25rem" />   // 继承业务容器文字颜色
 ```

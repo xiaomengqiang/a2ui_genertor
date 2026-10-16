@@ -78,7 +78,7 @@ interface MenuOption {
 
 `slno` 不是自增编号：鼠标路径来自内部未公开的 option.value，键盘 Enter 路径从 DOM id 截取；内部 value 与 serialno 均未设置时键盘可得到字符串 `"undefined"`。这些内部字段仅解释差异，不作为业务配置 API，也不要用 option.value 替代 serialno。全部模式 × 回调位置 × 序列号取值的组合尚未完整验证。
 
-无图标时省略 `iconUrl`，不传空或占位字符串；需要图标时默认从 `@nce/icon-plus` 按需引入，见 [Icon](Icon.md)。
+无图标时省略 `iconUrl`，不传空或占位字符串；需要图标时默认从 `@hui/icon-plus` 按需引入，见 [Icon](Icon.md)。
 
 ## 6. 联动说明
 

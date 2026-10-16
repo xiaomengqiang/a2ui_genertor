@@ -14,7 +14,7 @@
         "react-intl": "^7.1.14",
         "dayjs": "^1.11.10",
         "@nce/eview-react": "latest",
-        "@nce/icon-plus": "latest",
+        "@hui/icon-plus": "1.0.0-agent.1",
         "@cloudsop/horizon": "latest",
         "@cloudsop/horizon-intl": "latest",
         "@cloudsop/htimezone": "latest",
