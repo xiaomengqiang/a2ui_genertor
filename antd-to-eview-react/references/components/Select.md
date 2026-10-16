@@ -15,7 +15,7 @@ Select 是单选下拉框：`options` 数组驱动，每项 `text` 显示、`val
 | 单选下拉 | `Select` + `options` | antd 的 `<Select><Option>` children、`mode` |
 | 多选下拉 | `MultipleSelect`（[MultipleSelect.md](MultipleSelect.md)） | `Select` 加 `multiple` |
 | 可输入 + 下拉建议 | `InputSelect`（第二批） | `Select` 加 `showSearch` |
-| 树形下拉 | `TreeSelect`（[TreeSelect.md](TreeSelect.md)） | — |
+| 树形下拉 | `TreeSelector`（[TreeSelector.md](TreeSelector.md)） | — |
 
 ## 2. 事件与交互逻辑
 

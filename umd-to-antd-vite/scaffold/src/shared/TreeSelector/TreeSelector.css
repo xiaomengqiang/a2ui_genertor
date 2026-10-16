@@ -1,0 +1,24 @@
+.ev_treeSelect.evTreeSelector-custom {
+    display: inline-flex;
+    min-width: 0px;
+}
+
+.evTreeSelector-custom {
+    width: 100%;
+}
+
+.evTreeSelector-custom .ev_treeSelect_inner {
+    min-width: 0px;
+}
+
+.evTreeSelector-custom .ev_select_div {
+    width: 100%;
+}
+
+.evTreeSelector-custom .ev_select {
+    width: 100%;
+}
+
+.evTreeSelector-custom:not(:has(.ev_label)) .ev_treeSelect_inner {
+    flex: 1;
+}

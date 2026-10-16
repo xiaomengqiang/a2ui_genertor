@@ -2,7 +2,7 @@
 
 迁移时按需查阅对应文档。组件映射总表见 [../component-mapping.md](../component-mapping.md)。
 
-> **包壳组件**：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`、`DatePicker`、`Spinner`、`Steps`、`Cascader` 为 scaffold 预置，从 `@/shared/<X>` 导入（多数透明转发 `@nce/eview-react/<X>`；`Cascader` 为手写组件 API 基本同 antd），不走 `@nce/eview-react/<X>`。清单见 SKILL.md 硬约束 #1。
+> **包壳组件**：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`、`DatePicker`、`Spinner`、`Steps`、`Cascader`、`TreeSelector` 为 scaffold 预置，从 `@/shared/<X>` 导入（多数透明转发 `@nce/eview-react/<X>`；`Cascader` 为手写组件 API 基本同 antd），不走 `@nce/eview-react/<X>`。清单见 SKILL.md 硬约束 #1。
 
 ## 表单与输入
 
@@ -15,7 +15,7 @@
 | Select | [Select.md](Select.md) | 下拉选择（Select） |
 | MultipleSelect | [MultipleSelect.md](MultipleSelect.md) | 多选下拉（Select multiple） |
 | Cascader | —（`@/shared/Cascader` 手写，API 同 antd） | 级联选择（Cascader） |
-| TreeSelect | [TreeSelect.md](TreeSelect.md) | 树选择（TreeSelect） |
+| TreeSelector | [TreeSelector.md](TreeSelector.md) | 树选择（TreeSelect） |
 | Checkbox | [Checkbox.md](Checkbox.md) | 复选框（Checkbox/Checkbox.Group） |
 | Radio | [Radio.md](Radio.md) | 单选（Radio/Radio.Group） |
 | SelectCard | [SelectCard.md](SelectCard.md) | 卡片单选（Radio.Button） |

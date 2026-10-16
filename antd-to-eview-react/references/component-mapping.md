@@ -33,7 +33,7 @@
 | `Select showSearch` | `InputSelect` | `onlySelect` 决定输入是否可作值；`options=[{text,value}]`；⚠️ 导入 `@/shared/InputSelect`（包壳，非 `@nce/eview-react/InputSelect`） |
 | `AutoComplete` | `InputSelect` | 同上（⚠️ 导入 `@/shared/InputSelect`） |
 | `Cascader` | `Cascader`（`@/shared/Cascader` 手写） | 导入 `@/shared/Cascader`（scaffold 手写组件，非 `@nce/eview-react`）；**API 基本同 antd Cascader，调用点几乎零改动**——`options`/`value`/`onChange`/`placeholder`/`disabled`/`allowClear`/`showSearch`/`changeOnSelect`/`multiple`/`fieldNames`/`expandTrigger`/`loadData`/`displayRender`/`open` 等均保留 antd 写法 |
-| `TreeSelect` | `TreeSelect` | `treeData`；`onChange(selectNode[])` 节点对象数组；`enableCheckbox` |
+| `TreeSelect` | `TreeSelector` | `treeData=[{id,text,children?}]`；`value` 是 id 字符串/数组（非旧 TreeSelect 节点对象数组）；`onChange(value: string|string[], checkedKeys?)` 首参是 id；多选用 `enableCheckbox`（无 `enableMultiSelect`）；清除用 `clearable`（非 `enableCloseIcon`）；`expandedKeys`/`onlySelect`/`isClickableNonLeaf` 单选用；⚠️ 导入 `@/shared/TreeSelector`（包壳，非 `@nce/eview-react/TreeSelector`） |
 | `Checkbox` | `Checkbox` | `onChange(value, checked, event, additionalData)`；`onPreChange` 拦截 |
 | `Checkbox.Group` | `CheckboxGroup` | `data=[{text,value}]`；`value[]`；`selectAll`；`rows` |
 | `Radio` / `.Group` | `Radio` / `RadioGroup` | Group 用 `data=[{text,value}]`；需 `isControlled` 才受控；`onChange` 参数顺序有冲突，用兼容写法 |
