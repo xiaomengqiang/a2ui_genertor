@@ -10,6 +10,13 @@ const MODES = {
   mac: { sep: "-", count: 6, maxLen: 2, filter: (s) => s.replace(/[^0-9a-fA-F]/g, "").toUpperCase() },
 };
 
+// size 刻度对齐设计系统 Input/Button/InputNumber：large=2.5rem/16px，middle=2rem/14px，small=1.75rem/12px
+const SIZES = {
+  large: { height: "2.5rem", padding: "0 0.75rem", gap: "0.375rem", font: "var(--font-body-l)", dot: "0.25rem" },
+  middle: { height: "2rem", padding: "0 0.75rem", gap: "0.25rem", font: "var(--font-body-m)", dot: "0.1875rem" },
+  small: { height: "1.75rem", padding: "0 0.75rem", gap: "0.1875rem", font: "var(--font-body-s)", dot: "0.125rem" },
+};
+
 function segmentsFromValue(value, cfg) {
   const parts = String(value ?? "").split(cfg.sep);
   const segs = [];
@@ -17,8 +24,9 @@ function segmentsFromValue(value, cfg) {
   return segs;
 }
 
-export default function IpInput({ type = "ipv4", value, onChange, onFocus, onBlur, status, disabled, id, className = "", style }) {
+export default function IpInput({ type = "ipv4", size = "middle", value, onChange, onFocus, onBlur, status, disabled, id, className = "", style }) {
   const cfg = MODES[type] || MODES.ipv4;
+  const sz = SIZES[size] || SIZES.middle;
   const [segs, setSegs] = useState(() => segmentsFromValue(value, cfg));
   const [focused, setFocused] = useState(false);
 
@@ -78,7 +86,7 @@ export default function IpInput({ type = "ipv4", value, onChange, onFocus, onBlu
           padding: 0,
           textAlign: "center",
           color: "var(--color-text-primary)",
-          font: "var(--font-body-m)",
+          font: sz.font,
         },
       })
     );
@@ -88,8 +96,8 @@ export default function IpInput({ type = "ipv4", value, onChange, onFocus, onBlu
           ? React.createElement("span", {
               key: `sep-${i}`,
               style: {
-                width: "0.1875rem",
-                height: "0.1875rem",
+                width: sz.dot,
+                height: sz.dot,
                 borderRadius: "50%",
                 background: "var(--color-text-secondary)",
                 flexShrink: 0,
@@ -99,7 +107,7 @@ export default function IpInput({ type = "ipv4", value, onChange, onFocus, onBlu
               "span",
               {
                 key: `sep-${i}`,
-                style: { color: "var(--color-text-secondary)", userSelect: "none", font: "var(--font-body-m)" },
+                style: { color: "var(--color-text-secondary)", userSelect: "none", font: sz.font },
               },
               cfg.sep
             )
@@ -119,9 +127,9 @@ export default function IpInput({ type = "ipv4", value, onChange, onFocus, onBlu
       style: {
         display: "inline-flex",
         alignItems: "center",
-        gap: "0.25rem",
-        height: "2rem",
-        padding: "0 0.5rem",
+        gap: sz.gap,
+        height: sz.height,
+        padding: sz.padding,
         border: `1px solid ${borderColor}`,
         borderRadius: "4px",
         boxShadow: focused ? "0 0 0 1px var(--color-brand-disabled)" : "none",
