@@ -37,7 +37,7 @@ const [enabled, setEnabled] = useState<boolean>(false);
 <Toggle toggled={on} taggledChildren="开" unTaggledChildren="关" onToggle={(v: boolean) => setOn(v)} />
 
 // 图标（icon+ 组件）
-import { IconPlusIcPublicCheck, IconPlusIcPublicClose } from '@nce/icon-plus';
+import { IconPlusIcPublicCheck, IconPlusIcPublicClose } from '@hui/icon-plus';
 <Toggle toggled={on} taggledChildren={<IconPlusIcPublicCheck />} unTaggledChildren={<IconPlusIcPublicClose />} onToggle={(v: boolean) => setOn(v)} />
 ```
 

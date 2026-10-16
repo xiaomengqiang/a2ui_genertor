@@ -58,6 +58,8 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 
 Read and follow `references/component/{Name}.md` before using any antd component — the spec overrides general API knowledge.
 
+Beyond antd, the skill ships built-in components: `<Icon>` (Lucide icons), `<Chart>` (HUICharts wrapper), `<IpInput>` (IP / IPv6 / MAC segmented input) — read their corresponding `references/component/{Name}.md` before use.
+
 Forms are the exception: antd `Form`/`Form.Item` is banned. Before writing any form (a `<form>` element or any multi-field input area), read `references/component/Form.md` for the H5 skeleton, label/asterisk/error-text rules, and the validation pattern.
 
 ### Import contract (ES Modules, build-time bundled)
@@ -72,6 +74,7 @@ import { IntlProvider, FormattedMessage, useIntl } from "react-intl"; // → Rea
 import zhCN from "./assets/shared/antd-zh.js";        // antd zh-CN locale (dayjs zh-cn + antd zhCN)
 import { Icon } from "./assets/shared/icon.jsx";      // Lucide icon component
 import Chart from "./assets/shared/chart.jsx";         // HUICharts React wrapper
+import IpInput from "./assets/shared/ip-input.jsx";    // IP / IPv6 / MAC segmented input
 import { AppProvider, useApp } from "./src/context.jsx"; // relative imports for own modules
 import DeviceTable from "./src/views/device-table/index.jsx"; // component import (optional)
 import "./src/views/device-table/index.css";          // component CSS (optional)
@@ -81,6 +84,7 @@ NOT supported:
 - `import * as`
 - aliased imports (`{ a as b }`)
 - npm packages beyond react/react-dom/antd/dayjs/react-intl
+- importing asset files (`.svg` / `.png` / `.jpg` / etc.) — use runtime path strings (e.g. `<img src="./assets/uploads/x.png" />`) instead
 - `import ... from "@ant-design/icons"` is **banned**; page icons are Lucide-only via `<Icon name="..." />`
 - `export default` must be a named function declaration (`export default function App()`)
 - Page entry file must be `app.jsx`
@@ -102,6 +106,7 @@ Use `<Chart>` (`import Chart from "./assets/shared/chart.jsx"`) — React wrappe
 - All charts come with legend, units, and axis — do not generate these UI elements, just pass data via `option`.
 - Charts fill their container (100% × 100%) — **the parent must have an explicit height** (fixed px card or flex-fill area), or set `style={{ height }}` directly.
 - Dark mode is automatic (hdesign-light/hdesign-dark themes switch with `.dark`).
+- **Card stability (CRITICAL)** — elastic chart layouts without a definite height in the chain (height purely from stretch allocation) MUST cut both feedback channels: column flex container `flex: 1 1 0` (never `1 1 auto`) + `min-height: 0` / fixed rem / `overflow: hidden` (never the default `auto`); chart wrapper `flex: 1` + `minHeight: 0` (or fixed rem), `minWidth: 0`. Rules: [references/component/Chart.md](references/component/Chart.md) § Stability
 
 ### Internationalization
 
@@ -191,6 +196,7 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 - No page-level antd override CSS — see Styling rule 4
 - No antd darkAlgorithm or React-state theme switching — see Styling rule 3
 - No inventing antd component props — use standard Ant Design 5.29.3 API; every component must follow `references/component/{Name}.md` specs
+- No stretch-only elastic chart layout without the height-feedback loop cuts — see [references/component/Chart.md](references/component/Chart.md) § Stability
 
 ---
 

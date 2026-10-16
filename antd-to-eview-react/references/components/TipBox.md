@@ -71,7 +71,7 @@ import React, { useState } from 'react';
 import TipBox from '@nce/eview-react/TipBox';
 import TextField from '@/shared/TextField';
 import Button from '@nce/eview-react/Button';
-import { IconPlusIcPublicQuestion } from '@nce/icon-plus';
+import { IconPlusIcPublicQuestion } from '@hui/icon-plus';
 
 // 表单字段帮助气泡 + 点击展开的策略说明 + 复制反馈气泡
 export default function TipBoxUsage() {

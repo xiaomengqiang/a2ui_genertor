@@ -23,16 +23,16 @@
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
 | `Input` | `TextField` | `onChange(value, oldValue, event)` 首参是值；`validator` 返回 `{result,message}`；`required` 自带星号；无 `allowClear`/`prefix`/`rules`/`onPressEnter`；⚠️ 导入 `@/shared/TextField`（包壳，非 `@nce/eview-react/TextField`） |
-| `Input.TextArea` | `TextArea` | `onChange(targetValue, value, event)`；`onBlur(event)` 无 value；`maxLength` 自带右下角计数（替代 `showCount`）；无 `autoSize`/`allowClear`；无 ref 方法 |
-| `Input.Search` | `SearchInput` | `onSearch` 值变化也触发（需防抖）；`onClear(value)`；`placeholder` 保留；`onSuggest` vs `popItems` 互斥 |
+| `Input.TextArea` | `TextArea` | `onChange(targetValue, value, event)`；`onBlur(event)` 无 value；`maxLength` 自带右下角计数（替代 `showCount`）；无 `autoSize`/`allowClear`；无 ref 方法；⚠️ 导入 `@/shared/TextArea`（包壳，非 `@nce/eview-react/TextArea`） |
+| `Input.Search` | `SearchInput` | `onSearch` 值变化也触发（需防抖）；`onClear(value)`；`placeholder` 保留；`onSuggest` vs `popItems` 互斥；⚠️ 导入 `@/shared/SearchInput`（包壳，非 `@nce/eview-react/SearchInput`） |
 | `Input.Password` | `TextField type="password"` | 需 `isAllowToModifyPasswordByProps` 才能 props 清空/回填；`autoComplete="off"` |
-| `InputNumber` | `Spinner` | `onChange(value)` 只在有效值触发；`onInputError(value)` 接无效值；重置加 `doNotFocusWhenValueUpdate`；`min/max/step/precision` |
+| `InputNumber` | `Spinner` | `onChange(value)` 只在有效值触发；`onInputError(value)` 接无效值；重置加 `doNotFocusWhenValueUpdate`；`min/max/step/precision`；⚠️ 导入 `@/shared/Spinner`（包壳，非 `@nce/eview-react/Spinner`） |
 | `Mentions` | 手写 | 无对应 |
 | `Select` | `Select` | `options` 字段 `label`→`text`；`placeholder`→`defaultLabel`；`onChange(value, oldValue, text, oldText, event)` 五参；`enableClear`；`virtualScroll` >100 项；⚠️ 导入 `@/shared/Select`（包壳，非 `@nce/eview-react/Select`） |
-| `Select mode="multiple"` | `MultipleSelect` | 删 `mode`；`value` 数组；`onChange(value[], changeValue[], event)`；`placeholder`（不是 defaultLabel）；`selectAll`/`searchable` |
-| `Select showSearch` | `InputSelect` | `onlySelect` 决定输入是否可作值；`options=[{text,value}]` |
-| `AutoComplete` | `InputSelect` | 同上 |
-| `Cascader` | `Cascader` | **唯一用 `label`**（不是 text）；`selectedValue` 路径数组；`changeOnSelect`；`multiple + multiLimit` |
+| `Select mode="multiple"` | `MultipleSelect` | 删 `mode`；`value` 数组；`onChange(value[], changeValue[], event)`；`placeholder`（不是 defaultLabel）；`selectAll`/`searchable`；⚠️ 导入 `@/shared/MultipleSelect`（包壳，非 `@nce/eview-react/MultipleSelect`） |
+| `Select showSearch` | `InputSelect` | `onlySelect` 决定输入是否可作值；`options=[{text,value}]`；⚠️ 导入 `@/shared/InputSelect`（包壳，非 `@nce/eview-react/InputSelect`） |
+| `AutoComplete` | `InputSelect` | 同上（⚠️ 导入 `@/shared/InputSelect`） |
+| `Cascader` | `Cascader`（`@/shared/Cascader` 手写） | 导入 `@/shared/Cascader`（scaffold 手写组件，非 `@nce/eview-react`）；**API 基本同 antd Cascader，调用点几乎零改动**——`options`/`value`/`onChange`/`placeholder`/`disabled`/`allowClear`/`showSearch`/`changeOnSelect`/`multiple`/`fieldNames`/`expandTrigger`/`loadData`/`displayRender`/`open` 等均保留 antd 写法 |
 | `TreeSelect` | `TreeSelect` | `treeData`；`onChange(selectNode[])` 节点对象数组；`enableCheckbox` |
 | `Checkbox` | `Checkbox` | `onChange(value, checked, event, additionalData)`；`onPreChange` 拦截 |
 | `Checkbox.Group` | `CheckboxGroup` | `data=[{text,value}]`；`value[]`；`selectAll`；`rows` |
@@ -41,16 +41,16 @@
 | `Switch` | `Toggle` | `checked`→`toggled`；`onChange`→`onToggle(value)`；`data=[关,开]`；`taggledChildren`（拼错）；`Switch isControlToggled` 二次确认 |
 | `Slider` | `DragInput` | `value` **永远是数组**；`type="range"` 开双滑块；`markIndexes` 数组；导出名是 DragInput 不是 Slider |
 | `Rate` | `Rating` | 取值是 `onClick(value)` 不是 onChange；`onMouseOver/Leave` 悬浮预览；`half`；`disabled` 只读 |
-| `DatePicker` | `DatePicker` | **不要无条件回写** `onChange` 的字符串到 `value`（官方反例）；用 `defaultValue`+`ref.getValue()` 或有效 Date 才回写 |
-| `DatePicker.RangePicker` | `DatePicker range={...}` | **不要用 `onOkClick`**（实测不返回 `fromDateObj/toDateObj`，分两次回调只返回单日期）；改用 `onChange` 的 `target` 参数（`'from'`/`'to'`）分别收集起止日期。详见 [DatePicker.md](components/DatePicker.md) § 范围选择 |
-| `TimePicker` | `Spinner type="time"` | 值是字符串 `"hh:mm:ss"`；`timeFormat` |
+| `DatePicker` | `DatePicker` | **不要无条件回写** `onChange` 的字符串到 `value`（官方反例）；用 `defaultValue`+`ref.getValue()` 或有效 Date 才回写；⚠️ 导入 `@/shared/DatePicker`（包壳，非 `@nce/eview-react/DatePicker`） |
+| `DatePicker.RangePicker` | `DatePicker range={...}` | **不要用 `onOkClick`**（实测不返回 `fromDateObj/toDateObj`，分两次回调只返回单日期）；改用 `onChange` 的 `target` 参数（`'from'`/`'to'`）分别收集起止日期；⚠️ 导入 `@/shared/DatePicker`（包壳）。详见 [DatePicker.md](components/DatePicker.md) § 范围选择 |
+| `TimePicker` | `Spinner type="time"` | 值是字符串 `"hh:mm:ss"`；`timeFormat`；⚠️ 导入 `@/shared/Spinner`（包壳） |
 | `Upload` | `FileUpload` | 组件不发请求；`handleSubmit({event,data})` 自己发；`updateProgressStatus`/`fileUploadStatus` 回写；`disable`（不是 disabled）；`onReload` 重传 |
 
 ## 数据展示
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Table` | `Table` | `dataSource`→`dataset`；`rowKey`→（`keyIndex` 已废弃，勾选回调 `onRowCheck` 改用行序号）；`columns[].dataIndex`→`key`；`columns[].fixed: 'left'/'right'`→列 `freezeCol: true` + 表 `freezeColPosition`（取值待实测确认，见 [Table.md](components/Table.md) §9）；`pagination`→`enablePagination`+`pagingProps`+`onPageChange`；`rowSelection`→`enableCheckBox`+`onRowCheck`；`emptyText`→`emptyTableMsg`；**render 函数保留——行数据取第 4 参 `row.rawData`（不是第 2 参 `rowData`，且 `row.rawData` 可能为 undefined，访问字段写 `row.rawData?.xxx`，见 [Table.md](components/Table.md) 顶部）；并需检查 i18n key 对齐**（见 [migration-workflow.md](migration-workflow.md) §3.5） |
+| `Table` | `Table` | `dataSource`→`dataset`；`rowKey`→（`keyIndex` 已废弃，勾选回调 `onRowCheck` 改用行序号）；`columns[].dataIndex`→`key`；**`columns[].fixed` 默认不迁移 freezeCol——eview `freezeCol` 无条件冻结（sticky+阴影），antd `fixed` 仅横向溢出时才有视觉效果，源列写了 `fixed` ≠ 源页面视觉冻结；仅当源列有 `fixed` 且源表 `scroll.x`/列宽合计明显超出容器宽（真的会横向滚动）时才加列 `freezeCol: true` + 表 `freezeColPosition`，其余情况列与表上都不写**（见 [Table.md](components/Table.md) §5 冻结列行）；`pagination`→`enablePagination`+`pagingProps`+`onPageChange`；`rowSelection`→`enableCheckBox`+`onRowCheck`；`emptyText`→`emptyTableMsg`；**render 函数保留——行数据取第 4 参 `row.rawData`（不是第 2 参 `rowData`，且 `row.rawData` 可能为 undefined，访问字段写 `row.rawData?.xxx`，见 [Table.md](components/Table.md) 顶部）；并需检查 i18n key 对齐**（见 [migration-workflow.md](migration-workflow.md) §3.5）；**操作列按钮用 flex div + gap 代替 Fragment，避免间距缺失**（见 [Table.md](components/Table.md) §2 列定义示例）；**排序：eview-react 的 `allowSort` 默认 true，源 antd 列未设 `sorter` 的需显式加 `allowSort: false`，否则所有列表头都带排序箭头**（见 [Table.md](components/Table.md) 列定义形状） |
 | `Tabs` / `TabPane` | `Tab` / `TabItem` | children 驱动（`<TabItem title>`）；切换回调是 `onClick(index,title,event)`（不是 `onChange`）；`draggable` 默认 true 需关；`items` 不存在 |
 | `Collapse` / `Panel` | `Panel` / `PanelItem` | `selectedIndex` 数组；`enableMultiExpand` 手风琴；`closable` 默认 true 要关 |
 | `List` | 手写或 `Table` | 无导出 |
@@ -60,7 +60,7 @@
 | `Skeleton` | 手写 | 无导出 |
 | `Avatar` | 手写 | 无导出；见 [handwrite-templates.md](handwrite-templates.md) §2 |
 | `Badge` | `Badge` | `count`→`content`；`dot`；`status` 五态+`text`；`max`/`showZero` |
-| `Tag` | `Tag` | **无 `closable`**（删除靠数组+onClick）；`color` 六语义色（default/primary/success/warning/caution/danger）；`fill="outline"` 描边 |
+| `Tag` | `Tag`（`@/shared/Tag` 适配类包壳） | 导入 `@/shared/Tag`（非 `@nce/eview-react/Tag`）；**调用点保留 antd 写法、不逐个改 props**——wrapper 内部映射 `color`→className token（`shared/Tag/Tag.css` 词汇：info/error/alert/warning/success/default/green/rose/pink/purple/indigo/cyan）、`bordered`→`fill`/`ev_tag_fill`、`icon`→`iconName`、`closable`/`onClose` 原样透传、antd `closeIcon` 丢弃；eview Tag **原生支持 `closable`+`onClose`**（非"无 closable"）；`Tag.CheckableTag` 仍无对应，用 `Tag`+`onClick`+`fill` 切换 |
 | `Tooltip` | `TipBox` | 包裹式（`<TipBox content><目标/></TipBox>`）；`direction` 12 方位；`trigger="hover"/"click"/"focus"` |
 | `Popover` | `TipBox` | `trigger="click"`；`content` 自定义 |
 | `Popconfirm` | `MessageDialog type="confirm"` | `buttons={{ok,cancel}}` 对象；`isOpen` 受控 |
@@ -101,7 +101,7 @@
 
 | antd | eview-react | 关键差异 |
 |------|-----------|---------|
-| `@ant-design/icons` | `@nce/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@nce/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 尺寸（支持rem、px、数字）；icon+ 名**按迁移环境二选一匹配**：内网（`https://octo.hdesign.huawei.com/` 可达）走方案 B 的 `getIconInfo` 在线匹配，外网（octo 不可达）走方案 C 的 `icons/icon-plus-names.json` 离线匹配；**命中后均静态 import**。见 [Icon.md 渲染方式](components/Icon.md)；C 算法见 [match-icons.cjs](../scripts/match-icons.cjs) |
+| `@ant-design/icons` | `@hui/icon-plus` 按需引入 | `import { IconPlusIcPublicSearch } from '@hui/icon-plus'`；`type="filled"` 换风格；`iconColor` 换色（支持 CSS 变量）；`iconSize` 尺寸（支持rem、px、数字）；icon+ 名**按迁移环境二选一匹配**：内网（`https://octo.hdesign.huawei.com/` 可达）走方案 B 的 `getIconInfo` 在线匹配，外网（octo 不可达）走方案 C 的 `icons/icon-plus-names.json` 离线匹配；**命中后均静态 import**。见 [Icon.md 渲染方式](components/Icon.md)；C 算法见 [match-icons.cjs](../scripts/match-icons.cjs) |
 | 可点击图标 | `<IconPlusIc* onClick={fn} title="…" />` 直接挂 icon+ | `IconButton` 已弃用——给 icon+ 挂 `onClick`+原生 `title`（hover）是目标态；不要退化成原生 `<button>+<Icon>` |
 
 > 迁移期**先探测 `https://octo.hdesign.huawei.com/` 可达性定项目级方案**：内网（可达）→ B（`getIconInfo` 在线名匹配 → icon+ 静态 import）；外网（不可达）→ C（catalog 离线匹配 → icon+ 静态 import，跑 `scripts/match-icons.cjs`）。B/C 仅名匹配方式不同，命中后均静态 import。scaffold 自定义 `<Icon>` shim 为**方案 A**，作 B 与 C 的兜底：当 LLM（B）或本地算法（C）实在识别不出 icon+ 名的调用点零改动保留；切定后 `src/shared/Icon` 保留不删。详见 [Icon.md 渲染方式](components/Icon.md)。

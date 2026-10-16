@@ -78,7 +78,7 @@ interface TreeTableColumn {
 ### 三态图标用 icon+
 
 ```tsx
-import { IconPlusIcPublicFile, IconPlusIcPublicFolderOpen, IconPlusIcPublicFolder } from '@nce/icon-plus';
+import { IconPlusIcPublicFile, IconPlusIcPublicFolderOpen, IconPlusIcPublicFolder } from '@hui/icon-plus';
 <TreeTable
   columns={columns}
   dataset={dataset}

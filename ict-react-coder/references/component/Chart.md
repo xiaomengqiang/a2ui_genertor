@@ -10,7 +10,8 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 
 **Rules** — any sizing method works (style / className / flex / grid) as long as the height is computable:
 
-- Percentages (`height: 50%`) only when the ancestor chain resolves to a definite height (e.g. `100vh` layouts) — inside an auto-height parent they collapse to 0
+- Percentages (`height: 50%`) only when the ancestor chain resolves to a definite height (e.g. a parent with `height: 30rem`) — inside an auto-height parent they collapse to 0
+- In a column flex container, never pair `flex: 1` with `height` on the same element, `flex: 1` (`flex-basis: 0%`) overrides `height`
 - `min-height` / `max-height` alone are NOT computable
 - Grid `auto` rows are not computable; `1fr` rows in a definite-height grid are
 - Hidden containers (antd Tabs / Collapse / Drawer panes) init at 0×0 but self-heal via ResizeObserver — no conditional rendering needed
@@ -18,7 +19,7 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 **Pattern A — parent fixed height, chart fills:**
 
 ```jsx
-<div style={{ height: 320, display: "flex", gap: 16 }}>
+<div style={{ height: "20rem", display: "flex", gap: "1rem" }}>
   <Chart name="BarChart" option={barOption} style={{ flex: 1 }} />
   <Chart name="PieChart" option={pieOption} style={{ flex: 1 }} />
 </div>
@@ -28,26 +29,45 @@ The chart fills its container (default 100% × 100%). **echarts** reads the cont
 
 ```jsx
 // use style
-<Chart name="BarChart" option={{ ... }} style={{ height: 300 }} />
-// with .chart-box { height: 300px }
+<Chart name="BarChart" option={{ ... }} style={{ height: "19rem" }} />
+// with .chart-box { height: 19rem }
 <Chart name="PieChart" option={{ ... }} className="chart-box" /> 
 ```
 
 **Pattern C — elastic card (recommended for card grids):**
 
-In equal-height grids (`align-items: stretch`), fixed heights leave dead space below the chart. Make the card `flex column`, give the chart `flex: 1`:
+In equal-height grids (`align-items: stretch`), fixed heights leave dead space below the chart. Make the card `flex column`, give the chart `flex: 1` with `min-height` as the guaranteed floor — `flex: 1` absorbs any stretched height.
 
 ```jsx
-<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "stretch" }}>
+<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", alignItems: "stretch" }}>
   // tall card — stretches the sibling to its height
-  <div className="card">…400px tall content…</div>
+  <div className="card">…25rem tall content…</div>
   // elastic card — flex column, chart absorbs the stretched height
   <div className="card" style={{ display: "flex", flexDirection: "column" }}>
     <h3>月度发电量</h3>
-    <Chart name="BarChart" option={barOption} style={{ flex: 1 }} />
+    <Chart name="BarChart" option={barOption} style={{ flex: 1, minHeight: "15rem" }} />
   </div>
 </div>
 ```
+
+## Card action area
+
+Prefer this structure for the chart card's top-right action area: filter dropdown (Dropdown) → vertical divider → icon group, right-aligned, `1rem` gap within the group.
+
+- Filter uses Dropdown.
+- Vertical divider is hand-drawn: 1px wide, 0.75rem tall, background `--color-border`.
+- Icon group uses `<Icon>`: refresh `refresh-cw`, settings `settings`, more `ellipsis`; `size="1rem"`, hover `--color-brand`, must have `title`.
+
+## Stability — height feedback loop
+
+A definite height anywhere in the chain — a `height` on the chart itself (Pattern B) or a fixed-height ancestor (Pattern A) — makes the layout safe. Risk only arises when the height comes purely from stretch allocation and no ancestor provides a definite height (Pattern C's stretch grids, a bare chart as a flex item): sizes written back by echarts re-enter layout, and the card grows on every resize.
+
+Stretch-only layouts (no definite height in the chain) MUST cut both feedback channels (on the column flex container hosting the chart):
+
+- `flex: 1 1 0` — never `flex: 1 1 auto` (basis auto makes content height the growth baseline)
+- `min-height: 0`, a fixed rem value, or `overflow: hidden` — anything but the default `auto` kills the content-based minimum size
+
+Chart wrapper: `flex: 1` + `minHeight: 0` or a fixed rem floor (vertical); `minWidth: 0` for horizontal shrinking.
 
 ## Props
 

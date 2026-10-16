@@ -21,7 +21,7 @@ Loading 是加载动效：`global` 全页遮罩、`local` 覆盖某个区域、`
 无事件，纯受控显隐：
 
 ```tsx
-import { IconPlusIcPublicLoading } from '@nce/icon-plus';
+import { IconPlusIcPublicLoading } from '@hui/icon-plus';
 // 全局
 <Loading type="global" isOpen={pageLoading} />
 

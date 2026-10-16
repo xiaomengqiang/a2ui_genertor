@@ -1,0 +1,16 @@
+.evDatePicker-custom {
+    min-width: 0px;
+}
+
+.evDatePicker-custom:where(:not(:has(.ev_datepicker_calendar_range))) {
+    width: 16.25rem;
+}
+
+
+.evDatePicker-custom .ev_datepicker .ev_datepicker_input_datetime div.ev_datepicker_input_range>input.ev_datepicker_inputLRange {
+    width: calc(50% - 1.25rem);
+}
+
+.evDatePicker-custom .ev_datepicker .ev_datepicker_input_datetime div.ev_datepicker_input_range>input.ev_datepicker_inputRRange {
+    width: calc(50% - 1.25rem);
+}

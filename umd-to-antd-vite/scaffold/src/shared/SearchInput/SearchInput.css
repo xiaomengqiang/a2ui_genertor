@@ -1,0 +1,21 @@
+.ev_search.evSearchInput-custom {
+    display: inline-flex;
+    min-width: 0px;
+}
+
+.evSearchInput-custom {
+    width: 100%;
+}
+
+.evSearchInput-custom .ev_search_container {
+    flex: 1;
+    min-width: 0px;
+}
+
+.evSearchInput-custom .ev_search_box {
+    width: 100%;
+}
+
+.evSearchInput-custom .ev_searchInput {
+    width: inherit;
+}

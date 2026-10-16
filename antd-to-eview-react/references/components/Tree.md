@@ -77,7 +77,7 @@ Tree 是层级数据展示与选择：选中 / 勾选 / 展开三套受控状态
 ### 三态图标：iconLeaf / iconExpanded / iconCollapsed 用 icon+
 
 ```tsx
-import { IconPlusIcPublicFile, IconPlusIcPublicFolderOpen, IconPlusIcPublicFolder } from '@nce/icon-plus';
+import { IconPlusIcPublicFile, IconPlusIcPublicFolderOpen, IconPlusIcPublicFolder } from '@hui/icon-plus';
 <Tree
   data={treeData}
   nodeKey="id"

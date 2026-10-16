@@ -48,7 +48,7 @@ const handleRowAction = (event: object, data: any) => { /* data 就是 additiona
 ### 图标：leftIcon / rightIcon 用 icon+；纯图标按钮用 icon+ 直接挂 onClick
 
 ```tsx
-import { IconPlusIcPublicSave, IconPlusIcPublicRefresh } from '@nce/icon-plus';
+import { IconPlusIcPublicSave, IconPlusIcPublicRefresh } from '@hui/icon-plus';
 
 // 文字 + 图标
 <Button status="primary" text="保存" leftIcon={<IconPlusIcPublicSave iconSize={14} iconColor={['currentcolor']} />} onClick={handleSave} />

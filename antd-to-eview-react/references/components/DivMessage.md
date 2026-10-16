@@ -39,7 +39,7 @@ DivMessage 是区域内的结果提示条：直接显示在内容区上方，默
 <DivMessage display type="success" title="批量删除完成"><div>成功 8 条，失败 2 条（<a href="#log">查看日志</a>）</div></DivMessage>
 
 // 自定义图标（默认用 icon+ 组件）
-import { IconPlusIcPublicInfo } from '@nce/icon-plus';
+import { IconPlusIcPublicInfo } from '@hui/icon-plus';
 <DivMessage display type="success" showIcon icon={<IconPlusIcPublicInfo />} text="已保存" />
 ```
 

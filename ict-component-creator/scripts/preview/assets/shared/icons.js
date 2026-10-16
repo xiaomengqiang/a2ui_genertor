@@ -98,7 +98,7 @@ async function resolveIconInfo(name) {
   if (iconInfoMap[name]) return iconInfoMap[name];
   try {
     const resp = await fetch(
-      `${GET_ICON_INFO}?keyword=${encodeURIComponent(name)}&topK=2&source_id=6`
+      `${GET_ICON_INFO}?keyword=${encodeURIComponent(name)}&topK=2&source_id=6&type=icon`
     );
     const data = await resp.json(); // [{ keyword, icons: [{ icon_id, name, category, group[], url }] }]
     const entry = (Array.isArray(data) ? data : [data]).find(

@@ -222,7 +222,7 @@ Raw scale: `--font-size-sm(10) / base(12) / md(14) / lg(16) / xl(18) / 2xl(20) /
 
 **Component selection:**
 - Top nav and side nav must use `Menu` — never `Tabs`; no `Checkbox`, `Radio` or `Tag` inside nav items.
-- Card top-right mutually exclusive view switching uses `Segmented`; same-level content sections use `Tabs`.
+- Card top-right mutually exclusive view switching uses `Segmented` or a filter `Dropdown` (e.g. inside chart card action areas — see `references/component/Chart.md`); same-level content sections use `Tabs`.
 - Table row selection uses Table's `rowSelection` — never hand-draw Checkbox columns.
 - Keyword search uses `Input` with a search icon in `suffix` (right side) — do not create a non-existent Search component.
 - No inventing antd component props — use standard Ant Design 5.29.3 API; complex components must follow `references/component/{Name}.md` specs

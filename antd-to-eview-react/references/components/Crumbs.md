@@ -37,7 +37,7 @@ const crumbs = [
 <Crumbs title="当前位置" data={crumbs} countLimit={4} itemTip />
 
 // 项图标 / 分隔图标用 icon+
-import { IconPlusIcPublicHome, IconPlusIcPublicChevronRight } from '@nce/icon-plus';
+import { IconPlusIcPublicHome, IconPlusIcPublicChevronRight } from '@hui/icon-plus';
 <Crumbs
   data={[{ title: '首页', url: '/', icon: <IconPlusIcPublicHome /> }, { title: '用户管理' }]}
   splitIcon={<IconPlusIcPublicChevronRight />}

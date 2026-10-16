@@ -43,7 +43,7 @@ const [hoverScore, setHoverScore] = useState<number | null>(null);
 ### 自定义图标与颜色
 
 ```tsx
-import { IconPlusIcPublicHeart } from '@nce/icon-plus';
+import { IconPlusIcPublicHeart } from '@hui/icon-plus';
 <Rating iconName={<IconPlusIcPublicHeart />} starColor="#f43146" value={likes} starCount={5} />
 ```
 

@@ -8,6 +8,8 @@
 
 ## 使用规则
 
+- 必须设置 `showTotal` 属性，配置为：`showTotal: (total, range) => \`总记录数：${total}\``；当有复选（行选择）时，扩展为 `(total, range) => \`总记录数：${total} 已选中行数：${selectedCount}\``（`selectedCount` 取自页面选中项的受控 state）。
+- 必须开启 `showSizeChanger: true` 与 `showQuickJumper: { goButton: "跳转" }`。
 - 切换页码时保留筛选、搜索和排序条件；当前页超出新结果范围时回到有效页。
 
 ## 布局

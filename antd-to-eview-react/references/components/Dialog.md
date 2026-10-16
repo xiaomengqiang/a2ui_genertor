@@ -74,7 +74,7 @@ useEffect(() => {
 <Dialog isOpen={open} modal={false} movable onClose={close}>…</Dialog>              // 非模态，可拖
 <Dialog isOpen={open} closable={false} closeOnEscape={false} buttons={[…]}>…</Dialog> // 只能走按钮
 <Dialog isOpen={open} position={[200, 120]} size={[400, 300]} resizable>…</Dialog>
-import { IconPlusIcPublicHelp } from '@nce/icon-plus';
+import { IconPlusIcPublicHelp } from '@hui/icon-plus';
 <Dialog isOpen={open} title="新建" customIcons={<IconPlusIcPublicHelp />} onClose={close}>…</Dialog>
 ```
 

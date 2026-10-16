@@ -1,5 +1,7 @@
 # Spinner 组件功能逻辑规格（数字微调器，即 InputNumber）
 
+> 导入：`import Spinner from '@/shared/Spinner'`（scaffold 包壳，透明转发 `@nce/eview-react/Spinner`，API 不变）。
+
 > 资料来源：TypeDoc `Spinner/Spinner` + 官网 Spinner 页示例。
 > ⚠️ eview-react **没有 `InputNumber`**，数字输入 + 加减按钮就是 `Spinner`。它不是 loading 转圈——那是 `Loading` / `Loader`。
 > ⚠️ `value` 从外部更新时输入框默认会**抢焦点**（`doNotFocusWhenValueUpdate` 说明"默认会获取"），程序化改值（如重置、联动）要传 `doNotFocusWhenValueUpdate`。
