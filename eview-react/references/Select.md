@@ -10,7 +10,7 @@ Select 是单选下拉框：`options` 数组驱动，每项 `text` 显示、`val
 | 单选下拉 | `Select` + `options` | antd 的 `<Select><Option>` children、`mode` |
 | 多选下拉 | `MultipleSelect`（[MultipleSelect.md](MultipleSelect.md)） | `Select` 加 `multiple` |
 | 可输入 + 下拉建议 | `InputSelect`（[InputSelect.md](InputSelect.md)） | `Select` 加 `showSearch` |
-| 树形下拉 | `TreeSelect`（[TreeSelect.md](TreeSelect.md)） | — |
+| 树形下拉 | `TreeSelector`（[TreeSelector.md](TreeSelector.md)） | — |
 | 级联 / 省市区 | 多个 Select 联动，父级变化清空下级并更新选项 | 导入已核验版本不存在的 Cascader |
 
 ## 2. 典型场景

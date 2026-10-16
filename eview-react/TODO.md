@@ -6,13 +6,13 @@
 
 | 维度 | 数量 | 明细 |
 |------|------|------|
-| 组件 Reference | 47 个 | 首批：Button（含 ButtonGroup）/ TextField / Select / Checkbox（含 CheckboxGroup）/ Radio（含 RadioGroup）；第二批：TextArea / SearchInput / Steps / Tab（含 TabItem）/ FileUpload；第三批：DatePicker / Spinner / DragInput / SelectCard / Rating / Tag / Badge / Divider；第四批：Form（含 Form.Item）/ Table / Paging / Dialog / MessageDialog / Toggle（含 Switch）/ MultipleSelect；第五批：Drawer / Tree / TreeSelect / TreeTable / InputSelect / IPInput / DivMessage / Loading（Loader 同）/ Empty / Crumbs / Panel（含 PanelItem）/ Icon（含 IconButton）/ TipBox；提前加入：Accordion（原排第七批，2026-09-29）；2026-10-08 补齐：Carousel / ColorPicker / ConfigProvider / DropDown / PopUpMenu / ProgressBar / TimeLine / TimePicker |
+| 组件 Reference | 47 个 | 首批：Button（含 ButtonGroup）/ TextField / Select / Checkbox（含 CheckboxGroup）/ Radio（含 RadioGroup）；第二批：TextArea / SearchInput / Steps / Tab（含 TabItem）/ FileUpload；第三批：DatePicker / Spinner / DragInput / SelectCard / Rating / Tag / Badge / Divider；第四批：Form（含 Form.Item）/ Table / Paging / Dialog / MessageDialog / Toggle（含 Switch）/ MultipleSelect；第五批：Drawer / Tree / TreeSelector（2026-10-16 替换已废弃旧组件）/ TreeTable / InputSelect / IPInput / DivMessage / Loading（Loader 同）/ Empty / Crumbs / Panel（含 PanelItem）/ Icon（含 IconButton）/ TipBox；提前加入：Accordion（原排第七批，2026-09-29）；2026-10-08 补齐：Carousel / ColorPicker / ConfigProvider / DropDown / PopUpMenu / ProgressBar / TimeLine / TimePicker |
 | Pattern 文档 | 3 份 | `project-setup.md`（工程接入）+ `page-flows.md`（页面调用链）+ `fallback-handwrite.md`（三层判定、目标包入口核对、业务样式与手写模板、TODO 边界；已移除不能作为当前可用清单的历史导出名单） |
 | 通用约束与组件细则 | 分层维护 | SKILL.md 保留导入、API 使用约束、校验、受控、表单托管、异步边界与编码要求；具体 props、回调签名、ref 方法及反例按组件 Reference 读取 |
 | 页面调用链模板 | 16 种 | 位于 `references/patterns/page-flows.md`：登录注册 / 筛选列表 / 列表 CRUD / 多选批量 / 向导模式切换 / 级联下拉 / 表单提交 / 多步创建向导 / 多页签工作区 / 附件上传表单 / 时间范围查询条 / 参数配置表单 / 状态列表卡片 / 树 + 列表主从页 / 侧边详情编辑 / 四态内容区 |
-| 评测用例 | 31 个 / 245 条断言 | 1 登录页 / 2 联动筛选条 / 3 待办批量删除 / 4 向导单选切换 / 5 新工程接入 / 6 新建用户表单统一校验与 PC 默认交付 / 7 三步创建向导 / 8 工作区页签 / 9 附件批量上传 / 10 设备搜索框 / 11 工单多行表单 / 12 报表时间范围查询条 / 13 QoS 参数配置 / 14 服务评价 / 15 告警列表状态展示 / 16 未覆盖组件手写补位（Card + CardGrid）/ 17 设备管理 CRUD（Table + Dialog(Form) + MessageDialog）/ 18 告警规则开关 / 19 多选筛选 + 卡片分页 / 20 组织树 + 成员表 + 抽屉 / 21 网元接入表单（联动Select + TreeSelect + InputSelect + IPInput + Panel）/ 22 概览卡片四态（Loading + Empty + IconButton）/ 23 配置中心侧边导航（Accordion 语义反转 + 叶子选中 + keepExpandState）/ 24 一级操作菜单 / 25 多级操作菜单 / 26 公告轮播 / 27 批量任务进度 / 28 审批时间轴 / 29 时分秒选择 / 30 分类颜色 / 31 应用配置条件接入 |
+| 评测用例 | 31 个 / 245 条断言 | 1 登录页 / 2 联动筛选条 / 3 待办批量删除 / 4 向导单选切换 / 5 新工程接入 / 6 新建用户表单统一校验与 PC 默认交付 / 7 三步创建向导 / 8 工作区页签 / 9 附件批量上传 / 10 设备搜索框 / 11 工单多行表单 / 12 报表时间范围查询条 / 13 QoS 参数配置 / 14 服务评价 / 15 告警列表状态展示 / 16 未覆盖组件手写补位（Card + CardGrid）/ 17 设备管理 CRUD（Table + Dialog(Form) + MessageDialog）/ 18 告警规则开关 / 19 多选筛选 + 卡片分页 / 20 组织树 + 成员表 + 抽屉 / 21 网元接入表单（联动Select + TreeSelector + InputSelect + IPInput + Panel）/ 22 概览卡片四态（Loading + Empty + IconButton）/ 23 配置中心侧边导航（Accordion 语义反转 + 叶子选中 + keepExpandState）/ 24 一级操作菜单 / 25 多级操作菜单 / 26 公告轮播 / 27 批量任务进度 / 28 审批时间轴 / 29 时分秒选择 / 30 分类颜色 / 31 应用配置条件接入 |
 | 原始资料 | 856 + 2 文件 | 仓库根 `hui参考文档/`（**不随 skill 打包**，仅供写作与复核）：api 93 份 TypeDoc 表、demos 71 README + 91 API.md + 426 示例、rules 2 份、site-doc 15 份 |
-| 验证环境 | 本地无真实发布包；有内网源码、产物及局部运行反馈 | 内网第二轮核对 3.10.28 包入口/声明，并报告 TreeSelect 隔离运行探针；本地仍只有 `hui参考文档/` 与 `eview-react-shadcn` 兼容层（只实现 Button / ButtonGroup / TextField / Select / Checkbox / CheckboxGroup / Radio / RadioGroup 8 个导出），不能替代真实包运行 |
+| 验证环境 | 本地无真实发布包；有内网源码、产物及局部运行反馈 | 内网第二轮核对 3.10.28 包部分入口/声明；TreeSelector 尚无实现或运行核验；本地仍只有 `hui参考文档/` 与 `eview-react-shadcn` 兼容层（只实现 Button / ButtonGroup / TextField / Select / Checkbox / CheckboxGroup / Radio / RadioGroup 8 个导出），不能替代真实包运行 |
 | 目标使用方 | OpenCode + 国产模型 | 已实测 OpenCode 1.18.26 + deepseek-v4-flash 生成资源申请表单：组件 API 用法基本正确，首轮行为测试 2/5，两轮带修复提示的反馈后 5/5（记录见 `eview-react-shadcn/docs/opencode-form-evaluation.md`） |
 | 资料版本 | 3.10 源码为主，3.10.28 部分产物，4.x 部分源码 | 3.10.36+6 源码；3.10.28 部分入口/声明，另发现 3.10.7 安装实例；4.0.607+15 仅部分源码对比。目标业务工程实际版本及 4.x 发布包仍未知 |
 
@@ -36,7 +36,7 @@
 
 ## 核验结论与待确认
 
-> 2026-10-08 已消化两轮内网核验：主源码 `3.10.36-6-g2c9e16b83`，发布包 **3.10.28 的部分入口/声明**，另发现 3.10.7 安装实例；4.x 只对比 `4.0.607-15-ga873ca561` 源码，没有对应发布包验证。TreeSelect 有内网隔离运行反馈，其余按报告区分声明、源码和产物证据。**目标业务工程实际版本仍未知，不能把源码结论视为已在该工程运行通过。**
+> 2026-10-08 已消化两轮内网核验：主源码 `3.10.36-6-g2c9e16b83`，发布包 **3.10.28 的部分入口/声明**，另发现 3.10.7 安装实例；4.x 只对比 `4.0.607-15-ga873ca561` 源码，没有对应发布包验证。按报告区分声明、源码、产物和局部运行证据；TreeSelector 尚不在两轮实现核验范围内。**目标业务工程实际版本仍未知，不能把源码结论视为已在该工程运行通过。**
 
 已同步的核心结论：
 
@@ -44,7 +44,7 @@
 - 回调：RadioGroup 第一参为新值；SearchInput.onItemClick(text,item)，onSearch 仅搜索图标或回车；InputSelect 第三参为 input/select；Toggle 不传 data 时回调 null。
 - 表单：submit 默认也调用子控件 validate；validateAllChildComponent 控制遇到首个错误后是否继续。onFailed(errorFields,values)，errorFields 映射字段当前值；整数、整数范围和长度等 defaultValidator 可用于 rules。此前“开启开关才校验子控件”的推断已纠正。
 - 选中与关闭：Tab.selectedIndex 外部更新生效，业务管理页签数组时用 isAutoClose=false；DropDown.selectedIndex 匹配菜单 value，onDropDown 仅展开通知 true，onClosePopup 无参；DivMessage.onClose 应同步外部 display=false。
-- 数据与命名：Table.keyIndex 为 columns 的 0 基列下标；Tree 回调 node 是实例，使用 node.props.eventKey；TreeSelect 回填 id 数组而非文案；核验线没有 Cascader，时间组件根导出为 TimeSelector。
+- 数据与命名：Table.keyIndex 为 columns 的 0 基列下标；Tree 回调 node 是实例，使用 node.props.eventKey；核验线没有 Cascader，时间组件根导出为 TimeSelector。
 - 其他：FileUpload 逐文件进度与删除事件、DatePicker 输入回写与 timeEmbedded、Steps vertical、SelectCard.getValue、Dialog 按钮 disabled、Loading 默认图标、Accordion 字段与展开语义、Carousel 半受控、TimeLine JSX 回调等已按报告更新 Reference。
 - 第二轮：TimePicker.getValue 返回字符串数组、timeEmbedded 内联渲染已确认；ColorPicker 在确认选色时触发 onColorChange，Form.Item 使用 updateTrigger="onColorChange"；3.10.28 的 Segmented / Slider / TimePicker / Transfer 子路径均有默认导出。
 - 4.x 部分源码对比：RadioGroup 参数顺序、SearchInput、Switch.onToggle、Form.onFailed、DropDown.selectedIndex、InputSelect.type 与 3.10 一致，TimePicker.getValue 存在；该线移除 L4，且没有 Cascader。Cascader 在 3.10.28 发布包也不存在，已从组件覆盖和正向推荐中撤回。
@@ -58,18 +58,17 @@
 - DropDown.selectedIndex=0 会传成 null，不能高亮 value=0 项；该项仍可正常点击派发。
 - PopUpMenu children 与传统坐标模式的方向处理不同；坐标 0 与 offset 有实现限制，选项级 onClick 对 serialno=0 有回退问题，默认使用组件级回调。
 - ProgressBar.overTime 的计时器无卸载清理；默认使用真实 current/max，需估算时由业务管理和清理计时器，不能把反复重挂作为可靠重试方案。
-- TreeSelect 单改 value 不会完整同步文字与勾选；[] 只清文字、不清树。外部换记录、回填或清空使用独立 revision/key 重建，普通选择不每次重挂；不能凭 value 类型宣称完全受控。
 - PopUpMenu 未设 serialno 的回退来自内部 option.value 或 DOM id；键盘路径可能得到字符串 "undefined"。它不是自增序列号；显式设置 serialno，并拒绝未知值。
 - TimePicker 的 hh:mm + amPm 输出标记在下标 2，输入却读取 time[3]；小时范围 1–12，12/24 小时转换由业务处理。ampmVal 外部 prop 无效；核验的 3.10 源码与 3.10.28 包没有 bottomButtons，不再追问该属性的确认/取消行为。
 - ConfigProvider 在核验 3.10 线中有 locale/messages 声明但无消费者，theme 非正式字段；不再生成靠它配置语言或主题的写法。animation 的消费者为 Motion/Animation，动态继承和业务 IntlContext 仍未答。
 
-2026-10-10 对剩余 47 份 Reference 复查后，未发现另一项被现有报告明确判定不存在的整组件；但 TextArea、Paging、MultipleSelect、TreeTable、IPInput、Empty、Crumbs、Panel、Rating、Tag、Badge、Divider、TipBox 共 13 份尚无当前源码或发布包入口的核验结论。保留文档并在索引提示首次使用前核对目标包，不能把“尚未核验”写成“不存在”。其余报告涉及的组件也仅确认被核验的接口，不代表全部 API、子组件、别名及目标版本运行均通过。
+2026-10-10 对剩余 47 份 Reference 复查后，未发现另一项被现有报告明确判定不存在的整组件；但 TextArea、Paging、MultipleSelect、TreeTable、IPInput、Empty、Crumbs、Panel、Rating、Tag、Badge、Divider、TipBox 共 13 份尚无当前源码或发布包入口的核验结论。保留文档并在索引提示首次使用前核对目标包，不能把“尚未核验”写成“不存在”。其余报告涉及的组件也仅确认被核验的接口，不代表全部 API、子组件、别名及目标版本运行均通过。2026-10-16 加入的 TreeSelector 同样尚未确认当前入口与实现，上述清单现增为 14 份。
 
-以下保留 **5 组待确认**。已解答的 getValue、嵌入模式、子路径入口和 TreeSelect 缺陷不再反复追问；范围外版本只在目标工程需要时核验。
+以下保留 **5 组待确认**。已解答的 getValue、嵌入模式和子路径入口不再反复追问；范围外版本只在目标工程需要时核验。
 
 | 项 | 现状 | 后续动作 |
 |----|------|----------|
-| 目标业务版本及适用范围 | 内网安装实例是 3.10.28 / 3.10.7，目标业务版本未知；4.x 只有部分源码对比，无发布包验证；上列 13 份组件的当前入口与实现尚未核验 | 读取目标工程实际 package.json 与相关声明，按使用需求核对入口与行为；不因旧资料目录推断组件可用，也不因缺少核验而删除组件 |
+| 目标业务版本及适用范围 | 内网安装实例是 3.10.28 / 3.10.7，目标业务版本未知；4.x 只有部分源码对比，无发布包验证；上列 14 份组件的当前入口与实现尚未核验；TreeSelector 的回调、清空、多选回填及 Form 接入仍需核实 | 读取目标工程实际 package.json 与相关声明，按使用需求核对入口与行为；TreeSelector 先用单选非空 id 回填，回调按类型和业务 id 校验，不继承旧组件缺陷或保证多选受控 |
 | ColorPicker 回填、重置与浮层 | 事件、六位 hex、Form.Item.updateTrigger、默认 body 挂载已回答；Form 回填/清空/reset 的显示同步与 Dialog/Drawer 内实际遮挡未回答 | 补 Form 初始值→setFields→reset/清空的表现，及浮层层级/裁剪验证；保留已确认的最小 Form 接入 |
 | ConfigProvider 业务上下文与动态配置 | 声明字段及消费者已回答；未说明是否提供 react-intl IntlContext、useIntl/FormattedMessage 兼容性，以及 animation 动态更新、嵌套继承、portal 表现；onlyRenderOutside 的精确挂载语义不清 | 保留用户的条件接入策略；替换前验证必要的国际化上下文，不能靠无消费者的 locale/messages 迁移；有相应需求时补动态配置和挂载行为 |
 | PopUpMenu 全路径差异 | slno 来源及缺 serialno 的键盘字符串回退已回答；报告未给出两种模式 × 鼠标/键盘 × 组件/选项回调的完整结果矩阵 | 默认显式 serialno + 组件级回调已可用；需要选项回调或特殊模式时补齐矩阵，不再笼统宣称缺失时总为 undefined |
@@ -81,8 +80,8 @@
 
 ### 为什么调整
 
-- **常用场景已有文档**：47 份 Reference 对应旧入口快照中的 53 个名字。原快照 87 项 = 已覆盖 53 + 核验不支持而剔除的 Cascader 1 + 原排除 15 + 候选 18；该统计只供维护，fallback 已移除历史导出名单，避免被当作当前发布包可用清单。表单、表格、弹层、反馈等高频场景已有说明；18 个候选仍以长尾为主，其中 8 个没有官方 demo。
-- **验证欠账大**：待确认 5 组；已有源码、部分产物和 TreeSelect 局部运行反馈，尚未在目标业务工程运行验证（见「当前资产 · 资料版本」）；`validate_references.py` 检查结构、链接、数量和禁用写法，但不检查 prop 是否真在 TypeDoc 表里；唯一一次 OpenCode 实测首轮行为测试只过 2/5。
+- **常用场景已有文档**：47 份 Reference 对应旧入口快照中的 53 个名字。原快照 87 项 = 已覆盖 53 + 已撤回 2 + 原排除 15 + 候选 17；该统计只供维护，fallback 已移除历史导出名单，避免被当作当前发布包可用清单。表单、表格、弹层、反馈等高频场景已有说明；17 个候选仍以长尾为主，其中 8 个没有官方 demo。
+- **验证欠账大**：待确认 5 组；已有源码、部分产物和局部运行反馈，TreeSelector 仍只有类型与示例资料，尚未在目标业务工程运行验证（见「当前资产 · 资料版本」）；`validate_references.py` 检查结构、链接、数量和禁用写法，但不检查 prop 是否真在 TypeDoc 表里；唯一一次 OpenCode 实测首轮行为测试只过 2/5。
 - **写作速度不是瓶颈**：第二至五批 34 份大约一天内写完，核验手段没有跟上。写错的 Reference 比没有更糟：没有时模型走补位流程并标 TODO，写错时模型会照抄（`TextField.md` 的短路 `refs.find` 与 OpenCode 首轮失败表现一致）。
 
 **约束**：作者侧拿不到真实包，核验基于 `hui参考文档/`、内网核验反馈与兼容层，必须区分类型、源码、产物与实际运行的覆盖范围；使用方是 OpenCode + 国产模型（如 deepseek-v4-flash），评测必须在这个组合上跑，Reference 篇幅也要照顾小模型的阅读能力。
@@ -96,9 +95,9 @@
 - [ ] **0.1 发布包基线**：已声明 3.10 源码、3.10.28 部分产物和 4.x 部分源码范围；目标业务工程实际版本及对应运行结果仍待确认。
 - [ ] **0.2 待确认 5 组继续推进**
   - [x] 已消化内网报告Q1–Q31：回填组件Reference与评测中的旧错误要求；实现结论不再标成完全未知。
-  - [x] 已消化第二轮 Q1–Q9：补 TimePicker.getValue、AM/PM、timeEmbedded，纠正 bottomButtons；补 ColorPicker Form 入口、ConfigProvider 字段/消费者、TreeSelect 与 PopUpMenu 缺陷和发布包子路径。
+  - [x] 已消化第二轮 Q1–Q9：补 TimePicker.getValue、AM/PM、timeEmbedded，纠正 bottomButtons；补 ColorPicker Form 入口、ConfigProvider 字段/消费者、PopUpMenu 缺陷和发布包子路径；旧树选择组件已按后续决定撤回。
   - [x] 2026-10-10 复查剩余 47 份：修正 5 处无依据的图标 JSX 扩写、Panel 的 Form.Item 层级、IPInput 示例的 RadioGroup 参数顺序、Button 右图标字段、TextArea ref 方法的绝对否定；标明 Tag 类型冲突与 icon+ 尺寸边界，并同步相关评测断言。
-  - [ ] 按上表补目标版本（包括 13 份未确认入口与实现的组件）、ColorPicker 回填/浮层、ConfigProvider 国际化/动态配置、PopUpMenu 全路径矩阵、Tag 字段与 icon+ 尺寸差异。
+  - [ ] 按上表补目标版本（包括 14 份未确认入口与实现的组件，以及 TreeSelector 的回调/多选回填/Form 接入）、ColorPicker 回填/浮层、ConfigProvider 国际化/动态配置、PopUpMenu 全路径矩阵、Tag 字段与 icon+ 尺寸差异。
   - [ ] 在真实目标工程验证受控回显、关闭重开、表单切换等交互；记录明确失败，不将类型检查或模拟层通过当作真实包通过。
 - [x] **0.3 修掉 4 处已知文档问题**，每处配一条回归断言（2026-09-29 完成；同批还修了新发现的 3 处：`Select.md` 用 `&&` 短路校验、`Table.md` 与 `Paging.md` 请求链缺 catch。回归断言见用例 2、3、5、6、17）
   - [x] `TextField.md` §7：`refs.find((r) => !r.current.validate())` 遇到第一个失败就停，其余字段不校验 → 先对全部 ref 执行 `validate()` 收集结果，再聚焦第一个失败项
@@ -135,7 +134,7 @@ OpenCode 实测里组件 API 基本用对、没有混入 antd 写法，失败集
 
 ### 阶段 2：按需分批补组件
 
-原资料入口快照记录 87 个名字（`hui参考文档/demos/index.js`），不是当前发布包的导出清单。47 份 Reference 映射其中 53 个名字（已含 `ConfigProvider`，时间根名差异按 `TimeSelector` 核验结果处理）；另有 Cascader 1 项已核验不支持并剔除、原排除 15 项、候选 18 项，即 **87 = 53 + 1 + 15 + 18**。Cascader 不转为候选；fallback 已移除整份历史名单。上述数字只描述旧快照的维护口径，不能作为目标发布包的导入依据。`ColorPicker` 有子路径入口与示例，但不在这份根导出清单中；`PanelItem` / `CarouselItem` 是组件子路径命名导出，`Form.Item` 是静态子组件，均不另计根导出。
+原资料入口快照记录 87 个名字（`hui参考文档/demos/index.js`），不是当前发布包的导出清单。47 份 Reference 映射其中 53 个名字（已含 `ConfigProvider`，时间根名差异按 `TimeSelector` 核验结果处理）；另有 Cascader 1 项已核验不支持并剔除、TreeSelect 1 项由用户确认废弃并撤回、原排除 15 项、候选 17 项，即 **87 = 53 + 2 + 15 + 17**。两项撤回组件不转为候选；fallback 已移除整份历史名单。上述数字只描述旧快照的维护口径，不能作为目标发布包的导入依据。`ColorPicker` 有子路径入口与示例，但不在这份根导出清单中；`PanelItem` / `CarouselItem` 是组件子路径命名导出，`Form.Item` 是静态子组件，均不另计根导出。
 
 **排序依据**：
 1. 与 antd 习惯的差异程度：差异越大越需要 Reference；和 antd 几乎一样的组件，模型不看文档也能写对
@@ -160,7 +159,7 @@ OpenCode 实测里组件 API 基本用对、没有混入 antd 写法，失败集
 - **第七批 · 反馈、弹层与导航**
   - [ ] `FormMessage.md`（3）/ `Popup.md`（1）
   - [x] `PopUpMenu.md`（6）/ `DropDown.md`（8）：2026-10-08 重新加入，多级与一级菜单、权限禁用、异步防重；新增用例 24、25。
-  - [ ] `TreeSelector.md`（8）
+  - [x] `TreeSelector.md`（8）：2026-10-16 替换已废弃 TreeSelect，保留类型与示例一致的最小用法，单选字符串 id、enableCheckbox 多选；回调冲突、多选回填、清空及 Form 托管待目标版本核验；用例 21 同步替换。
   - [ ] `Anchor.md`（3）
   - [x] `Accordion.md`（6）：2026-09-29 提前完成。与 Panel / Tree / Tab 的辨析写在其 §1，`Panel.md`、`Tree.md`、`fallback-handwrite.md` 各补一行回指；新增用例 23；§9 与 TypeDoc 的 21 个 props 逐项比对一致，§7 按 TypeDoc 转写的类型声明做过 `tsc` 严格模式编译；已按完成标准第 8 条从 386 行精简到 220 行（§7 代码 178 → 87 行）
 - **第八批 · 有 demo 的长尾**
@@ -169,6 +168,8 @@ OpenCode 实测里组件 API 基本用对、没有混入 antd 写法，失败集
   - [ ] `BrowseButton.md`（4）/ `CategoryInput.md`（4）/ `CategorySearch.md`（4）/ `LabelField.md`（2）
 - **C 级精简版 · 无 demo，只有类型表**
   - [ ] `TimeRangeSelector` / `IconButtonGroup` / `TextButton` / `Menu` / `CardGrid` / `JList` / `ScrollBar` / `Shade`
+
+**已撤回**：Cascader（核验版本不提供）、TreeSelect（用户确认废弃，改用 TreeSelector），均不重新列为候选。
 
 **已排除（不建）**：`DoubleSelect`、`PageMessage`、`HelpTip`、`Layout`、`GridLayout`（含 `Row` / `Col`）、`Split`、`Card`、`PagingTree`（含 `TreeDataEngine`）、`TimescaleAxis`、`LinkField` 由用户排除；`ButtonMenu` 官方废弃；`Wizards` 是 `Steps` 旧名，不单建 Reference，已在 `Steps.md` 头部对照。
 
@@ -209,6 +210,8 @@ OpenCode 实测里组件 API 基本用对、没有混入 antd 写法，失败集
 ---
 
 ## 已确认决策
+
+- [x] **2026-10-16 · TreeSelector 替换 TreeSelect**：按用户确认删除废弃组件 Reference、索引与正向用法；新增 TreeSelector 并同步交叉链接、用例 21 和禁用规则，组件文档总数仍为 47。既有隔离探针只针对旧组件，不移植旧回显缺陷或修复策略，也不当作 TreeSelector 的运行证据。
 
 - [x] **2026-10-10 · 撤回 Cascader**：3.10.36+6 源码、3.10.28 发布包及已核对的 4.x 源码均未提供该组件；删除独立 Reference、索引与正向推荐，不再沿用旧资料用法，也不新增为候选。保留此核验事实。
 
