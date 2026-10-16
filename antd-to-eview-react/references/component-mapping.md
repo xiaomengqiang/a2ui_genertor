@@ -32,7 +32,7 @@
 | `Select mode="multiple"` | `MultipleSelect` | 删 `mode`；`value` 数组；`onChange(value[], changeValue[], event)`；`placeholder`（不是 defaultLabel）；`selectAll`/`searchable`；⚠️ 导入 `@/shared/MultipleSelect`（包壳，非 `@nce/eview-react/MultipleSelect`） |
 | `Select showSearch` | `InputSelect` | `onlySelect` 决定输入是否可作值；`options=[{text,value}]`；⚠️ 导入 `@/shared/InputSelect`（包壳，非 `@nce/eview-react/InputSelect`） |
 | `AutoComplete` | `InputSelect` | 同上（⚠️ 导入 `@/shared/InputSelect`） |
-| `Cascader` | `PopupMenu` | 查阅 [PopupMenu.md](components/PopupMenu.md) |
+| `Cascader` | `Cascader`（`@/shared/Cascader` 手写） | 导入 `@/shared/Cascader`（scaffold 手写组件，非 `@nce/eview-react`）；**API 基本同 antd Cascader，调用点几乎零改动**——`options`/`value`/`onChange`/`placeholder`/`disabled`/`allowClear`/`showSearch`/`changeOnSelect`/`multiple`/`fieldNames`/`expandTrigger`/`loadData`/`displayRender`/`open` 等均保留 antd 写法 |
 | `TreeSelect` | `TreeSelect` | `treeData`；`onChange(selectNode[])` 节点对象数组；`enableCheckbox` |
 | `Checkbox` | `Checkbox` | `onChange(value, checked, event, additionalData)`；`onPreChange` 拦截 |
 | `Checkbox.Group` | `CheckboxGroup` | `data=[{text,value}]`；`value[]`；`selectAll`；`rows` |
