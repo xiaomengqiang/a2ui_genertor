@@ -39,7 +39,7 @@
 }
 
 .ss-value {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   transition: color 0.25s ease;
 }
 
@@ -68,6 +68,6 @@
 }
 
 .ss-label {
-  line-height: 1.5;
+  line-height: var(--line-height-base);
   transition: color 0.25s ease;
 }

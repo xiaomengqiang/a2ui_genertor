@@ -63,8 +63,8 @@ Analyze the request (purpose, data displayed, interactions), then create `{artif
   - `<img src="./assets/uploads/banner.png" />`
 
 2. **`index.css`** — component CSS (no Tailwind), semantic class names:
-- Colors/fonts/shadows/radius MUST use **theme-layer tokens** (refer to the Design Tokens section) — hardcoded hex only when the requirement specifies an exact color
-- Spacing/margins/padding: plain px values
+- Colors/fonts/shadows/radius/spacing prefer **theme-layer tokens** (refer to the Design Tokens section) — hardcoded hex or px only when the requirement specifies an exact value
+- Typography: role tokens via `font:` shorthand (e.g. `font: var(--font-body-m)`); write `font-weight` AFTER `font:` — the shorthand resets it
 - Do NOT define `:root` or `.dark` blocks — they are already defined globally in `assets/style/`
 - The component root defaults to `width: 100%`, adjusted per actual needs
 
@@ -133,7 +133,7 @@ After component authoring + build & verify pass, emit the preview link as the fi
 **Read `references/design_system.md` before writing any component CSS** — it contains the full token map and usage rules.
 
 Key rules:
-- Use **theme-layer tokens** (`var(--primary)`, `var(--on-surface)`, `var(--surface-container)`, `var(--error-container)`, `var(--text-md)`…) — hardcoded hex only when the requirement specifies an exact color. build.mjs CSS lint FAILs on `:root`/`.dark` blocks and unknown token names; 
+- Use **theme-layer tokens** (`var(--primary)`, `var(--on-surface)`, `var(--surface-container)`, `var(--error-container)`, `var(--font-body-m)`, `var(--spacing-4)`…) — hardcoded hex or px only when the requirement specifies an exact value. build.mjs CSS lint FAILs on `:root`/`.dark` blocks and unknown token names; 
 - Colors in JSX inline styles use hex — CSS files use tokens
 - Dark mode comes free: tokens flip under `.dark` automatically
 

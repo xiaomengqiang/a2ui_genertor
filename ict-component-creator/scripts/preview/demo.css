@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: var(--text-4xl);
+  font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
   color: var(--on-surface);
   margin: 0 0 8px;
@@ -23,8 +23,7 @@
 }
 
 .demo-subtitle {
-  font-size: var(--text-md);
-  line-height: 1.6;
+  font: var(--font-body-m);
   color: var(--on-surface-variant);
   margin: 0;
 }
@@ -41,7 +40,7 @@
 }
 
 .demo-section-name {
-  font-size: var(--text-2xl);
+  font: var(--font-headline-l);
   font-weight: var(--font-weight-bold);
   color: var(--on-surface);
   margin: 0;
@@ -51,7 +50,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: var(--text-sm);
+  font: var(--font-body-s);
   font-weight: var(--font-weight-semibold);
   color: var(--primary);
   background-color: var(--primary-container);
@@ -60,8 +59,7 @@
 }
 
 .demo-section-desc {
-  font-size: var(--text-md);
-  line-height: 1.6;
+  font: var(--font-body-m);
   color: var(--on-surface-variant);
   margin: 0 0 28px;
 }
@@ -103,7 +101,7 @@
 }
 
 .demo-card-title {
-  font-size: var(--text-md);
+  font: var(--font-body-m);
   font-weight: var(--font-weight-semibold);
   color: var(--on-surface);
   margin: 0 0 20px;
@@ -114,15 +112,14 @@
 }
 
 .demo-item-title {
-  font-size: var(--text-md);
+  font: var(--font-body-m);
   font-weight: var(--font-weight-semibold);
   color: var(--on-surface);
   margin: 0 0 24px;
 }
 
 .demo-note {
-  font-size: var(--text-sm);
-  line-height: 1.6;
+  font: var(--font-caption-m);
   color: var(--on-surface-variant);
   margin: 18px 0 0;
 }
@@ -131,8 +128,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--text-sm);
-  line-height: 1.6;
+  font: var(--font-caption-m);
   color: var(--info);
   background-color: var(--info-container);
   padding: 8px 12px;
