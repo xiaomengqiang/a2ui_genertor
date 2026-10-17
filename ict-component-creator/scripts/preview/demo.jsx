@@ -1,4 +1,4 @@
-import { Icon } from "./assets/shared/icons.js";
+import { Icon } from "./assets/shared/icon.jsx";
 import SegmentedSteps from "./components/SegmentedSteps/index.jsx";
 import "./demo.css";
 
@@ -35,7 +35,7 @@ export default function Demo() {
         <div className="demo-section-header">
           <h2 className="demo-section-name">SegmentedSteps</h2>
           <span className="demo-section-tag">
-            <Icon name="chart-column" size={12} />
+            <Icon name="chart-column" size="0.75rem" />
             数据展示
           </span>
         </div>

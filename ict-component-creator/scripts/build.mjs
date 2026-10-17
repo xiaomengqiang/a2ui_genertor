@@ -9,7 +9,7 @@
 //      - scans module sources for  name="x" / name={expr with "lit"} / icon: "x"  patterns
 //      - looks each name up in assets/library/lucide-icon-nodes.json (1777 icons)
 //      - names not in Lucide trigger a WARN (keep only if the user requested them)
-//      - injects the icon nodes into the shared icons.js module (const LUCIDE = {...})
+//      - injects the icon nodes into the shared icon.jsx module (const LUCIDE = {...})
 //   5. Inlines everything — React/ReactDOM/Babel from local assets/library,
 //      base+light+theme+dark CSS into <style> (font url() paths rewritten to the HTML root),
 //      all modules wrapped in IIFEs sharing one __export pool
@@ -34,7 +34,7 @@ const OUT = resolve(ROOT, "index.components.html");
 const STYLE_DIR = resolve(ROOT, "assets/style");
 const STYLE_FILES = ["base.css", "light.css", "theme.css", "dark.css"].map((f) => resolve(STYLE_DIR, f));
 const LUCIDE_JSON = resolve(ROOT, "assets/library/lucide-icon-nodes.json");
-const ICONS_MODULE = "assets/shared/icons.js";
+const ICONS_MODULE = "assets/shared/icon.jsx";
 
 // Matches: import [Def,] [Def2] [{ named, names }] from "source";
 const IMPORT_RE = /^[ \t]*import\s+(?:(\w+)\s*,\s*)?(?:(\w+)\s+)?(?:\{([^}]*)\})?\s*from\s*["']([^"']+)["'];?[ \t]*$/gm;

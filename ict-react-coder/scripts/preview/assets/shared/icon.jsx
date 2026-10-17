@@ -251,6 +251,7 @@ export function Icon({
   variant = "lined",
   onClick,
   title,
+  id,
 }) {
   const resolvedSize = resolveSize(size);
   const mergedStyle = onClick ? { cursor: "pointer", ...style } : style;
@@ -324,6 +325,7 @@ export function Icon({
   if (src) {
     return React.createElement("img", {
       src: src,
+      id,
       width: resolvedSize,
       height: resolvedSize,
       className: className,
@@ -355,6 +357,7 @@ export function Icon({
         strokeLinejoin: "round",
         className: className,
         "aria-hidden": true,
+        id,
         onClick,
         title,
         style: { ...mergedStyle, stroke: color || "currentColor" },
@@ -369,6 +372,7 @@ export function Icon({
   if (!svg) {
     return React.createElement("span", {
       ref: wrapRef,
+      id,
       className,
       "aria-hidden": true,
       onClick,
@@ -379,6 +383,7 @@ export function Icon({
 
   return React.createElement("span", {
     ref: wrapRef,
+    id,
     className,
     "aria-hidden": true,
     onClick,

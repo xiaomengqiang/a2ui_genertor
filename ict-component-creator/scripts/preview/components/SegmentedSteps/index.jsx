@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Icon } from "../../assets/shared/icons.js";
+import { Icon } from "../../assets/shared/icon.jsx";
 import "./index.css";
 
 const builtInColors = [
@@ -90,7 +90,7 @@ export default function SegmentedSteps(props) {
                 {step.icon ? (
                   <Icon
                     name={step.icon}
-                    size={13}
+                    size="0.75rem"
                     color={color}
                     className={isActive || isHovered ? "ss-step-icon" : "ss-step-icon ss-step-icon-muted"}
                   />

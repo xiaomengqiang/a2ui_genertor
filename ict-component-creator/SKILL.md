@@ -39,7 +39,7 @@ Analyze the request (purpose, data displayed, interactions), then create `{artif
 1. **`index.jsx`** — standard, copy-paste-ready ES Module:
 - Imports:
   - `import { useState } from "react";` — destructure hooks as needed
-  - `import { Icon } from "../../assets/shared/icons.js";` — icon component
+  - `import { Icon } from "../../assets/shared/icon.jsx";` — icon component
   - `import "./index.css";` — component styles
 - `export default function ComponentName()` — must be a named function declaration
 - For complex components, split sub-components and sub-modules into separate files in the same folder, imported via relative paths
@@ -59,7 +59,7 @@ Analyze the request (purpose, data displayed, interactions), then create `{artif
   - aliased imports (`{ a as b }`)
   - npm packages beyond react/react-dom
 - **User assets:** if the user provides image files (svg/png/jpg), place them into `{artifact-folder}/preview/assets/uploads/` — the path resolves from the scaffold root:
-  - `<Icon src="./assets/uploads/logo.svg" size={28} />`
+  - `<Icon src="./assets/uploads/logo.svg" size="2rem" />`
   - `<img src="./assets/uploads/banner.png" />`
 
 2. **`index.css`** — component CSS (no Tailwind), semantic class names:

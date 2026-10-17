@@ -48,6 +48,7 @@ const item = { icon: "home", label: "首页" };
 | `color` | string | `currentColor` | 描边色（name 模式） |
 | `className` | string | `""` | CSS 类（间距/hover 效果写这里） |
 | `style` | object | — | 内联样式 |
+| `id` | string | — | 元素 id |
 | `strokeWidth` | number | `2` | 描边宽度（name 模式） |
 | `onClick` | function | — | 点击回调；设置后自动带 `cursor: pointer` |
 | `title` | string | — | 悬停提示文案（可点击图标必须配，说明操作含义） |
