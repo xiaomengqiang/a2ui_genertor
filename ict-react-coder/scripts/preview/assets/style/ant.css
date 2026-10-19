@@ -2391,14 +2391,22 @@ input.ant-input.ant-input-sm {
   gap: 0.25rem;
   color: var(--color-text-secondary);
   border-radius: var(--radius-md);
-  /* 滑块（切换动效中滑动的元素）默认是 antd 的白色 itemSelectedBg，
-       改为与选中项一致的背景/圆角，滑动结束与 item-selected 无缝衔接 */
+  /* 点击的选项当帧立即呈现选中样式（radio 的 checked 与点击同步更新，
+       不必等动效链结束才落地的 item-selected 类，配合完全无动效方案） */
+  /* 完全无动效之滑块处理：
+       1) 过渡压到 0.01ms —— rc-motion 依赖滑块的 transitionend 结束动效并应用选中类，
+          不能用 display:none / transition:none（会卡死内部状态，选中类永不落地）；
+       2) 滑块隐形（透明背景、无阴影）—— 残余 2~4 帧里 antd 白色滑块会透过旧选项闪现 */
 }
 .ant-segmented .ant-segmented-group .ant-segmented-item-label {
   padding: 0 1rem;
   font-size: var(--font-size-md);
   line-height: 1.75rem;
   min-height: initial;
+}
+.ant-segmented .ant-segmented-group .ant-segmented-item {
+  /* 完全无动效：失去选中时颜色/背景瞬时切换（antd 默认 color 有 0.2s 渐变） */
+  transition: none;
 }
 .ant-segmented .ant-segmented-group .ant-segmented-item:not(.ant-segmented-item-disabled):hover {
   color: var(--gray-90);
@@ -2408,6 +2416,8 @@ input.ant-input.ant-input-sm {
   color: var(--gray-20);
 }
 .ant-segmented .ant-segmented-group .ant-segmented-item-selected {
+  /* 选中类由动效链结束后落地（约 1 帧）；选中视觉由下方 :has(:checked) 当帧渲染，
+       此规则保证类落地后样式一致，并提供禁用-选中变体（transition 已由基础项覆盖） */
   color: var(--gray-0);
   background: var(--brand-50);
   border-radius: var(--radius-base);
@@ -2420,9 +2430,25 @@ input.ant-input.ant-input-sm {
   color: var(--gray-0);
   background: var(--brand-20);
 }
-.ant-segmented .ant-segmented-group .ant-segmented-thumb {
+.ant-segmented .ant-segmented-group .ant-segmented-item:has(.ant-segmented-item-input:checked) {
+  color: var(--gray-0);
   background: var(--brand-50);
   border-radius: var(--radius-base);
+}
+.ant-segmented .ant-segmented-group .ant-segmented-item:has(.ant-segmented-item-input:checked):not(.ant-segmented-item-disabled):hover {
+  color: var(--gray-0);
+  background: var(--brand-40);
+}
+.ant-segmented .ant-segmented-group .ant-segmented-item:has(.ant-segmented-item-input:checked).ant-segmented-item-disabled {
+  color: var(--gray-0);
+  background: var(--brand-20);
+}
+.ant-segmented .ant-segmented-group .ant-segmented-thumb,
+.ant-segmented .ant-segmented-group .ant-segmented-thumb-motion-appear-active {
+  transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 .ant-segmented.ant-segmented-lg .ant-segmented-item-label {
   font-size: var(--font-size-md);
@@ -2431,6 +2457,9 @@ input.ant-input.ant-input-sm {
 .ant-segmented.ant-segmented-sm .ant-segmented-item-label {
   font-size: var(--font-size-base);
   line-height: 1.5rem;
+}
+.dark .ant-segmented-group {
+  /* 点击的选项当帧立即呈现选中样式（同浅色段说明），图标颜色同步 */
 }
 .dark .ant-segmented-group .ant-segmented-item .ant-segmented-item-icon {
   color: var(--gray-30);
@@ -2463,6 +2492,27 @@ input.ant-input.ant-input-sm {
   background: var(--brand-70);
 }
 .dark .ant-segmented-group .ant-segmented-item-selected.ant-segmented-item-disabled .ant-segmented-item-icon {
+  color: var(--color-text-inverse-disabled);
+}
+.dark .ant-segmented-group .ant-segmented-item:has(.ant-segmented-item-input:checked) {
+  color: var(--gray-0);
+  background: var(--brand-50);
+}
+.dark .ant-segmented-group .ant-segmented-item:has(.ant-segmented-item-input:checked) .ant-segmented-item-icon {
+  color: var(--gray-0);
+}
+.dark .ant-segmented-group .ant-segmented-item:has(.ant-segmented-item-input:checked):not(.ant-segmented-item-disabled):hover {
+  color: var(--gray-0);
+  background: var(--brand-40);
+}
+.dark .ant-segmented-group .ant-segmented-item:has(.ant-segmented-item-input:checked):not(.ant-segmented-item-disabled):hover .ant-segmented-item-icon {
+  color: var(--gray-0);
+}
+.dark .ant-segmented-group .ant-segmented-item:has(.ant-segmented-item-input:checked).ant-segmented-item-disabled {
+  color: var(--color-text-inverse-disabled);
+  background: var(--brand-70);
+}
+.dark .ant-segmented-group .ant-segmented-item:has(.ant-segmented-item-input:checked).ant-segmented-item-disabled .ant-segmented-item-icon {
   color: var(--color-text-inverse-disabled);
 }
 
