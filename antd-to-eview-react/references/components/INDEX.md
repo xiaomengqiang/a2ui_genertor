@@ -2,7 +2,7 @@
 
 迁移时按需查阅对应文档。组件映射总表见 [../component-mapping.md](../component-mapping.md)。
 
-> **包壳组件**：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`、`DatePicker`、`Spinner`、`Steps`、`Cascader`、`TreeSelector` 为 scaffold 预置，从 `@/shared/<X>` 导入（多数透明转发 `@nce/eview-react/<X>`；`Cascader` 为手写组件 API 基本同 antd），不走 `@nce/eview-react/<X>`。清单见 SKILL.md 硬约束 #1。
+> **包壳组件**：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`、`DatePicker`、`Spinner`、`Steps`、`Cascader`、`TreeSelector`、`IPInput`、`TimePicker` 为 scaffold 预置，从 `@/shared/<X>` 导入（多数透明转发 `@nce/eview-react/<X>`；`Cascader` 为手写组件 API 基本同 antd），不走 `@nce/eview-react/<X>`。清单见 SKILL.md 硬约束 #1。
 
 ## 表单与输入
 
@@ -23,7 +23,8 @@
 | DragInput | [DragInput.md](DragInput.md) | 滑块（Slider） |
 | Rating | [Rating.md](Rating.md) | 评分（Rate） |
 | DatePicker | [DatePicker.md](DatePicker.md) | 日期选择（DatePicker/RangePicker） |
-| Spinner | [Spinner.md](Spinner.md) | 数字步进/时间（InputNumber/TimePicker） |
+| Spinner | [Spinner.md](Spinner.md) | 数字步进（InputNumber） |
+| TimePicker | [TimePicker.md](TimePicker.md) | 时间选择（TimePicker） |
 | FileUpload | [FileUpload.md](FileUpload.md) | 文件上传（Upload） |
 | IPInput | [IPInput.md](IPInput.md) | IP 输入（eview-react 独有） |
 

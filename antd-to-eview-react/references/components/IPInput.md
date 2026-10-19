@@ -1,5 +1,7 @@
 # IPInput 组件功能逻辑规格
 
+> 导入：`import IPInput from '@/shared/IPInput'`（scaffold 包壳，透明转发 `@nce/eview-react/IPInput`，API 不变）。
+
 > 资料来源：TypeDoc `IPInput/IPInput` + 官网 IP Input 页示例。
 > ⚠️ 值是**完整字符串**（如 `'10.8.52.211'`），组件内部拆成分段输入框；`onChange(value, event)` / `onBlur(value, event)` 第一个参数都是拼好的字符串。
 > ⚠️ `type` 三种：`v4`（默认）/ `v6` / `mac`；MAC 类型粘贴带分隔符的串时行为由 `liftDelimiterOnPaste` 控制，`onChange` 回传去掉分隔符的十六进制文本，需自行格式化。
