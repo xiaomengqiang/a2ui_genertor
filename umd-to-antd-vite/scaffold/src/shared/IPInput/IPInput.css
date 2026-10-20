@@ -1,0 +1,41 @@
+.evIPInput-custom {
+    width: 100%;
+    min-width: 0;
+}
+
+.ev_ip_input_outer.evIPInput-custom {
+    display: inline-flex;
+}
+
+.evIPInput-custom .ev_ip_input_container {
+    flex: 1;
+    min-width: 0;
+}
+
+.evIPInput-custom .ev_ip_input {
+    width: 100%;
+    min-width: unset;
+}
+
+.evIPInput-custom div.ev_ip_input>input {
+    width: 100%
+}
+
+.evIPInput-custom .ev_ip_input.ev_ip_input_ipv6 {
+    width: 100%;
+    min-width: unset;
+}
+
+.evIPInput-custom .ev_ip_input.ev_ip_input_ipv6>input {
+    width: 100%
+}
+
+
+.evIPInput-custom .ev_ip_input.ev_ip_input_mac {
+    width: 100%;
+    min-width: unset;
+}
+
+.evIPInput-custom .ev_ip_input.ev_ip_input_mac>input {
+    width: 100%
+}

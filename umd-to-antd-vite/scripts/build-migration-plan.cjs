@@ -61,7 +61,7 @@ const handoff = JSON.parse(fs.readFileSync(handoffPath, 'utf8'));
 // 需硬编码检测。其余包壳都能从 keyDiffs 的 @/shared/<X> 自动检测）
 const SHELL_COMPONENTS = [
   'Select', 'TextField', 'InputSelect', 'MultipleSelect', 'SearchInput', 'TextArea',
-  'Tag', 'DatePicker', 'Spinner', 'Steps', 'Cascader', 'TreeSelector',
+  'Tag', 'DatePicker', 'Spinner', 'Steps', 'Cascader', 'TreeSelector', 'IPInput', 'TimePicker',
 ];
 
 // ========== 1. Parse component-mapping.md into lookup table ==========

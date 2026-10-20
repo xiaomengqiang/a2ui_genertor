@@ -83,7 +83,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 ### 3.1 A 类（有对应）：改 props
 
 对每个有对应的组件，执行：
-1. 改导入路径：用 `migrationPlan` 的 `importPath` 字段（已含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底，无需手动判断；`shellComponent=true` 的从 `@/shared/<X>` 导入）
+1. 改导入路径：用 `migrationPlan` 的 `importPath` 字段（已含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底 Steps/IPInput/TimePicker 等，无需手动判断；`shellComponent=true` 的从 `@/shared/<X>` 导入）
 2. 改属性名：用 `migrationPlan` 的 `keyDiffs`（映射表完整原文）逐项替换；拼写异常查 `globalRef.spellingAnomalies`，回调签名查 `globalRef.callbackSignatures`——**无需读 `component-mapping.md`**
 3. 改回调签名：首参从 event 改为 value（`globalRef.callbackSignatures` 有每组件签名）
 4. 改数据格式：`options` 的 `label`→`text`，`items`→`data` 等（`keyDiffs` 已列）

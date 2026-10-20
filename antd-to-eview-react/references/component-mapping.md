@@ -43,7 +43,7 @@
 | `Rate` | `Rating` | 取值是 `onClick(value)` 不是 onChange；`onMouseOver/Leave` 悬浮预览；`half`；`disabled` 只读 |
 | `DatePicker` | `DatePicker` | **不要无条件回写** `onChange` 的字符串到 `value`（官方反例）；用 `defaultValue`+`ref.getValue()` 或有效 Date 才回写；⚠️ 导入 `@/shared/DatePicker`（包壳，非 `@nce/eview-react/DatePicker`） |
 | `DatePicker.RangePicker` | `DatePicker range={...}` | **不要用 `onOkClick`**（实测不返回 `fromDateObj/toDateObj`，分两次回调只返回单日期）；改用 `onChange` 的 `target` 参数（`'from'`/`'to'`）分别收集起止日期；⚠️ 导入 `@/shared/DatePicker`（包壳）。详见 [DatePicker.md](components/DatePicker.md) § 范围选择 |
-| `TimePicker` | `Spinner type="time"` | 值是字符串 `"hh:mm:ss"`；`timeFormat`；⚠️ 导入 `@/shared/Spinner`（包壳） |
+| `TimePicker` | `TimePicker` | `time` 是数字数组（非 antd `value`/`dayjs`）；`onChange(time: string[])` 回传字符串数组；`format` 小写 `hh:mm:ss`/`hh:mm`/`mm:ss`；无 `value`/`allowClear`/`RangePicker`；`amPm` 标记在 `time[3]`；`supportEmptyTime` 空值 `[]`；`timeEmbedded` 内联面板；`getValue()` 实例方法返回 string[]；⚠️ 导入 `@/shared/TimePicker`（包壳，非 `@nce/eview-react/TimePicker`） |
 | `Upload` | `FileUpload` | 组件不发请求；`handleSubmit({event,data})` 自己发；`updateProgressStatus`/`fileUploadStatus` 回写；`disable`（不是 disabled）；`onReload` 重传 |
 
 ## 数据展示

@@ -14,7 +14,7 @@ Spinner 是带加减按钮的数值输入框：范围、步长、精度、必填
 |-----------|--------|--------|
 | 数量 / 端口 / 超时秒数等数值输入 | `Spinner` | antd `InputNumber`、`TextField format="number"` 手写加减 |
 | 拖动选值、看范围 | `DragInput`（[DragInput.md](DragInput.md)） | Spinner |
-| 时:分:秒 输入 | `Spinner type="time"` | TimePicker（后续批次，另有日期语义） |
+| 时:分:秒 输入 | `TimePicker`（[TimePicker.md](TimePicker.md)） | `Spinner type="time"` |
 | 加载中转圈 | `Loading` / `Loader`（后续批次） | Spinner |
 
 ## 2. 事件与交互逻辑
