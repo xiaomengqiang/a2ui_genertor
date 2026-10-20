@@ -41,7 +41,7 @@ const sourceBaseName = path.basename(sourceFile);
 const stats = {
   rootRules: 0, darkRules: 0, fontRules: 0, mediaRules: 0, otherRules: 0,
   tokenVars: 0, darkVars: 0, scriptsExtracted: 0, srcFiles: [],
-  antdComponents: {}, antdIcons: [],
+  antdComponents: {}, antdIcons: [], iconCallSites: [],
 };
 
 // ========== 1. 提取 <style> 块并分类 ==========
@@ -381,6 +381,76 @@ if (i18nInfo.antdLocaleImports.length) console.log(`[extract-umd] antd locale �
 if (i18nInfo.antdLocaleFiles.length) console.log(`[extract-umd] 自写 antd locale 文件(dayjs 注册): ${i18nInfo.antdLocaleFiles.join(', ')}`);
 if (i18nInfo.businessLocaleFiles.length) console.log(`[extract-umd] 业务语言包文件: ${i18nInfo.businessLocaleFiles.length} 个`);
 
+// ========== 4.6 扫描 <Icon name> 调用点（供下游 antd-to-eview-react 图标步骤预定位） ==========
+
+function scanIconCallSites() {
+  const scanDirs = [];
+  const srcDir = path.join(sourceDir, 'src');
+  if (fs.existsSync(srcDir)) scanDirs.push(srcDir);
+  const extractedDir = path.join(resolvedOutput, '_extracted');
+  if (fs.existsSync(extractedDir)) scanDirs.push(extractedDir);
+
+  const callSites = [];
+
+  for (const base of scanDirs) {
+    function walk(dir) {
+      for (const name of fs.readdirSync(dir)) {
+        const full = path.join(dir, name);
+        const stat = fs.statSync(full);
+        if (stat.isDirectory()) {
+          if (name === 'node_modules' || name === 'dist') continue;
+          walk(full);
+          continue;
+        }
+        if (!/\.(jsx?|tsx?)$/.test(name)) continue;
+        const code = fs.readFileSync(full, 'utf8');
+        const relFile = path.relative(sourceDir, full).replace(/\\/g, '/');
+
+        const iconRe = /<Icon\b/g;
+        let m;
+        while ((m = iconRe.exec(code)) !== null) {
+          const startPos = m.index;
+          const window = code.slice(startPos, startPos + 300);
+          const lineNum = code.slice(0, startPos).split('\n').length;
+
+          const nameLitMatch = window.match(/name\s*=\s*["']([^"']+)["']/);
+          const nameDynMatch = window.match(/name\s*=\s*\{([^}]+)\}/);
+
+          let nameValue = null;
+          let nameType = 'none';
+
+          if (nameLitMatch) {
+            nameValue = nameLitMatch[1];
+            nameType = 'literal';
+          } else if (nameDynMatch) {
+            nameValue = nameDynMatch[1].trim();
+            nameType = 'dynamic';
+          }
+
+          callSites.push({
+            file: relFile,
+            line: lineNum,
+            name: nameValue,
+            type: nameType,
+          });
+        }
+      }
+    }
+    walk(base);
+  }
+
+  return callSites;
+}
+
+stats.iconCallSites = scanIconCallSites();
+
+if (stats.iconCallSites.length) {
+  const literal = stats.iconCallSites.filter(s => s.type === 'literal').length;
+  const dynamic = stats.iconCallSites.filter(s => s.type === 'dynamic').length;
+  const noneName = stats.iconCallSites.filter(s => s.type === 'none').length;
+  console.log(`[extract-umd] <Icon> 调用点: ${stats.iconCallSites.length} 处 (字面量=${literal}, 动态=${dynamic}, 无name=${noneName})`);
+}
+
 // ========== 5. 生成 .umd-conversion.json 交接文件 ==========
 
 const handoff = {
@@ -390,6 +460,7 @@ const handoff = {
   projectName: path.basename(resolvedOutput),
   antdComponents: stats.antdComponents,
   antdIcons: stats.antdIcons,
+  iconCallSites: stats.iconCallSites,
   tokens: {
     rootVarCount: stats.tokenVars,
     darkVarCount: stats.darkVars,
@@ -430,6 +501,7 @@ console.log(`  Token 变量: ${stats.tokenVars} 个 (:root), ${stats.darkVars} �
 console.log(`  src/ 文件: ${stats.srcFiles.length} 个`);
 console.log(`  antd 组件: ${Object.keys(stats.antdComponents).length} 个`);
 console.log(`  antd 图标: ${stats.antdIcons.length} 个`);
+  console.log(`  Icon 调用点: ${stats.iconCallSites.length} 处`);
 console.log(`  i18n scenario: ${i18nInfo.scenario}${i18nInfo.scenario === 'A' ? '（硬编码，scaffold 已就绪）' : i18nInfo.scenario === 'B' ? '（react-intl，步骤 3 合并业务包）' : '（i18next，留下游决策）'}`);
 if (stats.scriptsExtracted) console.log(`  提取 script 块: ${stats.scriptsExtracted} 个`);
 console.log(`  交接文件: .umd-conversion.json`);

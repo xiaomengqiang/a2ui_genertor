@@ -8,15 +8,16 @@
 
 源项目是 `umd-to-antd-vite` 产物，目标工程根必有 `.umd-conversion.json` 交接文件。
 
-**优先路径（`migrationPlan` 非 `null`，上游 `umd-to-antd-vite` 步骤 5 已评估前置）**：直接读 `migrationPlan` 数组作为分类评估清单——每项已含 `antd` / `category`（A/B/C）/ `eview` / `keyDiffs` / `ref` / `files`。**无需再读 `component-mapping.md` 大表对照，直接跳到 §0.4 用此清单规划步骤 3 替换顺序**（§0.2 分类、§0.3 估时均可从 `migrationPlan` 的 `category` 字段直接统计，跳过）。
+**优先路径（`migrationPlan` 非 `null`，上游 `umd-to-antd-vite` 步骤 5 `build-migration-plan.cjs` 已生成 enriched 版）**：直接读 `migrationPlan` 数组作为分类评估清单——每项已含 `antd` / `category`（A/B/C）/ `eview` / **`importPath`**（含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底 Steps）/ **`shellComponent`** / **`keyDiffs`**（映射表完整原文，非一行摘要）/ `ref` / `files`。**A 类组件直接用 `keyDiffs` + `importPath` 替换，无需读 `component-mapping.md` 或 `components/<Name>.md`**；仅 B/C 类按 `ref` 指引读对应 reference。同时读 `globalRef`（`.umd-conversion.json` 顶层）获取静态拼写异常 + 回调签名速查表，跳过读 `component-mapping.md` 文末速查表。直接跳到 §0.4 用 `migrationPlan` 的 `category` 统计规划步骤 3 替换顺序（§0.2/§0.3 跳过）。
 
 **回退路径（`migrationPlan` 为 `null`，上游未跑步骤 5）**：读 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，同时读 `antdIcons` 获取图标清单，进入 §0.2 手动对照 `component-mapping.md` 分类。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。
 
-**`antdIcons` 只统计 `@ant-design/icons` 命名导入，不代表有无图标**。ict-react-coder 产物普遍用**自定义 `<Icon name="...">` 运行时 shim**（`assets/shared/icon.jsx`，源码里的"方案A形式"组件）、不用 `@ant-design/icons`，故 `antdIcons` **恒为 `[]`**——但实际有大量 `<Icon name>` 调用点（复杂页面 31 处、preview3 20+ 处），**正是方案 C/B 要扫描改写的目标**。**判断是否有图标看 `<Icon name` 调用点，不看 `antdIcons`**：
+**`antdIcons` 只统计 `@ant-design/icons` 命名导入，不代表有无图标**。ict-react-coder 产物普遍用**自定义 `<Icon name="...">` 运行时 shim**（`assets/shared/icon.jsx`，源码里的"方案A形式"组件）、不用 `@ant-design/icons`，故 `antdIcons` **恒为 `[]`**——但实际有大量 `<Icon name>` 调用点（复杂页面 31 处、preview3 20+ 处），**正是方案 C/B 要扫描改写的目标**。**判断是否有图标看 `iconCallSites` 字段（上游 `extract-umd.cjs` 预扫）或 `<Icon name` 调用点，不看 `antdIcons`**：
 > ```bash
+> # iconCallSites 已预扫时直接用；否则 grep 确认
 > grep -rl "<Icon\b" <目标工程>/src/
 > ```
-> 输出非空即有图标站点，**必须走 §3.0 图标步骤**（C 跑 `match-icons.cjs` / B 在线匹配），**禁止因 `antdIcons: []` 跳过 `match-icons.cjs`**。源码 `<Icon name>` shim ≠ 产物方案A，其字面量站点必须转 C/B。
+> `iconCallSites` 非空或 grep 输出非空即有图标站点，**必须走 §3.0 图标步骤**（C 跑 `match-icons.cjs` / B 在线匹配），**禁止因 `antdIcons: []` 跳过 `match-icons.cjs`**。源码 `<Icon name>` shim ≠ 产物方案A，其字面量站点必须转 C/B。
 
 > 组件清单已由 `umd-to-antd-vite` 生成并写入交接文件，不需要手动 grep 扫描 `src/`。`migrationPlan` 是否非 `null` 决定走优先路径（跳过 §0.2/§0.3）还是回退路径（手动对照大表）。
 
@@ -82,10 +83,11 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 ### 3.1 A 类（有对应）：改 props
 
 对每个有对应的组件，执行：
-1. 改导入路径：`from 'antd'` → `from '@nce/eview-react/<Component>'`（**例外**：包壳组件 Select/TextField/InputSelect/MultipleSelect/SearchInput/TextArea/Tag/DatePicker/Spinner/Steps/Cascader/TreeSelector → `from '@/shared/<X>'`，见 SKILL.md 硬约束 #1）
-2. 改属性名：对照 [component-mapping.md](component-mapping.md) 逐项替换（含文末「属性拼写异常」+「回调签名差异」速查表）
-3. 改回调签名：首参从 event 改为 value
-4. 改数据格式：`options` 的 `label`→`text`，`items`→`data` 等
+1. 改导入路径：用 `migrationPlan` 的 `importPath` 字段（已含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底，无需手动判断；`shellComponent=true` 的从 `@/shared/<X>` 导入）
+2. 改属性名：用 `migrationPlan` 的 `keyDiffs`（映射表完整原文）逐项替换；拼写异常查 `globalRef.spellingAnomalies`，回调签名查 `globalRef.callbackSignatures`——**无需读 `component-mapping.md`**
+3. 改回调签名：首参从 event 改为 value（`globalRef.callbackSignatures` 有每组件签名）
+4. 改数据格式：`options` 的 `label`→`text`，`items`→`data` 等（`keyDiffs` 已列）
+5. **仅当 `keyDiffs` 不够详细时**（复杂组件如 Table/DatePicker），按 `ref` 读 `components/<Name>.md` 查完整 API
 
 ### 3.2 B 类（无对应）：手写补位
 
@@ -111,9 +113,9 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 3. **布局组件**（Layout / Menu / Breadcrumb）—— 影响全局
 
 **每个组件替换时读**：
-- [component-mapping.md](component-mapping.md) — 查"关键 API 差异"列 + 文末拼写/回调速查表
-- [components/<组件>.md](components/INDEX.md) — 查完整 API
-- 无对应组件读 [handwrite-templates.md](handwrite-templates.md) — 手写模板
+- A 类：`migrationPlan.keyDiffs` + `importPath` + `globalRef`（拼写/回调速查）——**通常无需额外读文件**；仅 Table/DatePicker 等复杂组件按 `ref` 读 `components/<Name>.md`
+- B 类：按 `ref` 读 [handwrite-templates.md](handwrite-templates.md) 对应 §章节
+- C 类：按 `ref` 读 [components/Steps.md](components/Steps.md) / [components/Dialog.md](components/Dialog.md) / [components/MessageDialog.md](components/MessageDialog.md)
 
 > **Table 操作列间距**：操作列 `render` 中多个按钮不要用 `<>...</>` Fragment 包裹（无间距），改用 `<div style={{ display: 'flex', gap: '12px' }}>`。源项目用 antd `<Space>` 的，迁移后统一按此模式处理。
 >
@@ -121,7 +123,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 >
 > **Table 冻结列**：eview 的 `freezeCol` **无条件冻结**（sticky+阴影），antd 的 `fixed` 仅表格横向溢出（`scroll.x` 生效）时才有视觉效果——源列写了 `fixed` ≠ 源页面视觉冻结。迁移**默认不写** `freezeCol`/`freezeColPosition`；仅源列有 `fixed` 且源表 `scroll.x`/列宽合计明显超出容器宽（真的会横向滚动）时才映射。见 [Table.md](components/Table.md) §5 冻结列行。
 
-**硬约束**：遵守 SKILL.md 的"eview-react 硬约束"章节（10 条）。导入路径改为 `import X from '@nce/eview-react/X'`。
+**硬约束**：遵守 SKILL.md 的"eview-react 硬约束"章节（12 条）。导入路径改为 `import X from '@nce/eview-react/X'`。
 
 全部替换完后进入步骤 3 验证。
 

@@ -19,7 +19,7 @@ description: >-
 
 | 步骤 | 做什么 | 产出 |
 |------|--------|------|
-| **0. 评估** | 读 `.umd-conversion.json` 的 `migrationPlan`（由 `umd-to-antd-vite` 步骤 5 始终生成，含分类 A/B/C + 替换名 + 关键差异 + 涉及文件 + reference 指引）。详见 [migration-workflow.md](references/migration-workflow.md) 步骤 0 | 组件迁移清单 |
+| **0. 评估** | 读 `.umd-conversion.json` 的 `migrationPlan`（由 `umd-to-antd-vite` 步骤 5 `build-migration-plan.cjs` 脚本生成，含分类 A/B/C + 替换名 + **importPath** + **shellComponent** + **完整 keyDiffs** + ref 指引 + 涉及文件）+ `globalRef`（拼写异常 + 回调签名速查表）。**A 类组件直接用 keyDiffs + importPath 替换，无需读 `component-mapping.md` 或 `components/<Name>.md`**；仅 B/C 类按 `ref` 指引读对应 reference。读 `iconCallSites` 获取图标调用点预扫结果（跳过 grep）。详见 [migration-workflow.md](references/migration-workflow.md) 步骤 0 | 组件迁移清单 + 拼写/回调速查 + 图标调用点 |
 | **1. i18n 设置** | 读 `.umd-conversion.json` 的 `i18nScenario`：`wired=true`（scenario A/B）跳过接线（IntlProvider + 业务包合并已由上游步骤 3 完成），只做运行时验证（DatePicker 中文、Portal 不报 MISSING_TRANSLATION）；`wired=false`（scenario C）做 keep i18next vs 迁 react-intl 决策。详见 [i18n-migration.md](references/i18n-migration.md) §3/§4 | i18n 运行时验证通过 |
 | **2. 逐组件替换** | 按映射总表替换每个 antd 组件；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写；图标按 §3.0 转 B/C 静态 import（字面量、三元、数据数组动态名 `name={t.icon}`、图标-prop wrapper 组件 `icon` prop 全由 `match-icons.cjs --apply` 自动改写；引入 JSX 的 `.js`→`.jsx` / `.ts`→`.tsx` 自动转换；仅真运行时数据/wrapper 安全闸退方案A shim 兜底，详见 [Icon.md](references/components/Icon.md)）/图表（`@nce/eview-react/Chart`）走预制件复用，只改 import 路径，**所有图表 option 必须显式补 `a2ui: true` + `theme`（暗色派生，源 Chart 封装的注入行为不随包导入自动生效）**。详见 [§3.0–§3.5](references/migration-workflow.md) | 组件代码全部替换 |
 | **3. 验证** | `check-relative-imports.cjs` 跳过（路径已由 `umd-to-antd-vite` 修正）。`check-i18n-keys.cjs` 必跑。`npm install`（bash 工具 timeout=30000，超时/失败记 SKIP 不判 FAIL）。详见 [§4.4](references/migration-workflow.md) | i18n 检查通过 |
@@ -60,7 +60,7 @@ description: >-
 
 ## 前置 skill：umd-to-antd-vite
 
-以下工作已由 `umd-to-antd-vite` 完成，本 skill 跳过：工程骨架搭建（eview-react scaffold 已就位）、组件扫描（`antdComponents`）、token 外置、相对导入修正、暗色模式转换（antd `theme.darkAlgorithm` → eview 类名切换）、i18n 静态接线（scenario A/B 的 `IntlProvider` + 业务包合并，`i18nScenario.wired=true`；scenario C 留本 skill 步骤 1 决策）、组件分类评估（`migrationPlan`，由上游步骤 5 始终填充，步骤 0 直接读它）。
+以下工作已由 `umd-to-antd-vite` 完成，本 skill 跳过：工程骨架搭建（eview-react scaffold 已就位）、组件扫描（`antdComponents`）、**图标调用点预扫**（`iconCallSites`，含文件+行号+name值+类型，跳过 grep）、token 外置、相对导入修正、暗色模式转换（antd `theme.darkAlgorithm` → eview 类名切换）、i18n 静态接线（scenario A/B 的 `IntlProvider` + 业务包合并，`i18nScenario.wired=true`；scenario C 留本 skill 步骤 1 决策）、**组件分类评估**（`migrationPlan` enriched 版，由上游步骤 5 `build-migration-plan.cjs` 脚本生成，含 importPath + shellComponent + 完整 keyDiffs + ref；**A 类组件无需读 component-mapping.md / components/*.md**）+ **全局速查表**（`globalRef`，拼写异常 + 回调签名，跳过读 component-mapping.md 文末速查表）。
 
 ## 核心问题
 
