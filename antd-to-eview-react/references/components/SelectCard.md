@@ -8,6 +8,8 @@
 
 SelectCard 是一组互斥的选项卡按钮（分段控制器），`data` 驱动，点一个选一个，适合 2-6 个短选项的快速切换。
 
+> **硬约束：必须设初始值**——`value` 必须有初始选中值（antd `defaultValue`→初始 `useState`；无 `defaultValue` 时取 `data[0].value`），不允许空值导致首次渲染为空白。
+
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
 | 规格 / 档位选择（100MB / 200MB / 500MB） | `SelectCard` | antd `Segmented` / `Radio.Button` |
@@ -65,6 +67,20 @@ import Segmented from '@nce/eview-react/Segmented';
 // ❌ antd 习惯：没有 options / Radio.Button / block
 <Segmented options={['列表', '卡片']} block onChange={setView} />
 <Radio.Group optionType="button" />
+
+// ❌ antd Segmented 的 options 字符串数组直接当 data 用（必须转 [{text,value}] 格式）
+// 源 antd: <Segmented options={['列表', '卡片']} />
+// 迁移后应为：
+const viewOpts = [
+  { text: '列表', value: '列表' },
+  { text: '卡片', value: '卡片' },
+];
+
+// ❌ antd Segmented 的 defaultValue 原样透传（SelectCard 无 defaultValue prop），首次渲染为空
+// 源 antd: <Segmented defaultValue="列表" options={['列表', '卡片']} />
+// 迁移后应为：
+const [view, setView] = useState('列表');  // ← 初始值来自 defaultValue
+<SelectCard data={viewOpts} value={view} onChange={setView} />
 
 // ❌ 拼写错：禁用是 disable，不是 disabled（组件级与选项级同理）
 <SelectCard data={opts} disabled />

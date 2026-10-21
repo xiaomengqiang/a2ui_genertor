@@ -10,6 +10,13 @@
 
 Select 是单选下拉框：`options` 数组驱动，每项 `text` 显示、`value` 存取；支持初始选中、必填校验、清空、虚拟滚动。
 
+> **硬约束：必须设默认选中值**——迁移后 Select 首次渲染必须有选中项，初始 `value` 不允许为 `null`/`undefined`（eview Select 无 `defaultValue` prop，默认值只能由 `useState` 初始值给）：
+> 1. antd 有 `defaultValue` → 用该值初始化 `useState` 作为 Select 的 `value`
+> 2. antd 无 `defaultValue` → 取 `options[0].value` 作初始值（源业务下拉总有一个选中项）
+> 3. 业务明确允许"不选"（如筛选条件"全部"选项）→ options 首项加 `{ text: '全部', value: '' }`，初始 `value` 设为 `''`
+>
+> 原因：`defaultLabel` 只是未选中时的占位文案，替代不了业务默认值；空值迁移会丢失源 antd 页面"下拉总有选中项"的行为。
+
 | 想要的效果 | 用什么 | 不要用 |
 |-----------|--------|--------|
 | 单选下拉 | `Select` + `options` | antd 的 `<Select><Option>` children、`mode` |
@@ -61,8 +68,9 @@ statusRef.current.clear();
 ```tsx
 const handleProvinceChange = async (value) => {
   setProvince(value);
-  setCity(null);                         // 先清子级，避免残留无效值
-  setCityOptions(await api.getCities(value));
+  const cities = await api.getCities(value);
+  setCityOptions(cities);
+  setCity(cities[0]?.value);             // 子级重置为新列表首项，避免残留旧省的值
 };
 <Select label="省" options={provinceOptions} value={province} onChange={handleProvinceChange} />
 <Select label="市" options={cityOptions} value={city} disabled={cityOptions.length === 0} onChange={(v) => setCity(v)} />
@@ -93,7 +101,7 @@ interface SelectOption {
 
 ## 3. 联动说明
 
-- 省市级联：父级 `onChange` 里先 `setCity(null)` 清子级值，再异步加载子级 `options`，避免残留无效值
+- 省市级联：父级 `onChange` 里异步加载子级 `options`，再把子级 `value` 重置为新列表首项（`cities[0]?.value`），避免残留无效值
 - `options` 长度 > 100 → 加 `virtualScroll`（README：数据量必须大于 100 才生效）
 
 ## 4. 反面示例
@@ -109,6 +117,12 @@ interface SelectOption {
 
 // ❌ 只写 value 不写 onChange，用户选了也不进 state
 <Select options={opts} value={region} />
+
+// ❌ antd defaultValue 原样透传（eview Select 无 defaultValue prop），首次渲染为空值
+// 源 antd: <Select defaultValue="east"><Option.../></Select>
+// 迁移后应为：
+const [region, setRegion] = useState('east');  // ← 初始值来自 antd defaultValue
+<Select options={opts} value={region} onChange={setRegion} />
 
 // ❌ 把 onChange 第二个参数当 event（它是 oldValue，event 是第五个）
 <Select options={opts} onChange={(value, event) => event.stopPropagation()} />

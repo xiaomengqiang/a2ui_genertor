@@ -57,6 +57,7 @@ description: >-
 | **表单提交页** | 输入组件逐个替换（源项目用 div+输入组件拼合，无 Form 包装）；提交逻辑不变 |
 | **侧边详情/编辑** | `Drawer`→`Drawer`（`open`→`visible`）；底部按钮自写；`Descriptions`→手写 KeyValueList |
 | **布局骨架** | `Layout`/`Avatar` 全部手写；`Menu`→`Accordion`；`Breadcrumb`→`Crumbs`；`Input.Search`→`SearchInput` |
+| **分段选项卡** | `Segmented`→`SelectCard`（导出名是 SelectCard 不是 Segmented）；`options`→`data=[{text,value}]`；`defaultValue`→初始 `value` state；`block`→无对应（宽度走 `style`/`itemStyle`）；`disabled`→`disable`；`onChange` 首参即为选中值 |
 
 ## 前置 skill：umd-to-antd-vite
 

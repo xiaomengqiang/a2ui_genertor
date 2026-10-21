@@ -28,7 +28,7 @@
 | `Input.Password` | `TextField type="password"` | 需 `isAllowToModifyPasswordByProps` 才能 props 清空/回填；`autoComplete="off"` |
 | `InputNumber` | `Spinner` | `onChange(value)` 只在有效值触发；`onInputError(value)` 接无效值；重置加 `doNotFocusWhenValueUpdate`；`min/max/step/precision`；⚠️ 导入 `@/shared/Spinner`（包壳，非 `@nce/eview-react/Spinner`） |
 | `Mentions` | 手写 | 无对应 |
-| `Select` | `Select` | `options` 字段 `label`→`text`；`placeholder`→`defaultLabel`；`onChange(value, oldValue, text, oldText, event)` 五参；`enableClear`；`virtualScroll` >100 项；⚠️ 导入 `@/shared/Select`（包壳，非 `@nce/eview-react/Select`） |
+| `Select` | `Select` | `options` 字段 `label`→`text`；`placeholder`→`defaultLabel`；`onChange(value, oldValue, text, oldText, event)` 五参；`enableClear`；`virtualScroll` >100 项；`defaultValue`→初始 `value` state（**必须设默认选中值**：无 `defaultValue` 时取 `options[0].value`）；⚠️ 导入 `@/shared/Select`（包壳，非 `@nce/eview-react/Select`） |
 | `Select mode="multiple"` | `MultipleSelect` | 删 `mode`；`value` 数组；`onChange(value[], changeValue[], event)`；`placeholder`（不是 defaultLabel）；`selectAll`/`searchable`；⚠️ 导入 `@/shared/MultipleSelect`（包壳，非 `@nce/eview-react/MultipleSelect`） |
 | `Select showSearch` | `InputSelect` | `onlySelect` 决定输入是否可作值；`options=[{text,value}]`；⚠️ 导入 `@/shared/InputSelect`（包壳，非 `@nce/eview-react/InputSelect`） |
 | `AutoComplete` | `InputSelect` | 同上（⚠️ 导入 `@/shared/InputSelect`） |
@@ -38,6 +38,7 @@
 | `Checkbox.Group` | `CheckboxGroup` | `data=[{text,value}]`；`value[]`；`selectAll`；`rows` |
 | `Radio` / `.Group` | `Radio` / `RadioGroup` | Group 用 `data=[{text,value}]`；需 `isControlled` 才受控；`onChange` 参数顺序有冲突，用兼容写法 |
 | `Radio.Button` | `SelectCard` | 导出名 SelectCard（不是 Segmented）；`data=[{text,value}]`；`onChange(value,event)`；禁用是 `disable`（不是 disabled） |
+| `Segmented` | `SelectCard` | 映射同 `Radio.Button`：`options` 字符串数组或 `{label,value}` 对象数组 → `data=[{text,value}]`；`defaultValue` 转为初始 `value` state；`block`→无对应（宽度走 `style`/`itemStyle`）；`disabled`→`disable`；`onChange(value)` 首参即为选中值 |
 | `Switch` | `Toggle` | `checked`→`toggled`；`onChange`→`onToggle(value)`；`data=[关,开]`；`taggledChildren`（拼错）；`Switch isControlToggled` 二次确认 |
 | `Slider` | `DragInput` | `value` **永远是数组**；`type="range"` 开双滑块；`markIndexes` 数组；导出名是 DragInput 不是 Slider |
 | `Rate` | `Rating` | 取值是 `onClick(value)` 不是 onChange；`onMouseOver/Leave` 悬浮预览；`half`；`disabled` 只读 |
