@@ -124,6 +124,10 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 > **Table 冻结列**：eview 的 `freezeCol` **无条件冻结**（sticky+阴影），antd 的 `fixed` 仅表格横向溢出（`scroll.x` 生效）时才有视觉效果——源列写了 `fixed` ≠ 源页面视觉冻结。迁移**默认不写** `freezeCol`/`freezeColPosition`；仅源列有 `fixed` 且源表 `scroll.x`/列宽合计明显超出容器宽（真的会横向滚动）时才映射。见 [Table.md](components/Table.md) §5 冻结列行。
 >
 > **Table 斑马纹**：eview-react 的 `enableZebraCrossing` **默认 `true`**（开斑马纹），antd Table **默认无斑马纹**（需用 `rowClassName` 注入偶数行类 + 自定义 CSS、或 ConfigProvider `theme.token` 配 stripe 才开）。**迁移时必须显式判定源 antd Table 是否开了斑马纹**：源未开（无 `rowClassName` 偶数行逻辑、无对应 CSS、无 theme stripe 配置）的，eview-react 表上显式加 `enableZebraCrossing={false}`，否则迁移后表格凭空多出斑马纹——与原页面视觉不一致。判定方法：搜源 `rowClassName` 是否输出 `even`/`odd`/`striped` 等类名、源 CSS 是否有 `.ant-table-row-even`/`.ant-table-row-odd` 背景、源 ConfigProvider `theme.token` 是否配 stripe。见 [Table.md](components/Table.md) §5 API 速查 `enableZebraCrossing` 行。
+>
+> **Table 外层宽度**：eview-react 的 Table **默认给最外层 dom 加行内样式 `width:100%;height:100%;`**，在 flex 容器、Grid 布局、卡片内嵌等场景下会撑破父容器、占满高度挤压兄弟元素。**迁移时显式加 `width="unset"` 重置组件库默认行内宽度**——但要先看源 antd Table 有无 width 相关设置：源有显式宽度（`style={{ width: ... }}` / className + CSS 设宽 / `scroll={{ x: ... }}` 横向滚动宽度）→ 映射到 eview-react `width` prop；源无显式宽度 → 加 `width="unset"`。判定方法：搜源 `<Table` 是否带 `style` 含 `width`、`className` 对应 CSS 是否设宽度、是否有 `scroll={{ x: ... }}`。见 [Table.md](components/Table.md) §5 API 速查 `width` 行。
+>
+> **Table columns 更新**：eview-react 的 `enableColumnCompareUpdate` **默认 `false`**，更新 `columns` prop 时不会重新渲染列定义（diff 比较被关掉，columns 变化不生效）。源 antd 的 `columns` 经常动态变化（条件列、权限列、筛选后列集、`useMemo` 依赖变化重建 columns）。**迁移时默认显式加 `enableColumnCompareUpdate={true}`**，否则源项目里 columns 变化的逻辑全部失效。见 [Table.md](components/Table.md) §5 API 速查 `enableColumnCompareUpdate` 行。
 
 **硬约束**：遵守 SKILL.md 的"eview-react 硬约束"章节（12 条）。导入路径改为 `import X from '@nce/eview-react/X'`。
 
