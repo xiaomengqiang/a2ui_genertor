@@ -135,6 +135,11 @@ render: (v, rowData, options, row) => <Button onClick={() => openDetail(rows.fin
 // ❌ antd 习惯：没有 dataSource / rowKey / pagination 对象 / rowSelection / columns[].dataIndex
 <Table dataSource={rows} rowKey="id" columns={[{ dataIndex: 'name' }]} pagination={{ current: 1 }} rowSelection={{ onChange }} />
 
+// ❌ 源 antd Table 未开斑马纹，迁移后 eview-react 默认开 → 视觉凭空多出斑马纹
+<Table dataset={rows} columns={columns} />
+// ✅ 源 antd 未开斑马纹的显式关闭
+<Table dataset={rows} columns={columns} enableZebraCrossing={false} />
+
 // ❌ 对象行的 key 与 columns[].key 对不上，整列为空
 columns=[{ title: '名称', key: 'name' }]  dataset=[{ deviceName: 'a' }]
 
@@ -172,7 +177,7 @@ onRowCheck={(row) => setChecked([...checked, row])}
 | `enableLoading` | `boolean` | 加载态 |
 | `emptyTableMsg` / `showEmptyImage` | `string` / `boolean` | 空态文案 / 图 |
 | `height` / `minHeight` / `maxHeight` / `width` | `number \| string` | 尺寸（含表头与分页）。**分页栏渲染在 Table 内部底部**，组件库用 `height: calc(100% - 3rem)` 计算表格内容区高度（`Table/index.css` 第 423-425 行）。当外层容器有 `padding` 且未设固定高度时，`calc(100% - 3rem)` 计算可能失效，分页栏被推出 padding 区域外。**两种修复方式**：(1) 设 `maxHeight` 约束内容区高度；(2) 在业务 CSS 中覆盖 `.device-table .ev_table_has_paging { height: auto; }` 让内容区自然撑开，分页栏紧随其后被父容器 padding 包裹。`maxHeight` 不含分页栏高度，`maxHeight + 分页栏` = 表格总高度。 |
-| `enableZebraCrossing` | `boolean`，默认 `true` | 斑马纹 |
+| `enableZebraCrossing` | `boolean`，默认 `true` | 斑马纹。**默认开启——源 antd Table 未开斑马纹（无 `rowClassName` 偶数行类、无 `.ant-table-row-even` CSS、无 ConfigProvider `theme.token` stripe）的迁移时必须显式设 `enableZebraCrossing={false}`，否则迁移后凭空多出斑马纹与原页面不一致**（见 [migration-workflow.md](../migration-workflow.md) Table 斑马纹 warning） |
 | `enableColumnFilter` / `itemOrderChanger` / `onFilterOkClick` | `boolean` / `boolean` / `(hideRow, displayRow, columns) => boolean` | 列筛选弹窗 |
 | `enableRowExpand` / `onRowExpend` / `expandedRow` / `enableMulitiExpand` | `boolean` / `(row) => ReactNode` / `(string \| number)[]` / `boolean` | 行展开 |
 | `enableColumnDrag` / `enableColumnWidthFit` / `freezeColPosition` / `virtualScroll` / `virtualShowNum` | — | 列宽拖拽（默认开）/ 自适应 / 冻结列位置 / 虚拟滚动（3.5.10） |
