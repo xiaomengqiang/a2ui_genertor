@@ -157,3 +157,16 @@ const columns = [
   { title: "操作", key: "action", allowSort: false },     // 操作列不排序
 ];
 ```
+
+### Table 斑马纹默认开启（源 antd 未开斑马纹也带斑马纹）
+
+**问题**：eview-react 的 Table `enableZebraCrossing` 默认值为 `true`，表格默认开斑马纹。antd 的 Table **默认无斑马纹**——要开得用 `rowClassName={(_, i) => i % 2 === 0 ? 'ant-table-row-even' : ''}` + 自定义 CSS、或 ConfigProvider `theme.token` 配 stripe。源 antd 未开斑马纹的表格，迁移到 eview-react 后凭空多出斑马纹，与原页面视觉不一致。
+
+**解决**：迁移每个 Table 时显式判定源 antd 是否开了斑马纹（搜源 `rowClassName` 是否输出 `even`/`odd`/`striped` 等类名、源 CSS 是否有 `.ant-table-row-even`/`.ant-table-row-odd` 背景、源 ConfigProvider `theme.token` 是否配 stripe）：
+- 源未开斑马纹 → eview-react 表上显式加 `enableZebraCrossing={false}`
+- 源开了斑马纹 → 不设（利用默认 `true`）
+
+```jsx
+// 源 antd 未开斑马纹 → 迁移后显式关闭
+<Table dataset={rows} columns={columns} enableZebraCrossing={false} />
+```

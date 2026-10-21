@@ -1,6 +1,14 @@
 .evIPInput-custom {
-    width: 100%;
+    width: 13rem;
     min-width: 0;
+}
+
+.evIPInput-custom:where(:has(.ev_ip_input_ipv6)) {
+    width: 29.375rem;
+}
+
+.evIPInput-custom:where(:has(.ev_ip_input_mac)) {
+    width: 16.875rem;
 }
 
 .ev_ip_input_outer.evIPInput-custom {
