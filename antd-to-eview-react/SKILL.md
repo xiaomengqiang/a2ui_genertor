@@ -170,3 +170,28 @@ const columns = [
 // 源 antd 未开斑马纹 → 迁移后显式关闭
 <Table dataset={rows} columns={columns} enableZebraCrossing={false} />
 ```
+
+### Table 外层默认行内 width:100%;height:100% 撑破布局
+
+**问题**：eview-react 的 Table 默认给最外层 dom 加行内样式 `width:100%;height:100%;`，在 flex 容器、Grid 布局、卡片内嵌等场景下会撑破父容器、占满高度挤压兄弟元素，与原 antd 表格（默认 block `width:100%`、高度由内容决定）布局不一致。
+
+**解决**：迁移每个 Table 时显式加 `width="unset"` 重置组件库默认行内宽度。但要先看源 antd Table 有无 width 相关设置：
+- 源 antd 有显式宽度（`style={{ width: ... }}` / className + CSS 设宽 / `scroll={{ x: ... }}` 横向滚动宽度）→ 映射到 eview-react `width` prop
+- 源 antd 无显式宽度 → 加 `width="unset"`
+
+```jsx
+// 源 antd 无显式宽度 → 迁移后重置默认行内宽度
+<Table dataset={rows} columns={columns} width="unset" />
+// 源 antd 有显式宽度 → 映射到 width prop
+<Table dataset={rows} columns={columns} width={600} />
+```
+
+### Table columns 变化不生效（enableColumnCompareUpdate 默认 false）
+
+**问题**：eview-react 的 Table `enableColumnCompareUpdate` 默认值为 `false`，更新 `columns` prop 时不会重新渲染列定义（diff 比较被关掉，columns 变化不生效）。源 antd 项目的 `columns` 经常动态变化——条件列（按权限/状态显示不同列）、筛选后列集、`useMemo` 依赖变化重建 columns 等。迁移后如果不显式开 `enableColumnCompareUpdate={true}`，所有 columns 变化的逻辑全部失效。
+
+**解决**：迁移时默认显式加 `enableColumnCompareUpdate={true}`。
+
+```jsx
+<Table dataset={rows} columns={columns} enableColumnCompareUpdate />
+```
