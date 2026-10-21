@@ -1,0 +1,8 @@
+/* light.css - 语义层 :root 变量占位 */
+/* 步骤2: 从产物 assets/style/light.css 整文件拷贝（ict-react-coder 已分好类） */
+/* 含 --color-* 语义层变量，引用 base.css 的基础色阶（--brand-*/--gray-* 等） */
+/*
+加载顺序：aui3_1 → aui3_1_dark → base → light → theme → dark
+本文件在 base.css 之后加载，:root 语义变量引用 base.css 的基础色阶；
+theme.css 的角色变量再引用本文件语义变量，三层逐级派生。
+*/

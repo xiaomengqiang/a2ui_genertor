@@ -1,0 +1,10 @@
+/* dark.css - .dark 暗色覆盖占位 */
+/* 步骤2: 从产物 assets/style/dark.css 整文件拷贝（ict-react-coder 已分好类） */
+/* 含 .dark { ... } 暗色覆盖（覆盖 light.css 的 --color-* 语义变量） */
+/*
+暗色模式：aui3_1_dark 挂 <body>（eview-react 组件暗色）+ .dark 挂 <html>（本文件，原始 token 暗色覆盖）
+加载顺序：aui3_1 → aui3_1_dark → base → light → theme → dark
+本文件最后加载，.dark 的声明覆盖 light.css :root 的同名语义变量，角色变量（theme.css）通过 var() 引用自动跟随翻转。
+
+⚠️ 确保 .dark 覆盖了 light.css :root 中所有暗色值不同的语义变量！
+*/

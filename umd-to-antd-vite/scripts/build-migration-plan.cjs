@@ -218,6 +218,30 @@ for (const [antdName, files] of Object.entries(antdComponents)) {
   });
 }
 
+// ========== 2b. 注入 IPInput 迁移行（ict-react-coder 手写共享件，非 antd 导入，步骤 2 扫不到） ==========
+// 触发条件：.umd-conversion.json 的 ipInputCallSites.callSites 非空（extract-umd.cjs §4.7 扫到 <IpInput> 调用点）
+// antd 无 IPInput 组件，ict-react-coder 在 assets/shared/ 或 src/components/ip-input/ 手写了一份；
+// extract-umd.cjs 只扫 from 'antd' 导入，该手写件零 antd 依赖（assets/shared/ 版本）或仅内部用 antd Input（src/components/ 版本），
+// antdComponents 不含 IPInput 键 → 上面 §2 循环不会为它生成行 → 此处补注入，让下游步骤 0/2 能看到。
+
+const ipInputInfo = handoff.ipInputCallSites;
+if (ipInputInfo && ipInputInfo.callSites && ipInputInfo.callSites.length) {
+  const ipFiles = [...new Set(ipInputInfo.callSites.map(c => c.file))];
+  const ipSharedFiles = ipInputInfo.sharedFiles || [];
+  migrationPlan.push({
+    antd: 'IpInput',
+    category: 'A',
+    eview: 'IPInput',
+    importPath: '@/shared/IPInput',
+    shellComponent: true,
+    keyDiffs: 'ict-react-coder 手写 IPInput 共享件（非 antd 组件）。迁移到 @/shared/IPInput（scaffold 包壳，转发 @nce/eview-react/IPInput）。关键差异：① 删除手写共享件（' + ipSharedFiles.join(', ') + '），import 路径改为 import IPInput from "@/shared/IPInput"；② type 值：源 "ipv4"→"v4"、"ipv6"→"v6"、"mac"→"mac"（不变）；③ size（large/middle/small）eview 无对应 API，删或用 className 控制尺寸；④ status="error" → 用 validator 返回 { result:false, message } + hintType="tip"；⑤ onChange/onBlur 首参均为完整字符串（与源一致，回调签名不变）；⑥ value 传完整字符串（如 "192.168.1.1"），不要拆成数组；⑦ 组件名 IpInput→IPInput（默认导入名随意，建议大写以匹配文档）',
+    ref: 'components/IPInput.md',
+    files: ipFiles,
+    sharedFilesToRemove: ipSharedFiles,
+  });
+  console.log(`[build-migration-plan] 注入 IPInput 迁移行（ict-react-coder 手写件 → @/shared/IPInput）: ${ipFiles.length} 个调用文件`);
+}
+
 // ========== 3. Global reference (static, inlined to save downstream reads) ==========
 
 const globalRef = {

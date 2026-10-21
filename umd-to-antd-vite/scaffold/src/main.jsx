@@ -4,9 +4,9 @@ import componentsLocales from '@nce/eview-react/locales';
 import '@nce/eview-react/styles/aui3_1.css';
 import '@nce/eview-react/styles/aui3_1_dark.css';
 import './styles/base.css';
-import './styles/font.css';
-import './styles/tokens.css';
-import './styles/theme-dark.css';
+import './styles/light.css';
+import './styles/theme.css';
+import './styles/dark.css';
 import App from './app.jsx';
 
 const locale = 'zh';
