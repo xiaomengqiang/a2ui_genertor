@@ -1605,6 +1605,9 @@ input.ant-input.ant-input-sm {
 .dark .ant-table .ant-table-content .ant-table-tbody .ant-table-expanded-row .ant-table-cell {
   background-color: rgb(from var(--gray-05) r g b / 0.1);
 }
+.dark .ant-table .ant-table-content .ant-table-placeholder {
+  background-color: transparent;
+}
 .dark .ant-table .ant-table-content .ant-table-cell.ant-table-cell-fix-left {
   background-color: var(--gray-70) !important;
 }
