@@ -1,6 +1,10 @@
 # Tag 组件功能逻辑规格
 
-> 导入：`import Tag from '@/shared/Tag'`（scaffold 适配类包壳 `@nce/eview-react/Tag`，**调用点保留 antd 写法、仅改 import 路径**：`color`→className token（词汇见 `shared/Tag/Tag.css`：info/error/alert/warning/success/default/green/rose/pink/purple/indigo/cyan）、`bordered`→`fill`/`ev_tag_fill`、`icon`→`iconName`、`closable`/`onClose` 原样透传、antd `closeIcon` 丢弃）。
+> 导入：`import Tag from '@/shared/Tag'`（scaffold 适配类包壳 `@nce/eview-react/Tag`，**调用点保留 antd 写法、仅改 import 路径**）。`color` 解析（对齐 antd 5.29.3 + ant.css 参考）：
+> - 已映射预设色/状态色 → Tag.css className token + `ev_tag_fill`（浅色态，词汇见 `shared/Tag/Tag.css`：`success/error/warning/info(alert)/alert/green/rose/pink/purple/indigo/cyan/default/disabled`；
+> - 未映射 antd 预设色 `red/volcano/orange/lime/blue` → 采用 antd 5.x 色值走 outline inline style（`{color, 浅 alpha 背景, 同色边框}`）；
+> - 自定义 hex/rgb/hsl → solid 实心背景；`default`/不传 → 灰底。
+> `bordered` 接收但忽略（ant.css 全量 `border:none`），`icon`→`iconName`（+`isMessageTag`/`hasIcon`），`closable`/`onClose` 原样透传，antd `closeIcon` 丢弃。
 > 资料来源：TypeDoc `Tag/types`（3.4.11 起）+ 官网 Tag 页示例 + 实测 `closable`/`onClose`。
 > ℹ️ eview Tag **原生支持 `closable` + `onClose`**（点击 × 触发 `onClose(e)`，由 wrapper 原样透传）。antd 的 `closeIcon`（自定义关闭图标）无对应 prop，wrapper 丢弃、eview 渲染默认关闭图标；需要"可删除标签列表"时直接用 `closable`+`onClose`（`IconButton` 已弃用）。
 
@@ -76,9 +80,11 @@ import { IconPlusIcPublicAbout } from '@hui/icon-plus';
 // ❌ Tag.CheckableTag 仍无对应（包壳未提供），用 Tag + onClick + fill 切换
 <Tag.CheckableTag checked={on} onChange={setOn}>筛选</Tag.CheckableTag>
 
-// ❌ 颜色写 antd 的色名，eview 只认 default/primary/success/warning/caution/danger（或自定义 style）
+// ✅ antd 预设色/状态色都支持：已映射的走 Tag.css token（gold→alert、magenta→rose、geekblue→indigo…），
+//    未映射的 red/volcano/orange/lime/blue 用 antd 色值走 outline style，自定义 hex 走 solid
 <Tag color="green">正常</Tag>
 <Tag color="red">紧急</Tag>
+<Tag color="#f50">自定义</Tag>
 
 // ❌ 想要描边效果去改 style，应该用 fill="outline"
 <Tag style={{ background: '#fff', border: '1px solid #0067d1' }}>描边</Tag>
