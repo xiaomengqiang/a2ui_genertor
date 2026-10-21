@@ -3,7 +3,6 @@
 > 导入：`import Tag from '@/shared/Tag'`（scaffold 适配类包壳 `@nce/eview-react/Tag`，**调用点保留 antd 写法、仅改 import 路径**）。`color` 解析（对齐 antd 5.29.3 + ant.css 参考）：
 > - 已映射预设色/状态色 → Tag.css className token + `ev_tag_fill`（浅色态，词汇见 `shared/Tag/Tag.css`：`success/error/warning/info(alert)/alert/green/rose/pink/purple/indigo/cyan/default/disabled`；
 > - 未映射 antd 预设色 `red/volcano/orange/lime/blue` → 采用 antd 5.x 色值走 outline inline style（`{color, 浅 alpha 背景, 同色边框}`）；
-> - 自定义 hex/rgb/hsl → solid 实心背景；`default`/不传 → 灰底。
 > `bordered` 接收但忽略（ant.css 全量 `border:none`），`icon`→`iconName`（+`isMessageTag`/`hasIcon`），`closable`/`onClose` 原样透传，antd `closeIcon` 丢弃。
 > 资料来源：TypeDoc `Tag/types`（3.4.11 起）+ 官网 Tag 页示例 + 实测 `closable`/`onClose`。
 > ℹ️ eview Tag **原生支持 `closable` + `onClose`**（点击 × 触发 `onClose(e)`，由 wrapper 原样透传）。antd 的 `closeIcon`（自定义关闭图标）无对应 prop，wrapper 丢弃、eview 渲染默认关闭图标；需要"可删除标签列表"时直接用 `closable`+`onClose`（`IconButton` 已弃用）。

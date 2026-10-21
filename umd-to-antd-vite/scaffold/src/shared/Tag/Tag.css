@@ -9,7 +9,7 @@
   .ev_tag.default {
     background: rgb(from var(--gray-90) r g b / 0.05);
     color: var(--color-text-primary, var(--gray-90));
-    border-color: transparent;
+    border-color: transparent !important;
   }
 
   /* 预设色 fill（对应 .ant-tag-<preset>）—— 浅色底 + 同色文字 */

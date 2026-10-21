@@ -60,7 +60,7 @@ function resolveColor(color) {
       },
     };
   }
-  return { customColor: color }; // 自定义 CSS 色 → solid 背景
+  return { customColor: color }; // 自定义 CSS 色 → solid 实心背景 + 白字（antd 5 行为）
 }
 
 /**
@@ -72,7 +72,7 @@ function resolveColor(color) {
  * color 解析（见 resolveColor）：
  *   - 已映射预设色/状态色 → Tag.css className token + ev_tag_fill（浅色态，由 Tag.css 配色，对齐 ant.css）
  *   - 未映射预设色（red/volcano/orange/lime/blue）→ antd 色值 outline inline style（color + 浅 alpha 背景 + 同色边框）
- *   - 自定义 hex/rgb/hsl → solid 实心背景（走 style）
+ *   - 自定义 hex/rgb/hsl → solid 实心背景 + 白字（走 style）
  *   - default / 不传 → base 灰底
  * eview 无 fill/bordered 概念（只有 solid/outline 视觉态，由 ev_tag_fill + Tag.css 模拟），bordered/fill 接收但忽略；
  * icon→iconName（+isMessageTag/hasIcon）；closable/onClose 原样透传；closeIcon 丢弃。
@@ -112,12 +112,12 @@ export default function Tag({
     .filter(Boolean)
     .join(" ");
 
-  // style 合并：未映射预设色 → outline（color/背景/边框）；自定义色 → solid 背景；否则原样
+  // style 合并：未映射预设色 → outline（color/背景/边框）；自定义色 → solid 实心背景 + 白字；否则原样
   let evStyle = style;
   if (presetStyle) {
     evStyle = { ...presetStyle, ...style };
   } else if (customColor != null) {
-    evStyle = { background: customColor, ...style };
+    evStyle = { background: customColor, color: "#fff", ...style };
   }
 
   // icon 由调用方按 antd 传入（icon+ 组件节点），原样塞进 eview iconName 槽
