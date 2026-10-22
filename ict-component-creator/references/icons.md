@@ -27,7 +27,7 @@ let open = true;
 | `name` | string | — | Lucide icon name (kebab-case) |
 | `src` | string | — | User-provided image path (svg/png/jpg); overrides `name` when both are set |
 | `size` | string \| number | `"1rem"` | Icon size — rem string required (see Size scale below); numbers are auto-converted but log a WARN |
-| `color` | string | `currentColor` | Icon stroke color (name mode only) |
+| `color` | string | `currentColor` | Icon stroke color (name mode only). 6-digit hex only (e.g. `#0067D1`); no rgba / rgb / 8-digit hex |
 | `className` | string | `""` | CSS class (margin/hover effects belong here) |
 | `style` | object | — | Inline styles |
 | `id` | string | — | DOM element id |

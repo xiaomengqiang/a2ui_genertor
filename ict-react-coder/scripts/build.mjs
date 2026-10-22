@@ -296,6 +296,23 @@ if (iconSizeWarnings.length) {
   console.log(iconSizeWarnings.join("\n"));
 }
 
+// --- Icon color format check: 6-digit hex only (icon-plus matches by hex) ---
+const iconColorWarnings = [];
+for (const mod of modules) {
+  const colorRe = /<Icon\b[^<]*?\bcolor=("(?<v>[^"]*)"|\{'(?<s>[^']*)'\})/gs;
+  let icm;
+  while ((icm = colorRe.exec(mod.code)) !== null) {
+    const val = icm.groups.v ?? icm.groups.s;
+    if (!/^#[0-9a-fA-F]{6}$/.test(val)) {
+      iconColorWarnings.push(`  ${mod.label}: color="${val}" → use 6-digit hex like "#0067D1"`);
+    }
+  }
+}
+if (iconColorWarnings.length) {
+  console.log("WARN  Icon color must be 6-digit hex (rgba/rgb/8-digit hex silently mismatch in icon-plus):");
+  console.log(iconColorWarnings.join("\n"));
+}
+
 // --- Lucide icon extraction & validation ---
 const lucideRaw = JSON.parse(await readFile(LUCIDE_JSON, "utf8"));
 const iconTableEntries = [];

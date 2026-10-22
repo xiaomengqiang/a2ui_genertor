@@ -1,7 +1,3 @@
-# InputNumber
-
-## 设计规范
-
 # InputNumber 计数器使用规范
 
 用于直接输入或按固定步长调整数值。
@@ -9,6 +5,7 @@
 ## 使用规则
 
 - **必须使用 `mode="spinner"` + `variant="outlined"`** 形态；其他形态（inline / borderless / filled 等）不要使用。
+- `placeholder` 只用数字示例（如 `0`、`100`）。
 - 达到边界时禁用对应增减操作，并校验空值、非数字和越界输入。
 
 ## Don't
