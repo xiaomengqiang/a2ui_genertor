@@ -1,4 +1,12 @@
-
+ .ev_tag {
+  span[mode],img,svg {
+    &:nth-of-type(1) {
+      margin-right: 0.25rem;
+      margin-top: -0.125rem;
+      vertical-align: middle;
+    }
+  }
+ }
 .aui3_1 {
 
   .ev_tag {
