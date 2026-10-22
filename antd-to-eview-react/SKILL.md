@@ -177,13 +177,14 @@ const columns = [
 **问题**：eview-react 的 Table 默认给最外层 dom 加行内样式 `width:100%;height:100%;`，在 flex 容器、Grid 布局、卡片内嵌等场景下会撑破父容器、占满高度挤压兄弟元素，与原 antd 表格（默认 block `width:100%`、高度由内容决定）布局不一致。
 
 **解决**：迁移每个 Table 时显式加 `width="unset"` 重置组件库默认行内宽度。但要先看源 antd Table 有无 width 相关设置：
-- 源 antd 有显式宽度（`style={{ width: ... }}` / className + CSS 设宽 / `scroll={{ x: ... }}` 横向滚动宽度）→ 映射到 eview-react `width` prop
-- 源 antd 无显式宽度 → 加 `width="unset"`
+- 源 antd 有显式容器宽度（`style={{ width: ... }}` / className + CSS 设宽）→ 映射到 eview-react `width` prop
+- 源 antd 无显式容器宽度 → 加 `width="unset"`
+- `scroll={{ x: ... }}` **直接抛弃不转**——eview `width` 是最外层 dom 宽度，不是 antd 列宽计算/横向滚动阈值概念；实测映射会导致表格宽度错误
 
 ```jsx
-// 源 antd 无显式宽度 → 迁移后重置默认行内宽度
+// 源 antd 无显式容器宽度 → 迁移后重置默认行内宽度
 <Table dataset={rows} columns={columns} width="unset" />
-// 源 antd 有显式宽度 → 映射到 width prop
+// 源 antd 有显式容器宽度（style/className CSS）→ 映射到 width prop
 <Table dataset={rows} columns={columns} width={600} />
 ```
 
