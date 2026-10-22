@@ -6,6 +6,7 @@
 
 - `size` 只用默认的 `middle`，不使用 `large` / `small`。
 - `type` 分层使用：常规页签用默认的 `line`；`line` 内嵌套的次级页签才用 `card` / `editable-card`。
+- 通过 `items` 的 `children` 渲染面板内容时，children 的根容器加 `padding-top: 1rem`。
 
 ## 布局
 

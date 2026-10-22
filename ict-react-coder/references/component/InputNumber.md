@@ -6,6 +6,7 @@
 
 - **必须使用 `mode="spinner"` + `variant="outlined"`** 形态；其他形态（inline / borderless / filled 等）不要使用。
 - `placeholder` 只用数字示例（如 `0`、`100`）。
+- 显式设置宽度时，不低于 `6.5rem`。
 - 达到边界时禁用对应增减操作，并校验空值、非数字和越界输入。
 
 ## Don't
