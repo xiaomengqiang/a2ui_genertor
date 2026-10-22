@@ -924,17 +924,33 @@ input.ant-input.ant-input-sm {
   height: 2.5rem;
   border-radius: var(--radius-base);
 }
+.ant-picker-range {
+  /* 选中高亮向左延伸 0.5rem，background: inherit 自动适配明暗主题：
+     开始时间选中时左边缘距组件左边框 0.25rem（0.75 - 0.5）；
+     结束时间选中时左边缘正好接住中间短横线右端（分隔线右内边距 0.5rem）。
+     用 active 类（跟随 activeIndex）而非 :focus，点击面板单元格时延伸不丢失 */
+}
 .ant-picker-range .ant-picker-active-bar {
   bottom: 4px;
   height: 1.375rem;
   background: var(--brand-05);
   border-radius: 2px;
 }
+.ant-picker-range .ant-picker-input.ant-picker-input-active ~ .ant-picker-active-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -0.5rem;
+  width: 0.5rem;
+  background: inherit;
+  border-radius: 2px 0 0 2px;
+}
 .ant-picker-range .ant-picker-range-separator {
   /* antd 5：'~' 为裸文本节点，font-size: 0 隐藏；连字符字形贴基线会偏下，改用绘制短线并 flex 居中 */
   display: inline-flex;
   align-items: center;
-  padding: 0 0.25rem;
+  padding: 0 0.5rem;
   font-size: 0px;
 }
 .ant-picker-range .ant-picker-range-separator::before {
