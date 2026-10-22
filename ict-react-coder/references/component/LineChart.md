@@ -15,6 +15,8 @@
 - `stack`: boolean — stacked lines
 - `area`: boolean — display as area chart
 - `xAxis.name`: string — X-axis display name
+- `mini`: boolean — minimal display mode for small-size scenes, hides legend and axes
+- `dataZoom.show`: boolean — enable data zoom, for large data volume scenes
 - `markLine.top` / `markLine.bottom`: number — threshold reference lines
 
 ## Example

@@ -135,6 +135,25 @@ render: (v, rowData, options, row) => <Button onClick={() => openDetail(rows.fin
 // ❌ antd 习惯：没有 dataSource / rowKey / pagination 对象 / rowSelection / columns[].dataIndex
 <Table dataSource={rows} rowKey="id" columns={[{ dataIndex: 'name' }]} pagination={{ current: 1 }} rowSelection={{ onChange }} />
 
+// ❌ 源 antd Table 未开斑马纹，迁移后 eview-react 默认开 → 视觉凭空多出斑马纹
+<Table dataset={rows} columns={columns} />
+// ✅ 源 antd 未开斑马纹的显式关闭
+<Table dataset={rows} columns={columns} enableZebraCrossing={false} />
+
+// ❌ 源 antd Table 无显式宽度，迁移后 eview-react 默认加行内 width:100%;height:100% → 撑破 flex 父容器
+<Table dataset={rows} columns={columns} />
+// ✅ 源 antd 无显式宽度的迁移时加 width="unset" 重置组件库默认行内宽度
+<Table dataset={rows} columns={columns} width="unset" />
+// ✅ 源 antd 有显式宽度（style.width / className CSS / scroll.x）的映射到 eview-react width prop
+<Table dataset={rows} columns={columns} width={600} />
+
+// ❌ 源 antd columns 动态变化（条件列/权限列），迁移后 columns 变化不生效
+const [columns, setColumns] = useState(baseColumns);
+useEffect(() => setColumns(buildColumnsByPerm(perm)), [perm]);
+<Table dataset={rows} columns={columns} />
+// ✅ 迁移时显式开 enableColumnCompareUpdate，columns 变化才重新渲染
+<Table dataset={rows} columns={columns} enableColumnCompareUpdate />
+
 // ❌ 对象行的 key 与 columns[].key 对不上，整列为空
 columns=[{ title: '名称', key: 'name' }]  dataset=[{ deviceName: 'a' }]
 
@@ -171,11 +190,11 @@ onRowCheck={(row) => setChecked([...checked, row])}
 | `onColumnSort` / `onColumnSorted` / `customSortFun` | `(sortColumn, sortType)` / `(data)` / `(key, a, b) => number` | 排序回调 / 完成 / 自定义比较 |
 | `enableLoading` | `boolean` | 加载态 |
 | `emptyTableMsg` / `showEmptyImage` | `string` / `boolean` | 空态文案 / 图 |
-| `height` / `minHeight` / `maxHeight` / `width` | `number \| string` | 尺寸（含表头与分页）。**分页栏渲染在 Table 内部底部**，组件库用 `height: calc(100% - 3rem)` 计算表格内容区高度（`Table/index.css` 第 423-425 行）。当外层容器有 `padding` 且未设固定高度时，`calc(100% - 3rem)` 计算可能失效，分页栏被推出 padding 区域外。**两种修复方式**：(1) 设 `maxHeight` 约束内容区高度；(2) 在业务 CSS 中覆盖 `.device-table .ev_table_has_paging { height: auto; }` 让内容区自然撑开，分页栏紧随其后被父容器 padding 包裹。`maxHeight` 不含分页栏高度，`maxHeight + 分页栏` = 表格总高度。 |
-| `enableZebraCrossing` | `boolean`，默认 `true` | 斑马纹 |
+| `height` / `minHeight` / `maxHeight` / `width` | `number \| string` | 尺寸（含表头与分页）。**⚠️ 组件库默认给最外层 dom 加行内样式 `width:100%;height:100%;`，在 flex/grid/卡片内嵌等场景会撑破父容器或挤压兄弟元素——迁移时默认显式加 `width="unset"` 重置**（源 antd Table 有显式宽度的——`style.width` / className CSS / `scroll.x`——映射到本 `width` prop；无显式宽度的加 `width="unset"`，见 [migration-workflow.md](../migration-workflow.md) Table 外层宽度 warning）。**分页栏渲染在 Table 内部底部**，组件库用 `height: calc(100% - 3rem)` 计算表格内容区高度（`Table/index.css` 第 423-425 行）。当外层容器有 `padding` 且未设固定高度时，`calc(100% - 3rem)` 计算可能失效，分页栏被推出 padding 区域外。**两种修复方式**：(1) 设 `maxHeight` 约束内容区高度；(2) 在业务 CSS 中覆盖 `.device-table .ev_table_has_paging { height: auto; }` 让内容区自然撑开，分页栏紧随其后被父容器 padding 包裹。`maxHeight` 不含分页栏高度，`maxHeight + 分页栏` = 表格总高度。 |
+| `enableZebraCrossing` | `boolean`，默认 `true` | 斑马纹。**默认开启——源 antd Table 未开斑马纹（无 `rowClassName` 偶数行类、无 `.ant-table-row-even` CSS、无 ConfigProvider `theme.token` stripe）的迁移时必须显式设 `enableZebraCrossing={false}`，否则迁移后凭空多出斑马纹与原页面不一致**（见 [migration-workflow.md](../migration-workflow.md) Table 斑马纹 warning） |
 | `enableColumnFilter` / `itemOrderChanger` / `onFilterOkClick` | `boolean` / `boolean` / `(hideRow, displayRow, columns) => boolean` | 列筛选弹窗 |
 | `enableRowExpand` / `onRowExpend` / `expandedRow` / `enableMulitiExpand` | `boolean` / `(row) => ReactNode` / `(string \| number)[]` / `boolean` | 行展开 |
 | `enableColumnDrag` / `enableColumnWidthFit` / `freezeColPosition` / `virtualScroll` / `virtualShowNum` | — | 列宽拖拽（默认开）/ 自适应 / 冻结列位置 / 虚拟滚动（3.5.10） |
 | `freezeCol`（列级）/ `freezeColPosition`（表级） | `boolean` / `string` | 冻结列：列上设 `freezeCol: true` 标记冻结，表上 `freezeColPosition` 设位置。⚠️ eview 的 `freezeCol` **无条件冻结**（sticky+阴影），antd 的 `columns[].fixed` 仅在表格横向滚动（`scroll.x` 溢出）时才有视觉效果——源列写了 `fixed` ≠ 源页面视觉冻结。**迁移默认不写 `freezeCol`/`freezeColPosition`**；仅当源列有 `fixed:'left'/'right'` **且**源表 `scroll.x`/列宽合计明显超出容器宽（迁移后真的会横向滚动）时才映射：`fixed:'right'`→列 `freezeCol:true` + 表 `freezeColPosition="right"`，`fixed:'left'`→表 `freezeColPosition="left"`。 |
-| `isRequiredToUpdateColumns` / `enableColumnCompareUpdate` | `boolean` | 更新 columns 是否生效 / 比较后再更新 |
+| `isRequiredToUpdateColumns` / `enableColumnCompareUpdate` | `boolean`，默认 `false` | 更新 columns 是否生效 / 比较后再更新。**⚠️ `enableColumnCompareUpdate` 默认 `false`——更新 `columns` prop 不重新渲染列定义（columns 变化不生效）。源 antd 的 `columns` 经常动态变化（条件列/权限列/筛选后列集/`useMemo` 依赖变化重建），迁移时默认显式加 `enableColumnCompareUpdate={true}`，否则源项目里 columns 变化的逻辑全部失效**（见 [migration-workflow.md](../migration-workflow.md) Table columns 更新 warning） |
 | `ref.getCheckedRowsData()` / `getCheckedRowsIndexes()` / `getSelectedRowData()` / `getSelectedRowIndex()` / `setCheckedRows(indexes)` / `getDataset()` / `setRowEditable(id, columns)` | 命令式方法 | 取勾选 / 选中 / 设勾选 / 取数据 / 设行可编辑 |

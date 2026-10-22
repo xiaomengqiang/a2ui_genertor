@@ -26,15 +26,19 @@
     {
       "id": 2,
       "name": "组件 props 迁移",
-      "description": "将 antd Select/Radio.Button/Tag/Badge 的 props 迁移为 eview-react 等价写法",
-      "input": "antd Select with Option children, Radio.Button, Tag closable, Badge count",
+      "description": "将 antd Select/Radio.Button/Segmented/Tag/Badge 的 props 迁移为 eview-react 等价写法",
+      "input": "antd Select with Option children, Radio.Button, Segmented, Tag closable, Badge count",
       "assertions": [
         "Select options 字段用 text 不是 label",
         "Select 用 defaultLabel 不是 placeholder",
+        "Select 必须有默认选中值（defaultValue 转初始 value state，无 defaultValue 时取 options[0].value）",
         "NOT 使用 Select.Option children 写法",
         "Radio.Button 替换为 SelectCard",
         "SelectCard data 用 text 不是 label",
         "SelectCard 禁用用 disable 不是 disabled",
+        "Segmented 替换为 SelectCard（导入名 SelectCard 不是 Segmented）",
+        "Segmented options 字符串数组转 data=[{text,value}] 格式",
+        "Segmented defaultValue 转为初始 value state",
         "Tag color 保留 antd 色由 shared/Tag 包壳映射 className token（不手改语义色）",
         "Badge 用 content 不是 count"
       ]

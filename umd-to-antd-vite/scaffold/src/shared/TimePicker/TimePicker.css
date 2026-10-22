@@ -1,0 +1,8 @@
+.evTimeSelector-custom {
+    width: 100%;
+    min-width: 0px;
+}
+
+.evTimeSelector-custom .evTs-aui2-timeSpinner {
+    width: 100%;
+}

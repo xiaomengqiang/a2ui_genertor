@@ -39,130 +39,69 @@ const resolvedOutput = path.resolve(outputDir || sourceDir);
 const sourceBaseName = path.basename(sourceFile);
 
 const stats = {
-  rootRules: 0, darkRules: 0, fontRules: 0, mediaRules: 0, otherRules: 0,
-  tokenVars: 0, darkVars: 0, scriptsExtracted: 0, srcFiles: [],
-  antdComponents: {}, antdIcons: [],
+  scriptsExtracted: 0, srcFiles: [],
+  styleFiles: [],
+  antdComponents: {}, antdIcons: [], iconCallSites: [],
+  ipInputCallSites: { sharedFiles: [], imports: [], callSites: [] },
+  uploadsAssets: { copied: [], copiedCount: 0, pathRewrite: { from: './assets/uploads/', to: '/uploads/' } },
 };
 
-// ========== 1. 提取 <style> 块并分类 ==========
+// ========== 1. 从产物 assets/style/ 拷贝 4 层 CSS（ict-react-coder 已分好类：base/light/theme/dark） ==========
+// ict-react-coder 的 style 五层（base/light/theme/dark/ant）已分文件存于产物 assets/style/，
+// extract-umd 直接读这 4 个文件（ant.css 跳过，eview-react 用 aui3_1.css 替代），
+// 不再从 index.page.html 内联 <style> 艰难按内容特征区分 :root 三层——分类 ict 已做好。
 
-function extractStyleBlocks(html) {
-  const blocks = [];
-  const re = /<style[^>]*>([\s\S]*?)<\/style>/gi;
-  let m;
-  while ((m = re.exec(html)) !== null) blocks.push(m[1]);
-  return blocks.join('\n');
-}
-
-function extractTopLevelRules(css) {
-  const rules = [];
-  let i = 0;
-  const len = css.length;
-  while (i < len) {
-    while (i < len && /\s/.test(css[i])) i++;
-    if (i >= len) break;
-    if (css[i] === '/' && css[i + 1] === '*') {
-      const end = css.indexOf('*/', i);
-      i = end < 0 ? len : end + 2;
-      continue;
-    }
-    let selStart = i;
-    while (i < len && css[i] !== '{' && css[i] !== ';') i++;
-    if (i >= len) break;
-    if (css[i] === ';') { i++; continue; }
-    const selector = css.slice(selStart, i).trim();
-    i++;
-    let depth = 1, blockStart = i;
-    while (i < len && depth > 0) {
-      if (css[i] === '{') depth++;
-      else if (css[i] === '}') depth--;
-      if (depth > 0) i++;
-    }
-    const block = css.slice(blockStart, i).trim();
-    i++;
-    rules.push({ selector, block, raw: `${selector} { ${block} }` });
-  }
-  return rules;
-}
-
-function countVars(block) {
-  const m = block.match(/--[a-zA-Z0-9-]+\s*:/g);
-  return m ? m.length : 0;
-}
-
-function classifyRule(rule, buckets) {
-  const sel = rule.selector;
-  if (sel === ':root' || /^:root\b/.test(sel)) {
-    buckets.root.push(rule.raw);
-    stats.rootRules++;
-    stats.tokenVars += countVars(rule.block);
-  } else if (/^\.dark\b/.test(sel) || /,\s*\.dark\b/.test(sel)) {
-    buckets.dark.push(rule.raw);
-    stats.darkRules++;
-    stats.darkVars += countVars(rule.block);
-  } else if (sel.startsWith('@font-face')) {
-    buckets.font.push(rule.raw);
-    stats.fontRules++;
-  } else if (sel.startsWith('@media')) {
-    stats.mediaRules++;
-    const mediaCondition = sel.replace(/^@media\s*/, '');
-    const innerRules = extractTopLevelRules(rule.block);
-    const innerBuckets = { root: [], dark: [], font: [], other: [] };
-    for (const ir of innerRules) classifyRule(ir, innerBuckets);
-    for (const key of ['root', 'dark', 'font', 'other']) {
-      if (innerBuckets[key].length) {
-        buckets[key].push(`@media ${mediaCondition} {\n${innerBuckets[key].join('\n\n')}\n}`);
-      }
-    }
-  } else if (sel.startsWith('@keyframes') || sel.startsWith('@-webkit-keyframes')) {
-    buckets.other.push(rule.raw);
-    stats.otherRules++;
-  } else if (sel.startsWith('@import') || sel.startsWith('@charset')) {
-    // 忽略
-  } else {
-    buckets.other.push(rule.raw);
-    stats.otherRules++;
-  }
-}
-
-const cssText = extractStyleBlocks(html);
-const cssFilesWritten = [];
-if (!cssText.trim()) {
-  console.warn('[extract-umd] 未找到 <style> 块，跳过 CSS 提取');
-} else {
-  const rules = extractTopLevelRules(cssText);
-  const buckets = { root: [], dark: [], font: [], other: [] };
-  for (const rule of rules) classifyRule(rule, buckets);
-
+function copyStyleFiles() {
+  const assetsStyleDir = path.join(sourceDir, 'assets', 'style');
   const stylesDir = path.join(resolvedOutput, 'src', 'styles');
   if (!fs.existsSync(stylesDir)) fs.mkdirSync(stylesDir, { recursive: true });
+  const cssFilesWritten = [];
 
-  if (buckets.root.length) {
-    const p = path.join(stylesDir, 'tokens.css');
-    fs.writeFileSync(p, `/* tokens.css - 从 ${sourceBaseName} 提取的 :root 变量定义 */\n/* 共 ${stats.tokenVars} 个变量，${stats.rootRules} 个 :root 规则 */\n\n${buckets.root.join('\n\n')}\n`, 'utf8');
-    cssFilesWritten.push('src/styles/tokens.css');
-    console.log(`[extract-umd] tokens.css: ${stats.tokenVars} 个变量（${stats.rootRules} 个 :root 规则）`);
+  if (!fs.existsSync(assetsStyleDir)) {
+    console.warn(`[extract-umd] 源项目无 assets/style/ 目录（ict-react-coder 标准产物应含此目录，含 base/light/theme/dark/ant 五层 CSS），跳过 CSS 拷贝；scaffold 空壳占位将保留`);
+    return cssFilesWritten;
   }
-  if (buckets.dark.length) {
-    const p = path.join(stylesDir, 'theme-dark.css');
-    fs.writeFileSync(p, `/* theme-dark.css - 从 ${sourceBaseName} 提取的 .dark 覆盖 */\n/* 共 ${stats.darkVars} 个变量，${stats.darkRules} 个 .dark 规则 */\n\n${buckets.dark.join('\n\n')}\n`, 'utf8');
-    cssFilesWritten.push('src/styles/theme-dark.css');
-    console.log(`[extract-umd] theme-dark.css: ${stats.darkVars} 个变量（${stats.darkRules} 个 .dark 规则）`);
-  }
-  if (buckets.font.length) {
-    const p = path.join(stylesDir, 'font.css');
-    fs.writeFileSync(p, `/* font.css - 从 ${sourceBaseName} 提取的 @font-face */\n\n${buckets.font.join('\n\n')}\n`, 'utf8');
-    cssFilesWritten.push('src/styles/font.css');
-    console.log(`[extract-umd] font.css: ${stats.fontRules} 个 @font-face 规则`);
-  }
-  if (buckets.other.length) {
-    const p = path.join(stylesDir, 'base.css');
-    fs.appendFileSync(p, `\n\n/* 以下规则从 ${sourceBaseName} 的 <style> 块提取（${stats.otherRules} 条） */\n\n${buckets.other.join('\n\n')}\n`, 'utf8');
+
+  // base.css: @font-face 字体路径改写（../font/ | ./font/ | assets/font/ → /font/，Vite public 绝对路径）；
+  // ./assets/uploads/ → /uploads/（图片资源由 §4.8 拷到 public/uploads/）；
+  // append 到 scaffold 预制的 base.css（eview 专用样式 ev_no_wcag/ev_form_item 保留在前）
+  const baseSrc = path.join(assetsStyleDir, 'base.css');
+  if (fs.existsSync(baseSrc)) {
+    let content = fs.readFileSync(baseSrc, 'utf8');
+    content = content.replace(
+      /url\(\s*['"]?(?:\.\.\/)*(?:\.\/)?(?:assets\/)?(font\/HarmonyOS_SansSC\/[^'")\s]+)['"]?\s*\)/g,
+      "url('/$1')"
+    );
+    content = content.replace(/\.\/assets\/uploads\//g, '/uploads/');
+    const baseDest = path.join(stylesDir, 'base.css');
+    fs.appendFileSync(baseDest, `\n\n/* 以下从源项目 assets/style/base.css 拷贝（@font-face 字体路径已改写为 Vite /font/ 绝对路径，uploads 图片路径改写为 /uploads/） */\n\n${content}\n`, 'utf8');
     cssFilesWritten.push('src/styles/base.css');
-    console.log(`[extract-umd] base.css: 追加 ${stats.otherRules} 条规则`);
+    stats.styleFiles.push({ from: 'assets/style/base.css', to: 'src/styles/base.css' });
+    console.log(`[extract-umd] base.css: 拷贝 + 路径改写（@font-face → /font/，uploads → /uploads/）`);
   }
-  if (stats.mediaRules) console.log(`[extract-umd] @media 规则: ${stats.mediaRules} 个（已递归分类）`);
+
+  // light.css / theme.css / dark.css: 直接 write（覆盖 scaffold 空壳占位）
+  for (const name of ['light.css', 'theme.css', 'dark.css']) {
+    const src = path.join(assetsStyleDir, name);
+    if (fs.existsSync(src)) {
+      const content = fs.readFileSync(src, 'utf8');
+      fs.writeFileSync(path.join(stylesDir, name), content, 'utf8');
+      cssFilesWritten.push(`src/styles/${name}`);
+      stats.styleFiles.push({ from: `assets/style/${name}`, to: `src/styles/${name}` });
+      const varCount = (content.match(/--[a-zA-Z0-9-]+\s*:/g) || []).length;
+      console.log(`[extract-umd] ${name}: 拷贝（${varCount} 个变量定义）`);
+    }
+  }
+
+  // ant.css 跳过（eview-react 用 aui3_1.css 替代，不需 antd 组件换肤层）
+  if (fs.existsSync(path.join(assetsStyleDir, 'ant.css'))) {
+    console.log(`[extract-umd] ant.css: 跳过（eview-react 用 aui3_1.css 替代）`);
+  }
+
+  return cssFilesWritten;
 }
+
+const cssFilesWritten = copyStyleFiles();
 
 // ========== 2. 检查源项目 src/ 目录 ==========
 
@@ -381,6 +320,191 @@ if (i18nInfo.antdLocaleImports.length) console.log(`[extract-umd] antd locale �
 if (i18nInfo.antdLocaleFiles.length) console.log(`[extract-umd] 自写 antd locale 文件(dayjs 注册): ${i18nInfo.antdLocaleFiles.join(', ')}`);
 if (i18nInfo.businessLocaleFiles.length) console.log(`[extract-umd] 业务语言包文件: ${i18nInfo.businessLocaleFiles.length} 个`);
 
+// ========== 4.6 扫描 <Icon name> 调用点（供下游 antd-to-eview-react 图标步骤预定位） ==========
+
+function scanIconCallSites() {
+  const scanDirs = [];
+  const srcDir = path.join(sourceDir, 'src');
+  if (fs.existsSync(srcDir)) scanDirs.push(srcDir);
+  const extractedDir = path.join(resolvedOutput, '_extracted');
+  if (fs.existsSync(extractedDir)) scanDirs.push(extractedDir);
+
+  const callSites = [];
+
+  for (const base of scanDirs) {
+    function walk(dir) {
+      for (const name of fs.readdirSync(dir)) {
+        const full = path.join(dir, name);
+        const stat = fs.statSync(full);
+        if (stat.isDirectory()) {
+          if (name === 'node_modules' || name === 'dist') continue;
+          walk(full);
+          continue;
+        }
+        if (!/\.(jsx?|tsx?)$/.test(name)) continue;
+        const code = fs.readFileSync(full, 'utf8');
+        const relFile = path.relative(sourceDir, full).replace(/\\/g, '/');
+
+        const iconRe = /<Icon\b/g;
+        let m;
+        while ((m = iconRe.exec(code)) !== null) {
+          const startPos = m.index;
+          const window = code.slice(startPos, startPos + 300);
+          const lineNum = code.slice(0, startPos).split('\n').length;
+
+          const nameLitMatch = window.match(/name\s*=\s*["']([^"']+)["']/);
+          const nameDynMatch = window.match(/name\s*=\s*\{([^}]+)\}/);
+
+          let nameValue = null;
+          let nameType = 'none';
+
+          if (nameLitMatch) {
+            nameValue = nameLitMatch[1];
+            nameType = 'literal';
+          } else if (nameDynMatch) {
+            nameValue = nameDynMatch[1].trim();
+            nameType = 'dynamic';
+          }
+
+          callSites.push({
+            file: relFile,
+            line: lineNum,
+            name: nameValue,
+            type: nameType,
+          });
+        }
+      }
+    }
+    walk(base);
+  }
+
+  return callSites;
+}
+
+stats.iconCallSites = scanIconCallSites();
+
+if (stats.iconCallSites.length) {
+  const literal = stats.iconCallSites.filter(s => s.type === 'literal').length;
+  const dynamic = stats.iconCallSites.filter(s => s.type === 'dynamic').length;
+  const noneName = stats.iconCallSites.filter(s => s.type === 'none').length;
+  console.log(`[extract-umd] <Icon> 调用点: ${stats.iconCallSites.length} 处 (字面量=${literal}, 动态=${dynamic}, 无name=${noneName})`);
+}
+
+// ========== 4.7 扫描 IPInput 调用点（ict-react-coder 手写共享件，非 antd 导入，extract-umd 默认扫不到） ==========
+
+function scanIpInputCallSites() {
+  const result = { sharedFiles: [], imports: [], callSites: [] };
+
+  // 1) 检测源项目里的手写 IPInput 共享件（assets/shared/ip-input.jsx 等常见位置 + src/components/ip-input/）
+  const candidates = [
+    'assets/shared/ip-input.jsx',
+    'assets/shared/IpInput.jsx',
+    'assets/shared/IPInput.jsx',
+  ];
+  for (const rel of candidates) {
+    if (fs.existsSync(path.join(sourceDir, rel))) result.sharedFiles.push(rel);
+  }
+  const ipInputComponentDir = path.join(sourceDir, 'src/components/ip-input');
+  if (fs.existsSync(ipInputComponentDir)) {
+    for (const name of fs.readdirSync(ipInputComponentDir)) {
+      if (/\.jsx?$/.test(name)) result.sharedFiles.push(`src/components/ip-input/${name}`);
+    }
+  }
+
+  // 2) 扫 imports 与 <IpInput>/<IPInput> 调用点（仅 src/ 与 _extracted/，与 scanIconCallSites 一致）
+  const scanDirs = [];
+  const srcDir = path.join(sourceDir, 'src');
+  if (fs.existsSync(srcDir)) scanDirs.push(srcDir);
+  const extractedDir = path.join(resolvedOutput, '_extracted');
+  if (fs.existsSync(extractedDir)) scanDirs.push(extractedDir);
+
+  for (const base of scanDirs) {
+    function walk(dir) {
+      for (const name of fs.readdirSync(dir)) {
+        const full = path.join(dir, name);
+        const stat = fs.statSync(full);
+        if (stat.isDirectory()) {
+          if (name === 'node_modules' || name === 'dist') continue;
+          walk(full);
+          continue;
+        }
+        if (!/\.(jsx?|tsx?)$/.test(name)) continue;
+        const code = fs.readFileSync(full, 'utf8');
+        const relFile = path.relative(sourceDir, full).replace(/\\/g, '/');
+
+        // import IpInput from ".../assets/shared/ip-input.jsx" 或 .../components/ip-input
+        const importRe = /import\s+(\w+)\s+from\s+['"]([^'"]*(?:assets\/shared\/ip-input|components\/ip-input)[^'"]*)['"]/gi;
+        let im;
+        while ((im = importRe.exec(code)) !== null) {
+          result.imports.push({ file: relFile, importName: im[1], source: im[2] });
+        }
+
+        // <IpInput ...> 或 <IPInput ...>（ict-react-coder 产物函数名为 IpInput）
+        const callRe = /<(IpInput|IPInput)\b/g;
+        let cm;
+        while ((cm = callRe.exec(code)) !== null) {
+          const startPos = cm.index;
+          const lineNum = code.slice(0, startPos).split('\n').length;
+          const window = code.slice(startPos, startPos + 300);
+          const propsMatch = window.match(/^<(?:IpInput|IPInput)\s*([^>]*)/);
+          const propsStr = propsMatch ? propsMatch[1].trim() : '';
+          result.callSites.push({ file: relFile, line: lineNum, component: cm[1], props: propsStr });
+        }
+      }
+    }
+    walk(base);
+  }
+
+  return result;
+}
+
+stats.ipInputCallSites = scanIpInputCallSites();
+
+if (stats.ipInputCallSites.callSites.length) {
+  console.log(`[extract-umd] <IpInput> 调用点: ${stats.ipInputCallSites.callSites.length} 处, import 来源: ${stats.ipInputCallSites.imports.length} 处, 手写共享件: ${stats.ipInputCallSites.sharedFiles.length} 个`);
+}
+
+// ========== 4.8 拷贝 assets/uploads/ 图片资源到 public/uploads/（scaffold public/ 预置 font/，无 uploads/） ==========
+// ict-react-coder 把图片放在 assets/uploads/，UMD 用相对路径 ./assets/uploads/xxx 引用。
+// Vite 工程下这些路径会断，需：① 整目录拷到 public/uploads/；② JSX/CSS 里的 ./assets/uploads/xxx 改写成 /uploads/xxx。
+// 本步做①（拷贝）+ 记录 pathRewrite 规则到 .umd-conversion.json（供步骤 3 子 agent 改 JSX 路径）；
+// CSS 改写已在上文 §1 buckets 生成后统一完成（CSS 文件由 extract-umd 写、子 agent 不碰）。
+
+function copyUploadsAssets() {
+  const result = { copied: [], copiedCount: 0, pathRewrite: { from: './assets/uploads/', to: '/uploads/' } };
+  const srcUploadsDir = path.join(sourceDir, 'assets', 'uploads');
+  if (!fs.existsSync(srcUploadsDir)) {
+    console.log('[extract-umd] 源项目无 assets/uploads/ 目录，跳过图片资源拷贝');
+    return result;
+  }
+  const destUploadsDir = path.join(resolvedOutput, 'public', 'uploads');
+  let copiedCount = 0;
+  function copyDir(src, dest) {
+    fs.mkdirSync(dest, { recursive: true });
+    for (const name of fs.readdirSync(src)) {
+      const srcFull = path.join(src, name);
+      const destFull = path.join(dest, name);
+      const stat = fs.statSync(srcFull);
+      if (stat.isDirectory()) {
+        copyDir(srcFull, destFull);
+      } else {
+        fs.copyFileSync(srcFull, destFull);
+        copiedCount++;
+        result.copied.push(path.relative(srcUploadsDir, srcFull).replace(/\\/g, '/'));
+      }
+    }
+  }
+  copyDir(srcUploadsDir, destUploadsDir);
+  result.copiedCount = copiedCount;
+  return result;
+}
+
+stats.uploadsAssets = copyUploadsAssets();
+
+if (stats.uploadsAssets.copiedCount) {
+  console.log(`[extract-umd] 拷贝 assets/uploads/ 图片资源: ${stats.uploadsAssets.copiedCount} 个文件 → public/uploads/`);
+}
+
 // ========== 5. 生成 .umd-conversion.json 交接文件 ==========
 
 const handoff = {
@@ -390,9 +514,12 @@ const handoff = {
   projectName: path.basename(resolvedOutput),
   antdComponents: stats.antdComponents,
   antdIcons: stats.antdIcons,
-  tokens: {
-    rootVarCount: stats.tokenVars,
-    darkVarCount: stats.darkVars,
+  iconCallSites: stats.iconCallSites,
+  ipInputCallSites: stats.ipInputCallSites,
+  uploadsAssets: stats.uploadsAssets,
+  styles: {
+    source: 'assets/style',
+    files: stats.styleFiles,
     cssFiles: cssFilesWritten,
   },
   srcFiles: stats.srcFiles,
@@ -425,11 +552,17 @@ console.log(`[extract-umd] 交接文件: ${handoffPath}`);
 
 console.log('');
 console.log('=== extract-umd 报告 ===');
-console.log(`  CSS 规则: :root=${stats.rootRules}, .dark=${stats.darkRules}, @font-face=${stats.fontRules}, @media=${stats.mediaRules}, other=${stats.otherRules}`);
-console.log(`  Token 变量: ${stats.tokenVars} 个 (:root), ${stats.darkVars} 个 (.dark)`);
+console.log(`  CSS 文件: ${cssFilesWritten.length} 个 (${cssFilesWritten.join(', ')})`);
 console.log(`  src/ 文件: ${stats.srcFiles.length} 个`);
 console.log(`  antd 组件: ${Object.keys(stats.antdComponents).length} 个`);
 console.log(`  antd 图标: ${stats.antdIcons.length} 个`);
+  console.log(`  Icon 调用点: ${stats.iconCallSites.length} 处`);
+  if (stats.ipInputCallSites.callSites.length) {
+    console.log(`  IPInput 调用点: ${stats.ipInputCallSites.callSites.length} 处 (手写共享件: ${stats.ipInputCallSites.sharedFiles.length} 个, import 来源: ${stats.ipInputCallSites.imports.length} 处)`);
+  }
+  if (stats.uploadsAssets.copiedCount) {
+    console.log(`  uploads 图片资源: ${stats.uploadsAssets.copiedCount} 个文件 → public/uploads/ (pathRewrite: ${stats.uploadsAssets.pathRewrite.from} → ${stats.uploadsAssets.pathRewrite.to})`);
+  }
 console.log(`  i18n scenario: ${i18nInfo.scenario}${i18nInfo.scenario === 'A' ? '（硬编码，scaffold 已就绪）' : i18nInfo.scenario === 'B' ? '（react-intl，步骤 3 合并业务包）' : '（i18next，留下游决策）'}`);
 if (stats.scriptsExtracted) console.log(`  提取 script 块: ${stats.scriptsExtracted} 个`);
 console.log(`  交接文件: .umd-conversion.json`);

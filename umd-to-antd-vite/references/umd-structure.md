@@ -41,17 +41,17 @@ index.page.html (~2000 行)
 `extract-umd.cjs` 用括号计数法拆分顶层 CSS 规则：
 
 1. 从 HTML 提取所有 `<style>` 块内容，拼接成一个大 CSS 字符串
-2. 遍历字符，按 `{` 和 `}` 深度拆分顶层规则块
-3. 按选择器分类：
-   - `:root` → `tokens.css`（多个 :root 块原样保留，CSS 级联中后声明覆盖先声明）
-   - `.dark` → `theme-dark.css`
-   - `@font-face` → `font.css`
-   - `@media` → 递归提取内部规则，按选择器分类到对应文件，保留 `@media` 声明包裹
-   - 其他（`.shell-header` 等）→ `base.css` 追加
+2. 检测产物 `assets/style/` 目录是否存在（ict-react-coder 标准产物含此目录，带 base/light/theme/dark/ant 五层 CSS 源文件）
+3. 拷贝 4 层 CSS（ict-react-coder 已分好类，对齐 ict 的 base/light/theme/dark 四分类）：
+   - `base.css` → `src/styles/base.css`（append 到 scaffold 预制的 eview 专用样式后；`@font-face` 路径 `../font/` 改写为 Vite `/font/` 绝对路径、`./assets/uploads/` 改写为 `/uploads/`）
+   - `light.css` → `src/styles/light.css`（语义层 :root，`--color-*` 变量，整文件 write 覆盖空壳）
+   - `theme.css` → `src/styles/theme.css`（角色层 :root，`--primary`/`--surface`/`--font-body-*` 等，整文件 write）
+   - `dark.css` → `src/styles/dark.css`（`.dark` 暗色覆盖，整文件 write）
+   - `ant.css` 跳过（eview-react 用 `aui3_1.css` 替代，不需 antd 组件换肤层）
 
 ### 2.3 变量计数
 
-脚本统计 `:root` 和 `.dark` 中的 CSS 变量数（`--xxx:` 匹配），输出报告。典型产物：tokens.css ~666 个变量，theme-dark.css ~200 个变量。
+脚本统计各文件中的 CSS 变量数（`--xxx:` 匹配），输出报告。典型产物：light.css ~180 个变量，theme.css ~88 个变量，dark.css ~180 个变量。
 
 ## 3. script 块的提取与文件名推断
 

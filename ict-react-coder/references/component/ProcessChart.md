@@ -12,6 +12,7 @@
 ## Optional option props
 
 - `unit`: string — value suffix (e.g. `"%"`, `"MB"`, `"GB"`)
+- `mini`: boolean — minimal display mode for small-size scenes, hides legend and axes
 - `color`: string[] — custom bar colors (stick to defaults unless explicitly requested)
 
 ## Example: Basic Progress Bar

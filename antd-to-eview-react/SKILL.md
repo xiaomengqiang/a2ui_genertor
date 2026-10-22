@@ -19,7 +19,7 @@ description: >-
 
 | 步骤 | 做什么 | 产出 |
 |------|--------|------|
-| **0. 评估** | 读 `.umd-conversion.json` 的 `migrationPlan`（由 `umd-to-antd-vite` 步骤 5 始终生成，含分类 A/B/C + 替换名 + 关键差异 + 涉及文件 + reference 指引）。详见 [migration-workflow.md](references/migration-workflow.md) 步骤 0 | 组件迁移清单 |
+| **0. 评估** | 读 `.umd-conversion.json` 的 `migrationPlan`（由 `umd-to-antd-vite` 步骤 5 `build-migration-plan.cjs` 脚本生成，含分类 A/B/C + 替换名 + **importPath** + **shellComponent** + **完整 keyDiffs** + ref 指引 + 涉及文件）+ `globalRef`（拼写异常 + 回调签名速查表）。**A 类组件直接用 keyDiffs + importPath 替换，无需读 `component-mapping.md` 或 `components/<Name>.md`**；仅 B/C 类按 `ref` 指引读对应 reference。读 `iconCallSites` 获取图标调用点预扫结果（跳过 grep）。详见 [migration-workflow.md](references/migration-workflow.md) 步骤 0 | 组件迁移清单 + 拼写/回调速查 + 图标调用点 |
 | **1. i18n 设置** | 读 `.umd-conversion.json` 的 `i18nScenario`：`wired=true`（scenario A/B）跳过接线（IntlProvider + 业务包合并已由上游步骤 3 完成），只做运行时验证（DatePicker 中文、Portal 不报 MISSING_TRANSLATION）；`wired=false`（scenario C）做 keep i18next vs 迁 react-intl 决策。详见 [i18n-migration.md](references/i18n-migration.md) §3/§4 | i18n 运行时验证通过 |
 | **2. 逐组件替换** | 按映射总表替换每个 antd 组件；无对应的按 [handwrite-templates.md](references/handwrite-templates.md) 手写；图标按 §3.0 转 B/C 静态 import（字面量、三元、数据数组动态名 `name={t.icon}`、图标-prop wrapper 组件 `icon` prop 全由 `match-icons.cjs --apply` 自动改写；引入 JSX 的 `.js`→`.jsx` / `.ts`→`.tsx` 自动转换；仅真运行时数据/wrapper 安全闸退方案A shim 兜底，详见 [Icon.md](references/components/Icon.md)）/图表（`@nce/eview-react/Chart`）走预制件复用，只改 import 路径，**所有图表 option 必须显式补 `a2ui: true` + `theme`（暗色派生，源 Chart 封装的注入行为不随包导入自动生效）**。详见 [§3.0–§3.5](references/migration-workflow.md) | 组件代码全部替换 |
 | **3. 验证** | `check-relative-imports.cjs` 跳过（路径已由 `umd-to-antd-vite` 修正）。`check-i18n-keys.cjs` 必跑。`npm install`（bash 工具 timeout=30000，超时/失败记 SKIP 不判 FAIL）。详见 [§4.4](references/migration-workflow.md) | i18n 检查通过 |
@@ -30,7 +30,7 @@ description: >-
 
 ## eview-react 硬约束（迁移时必须遵守）
 
-1. **导入路径**：`import Button from '@nce/eview-react/Button'`，不是 `import { Button } from 'antd'`。**例外——包壳组件**：被包壳组件（清单：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`、`DatePicker`、`Spinner`、`Steps`、`Cascader`、`TreeSelector`）从 `@/shared/<X>` 导入（scaffold 预置；多数透明转发 `@nce/eview-react/<X>`、API 不变，`Cascader` 为 scaffold 手写组件、API 基本同 antd 调用点几乎零改动；props 规则仍按本 skill 映射表/组件文档迁移）；清单本约束维护，新增包壳同步更新。**特别注意——`RadioGroup` 包与 `Radio` 包分离**：`RadioGroup` 必须从 `@nce/eview-react/RadioGroup` **默认导入**（`import RadioGroup from '@nce/eview-react/RadioGroup'`），`@nce/eview-react/Radio` 只导出 `Radio` 组件本身、**不导出** `RadioGroup`，禁止写 `import { RadioGroup } from '@nce/eview-react/Radio'`。
+1. **导入路径**：`import Button from '@nce/eview-react/Button'`，不是 `import { Button } from 'antd'`。**例外——包壳组件**：被包壳组件（清单：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`、`DatePicker`、`Spinner`、`Steps`、`Cascader`、`TreeSelector`、`IPInput`、`TimePicker`）从 `@/shared/<X>` 导入（scaffold 预置；多数透明转发 `@nce/eview-react/<X>`、API 不变，`Cascader` 为 scaffold 手写组件、API 基本同 antd 调用点几乎零改动；props 规则仍按本 skill 映射表/组件文档迁移）；清单本约束维护，新增包壳同步更新。**特别注意——`RadioGroup` 包与 `Radio` 包分离**：`RadioGroup` 必须从 `@nce/eview-react/RadioGroup` **默认导入**（`import RadioGroup from '@nce/eview-react/RadioGroup'`），`@nce/eview-react/Radio` 只导出 `Radio` 组件本身、**不导出** `RadioGroup`，禁止写 `import { RadioGroup } from '@nce/eview-react/Radio'`。
 2. **样式**：scaffold `main.jsx` 已写好六处 CSS import（`aui3_1` / `aui3_1_dark` / `base` / `font` / `tokens` / `theme-dark`），不要删
 3. **Provider**：scaffold `main.jsx` 已配好 `ConfigProvider` + `IntlProvider`（`messages={componentsLocales[locale]}`）；i18n 静态接线（scenario A/B 合并业务包）已由 `umd-to-antd-vite` 步骤 3 前置完成（`i18nScenario.wired=true`），本 skill 步骤 1 只在 `wired=false`（scenario C）时做决策。**IntlProvider 必须在 `main.jsx`，是 `ConfigProvider` 的直接子级**（不是在 `app.jsx`/AppShell 里），否则弹层（Dialog 等 portal）取不到业务文案报 `MISSING_TRANSLATION`；**locale 用 `"zh"` 不是 `"zh-CN"`**
 4. **回调签名**：第一个参数通常是值不是 event（TextField `onChange(value, ...)`、Select `onChange(value, oldValue, text, oldText, event)`）
@@ -57,10 +57,11 @@ description: >-
 | **表单提交页** | 输入组件逐个替换（源项目用 div+输入组件拼合，无 Form 包装）；提交逻辑不变 |
 | **侧边详情/编辑** | `Drawer`→`Drawer`（`open`→`visible`）；底部按钮自写；`Descriptions`→手写 KeyValueList |
 | **布局骨架** | `Layout`/`Avatar` 全部手写；`Menu`→`Accordion`；`Breadcrumb`→`Crumbs`；`Input.Search`→`SearchInput` |
+| **分段选项卡** | `Segmented`→`SelectCard`（导出名是 SelectCard 不是 Segmented）；`options`→`data=[{text,value}]`；`defaultValue`→初始 `value` state；`block`→无对应（宽度走 `style`/`itemStyle`）；`disabled`→`disable`；`onChange` 首参即为选中值 |
 
 ## 前置 skill：umd-to-antd-vite
 
-以下工作已由 `umd-to-antd-vite` 完成，本 skill 跳过：工程骨架搭建（eview-react scaffold 已就位）、组件扫描（`antdComponents`）、token 外置、相对导入修正、暗色模式转换（antd `theme.darkAlgorithm` → eview 类名切换）、i18n 静态接线（scenario A/B 的 `IntlProvider` + 业务包合并，`i18nScenario.wired=true`；scenario C 留本 skill 步骤 1 决策）、组件分类评估（`migrationPlan`，由上游步骤 5 始终填充，步骤 0 直接读它）。
+以下工作已由 `umd-to-antd-vite` 完成，本 skill 跳过：工程骨架搭建（eview-react scaffold 已就位）、组件扫描（`antdComponents`）、**图标调用点预扫**（`iconCallSites`，含文件+行号+name值+类型，跳过 grep）、token 外置、相对导入修正、暗色模式转换（antd `theme.darkAlgorithm` → eview 类名切换）、i18n 静态接线（scenario A/B 的 `IntlProvider` + 业务包合并，`i18nScenario.wired=true`；scenario C 留本 skill 步骤 1 决策）、**组件分类评估**（`migrationPlan` enriched 版，由上游步骤 5 `build-migration-plan.cjs` 脚本生成，含 importPath + shellComponent + 完整 keyDiffs + ref；**A 类组件无需读 component-mapping.md / components/*.md**）+ **全局速查表**（`globalRef`，拼写异常 + 回调签名，跳过读 component-mapping.md 文末速查表）。
 
 ## 核心问题
 
@@ -156,4 +157,42 @@ const columns = [
   { title: "负载率", key: "load", allowSort: true },      // 源有 sorter
   { title: "操作", key: "action", allowSort: false },     // 操作列不排序
 ];
+```
+
+### Table 斑马纹默认开启（源 antd 未开斑马纹也带斑马纹）
+
+**问题**：eview-react 的 Table `enableZebraCrossing` 默认值为 `true`，表格默认开斑马纹。antd 的 Table **默认无斑马纹**——要开得用 `rowClassName={(_, i) => i % 2 === 0 ? 'ant-table-row-even' : ''}` + 自定义 CSS、或 ConfigProvider `theme.token` 配 stripe。源 antd 未开斑马纹的表格，迁移到 eview-react 后凭空多出斑马纹，与原页面视觉不一致。
+
+**解决**：迁移每个 Table 时显式判定源 antd 是否开了斑马纹（搜源 `rowClassName` 是否输出 `even`/`odd`/`striped` 等类名、源 CSS 是否有 `.ant-table-row-even`/`.ant-table-row-odd` 背景、源 ConfigProvider `theme.token` 是否配 stripe）：
+- 源未开斑马纹 → eview-react 表上显式加 `enableZebraCrossing={false}`
+- 源开了斑马纹 → 不设（利用默认 `true`）
+
+```jsx
+// 源 antd 未开斑马纹 → 迁移后显式关闭
+<Table dataset={rows} columns={columns} enableZebraCrossing={false} />
+```
+
+### Table 外层默认行内 width:100%;height:100% 撑破布局
+
+**问题**：eview-react 的 Table 默认给最外层 dom 加行内样式 `width:100%;height:100%;`，在 flex 容器、Grid 布局、卡片内嵌等场景下会撑破父容器、占满高度挤压兄弟元素，与原 antd 表格（默认 block `width:100%`、高度由内容决定）布局不一致。
+
+**解决**：迁移每个 Table 时显式加 `width="unset"` 重置组件库默认行内宽度。但要先看源 antd Table 有无 width 相关设置：
+- 源 antd 有显式宽度（`style={{ width: ... }}` / className + CSS 设宽 / `scroll={{ x: ... }}` 横向滚动宽度）→ 映射到 eview-react `width` prop
+- 源 antd 无显式宽度 → 加 `width="unset"`
+
+```jsx
+// 源 antd 无显式宽度 → 迁移后重置默认行内宽度
+<Table dataset={rows} columns={columns} width="unset" />
+// 源 antd 有显式宽度 → 映射到 width prop
+<Table dataset={rows} columns={columns} width={600} />
+```
+
+### Table columns 变化不生效（enableColumnCompareUpdate 默认 false）
+
+**问题**：eview-react 的 Table `enableColumnCompareUpdate` 默认值为 `false`，更新 `columns` prop 时不会重新渲染列定义（diff 比较被关掉，columns 变化不生效）。源 antd 项目的 `columns` 经常动态变化——条件列（按权限/状态显示不同列）、筛选后列集、`useMemo` 依赖变化重建 columns 等。迁移后如果不显式开 `enableColumnCompareUpdate={true}`，所有 columns 变化的逻辑全部失效。
+
+**解决**：迁移时默认显式加 `enableColumnCompareUpdate={true}`。
+
+```jsx
+<Table dataset={rows} columns={columns} enableColumnCompareUpdate />
 ```
