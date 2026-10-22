@@ -2369,13 +2369,67 @@ input.ant-input.ant-input-sm {
 .ant-timeline .ant-timeline-item .ant-timeline-item-head {
   width: 0.875rem;
   height: 0.875rem;
+  border-width: 0.125rem;
 }
-.ant-timeline.ant-timeline-start .ant-timeline-item .ant-timeline-item-tail {
+.ant-timeline .ant-timeline-item .ant-timeline-item-head.ant-timeline-item-head-green {
+  color: var(--mint-50);
+  border-color: var(--mint-50);
+}
+.ant-timeline .ant-timeline-item .ant-timeline-item-head.ant-timeline-item-head-blue {
+  color: var(--blue-50);
+  border-color: var(--blue-50);
+}
+.ant-timeline .ant-timeline-item .ant-timeline-item-head.ant-timeline-item-head-red {
+  color: var(--red-50);
+  border-color: var(--red-50);
+}
+.ant-timeline .ant-timeline-item .ant-timeline-item-head.ant-timeline-item-head-gray {
+  color: var(--gray-40);
+  border-color: var(--gray-40);
+}
+.ant-timeline .ant-timeline-item .ant-timeline-item-content .ant-typography:not(.ant-typography-secondary) {
+  color: var(--gray-90);
+}
+.ant-timeline .ant-timeline-item .ant-timeline-item-content .ant-typography-secondary {
+  color: var(--gray-50);
+}
+.ant-timeline .ant-timeline-item-tail {
+  /* 线两端与圆圈各留 4px 间距：起点为圆底 0.875rem + 4px，
+       高度需扣除两端间距共 8px，使终点停在下一圆顶部上方 4px；
+       inset-inline-start 仅基础层级（0,2,0），alternate/right 模式由 antd 更高优先级规则接管水平定位 */
   inset-inline-start: 0.375rem;
+  inset-block-start: calc(0.875rem + 4px);
+  height: calc(100% - 0.875rem - 8px);
+  border-inline-start: 1px solid var(--gray-10);
 }
 .ant-timeline.ant-timeline-alternate .ant-timeline-item .ant-timeline-item-head,
 .ant-timeline.ant-timeline-right .ant-timeline-item .ant-timeline-item-head {
   margin-inline-start: -0.375rem;
+}
+.dark .ant-timeline .ant-timeline-item .ant-timeline-item-head.ant-timeline-item-head-green {
+  color: var(--mint-60);
+  border-color: var(--mint-60);
+}
+.dark .ant-timeline .ant-timeline-item .ant-timeline-item-head.ant-timeline-item-head-blue {
+  color: var(--blue-50);
+  border-color: var(--blue-50);
+}
+.dark .ant-timeline .ant-timeline-item .ant-timeline-item-head.ant-timeline-item-head-red {
+  color: var(--red-40);
+  border-color: var(--red-40);
+}
+.dark .ant-timeline .ant-timeline-item .ant-timeline-item-head.ant-timeline-item-head-gray {
+  color: var(--gray-50);
+  border-color: var(--gray-50);
+}
+.dark .ant-timeline .ant-timeline-item .ant-timeline-item-content .ant-typography:not(.ant-typography-secondary) {
+  color: var(--gray-0);
+}
+.dark .ant-timeline .ant-timeline-item .ant-timeline-item-content .ant-typography-secondary {
+  color: var(--gray-20);
+}
+.dark .ant-timeline .ant-timeline-item-tail {
+  border-inline-start: 1px solid rgb(from var(--gray-05) r g b / 0.15);
 }
 
 /* Tree 组件样式（占位，待填充 token 映射） */
