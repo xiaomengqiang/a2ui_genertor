@@ -4,6 +4,9 @@
 
 ## 使用规则
 
+- `size` 只用默认的 `middle`，不使用 `large` / `small`。
+- `type` 分层使用：常规页签用默认的 `line`；`line` 内嵌套的次级页签才用 `card` / `editable-card`。
+
 ## 布局
 
 - Tabs 紧邻所控制的内容，当前项在组内最突出。
@@ -11,7 +14,6 @@
 
 ## Don't
 
+- 不要使用 `size="large"` / `size="small"`。
 - 不要用 Tabs 表示步骤流程或跨模块导航。
 - 不要混合同级和非同级内容。
-- 不要写 Button/Segmented 等 Tabs API 不支持的类型。
-- 不要连续堆叠多层 Tabs。
