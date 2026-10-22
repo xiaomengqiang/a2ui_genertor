@@ -61,7 +61,7 @@
 | `Skeleton` | 手写 | 无导出 |
 | `Avatar` | 手写 | 无导出；见 [handwrite-templates.md](handwrite-templates.md) §2 |
 | `Badge` | `Badge` | `count`→`content`；`dot`；`status` 五态+`text`；`max`/`showZero` |
-| `Tag` | `Tag`（`@/shared/Tag` 适配类包壳） | 导入 `@/shared/Tag`（非 `@nce/eview-react/Tag`）；**调用点保留 antd 写法、不逐个改 props**——wrapper 内部映射 `color`→className token（`shared/Tag/Tag.css` 词汇：info/error/alert/warning/success/default/green/rose/pink/purple/indigo/cyan）、`bordered`→`fill`/`ev_tag_fill`、`icon`→`iconName`、`closable`/`onClose` 原样透传、antd `closeIcon` 丢弃；eview Tag **原生支持 `closable`+`onClose`**（非"无 closable"）；`Tag.CheckableTag` 仍无对应，用 `Tag`+`onClick`+`fill` 切换 |
+| `Tag` | `Tag`（`@/shared/Tag` 适配类包壳） | 导入 `@/shared/Tag`（非 `@nce/eview-react/Tag`）；**`color`/`closable`/`onClose` 保留 antd 写法**（wrapper 内部解析 `color`；自定义 hex→solid 实心背景+白字；`bordered` 接收但忽略）；**`icon={<Icon/>}` 必须改写：把 icon 元素移到 children 最前、不保留 `icon` prop**——antd `<Tag icon={<IconPlusIc*/>}>文字</Tag>` → `<Tag><IconPlusIc*/>文字</Tag>`（eview `iconName` 不渲染组件图标）；antd `closeIcon` 丢弃；eview Tag **原生支持 `closable`+`onClose`**；`Tag.CheckableTag` 仍无对应，用 `Tag`+`onClick`+`color` 切换选中态 |
 | `Tooltip` | `TipBox` | 包裹式（`<TipBox content><目标/></TipBox>`）；`direction` 12 方位；`trigger="hover"/"click"/"focus"` |
 | `Popover` | `TipBox` | `trigger="click"`；`content` 自定义 |
 | `Popconfirm` | `MessageDialog type="confirm"` | `buttons={{ok,cancel}}` 对象；`isOpen` 受控 |
