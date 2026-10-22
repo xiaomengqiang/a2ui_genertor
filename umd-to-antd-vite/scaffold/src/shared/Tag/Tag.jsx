@@ -75,8 +75,7 @@ function resolveColor(color) {
  *   - 自定义 hex/rgb/hsl → solid 实心背景 + 白字（走 style）
  *   - default / 不传 → base 灰底
  * eview 无 fill/bordered 概念（只有 solid/outline 视觉态，由 ev_tag_fill + Tag.css 模拟），bordered/fill 接收但忽略；
- * icon→iconName（+isMessageTag/hasIcon）；closable/onClose 原样透传；closeIcon 丢弃。
- * isMessageTag/hasIcon 从 rest 摘出作逃生口（显式传值覆盖派生）；
+ * icon（组件节点）前置到 children（eview iconName 不渲染组件图标）；closable/onClose 原样透传；closeIcon 丢弃。
  * round/size/tagIconProps 等经 ...rest 原样透传给 eview。
  */
 export default function Tag({
@@ -92,10 +91,8 @@ export default function Tag({
   className,
   id,
   children,
-  // —— eview 内部派生（摘出避免与下方计算值重复透传；显式传值作逃生口）——
-  fill: _fill, // eview 无 fill 概念，丢弃（solid/outline 由 ev_tag_fill + Tag.css 模拟）
-  isMessageTag,
-  hasIcon,
+  // —— eview 内部 prop（icon 路径已弃用，摘出避免透传给 eview 触发其不渲染组件图标的逻辑）——
+  fill: _fill,               // eview 无 fill 概念，丢弃（solid/outline 由 ev_tag_fill + Tag.css 模拟）
   ...rest // round / size / tagIconProps 等原样透传
 } = {}) {
   const { token, presetStyle, customColor } = resolveColor(color);
@@ -120,14 +117,11 @@ export default function Tag({
     evStyle = { background: customColor, color: "#fff", ...style };
   }
 
-  // icon 由调用方按 antd 传入（icon+ 组件节点），原样塞进 eview iconName 槽
-  const hasIconProp = icon != null;
+  // icon 作为组件节点时 eview iconName 不渲染，改为前置到 children
+  const content = icon != null ? <>{icon}{children}</> : children;
 
   return (
     <EvTag
-      isMessageTag={hasIconProp ? (isMessageTag ?? true) : isMessageTag}
-      hasIcon={hasIconProp ? (hasIcon ?? true) : hasIcon}
-      iconName={icon}
       closable={closable}
       onClose={onClose}
       onClick={onClick}
@@ -136,7 +130,7 @@ export default function Tag({
       id={id}
       {...rest}
     >
-      {children}
+      {content}
     </EvTag>
   );
 }

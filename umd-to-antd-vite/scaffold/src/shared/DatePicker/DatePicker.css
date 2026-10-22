@@ -6,6 +6,13 @@
     width: 16.25rem;
 }
 
+.evDatePicker-custom .ev_datepicker_input_container {
+    width: 100%;
+}
+
+.evDatePicker-custom .ev_datepicker_input_container.ev_datepicker_input_datetime {
+    min-width: unset;
+}
 
 .evDatePicker-custom .ev_datepicker .ev_datepicker_input_datetime div.ev_datepicker_input_range>input.ev_datepicker_inputLRange {
     width: calc(50% - 1.25rem);
