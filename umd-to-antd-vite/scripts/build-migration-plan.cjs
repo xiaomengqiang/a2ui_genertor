@@ -242,6 +242,30 @@ if (ipInputInfo && ipInputInfo.callSites && ipInputInfo.callSites.length) {
   console.log(`[build-migration-plan] 注入 IPInput 迁移行（ict-react-coder 手写件 → @/shared/IPInput）: ${ipFiles.length} 个调用文件`);
 }
 
+// ========== 2c. 注入 Chart 迁移行（ict-react-coder 内置图表共享件，非 antd 导入，步骤 2 扫不到） ==========
+// 触发条件：.umd-conversion.json 的 chartCallSites.callSites 非空（extract-umd.cjs §4.9 扫到 <Chart> 调用点）
+// antd 无 Chart 组件，ict-react-coder 在 assets/shared/chart.jsx 内置了图表封装（HUICharts wrapper）；
+// extract-umd.cjs 只扫 from 'antd' 导入，该共享件非 antd 组件，
+// antdComponents 不含 Chart 键 → 上面 §2 循环不会为它生成行 → 此处补注入，让下游步骤 0/2 能看到。
+
+const chartInfo = handoff.chartCallSites;
+if (chartInfo && chartInfo.callSites && chartInfo.callSites.length) {
+  const chartFiles = [...new Set(chartInfo.callSites.map(c => c.file))];
+  const chartSharedFiles = chartInfo.sharedFiles || [];
+  migrationPlan.push({
+    antd: 'Chart',
+    category: 'A',
+    eview: 'Chart',
+    importPath: '@nce/eview-react/Chart',
+    shellComponent: false,
+    keyDiffs: 'ict-react-coder 内置 Chart 共享件（非 antd 组件，从 assets/shared/chart.jsx 导入）。迁移到 @nce/eview-react/Chart。只改 import 路径，name + option 契约不变。⚠️ 每个 option 必须显式补 a2ui: true + theme（暗色派生 hdesign-dark/hdesign-light）：源 Chart 封装在 setSimpleOption 前统一注入这两项，改包导入后不会自动补——漏写则 a2ui 视觉规范失效、暗色切换图表主题不跟随。theme 从全局暗色状态派生（如 useApp().isDark ? "hdesign-dark" : "hdesign-light"）。推荐聚合 const chartBase = { a2ui: true, theme: ... } 后展开进各 option',
+    ref: 'components/Chart.md',
+    files: chartFiles,
+    sharedFilesToRemove: chartSharedFiles,
+  });
+  console.log(`[build-migration-plan] 注入 Chart 迁移行（ict-react-coder 内置件 → @nce/eview-react/Chart）: ${chartFiles.length} 个调用文件`);
+}
+
 // ========== 3. Global reference (static, inlined to save downstream reads) ==========
 
 const globalRef = {
