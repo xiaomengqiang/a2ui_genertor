@@ -197,3 +197,9 @@ const columns = [
 ```jsx
 <Table dataset={rows} columns={columns} enableColumnCompareUpdate />
 ```
+
+### onChartRendered 回调内二次调 getEchartsInstance()
+
+**问题**：`onChartRendered(chart)` 的 `chart` 参数**已经是 echarts 实例本身**，但迁移时误把它当作组件实例再调 `chart.getEchartsInstance()`——该方法只存在于组件 ref 上（`chartRef.current.getEchartsInstance()`），回调参数上没有，取值为 `undefined` 导致事件绑定静默失效（preview4 实测坑）。
+
+**解决**：`onChartRendered` 回调内直接用参数绑事件/改配置：`chart.on('click', ...)`、`chart.setOption(...)`，**禁止**在回调内调 `getEchartsInstance()`。详见 [Chart.md](references/components/Chart.md) §4/§8。

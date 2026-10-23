@@ -12,6 +12,7 @@
 - `title.subtext`: string — supplementary note below the center title
 - `legendPosition`: `"centerRight" | "bottomCenter"` — legend placement
 - `label.show`: boolean — direct labels on sectors (set only when needed)
+- `mini`: boolean — minimal display mode for small-size scenes, hides legend and label
 
 ## Example
 
