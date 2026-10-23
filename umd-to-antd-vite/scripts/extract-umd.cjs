@@ -43,6 +43,7 @@ const stats = {
   styleFiles: [],
   antdComponents: {}, antdIcons: [], iconCallSites: [],
   ipInputCallSites: { sharedFiles: [], imports: [], callSites: [] },
+  chartCallSites: { sharedFiles: [], imports: [], callSites: [] },
   uploadsAssets: { copied: [], copiedCount: 0, pathRewrite: { from: './assets/uploads/', to: '/uploads/' } },
 };
 
@@ -103,25 +104,95 @@ function copyStyleFiles() {
 
 const cssFilesWritten = copyStyleFiles();
 
-// ========== 2. 检查源项目 src/ 目录 ==========
+// ========== 1.5 共享：收集扫描文件清单 ==========
 
-function listSrcFiles(baseDir) {
-  const srcDir = path.join(baseDir, 'src');
-  if (!fs.existsSync(srcDir)) return [];
-  const files = [];
-  function walk(dir) {
-    for (const name of fs.readdirSync(dir)) {
-      const full = path.join(dir, name);
-      const stat = fs.statSync(full);
-      if (stat.isDirectory()) {
-        if (name === 'node_modules' || name === 'dist') continue;
-        walk(full);
-      } else if (/\.(jsx?|tsx?|json|css)$/.test(name)) {
-        files.push(path.relative(baseDir, full).replace(/\\/g, '/'));
+// 收集所有待扫描的源文件：① 源项目根级文件（非递归——ict-react-coder 把 app.jsx 放在 preview/ 根目录，不在 src/ 里）
+// ② src/ 下所有匹配文件（递归，跳过 node_modules/dist） ③ _extracted/ 下所有匹配文件（递归，跳过 node_modules/dist）
+// extRegex: 文件扩展名正则，如 /\.(jsx?|tsx?)$/ 或 /\.(jsx?|tsx?|mjs)$/
+function collectScanFiles(extRegex) {
+  const entries = [];
+
+  // ① 源项目根级文件（非递归——捕获 app.jsx 等根级入口文件）
+  if (fs.existsSync(sourceDir)) {
+    for (const name of fs.readdirSync(sourceDir)) {
+      const full = path.join(sourceDir, name);
+      if (fs.statSync(full).isFile() && extRegex.test(name)) {
+        entries.push({ fullPath: full, relFile: name });
       }
     }
   }
-  walk(srcDir);
+
+  // ② src/ 递归
+  const srcDir = path.join(sourceDir, 'src');
+  if (fs.existsSync(srcDir)) {
+    function walkSrc(dir) {
+      for (const name of fs.readdirSync(dir)) {
+        const full = path.join(dir, name);
+        const stat = fs.statSync(full);
+        if (stat.isDirectory()) {
+          if (name === 'node_modules' || name === 'dist') continue;
+          walkSrc(full);
+          continue;
+        }
+        if (!extRegex.test(name)) continue;
+        entries.push({ fullPath: full, relFile: path.relative(sourceDir, full).replace(/\\/g, '/') });
+      }
+    }
+    walkSrc(srcDir);
+  }
+
+  // ③ _extracted/ 递归
+  const extractedDir = path.join(resolvedOutput, '_extracted');
+  if (fs.existsSync(extractedDir)) {
+    function walkExtracted(dir) {
+      for (const name of fs.readdirSync(dir)) {
+        const full = path.join(dir, name);
+        const stat = fs.statSync(full);
+        if (stat.isDirectory()) {
+          if (name === 'node_modules' || name === 'dist') continue;
+          walkExtracted(full);
+          continue;
+        }
+        if (!extRegex.test(name)) continue;
+        entries.push({ fullPath: full, relFile: path.relative(sourceDir, full).replace(/\\/g, '/') });
+      }
+    }
+    walkExtracted(extractedDir);
+  }
+
+  return entries;
+}
+
+// ========== 2. 检查源项目 src/ 目录 ==========
+
+function listSrcFiles(baseDir) {
+  const files = [];
+  // 根级文件（非递归——app.jsx 在根目录，不在 src/ 里）
+  if (fs.existsSync(baseDir)) {
+    for (const name of fs.readdirSync(baseDir)) {
+      const full = path.join(baseDir, name);
+      if (fs.statSync(full).isFile() && /\.(jsx?|tsx?|json|css)$/.test(name)) {
+        files.push(name);
+      }
+    }
+  }
+  // src/ 递归
+  const srcDir = path.join(baseDir, 'src');
+  if (fs.existsSync(srcDir)) {
+    function walk(dir) {
+      for (const name of fs.readdirSync(dir)) {
+        const full = path.join(dir, name);
+        const stat = fs.statSync(full);
+        if (stat.isDirectory()) {
+          if (name === 'node_modules' || name === 'dist') continue;
+          walk(full);
+        } else if (/\.(jsx?|tsx?|json|css)$/.test(name)) {
+          files.push(path.relative(baseDir, full).replace(/\\/g, '/'));
+        }
+      }
+    }
+    walk(srcDir);
+  }
   return files;
 }
 
@@ -160,64 +231,43 @@ if (extractScripts || !stats.srcFiles.length) {
 
 // ========== 4. 扫描 antd 组件导入 ==========
 
-// 确定扫描目录：优先源项目 src/，其次目标 _extracted/
 function scanAntdImports() {
-  const scanDirs = [];
-  const srcDir = path.join(sourceDir, 'src');
-  if (fs.existsSync(srcDir)) scanDirs.push(srcDir);
-  const extractedDir = path.join(resolvedOutput, '_extracted');
-  if (fs.existsSync(extractedDir)) scanDirs.push(extractedDir);
-
   const components = {}; // componentName -> [relativeFiles]
   const icons = new Set();
 
-  for (const base of scanDirs) {
-    function walk(dir) {
-      for (const name of fs.readdirSync(dir)) {
-        const full = path.join(dir, name);
-        const stat = fs.statSync(full);
-        if (stat.isDirectory()) {
-          if (name === 'node_modules' || name === 'dist') continue;
-          walk(full);
-          continue;
-        }
-        if (!/\.(jsx?|tsx?)$/.test(name)) continue;
-        const code = fs.readFileSync(full, 'utf8');
-        const relFile = path.relative(sourceDir, full).replace(/\\/g, '/');
-        // import { Button, Form, Table } from 'antd'
-        const braceRe = /import\s+\{([^}]+)\}\s+from\s+['"]antd['"]/g;
-        let bm;
-        while ((bm = braceRe.exec(code)) !== null) {
-          const names = bm[1].split(',').map(s => s.trim()).filter(Boolean);
-          for (const n of names) {
-            const clean = n.replace(/\s+as\s+\w+/, '').trim();
-            if (clean) {
-              if (!components[clean]) components[clean] = [];
-              if (!components[clean].includes(relFile)) components[clean].push(relFile);
-            }
-          }
-        }
-        // import Button from 'antd/es/button' (named import)
-        const defaultRe = /import\s+(\w+)\s+from\s+['"]antd\/(?:es|lib)\/(\w+)['"]/g;
-        let dm;
-        while ((dm = defaultRe.exec(code)) !== null) {
-          const comp = dm[2];
-          if (comp) {
-            const cap = comp.charAt(0).toUpperCase() + comp.slice(1);
-            if (!components[cap]) components[cap] = [];
-            if (!components[cap].includes(relFile)) components[cap].push(relFile);
-          }
-        }
-        // import { SearchOutlined } from '@ant-design/icons'
-        const iconRe = /import\s+\{([^}]+)\}\s+from\s+['"]@ant-design\/icons['"]/g;
-        let im;
-        while ((im = iconRe.exec(code)) !== null) {
-          const names = im[1].split(',').map(s => s.trim().replace(/\s+as\s+\w+/, '')).filter(Boolean);
-          for (const n of names) icons.add(n);
+  for (const { fullPath, relFile } of collectScanFiles(/\.(jsx?|tsx?)$/)) {
+    const code = fs.readFileSync(fullPath, 'utf8');
+    // import { Button, Form, Table } from 'antd'
+    const braceRe = /import\s+\{([^}]+)\}\s+from\s+['"]antd['"]/g;
+    let bm;
+    while ((bm = braceRe.exec(code)) !== null) {
+      const names = bm[1].split(',').map(s => s.trim()).filter(Boolean);
+      for (const n of names) {
+        const clean = n.replace(/\s+as\s+\w+/, '').trim();
+        if (clean) {
+          if (!components[clean]) components[clean] = [];
+          if (!components[clean].includes(relFile)) components[clean].push(relFile);
         }
       }
     }
-    walk(base);
+    // import Button from 'antd/es/button' (named import)
+    const defaultRe = /import\s+(\w+)\s+from\s+['"]antd\/(?:es|lib)\/(\w+)['"]/g;
+    let dm;
+    while ((dm = defaultRe.exec(code)) !== null) {
+      const comp = dm[2];
+      if (comp) {
+        const cap = comp.charAt(0).toUpperCase() + comp.slice(1);
+        if (!components[cap]) components[cap] = [];
+        if (!components[cap].includes(relFile)) components[cap].push(relFile);
+      }
+    }
+    // import { SearchOutlined } from '@ant-design/icons'
+    const iconRe = /import\s+\{([^}]+)\}\s+from\s+['"]@ant-design\/icons['"]/g;
+    let im;
+    while ((im = iconRe.exec(code)) !== null) {
+      const names = im[1].split(',').map(s => s.trim().replace(/\s+as\s+\w+/, '')).filter(Boolean);
+      for (const n of names) icons.add(n);
+    }
   }
 
   stats.antdComponents = components;
@@ -240,12 +290,6 @@ scanAntdImports();
 // ========== 4.5 扫描 i18n 用法（判定 scenario A/B/C） ==========
 
 function scanI18nUsage() {
-  const scanDirs = [];
-  const srcDir = path.join(sourceDir, 'src');
-  if (fs.existsSync(srcDir)) scanDirs.push(srcDir);
-  const extractedDir = path.join(resolvedOutput, '_extracted');
-  if (fs.existsSync(extractedDir)) scanDirs.push(extractedDir);
-
   const result = {
     scenario: 'A',
     reactIntl: { used: false, files: [] },
@@ -258,47 +302,34 @@ function scanI18nUsage() {
 
   const localeDirRe = /(^|[\/\\])(locales?|i18n|lang|messages|languages)([\/\\]|$)/i;
 
-  for (const base of scanDirs) {
-    function walk(dir) {
-      for (const name of fs.readdirSync(dir)) {
-        const full = path.join(dir, name);
-        const stat = fs.statSync(full);
-        if (stat.isDirectory()) {
-          if (name === 'node_modules' || name === 'dist') continue;
-          walk(full);
-          continue;
-        }
-        if (!/\.(jsx?|tsx?|mjs)$/.test(name)) continue;
-        const code = fs.readFileSync(full, 'utf8');
-        const relFile = path.relative(sourceDir, full).replace(/\\/g, '/');
+  for (const { fullPath, relFile } of collectScanFiles(/\.(jsx?|tsx?|mjs)$/)) {
+    const code = fs.readFileSync(fullPath, 'utf8');
+    const name = path.basename(fullPath);
 
-        if (/'react-intl'/.test(code) || /<FormattedMessage\b/.test(code) || /\buseIntl\b/.test(code)) {
-          result.reactIntl.used = true;
-          if (!result.reactIntl.files.includes(relFile)) result.reactIntl.files.push(relFile);
-        }
-        if (/'react-i18next'/.test(code) || /'i18next'/.test(code) || /\buseTranslation\b/.test(code)) {
-          result.i18next.used = true;
-          if (!result.i18next.files.includes(relFile)) result.i18next.files.push(relFile);
-        }
-
-        let lm;
-        const localeImportRe = /from\s+['"]antd\/locale\/[^'"]+['"]/g;
-        while ((lm = localeImportRe.exec(code)) !== null) {
-          if (!result.antdLocaleImports.includes(lm[0])) result.antdLocaleImports.push(lm[0]);
-        }
-
-        if (/dayjs\.locale\s*\(/.test(code)) {
-          if (!result.antdLocaleFiles.includes(relFile)) result.antdLocaleFiles.push(relFile);
-        }
-
-        if (/['"]dayjs['"]/.test(code)) result.hasDayjs = true;
-
-        if (localeDirRe.test(relFile) || /^locales?\.[a-z]+$/.test(name) || /^i18n\.[a-z]+$/.test(name) || /^messages\.[a-z]+$/.test(name)) {
-          if (!result.businessLocaleFiles.includes(relFile)) result.businessLocaleFiles.push(relFile);
-        }
-      }
+    if (/'react-intl'/.test(code) || /<FormattedMessage\b/.test(code) || /\buseIntl\b/.test(code)) {
+      result.reactIntl.used = true;
+      if (!result.reactIntl.files.includes(relFile)) result.reactIntl.files.push(relFile);
     }
-    walk(base);
+    if (/'react-i18next'/.test(code) || /'i18next'/.test(code) || /\buseTranslation\b/.test(code)) {
+      result.i18next.used = true;
+      if (!result.i18next.files.includes(relFile)) result.i18next.files.push(relFile);
+    }
+
+    let lm;
+    const localeImportRe = /from\s+['"]antd\/locale\/[^'"]+['"]/g;
+    while ((lm = localeImportRe.exec(code)) !== null) {
+      if (!result.antdLocaleImports.includes(lm[0])) result.antdLocaleImports.push(lm[0]);
+    }
+
+    if (/dayjs\.locale\s*\(/.test(code)) {
+      if (!result.antdLocaleFiles.includes(relFile)) result.antdLocaleFiles.push(relFile);
+    }
+
+    if (/['"]dayjs['"]/.test(code)) result.hasDayjs = true;
+
+    if (localeDirRe.test(relFile) || /^locales?\.[a-z]+$/.test(name) || /^i18n\.[a-z]+$/.test(name) || /^messages\.[a-z]+$/.test(name)) {
+      if (!result.businessLocaleFiles.includes(relFile)) result.businessLocaleFiles.push(relFile);
+    }
   }
 
   if (result.i18next.used) result.scenario = 'C';
@@ -323,59 +354,39 @@ if (i18nInfo.businessLocaleFiles.length) console.log(`[extract-umd] 业务语言
 // ========== 4.6 扫描 <Icon name> 调用点（供下游 antd-to-eview-react 图标步骤预定位） ==========
 
 function scanIconCallSites() {
-  const scanDirs = [];
-  const srcDir = path.join(sourceDir, 'src');
-  if (fs.existsSync(srcDir)) scanDirs.push(srcDir);
-  const extractedDir = path.join(resolvedOutput, '_extracted');
-  if (fs.existsSync(extractedDir)) scanDirs.push(extractedDir);
-
   const callSites = [];
 
-  for (const base of scanDirs) {
-    function walk(dir) {
-      for (const name of fs.readdirSync(dir)) {
-        const full = path.join(dir, name);
-        const stat = fs.statSync(full);
-        if (stat.isDirectory()) {
-          if (name === 'node_modules' || name === 'dist') continue;
-          walk(full);
-          continue;
-        }
-        if (!/\.(jsx?|tsx?)$/.test(name)) continue;
-        const code = fs.readFileSync(full, 'utf8');
-        const relFile = path.relative(sourceDir, full).replace(/\\/g, '/');
+  for (const { fullPath, relFile } of collectScanFiles(/\.(jsx?|tsx?)$/)) {
+    const code = fs.readFileSync(fullPath, 'utf8');
 
-        const iconRe = /<Icon\b/g;
-        let m;
-        while ((m = iconRe.exec(code)) !== null) {
-          const startPos = m.index;
-          const window = code.slice(startPos, startPos + 300);
-          const lineNum = code.slice(0, startPos).split('\n').length;
+    const iconRe = /<Icon\b/g;
+    let m;
+    while ((m = iconRe.exec(code)) !== null) {
+      const startPos = m.index;
+      const window = code.slice(startPos, startPos + 300);
+      const lineNum = code.slice(0, startPos).split('\n').length;
 
-          const nameLitMatch = window.match(/name\s*=\s*["']([^"']+)["']/);
-          const nameDynMatch = window.match(/name\s*=\s*\{([^}]+)\}/);
+      const nameLitMatch = window.match(/name\s*=\s*["']([^"']+)["']/);
+      const nameDynMatch = window.match(/name\s*=\s*\{([^}]+)\}/);
 
-          let nameValue = null;
-          let nameType = 'none';
+      let nameValue = null;
+      let nameType = 'none';
 
-          if (nameLitMatch) {
-            nameValue = nameLitMatch[1];
-            nameType = 'literal';
-          } else if (nameDynMatch) {
-            nameValue = nameDynMatch[1].trim();
-            nameType = 'dynamic';
-          }
-
-          callSites.push({
-            file: relFile,
-            line: lineNum,
-            name: nameValue,
-            type: nameType,
-          });
-        }
+      if (nameLitMatch) {
+        nameValue = nameLitMatch[1];
+        nameType = 'literal';
+      } else if (nameDynMatch) {
+        nameValue = nameDynMatch[1].trim();
+        nameType = 'dynamic';
       }
+
+      callSites.push({
+        file: relFile,
+        line: lineNum,
+        name: nameValue,
+        type: nameType,
+      });
     }
-    walk(base);
   }
 
   return callSites;
@@ -411,48 +422,28 @@ function scanIpInputCallSites() {
     }
   }
 
-  // 2) 扫 imports 与 <IpInput>/<IPInput> 调用点（仅 src/ 与 _extracted/，与 scanIconCallSites 一致）
-  const scanDirs = [];
-  const srcDir = path.join(sourceDir, 'src');
-  if (fs.existsSync(srcDir)) scanDirs.push(srcDir);
-  const extractedDir = path.join(resolvedOutput, '_extracted');
-  if (fs.existsSync(extractedDir)) scanDirs.push(extractedDir);
+  // 2) 扫 imports 与 <IpInput>/<IPInput> 调用点（根级 + src/ + _extracted/，collectScanFiles 统一收集）
+  for (const { fullPath, relFile } of collectScanFiles(/\.(jsx?|tsx?)$/)) {
+    const code = fs.readFileSync(fullPath, 'utf8');
 
-  for (const base of scanDirs) {
-    function walk(dir) {
-      for (const name of fs.readdirSync(dir)) {
-        const full = path.join(dir, name);
-        const stat = fs.statSync(full);
-        if (stat.isDirectory()) {
-          if (name === 'node_modules' || name === 'dist') continue;
-          walk(full);
-          continue;
-        }
-        if (!/\.(jsx?|tsx?)$/.test(name)) continue;
-        const code = fs.readFileSync(full, 'utf8');
-        const relFile = path.relative(sourceDir, full).replace(/\\/g, '/');
-
-        // import IpInput from ".../assets/shared/ip-input.jsx" 或 .../components/ip-input
-        const importRe = /import\s+(\w+)\s+from\s+['"]([^'"]*(?:assets\/shared\/ip-input|components\/ip-input)[^'"]*)['"]/gi;
-        let im;
-        while ((im = importRe.exec(code)) !== null) {
-          result.imports.push({ file: relFile, importName: im[1], source: im[2] });
-        }
-
-        // <IpInput ...> 或 <IPInput ...>（ict-react-coder 产物函数名为 IpInput）
-        const callRe = /<(IpInput|IPInput)\b/g;
-        let cm;
-        while ((cm = callRe.exec(code)) !== null) {
-          const startPos = cm.index;
-          const lineNum = code.slice(0, startPos).split('\n').length;
-          const window = code.slice(startPos, startPos + 300);
-          const propsMatch = window.match(/^<(?:IpInput|IPInput)\s*([^>]*)/);
-          const propsStr = propsMatch ? propsMatch[1].trim() : '';
-          result.callSites.push({ file: relFile, line: lineNum, component: cm[1], props: propsStr });
-        }
-      }
+    // import IpInput from ".../assets/shared/ip-input.jsx" 或 .../components/ip-input
+    const importRe = /import\s+(\w+)\s+from\s+['"]([^'"]*(?:assets\/shared\/ip-input|components\/ip-input)[^'"]*)['"]/gi;
+    let im;
+    while ((im = importRe.exec(code)) !== null) {
+      result.imports.push({ file: relFile, importName: im[1], source: im[2] });
     }
-    walk(base);
+
+    // <IpInput ...> 或 <IPInput ...>（ict-react-coder 产物函数名为 IpInput）
+    const callRe = /<(IpInput|IPInput)\b/g;
+    let cm;
+    while ((cm = callRe.exec(code)) !== null) {
+      const startPos = cm.index;
+      const lineNum = code.slice(0, startPos).split('\n').length;
+      const window = code.slice(startPos, startPos + 300);
+      const propsMatch = window.match(/^<(?:IpInput|IPInput)\s*([^>]*)/);
+      const propsStr = propsMatch ? propsMatch[1].trim() : '';
+      result.callSites.push({ file: relFile, line: lineNum, component: cm[1], props: propsStr });
+    }
   }
 
   return result;
@@ -505,6 +496,80 @@ if (stats.uploadsAssets.copiedCount) {
   console.log(`[extract-umd] 拷贝 assets/uploads/ 图片资源: ${stats.uploadsAssets.copiedCount} 个文件 → public/uploads/`);
 }
 
+// ========== 4.9 扫描 Chart 调用点（ict-react-coder 内置图表共享件，非 antd 导入，extract-umd 默认扫不到） ==========
+
+function scanChartCallSites() {
+  const result = { sharedFiles: [], imports: [], callSites: [] };
+
+  // 1) 检测源项目里的 Chart 共享件（assets/shared/chart.jsx 等常见位置 + src/components/chart/）
+  const candidates = [
+    'assets/shared/chart.jsx',
+    'assets/shared/Chart.jsx',
+  ];
+  for (const rel of candidates) {
+    if (fs.existsSync(path.join(sourceDir, rel))) result.sharedFiles.push(rel);
+  }
+  const chartComponentDir = path.join(sourceDir, 'src/components/chart');
+  if (fs.existsSync(chartComponentDir)) {
+    for (const name of fs.readdirSync(chartComponentDir)) {
+      if (/\.jsx?$/.test(name)) result.sharedFiles.push(`src/components/chart/${name}`);
+    }
+  }
+
+  // 2) 扫 imports 与 <Chart name> 调用点（根级 + src/ + _extracted/，collectScanFiles 统一收集）
+  for (const { fullPath, relFile } of collectScanFiles(/\.(jsx?|tsx?)$/)) {
+    const code = fs.readFileSync(fullPath, 'utf8');
+
+    // import Chart from ".../assets/shared/chart.jsx" 或 .../components/chart
+    const importRe = /import\s+(\w+)\s+from\s+['"]([^'"]*(?:assets\/shared\/chart|components\/chart)[^'"]*)['"]/gi;
+    let im;
+    while ((im = importRe.exec(code)) !== null) {
+      result.imports.push({ file: relFile, importName: im[1], source: im[2] });
+    }
+
+    // <Chart name="..." ...> 调用点（ict-react-coder 产物函数名为 Chart）
+    const callRe = /<Chart\b/g;
+    let cm;
+    while ((cm = callRe.exec(code)) !== null) {
+      const startPos = cm.index;
+      const window = code.slice(startPos, startPos + 300);
+      const lineNum = code.slice(0, startPos).split('\n').length;
+
+      const nameLitMatch = window.match(/name\s*=\s*["']([^"']+)["']/);
+      const nameDynMatch = window.match(/name\s*=\s*\{([^}]+)\}/);
+
+      let nameValue = null;
+      let nameType = 'none';
+
+      if (nameLitMatch) {
+        nameValue = nameLitMatch[1];
+        nameType = 'literal';
+      } else if (nameDynMatch) {
+        nameValue = nameDynMatch[1].trim();
+        nameType = 'dynamic';
+      }
+
+      result.callSites.push({
+        file: relFile,
+        line: lineNum,
+        name: nameValue,
+        type: nameType,
+      });
+    }
+  }
+
+  return result;
+}
+
+stats.chartCallSites = scanChartCallSites();
+
+if (stats.chartCallSites.callSites.length) {
+  const literal = stats.chartCallSites.callSites.filter(s => s.type === 'literal').length;
+  const dynamic = stats.chartCallSites.callSites.filter(s => s.type === 'dynamic').length;
+  const noneName = stats.chartCallSites.callSites.filter(s => s.type === 'none').length;
+  console.log(`[extract-umd] <Chart> 调用点: ${stats.chartCallSites.callSites.length} 处 (字面量=${literal}, 动态=${dynamic}, 无name=${noneName}), import 来源: ${stats.chartCallSites.imports.length} 处, 共享件: ${stats.chartCallSites.sharedFiles.length} 个`);
+}
+
 // ========== 5. 生成 .umd-conversion.json 交接文件 ==========
 
 const handoff = {
@@ -516,6 +581,7 @@ const handoff = {
   antdIcons: stats.antdIcons,
   iconCallSites: stats.iconCallSites,
   ipInputCallSites: stats.ipInputCallSites,
+  chartCallSites: stats.chartCallSites,
   uploadsAssets: stats.uploadsAssets,
   styles: {
     source: 'assets/style',
@@ -559,6 +625,9 @@ console.log(`  antd 图标: ${stats.antdIcons.length} 个`);
   console.log(`  Icon 调用点: ${stats.iconCallSites.length} 处`);
   if (stats.ipInputCallSites.callSites.length) {
     console.log(`  IPInput 调用点: ${stats.ipInputCallSites.callSites.length} 处 (手写共享件: ${stats.ipInputCallSites.sharedFiles.length} 个, import 来源: ${stats.ipInputCallSites.imports.length} 处)`);
+  }
+  if (stats.chartCallSites.callSites.length) {
+    console.log(`  Chart 调用点: ${stats.chartCallSites.callSites.length} 处 (共享件: ${stats.chartCallSites.sharedFiles.length} 个, import 来源: ${stats.chartCallSites.imports.length} 处)`);
   }
   if (stats.uploadsAssets.copiedCount) {
     console.log(`  uploads 图片资源: ${stats.uploadsAssets.copiedCount} 个文件 → public/uploads/ (pathRewrite: ${stats.uploadsAssets.pathRewrite.from} → ${stats.uploadsAssets.pathRewrite.to})`);
