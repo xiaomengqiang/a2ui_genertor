@@ -1,5 +1,5 @@
 /* theme.css - 角色层 :root 变量占位 */
-/* 步骤2: 从产物 assets/style/theme.css 整文件拷贝（ict-react-coder 已分好类） */
+/* 步骤2: 从产物 assets/style/theme.css 整文件拷贝（ict-coder 已分好类） */
 /* 含 --primary/--surface/--on-surface/--font-body-*/--font-display-* 等角色变量，引用 light.css 语义层 */
 /*
 加载顺序：aui3_1 → aui3_1_dark → base → light → theme → dark

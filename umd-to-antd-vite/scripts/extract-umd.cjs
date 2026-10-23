@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // extract-umd.cjs
-// 从 ict-react-coder 产物的 UMD 单 HTML 工程提取内容到标准 Vite 工程结构：
+// 从 ict-coder 产物的 UMD 单 HTML 工程提取内容到标准 Vite 工程结构：
 //
 // 1. <style> 块的 CSS 规则 → 按 :root / .dark / @font-face / 其他 分类写入对应文件
 // 2. <script type="text/babel|jsx"> 块的源码模块 → 写入 _extracted/ 目录（需 --scripts）
@@ -47,8 +47,8 @@ const stats = {
   uploadsAssets: { copied: [], copiedCount: 0, pathRewrite: { from: './assets/uploads/', to: '/uploads/' } },
 };
 
-// ========== 1. 从产物 assets/style/ 拷贝 4 层 CSS（ict-react-coder 已分好类：base/light/theme/dark） ==========
-// ict-react-coder 的 style 五层（base/light/theme/dark/ant）已分文件存于产物 assets/style/，
+// ========== 1. 从产物 assets/style/ 拷贝 4 层 CSS（ict-coder 已分好类：base/light/theme/dark） ==========
+// ict-coder 的 style 五层（base/light/theme/dark/ant）已分文件存于产物 assets/style/，
 // extract-umd 直接读这 4 个文件（ant.css 跳过，eview-react 用 aui3_1.css 替代），
 // 不再从 index.page.html 内联 <style> 艰难按内容特征区分 :root 三层——分类 ict 已做好。
 
@@ -59,7 +59,7 @@ function copyStyleFiles() {
   const cssFilesWritten = [];
 
   if (!fs.existsSync(assetsStyleDir)) {
-    console.warn(`[extract-umd] 源项目无 assets/style/ 目录（ict-react-coder 标准产物应含此目录，含 base/light/theme/dark/ant 五层 CSS），跳过 CSS 拷贝；scaffold 空壳占位将保留`);
+    console.warn(`[extract-umd] 源项目无 assets/style/ 目录（ict-coder 标准产物应含此目录，含 base/light/theme/dark/ant 五层 CSS），跳过 CSS 拷贝；scaffold 空壳占位将保留`);
     return cssFilesWritten;
   }
 
@@ -106,7 +106,7 @@ const cssFilesWritten = copyStyleFiles();
 
 // ========== 1.5 共享：收集扫描文件清单 ==========
 
-// 收集所有待扫描的源文件：① 源项目根级文件（非递归——ict-react-coder 把 app.jsx 放在 preview/ 根目录，不在 src/ 里）
+// 收集所有待扫描的源文件：① 源项目根级文件（非递归——ict-coder 把 app.jsx 放在 preview/ 根目录，不在 src/ 里）
 // ② src/ 下所有匹配文件（递归，跳过 node_modules/dist） ③ _extracted/ 下所有匹配文件（递归，跳过 node_modules/dist）
 // extRegex: 文件扩展名正则，如 /\.(jsx?|tsx?)$/ 或 /\.(jsx?|tsx?|mjs)$/
 function collectScanFiles(extRegex) {
@@ -401,7 +401,7 @@ if (stats.iconCallSites.length) {
   console.log(`[extract-umd] <Icon> 调用点: ${stats.iconCallSites.length} 处 (字面量=${literal}, 动态=${dynamic}, 无name=${noneName})`);
 }
 
-// ========== 4.7 扫描 IPInput 调用点（ict-react-coder 手写共享件，非 antd 导入，extract-umd 默认扫不到） ==========
+// ========== 4.7 扫描 IPInput 调用点（ict-coder 手写共享件，非 antd 导入，extract-umd 默认扫不到） ==========
 
 function scanIpInputCallSites() {
   const result = { sharedFiles: [], imports: [], callSites: [] };
@@ -433,7 +433,7 @@ function scanIpInputCallSites() {
       result.imports.push({ file: relFile, importName: im[1], source: im[2] });
     }
 
-    // <IpInput ...> 或 <IPInput ...>（ict-react-coder 产物函数名为 IpInput）
+    // <IpInput ...> 或 <IPInput ...>（ict-coder 产物函数名为 IpInput）
     const callRe = /<(IpInput|IPInput)\b/g;
     let cm;
     while ((cm = callRe.exec(code)) !== null) {
@@ -456,7 +456,7 @@ if (stats.ipInputCallSites.callSites.length) {
 }
 
 // ========== 4.8 拷贝 assets/uploads/ 图片资源到 public/uploads/（scaffold public/ 预置 font/，无 uploads/） ==========
-// ict-react-coder 把图片放在 assets/uploads/，UMD 用相对路径 ./assets/uploads/xxx 引用。
+// ict-coder 把图片放在 assets/uploads/，UMD 用相对路径 ./assets/uploads/xxx 引用。
 // Vite 工程下这些路径会断，需：① 整目录拷到 public/uploads/；② JSX/CSS 里的 ./assets/uploads/xxx 改写成 /uploads/xxx。
 // 本步做①（拷贝）+ 记录 pathRewrite 规则到 .umd-conversion.json（供步骤 3 子 agent 改 JSX 路径）；
 // CSS 改写已在上文 §1 buckets 生成后统一完成（CSS 文件由 extract-umd 写、子 agent 不碰）。
@@ -496,7 +496,7 @@ if (stats.uploadsAssets.copiedCount) {
   console.log(`[extract-umd] 拷贝 assets/uploads/ 图片资源: ${stats.uploadsAssets.copiedCount} 个文件 → public/uploads/`);
 }
 
-// ========== 4.9 扫描 Chart 调用点（ict-react-coder 内置图表共享件，非 antd 导入，extract-umd 默认扫不到） ==========
+// ========== 4.9 扫描 Chart 调用点（ict-coder 内置图表共享件，非 antd 导入，extract-umd 默认扫不到） ==========
 
 function scanChartCallSites() {
   const result = { sharedFiles: [], imports: [], callSites: [] };
@@ -527,7 +527,7 @@ function scanChartCallSites() {
       result.imports.push({ file: relFile, importName: im[1], source: im[2] });
     }
 
-    // <Chart name="..." ...> 调用点（ict-react-coder 产物函数名为 Chart）
+    // <Chart name="..." ...> 调用点（ict-coder 产物函数名为 Chart）
     const callRe = /<Chart\b/g;
     let cm;
     while ((cm = callRe.exec(code)) !== null) {
