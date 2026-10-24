@@ -1,5 +1,4 @@
-/* Select — Element Plus 组件换肤
-   来源: UXAI previewpc Select.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+/* Select — Element Plus 组件换肤 */
 
 .el-select-dropdown.is-multiple .el-select-dropdown__item.is-selected {
   background-color: transparent;

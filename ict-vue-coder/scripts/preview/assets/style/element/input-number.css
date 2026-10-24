@@ -1,5 +1,4 @@
-/* InputNumber — Element Plus 组件换肤
-   来源: UXAI previewpc InputNumber.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+/* InputNumber — Element Plus 组件换肤 */
 
 .el-input-number__increase:hover ~ .el-input:not(.is-disabled) .el-input__wrapper,
 .el-input-number__decrease:hover ~ .el-input:not(.is-disabled) .el-input__wrapper {

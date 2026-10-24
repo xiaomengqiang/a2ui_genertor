@@ -1,5 +1,4 @@
-/* RadioGroup — Element Plus 组件换肤
-   来源: UXAI previewpc RadioGroup.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+/* RadioGroup — Element Plus 组件换肤 */
 
 .el-radio {
   --el-radio-text-color: var(--el-text-color-primary);

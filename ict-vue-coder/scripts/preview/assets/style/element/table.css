@@ -1,5 +1,4 @@
-/* Table — Element Plus 组件换肤
-   来源: UXAI previewpc Table.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+/* Table — Element Plus 组件换肤 */
 
 .el-table {
   --el-table-border-color: var(--el-border-color-light);

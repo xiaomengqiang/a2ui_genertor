@@ -1,5 +1,4 @@
-/* TimePicker — Element Plus 组件换肤
-   来源: UXAI previewpc TimePicker.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+/* TimePicker — Element Plus 组件换肤 */
 
 .el-time-spinner__item.is-active:not(.is-disabled) {
   color: var(--el-color-primary);

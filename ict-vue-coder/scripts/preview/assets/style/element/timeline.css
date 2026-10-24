@@ -1,5 +1,4 @@
-/* Timeline — Element Plus 组件换肤
-   来源: UXAI previewpc Timeline.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+/* Timeline — Element Plus 组件换肤 */
 
 .el-timeline {
   --el-timeline-node-color: var(--gray-40);

@@ -1,5 +1,4 @@
-/* Switch — Element Plus 组件换肤
-   来源: UXAI previewpc Switch.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+/* Switch — Element Plus 组件换肤 */
 
 .el-switch {
   --el-switch-on-color: var(--el-color-primary);

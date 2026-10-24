@@ -1,5 +1,4 @@
-/* Steps — Element Plus 组件换肤
-   来源: UXAI previewpc Steps.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+/* Steps — Element Plus 组件换肤 */
 
 .el-step__title {
   font-size: var(--el-font-size-base);
