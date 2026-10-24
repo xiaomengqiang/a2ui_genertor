@@ -19,7 +19,7 @@
 **替换示例**：
 
 ```tsx
-// 源项目（ict-react-coder 产物）→ 迁移后（B/C 静态 import）
+// 源项目（ict-coder 产物）→ 迁移后（B/C 静态 import）
 <Icon name="search" size={14} />
 import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 <IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />   // 无 color 时传 currentcolor 继承容器文字色；type="filled" 换风格
@@ -29,7 +29,7 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 
 > 触发与 `--apply` 机制详见 [migration-workflow.md](../migration-workflow.md) §0.1（`antdIcons` 陷阱）+ §3.0（B/C 步骤）；本节为速查。
 
-- **触发条件**：`src/` 下有 `<Icon name` 调用点（`grep -rl "<Icon\b" src/` 非空）或 `@ant-design/icons` 用法即走图标步骤，**与 `.umd-conversion.json` 的 `antdIcons` 是否为空无关**——ict-react-coder 产物用自定义 `<Icon name>` shim、`antdIcons` 恒 `[]` 但有大量站点，**`antdIcons: []` 禁止跳过 `match-icons.cjs`**。
+- **触发条件**：`src/` 下有 `<Icon name` 调用点（`grep -rl "<Icon\b" src/` 非空）或 `@ant-design/icons` 用法即走图标步骤，**与 `.umd-conversion.json` 的 `antdIcons` 是否为空无关**——ict-coder 产物用自定义 `<Icon name>` shim、`antdIcons` 恒 `[]` 但有大量站点，**`antdIcons: []` 禁止跳过 `match-icons.cjs`**。
 - **源码 `<Icon name>` shim ≠ 产物方案A**：`<Icon name="字面量">` 站点必须转 C/B 静态 import；**成员表达式 `name={t.icon}` / `name={MENU[0].icon}` 也由 `--apply` 自动转 B/C**（绑到静态数组即塞 icon+ 元素进 data + render 改 `{t.icon}`）；**自定义 wrapper 组件（SoftTag/ToggleRow：接收 `icon` prop、内部 `<Icon name={icon}/>` 渲染）也由 `--apply` Phase C 自动转 B/C**（调用点 `icon="字面量"`/`icon={常量}`/`icon={扁平三元}` → `icon={<IconPlusIc…/>}`，内部 → `{icon}`；`icon={成员}` 透传 + 数据数组元素化），仅真运行时数据（`name={row.iconField}` 类、wrapper 调用方 `icon={expr}` 不可静态解析触发安全闸）落产物方案A。
 - **方案C `--apply`**：落 confirmed（SEMANTIC/L1-L4）+ 扁平三元两分支均 confirmed + **数据数组图标整组改写**（命中用真实组件，未命中用占位 `IconPlusIcPublicTransverseRectangleTemplate`）；residual 不自动 apply。报告写 OS 临时目录、不进产物根、`--apply` 结束清理。**禁止因 residual 整体放弃方案C**——residual 由 LLM 在会话内按控制台/临时报告逐条复核。
 - **`.js→.jsx` 自动转换**：`--apply` 把因改写引入 JSX（替换串含 `<IconPlusIc`）的 `.js`→`.jsx` / `.ts`→`.tsx`，并扫 `src/` 修引用方显式 `.js`/`.ts` 扩展名 import（无扩展名 import 不动）；非 `src/` 引用（vite.config、index.html）不处理，需人工核对。
