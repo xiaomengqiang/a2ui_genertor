@@ -1,0 +1,27 @@
+/* Select — Element Plus 组件换肤
+   来源: UXAI previewpc Select.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+
+.el-select-dropdown.is-multiple .el-select-dropdown__item.is-selected {
+  background-color: transparent;
+}
+.el-select-dropdown.is-multiple .el-select-dropdown__item.is-selected::after {
+  display: none;
+}
+.el-select-dropdown.is-multiple .el-select-dropdown__item.is-hovering {
+  background-color: transparent;
+}
+.el-select__wrapper .el-icon {
+  width: 14px;
+  height: 14px;
+}
+.el-select__wrapper .el-icon svg {
+  width: 14px;
+  height: 14px;
+}
+.dark .el-select .el-tag {
+  background-color: rgb(from var(--gray-05) r g b / 0.2);
+  color: var(--color-text-primary);
+}
+.dark .el-select .el-tag .el-tag__close {
+  color: var(--color-text-primary);
+}

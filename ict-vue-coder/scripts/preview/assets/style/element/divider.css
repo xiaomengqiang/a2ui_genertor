@@ -1,0 +1,7 @@
+/* Divider — Element Plus 组件换肤
+   来源: UXAI previewpc Divider.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+
+.el-divider__text {
+  font-weight: var(--font-weight-bold);
+  padding: 0 var(--spacing-2);
+}

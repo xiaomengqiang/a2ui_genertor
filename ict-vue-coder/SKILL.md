@@ -151,10 +151,10 @@ When multilingual is required, use vue-i18n (bundled offline, `import ... from "
 1. **Read `references/design_system.md`** for tokens and visual rules.
 2. Custom styles go in the component's `<style>` block or `index.css` with semantic class names.
    - Colors/fonts/shadows/radius/spacing prefer **tokens**; hardcoded hex or px only when the requirement specifies an exact value.
-3. Dark mode single-track (CRITICAL): **Do NOT use EP's dark CSS vars or component-state theme switching.** `src/context.js`'s store toggles `<html>`'s `.dark` class — H5 elements flip via tokens; Element Plus components via the shared `el.css` skin layer.
+3. Dark mode single-track (CRITICAL): **Do NOT use EP's dark CSS vars or component-state theme switching.** `src/context.js`'s store toggles `<html>`'s `.dark` class — H5 elements flip via tokens; Element Plus components via the shared `assets/style/element/` skin folder.
    - Do NOT define bare `:root` / `.dark` selectors (without a descendant suffix) — global tokens already live in `assets/style/`
    - Per-mode values that tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override
-4. Do NOT create page-level Element Plus override styles (e.g., `el.css`/`el-override.css`). EP component skinning and visual gaps go into the shared `assets/style/el.css` (including `.dark` rules) — single source, all pages benefit.
+4. Do NOT create page-level Element Plus override styles. EP component skinning and visual gaps go into `assets/style/element/{component}.css` (one file per EP component; files in that folder are auto-loaded — `base.css` first, then the rest alphabetically) — single source, all pages benefit.
 5. Link-style actions (clickable text, e.g. table data cell links, card header actions, form auxiliary links, help links, inline text links) use `<a>` + `var(--interactive-link)` + `cursor: pointer` — NOT `<el-button link>`.
 
 ### Content Guidelines
@@ -172,7 +172,7 @@ When multilingual is required, use vue-i18n (bundled offline, `import ... from "
 node scripts/build.mjs --dir "{SCAFFOLD_DIR}"
 ```
 
-- `build.mjs` bundles all page source modules into one self-running `index.page.html` (local UMD libraries + six-layer CSS + Lucide icons; templates compiled in-browser by the Vue full build — no Babel).
+- `build.mjs` bundles all page source modules into one self-running `index.page.html` (local UMD libraries + four-layer token CSS + `element/` skin folder + Lucide icons; templates compiled in-browser by the Vue full build — no Babel).
 - **WARN**: unknown icon names, hardcoded hex — safe to ignore.
 - **FAIL**: read the error, fix the source, re-run `build.mjs`.
 

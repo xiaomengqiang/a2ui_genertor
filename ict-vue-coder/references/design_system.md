@@ -8,10 +8,10 @@
 | Semantic (light) | `assets/style/light.css` | `:root` | `--color-*` role tokens mapped to primitives (default theme) |
 | **Theme (AI-facing)** | `assets/style/theme.css` | `:root` | **The layer custom CSS writes against first** — semantic aliases |
 | Semantic (dark) | `assets/style/dark.css` | `.dark` | Dark-mode values for the full semantic set — overrides light via cascade order |
-| EP base | `assets/style/el-base.css` | `:root` | Element Plus official base styles (structure & `--el-*` variable defaults) |
-| EP skin | `assets/style/el.css` | `:root` | ICT 3.1 skin layer for Element Plus — `--el-*` → ICT token bridge + component restyling |
+| EP base | `assets/style/element/base.css` | `:root` + `.dark` | Element Plus official base styles + ICT 3.1 `--el-*` variable bridge (light & dark) |
+| EP skin | `assets/style/element/{component}.css` | global + `.dark` | ICT 3.1 per-component skin files — one css per EP component, auto-loaded alphabetically after `base.css` |
 
-Custom CSS uses the THEME layer first. Dark mode is free: any token reference auto-flips under `.dark`. Element Plus components flip via the `el.css` skin layer (same single-track `.dark` class).
+Custom CSS uses the THEME layer first. Dark mode is free: any token reference auto-flips under `.dark`. Element Plus components flip via the `element/base.css` bridge + `element/{component}.css` skin files (same single-track `.dark` class).
 
 ## Tokens
 

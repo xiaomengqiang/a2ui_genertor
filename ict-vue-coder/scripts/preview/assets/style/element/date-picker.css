@@ -1,0 +1,141 @@
+/* DatePicker — Element Plus 组件换肤
+   来源: UXAI previewpc DatePicker.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+
+.el-date-editor.el-input--large {
+  height: 40px;
+}
+.el-date-editor .el-input__wrapper {
+  background-color: var(--gray-0);
+}
+.el-date-editor .el-range-input {
+  text-align: left;
+}
+.el-date-editor .el-input__icon {
+  color: var(--gray-50);
+}
+.el-date-editor.is-focus .el-input__wrapper {
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--brand-50), 0 0 0 1px var(--brand-20);
+}
+.el-date-editor.is-focus .el-input__icon {
+  color: var(--gray-90);
+}
+.el-date-editor .clear-icon {
+  position: absolute;
+  right: 40px;
+}
+.el-date-editor .clear-icon::after {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  right: -8px;
+  width: 1px;
+  height: 12px;
+  background-color: var(--gray-10);
+}
+.el-date-editor .el-range__close-icon {
+  display: none;
+}
+.el-date-editor.el-input--small.el-input {
+  height: 28px;
+}
+.el-range-editor.is-active,
+.el-range-editor.is-active:hover {
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--brand-50), 0 0 0 1px var(--brand-20);
+}
+.el-range-editor.is-active .el-input__icon,
+.el-range-editor.is-active:hover .el-input__icon {
+  color: var(--gray-90);
+}
+.el-range-editor.el-range-editor--small {
+  height: 28px;
+}
+.el-picker-panel {
+  --el-datepicker-text-color: var(--el-text-color-primary);
+  --el-datepicker-off-text-color: var(--el-text-color-disabled);
+  --el-datepicker-header-text-color: var(--el-text-color-primary);
+  --el-datepicker-inrange-bg-color: var(--brand-05);
+  --el-datepicker-inrange-hover-bg-color: var(--brand-05);
+  --el-datepicker-hover-text-color: var(--el-text-color-primary);
+  color: var(--el-text-color-primary);
+}
+.el-date-table td.next-month,
+.el-date-table td.prev-month {
+  color: var(--el-datepicker-off-text-color);
+}
+.el-date-table td.current:not(.disabled) .el-date-table-cell__text {
+  border-radius: var(--el-border-radius-base);
+}
+.el-date-table td.available:hover .el-date-table-cell .el-date-table-cell__text {
+  background-color: var(--brand-10);
+  border-radius: var(--el-border-radius-base);
+}
+.el-date-table td.start-date .el-date-table-cell,
+.el-date-table td.end-date .el-date-table-cell {
+  background-color: var(--brand-50);
+}
+.el-date-table td.start-date .el-date-table-cell .el-date-table-cell__text,
+.el-date-table td.end-date .el-date-table-cell .el-date-table-cell__text {
+  background-color: transparent;
+}
+.el-date-table td.start-date .el-date-table-cell {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+.el-date-table td.end-date .el-date-table-cell {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+.el-year-table td.today .el-date-table-cell__text,
+.el-month-table td.today .el-date-table-cell__text {
+  color: var(--el-text-color-primary);
+  font-weight: var(--el-font-weight-primary);
+}
+.el-year-table td .el-date-table-cell__text,
+.el-month-table td .el-date-table-cell__text {
+  border-radius: var(--el-border-radius-base);
+}
+.el-year-table td:hover .el-date-table-cell__text,
+.el-month-table td:hover .el-date-table-cell__text {
+  background-color: var(--brand-10);
+}
+.el-date-editor--daterange.el-input__wrapper {
+  flex-grow: unset;
+}
+.el-picker__popper.el-popper {
+  box-shadow: var(--shadow-base);
+}
+.dark .el-date-editor .el-input__wrapper {
+  background-color: var(--gray-100);
+}
+.dark .el-date-editor .el-input__icon {
+  color: var(--gray-30);
+}
+.dark .el-date-editor.is-focus .el-input__wrapper {
+  box-shadow: inset 0 0 0 1px var(--brand-40), 0 0 0 1px var(--brand-80);
+}
+.dark .el-date-editor.is-focus .el-input__icon {
+  color: var(--gray-10);
+}
+.dark .el-range-editor.is-active,
+.dark .el-range-editor.is-active:hover {
+  box-shadow: inset 0 0 0 1px var(--brand-40), 0 0 0 1px var(--brand-80);
+}
+.dark .el-range-editor.is-active .el-input__icon,
+.dark .el-range-editor.is-active:hover .el-input__icon {
+  color: var(--gray-10);
+}
+.dark .el-picker-panel {
+  --el-datepicker-icon-color: var(--gray-10);
+  --el-datepicker-hover-text-color: var(--color-text-primary);
+  --el-datepicker-inrange-bg-color: rgb(from var(--brand-50) r g b / 0.4);
+  --el-datepicker-inrange-hover-bg-color: rgb(from var(--brand-50) r g b / 0.6);
+}
+.dark .el-date-table td.available:hover .el-date-table-cell .el-date-table-cell__text {
+  background-color: rgb(from var(--gray-05) r g b / 0.2);
+}
+.dark .el-year-table td:hover .el-date-table-cell__text,
+.dark .el-month-table td:hover .el-date-table-cell__text {
+  background-color: rgb(from var(--gray-05) r g b / 0.2);
+}

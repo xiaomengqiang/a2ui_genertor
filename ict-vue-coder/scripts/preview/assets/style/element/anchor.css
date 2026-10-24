@@ -1,0 +1,27 @@
+/* Anchor — Element Plus 组件换肤
+   来源: UXAI previewpc Anchor.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+
+.el-anchor__link {
+  color: var(--el-text-color-secondary);
+  font-weight: var(--font-weight-normal);
+}
+.el-anchor__link:hover {
+  color: var(--brand-50);
+}
+.el-anchor__link.is-active {
+  color: var(--brand-50);
+  font-weight: var(--font-weight-medium);
+}
+.el-anchor__marker {
+  background-color: var(--brand-50);
+}
+.dark .el-anchor__link {
+  color: var(--el-text-color-secondary);
+}
+.dark .el-anchor__link:hover,
+.dark .el-anchor__link.is-active {
+  color: var(--brand-30);
+}
+.dark .el-anchor__marker {
+  background-color: var(--brand-30);
+}

@@ -71,8 +71,7 @@ const REQUIRED = [
   "style/light.css",
   "style/theme.css",
   "style/dark.css",
-  "style/el-base.css",
-  "style/el.css",
+  "style/element/base.css",
   "shared/icon.js",
   "shared/chart.js",
   "shared/ip-input.js",
@@ -121,7 +120,7 @@ const STARTER_CONTEXT = `import { reactive, watchEffect } from "vue";
 
 // Layer 1: 全局状态 — 主题模式与业务状态
 // 换肤单轨驱动:isDark 只切换 <html> 的 .dark class;
-// 普通 H5 元素(token 四层)与 Element Plus 组件(el-base.css + el.css 换肤层)同源跟随,无需组件树参与换肤。
+// 普通 H5 元素(token 四层)与 Element Plus 组件(element/ 换肤文件夹)同源跟随,无需组件树参与换肤。
 const state = reactive({
   isDark: false,
 });

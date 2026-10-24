@@ -1,0 +1,281 @@
+/* Tabs — Element Plus 组件换肤
+   来源: UXAI previewpc Tabs.less(.theme-dark → .dark;token 已映射到 ict-vue-coder) */
+
+.el-tabs {
+  --el-tabs-header-height: 32px;
+}
+.el-tabs__header {
+  justify-content: flex-start;
+  margin: 0;
+}
+.el-tab-pane {
+  margin-top: 16px;
+}
+.el-tabs__nav-wrap::after {
+  height: 1px;
+  background-color: var(--border-light);
+}
+.el-tabs--card > .el-tabs__header {
+  border-color: var(--border-light);
+}
+.el-tabs__new-tab {
+  display: none;
+  border: none;
+  margin-left: 32px;
+}
+.el-tabs__new-tab .is-icon-plus {
+  font-size: 16px;
+  transform: scale(1);
+}
+.el-tabs__active-bar {
+  background-color: var(--brand-50);
+}
+.el-tabs__item {
+  padding: 0 16px;
+  color: var(--el-text-color-secondary);
+  font-size: 16px;
+  font-weight: var(--el-font-weight-primary);
+}
+.el-tabs__item:not(.is-active):not(.is-disabled):hover {
+  color: var(--color-brand-hover);
+}
+.el-tabs__item.is-disabled {
+  color: var(--color-text-disabled);
+}
+.el-tabs__item.is-active {
+  color: var(--brand-50);
+}
+.el-tabs__item .is-icon-close {
+  margin-left: 8px;
+  font-size: 16px;
+  transform: scale(1);
+}
+.el-tabs__item .is-icon-close:hover {
+  background-color: transparent;
+  color: var(--color-brand-hover);
+}
+.is-large {
+  --el-tabs-header-height: 36px;
+}
+.is-large .el-tabs__new-tab .is-icon-plus {
+  font-size: 18px;
+  transform: scale(1);
+}
+.is-large .el-tabs__item {
+  font-size: 18px;
+}
+.is-large .el-tabs__item .is-icon-close {
+  font-size: 18px;
+}
+.tabs-separator {
+  --el-tabs-header-height: 28px;
+}
+.tabs-separator .el-tabs__nav-wrap::after {
+  display: none;
+}
+.tabs-separator .el-tabs__active-bar {
+  display: none;
+}
+.tabs-separator .el-tabs__item {
+  padding: 0 17px;
+  font-size: 20px;
+}
+.tabs-separator .el-tabs__item .is-icon-close {
+  font-size: 20px;
+}
+.tabs-separator .el-tabs__item:last-child {
+  padding-right: 17px !important;
+}
+.tabs-separator .el-tabs__item.is-top {
+  position: relative;
+}
+.tabs-separator .el-tabs__item.is-top::after {
+  position: absolute;
+  content: '';
+  width: 1px;
+  height: 16px;
+  right: -0.5px;
+  background-color: var(--border-light);
+}
+.tabs-separator.is-small {
+  --el-tabs-header-height: 24px;
+}
+.tabs-separator.is-small .el-tabs__item {
+  padding: 0 11px;
+  font-size: 16px;
+}
+.tabs-separator.is-small .el-tabs__item .is-icon-close {
+  font-size: 16px;
+}
+.tabs-separator.is-small .el-tabs__item:last-child {
+  padding-right: 11px !important;
+}
+.tabs-separator.is-small .el-tabs__item.is-top::after {
+  height: 14px;
+}
+.el-tabs--card {
+  --el-tabs-header-height: 30px;
+}
+.el-tabs--card > .el-tabs__header .el-tabs__nav {
+  border: none;
+}
+.el-tabs--card > .el-tabs__header .el-tabs__item {
+  font-size: 14px;
+  margin-top: var(--spacing-0);
+  margin-right: var(--spacing-1);
+  padding: 0 var(--spacing-4) !important;
+  border-radius: var(--spacing-1) var(--spacing-1) 0 0;
+}
+.el-tabs--card > .el-tabs__header .el-tabs__item:not(.is-active) {
+  border: 1px solid transparent;
+  background-color: rgb(from var(--gray-30) r g b / 0.05);
+}
+.el-tabs--card > .el-tabs__header .el-tabs__item.is-active {
+  background: var(--el-color-white);
+  border: 1px solid var(--el-border-color-light);
+  border-bottom: none;
+}
+.el-tabs--card > .el-tabs__header .el-tabs__item .is-icon-close {
+  right: 0px;
+  width: 14px;
+  font-size: 14px;
+}
+.el-tabs--card.is-large {
+  --el-tabs-header-height: 36px;
+}
+.el-tabs--card.is-large .el-tabs__item {
+  font-size: 16px;
+  padding: 0 var(--spacing-5) !important;
+}
+.el-tabs--card.is-small {
+  --el-tabs-header-height: 28px;
+}
+.el-tabs--card.is-small .el-tabs__item {
+  font-size: 12px;
+  padding: 0 var(--spacing-3) !important;
+}
+.dark .el-tabs__item .lucide,
+.dark .el-tabs__item .is-icon-close {
+  color: var(--gray-30);
+}
+.dark .el-tabs__item .is-icon-close :hover {
+  color: var(--gray-10);
+}
+.dark .el-tabs__item.is-disabled .lucide,
+.dark .el-tabs__item.is-disabled .is-icon-close,
+.dark .el-tabs__item.is-disabled .is-icon-close:hover {
+  color: var(--color-text-disabled);
+}
+.dark .el-tabs__item.is-active {
+  color: var(--brand-30);
+}
+.dark .el-tabs__item.is-active .lucide,
+.dark .el-tabs__item.is-active .is-icon-close,
+.dark .el-tabs__item.is-active .is-icon-close:hover {
+  color: var(--brand-30);
+}
+.dark .el-tabs--card > .el-tabs__header .el-tabs__item {
+  background-color: rgba(147, 147, 147, 0.05);
+}
+.dark .el-tabs--card > .el-tabs__header .el-tabs__item.is-active {
+  background: var(--gray-80);
+}
+.dark .el-tabs__active-bar {
+  background-color: var(--brand-30);
+}
+.dark .el-tabs__item:not(.is-active):not(.is-disabled):hover {
+  color: var(--color-text-inverse);
+}
+.dark .tabs-overflow-trigger.is-active,
+.dark .tabs-overflow-trigger.is-active svg {
+  color: var(--brand-30);
+}
+.is-small .el-tabs__item {
+  font-size: 14px;
+}
+.is-small .el-tabs__item svg {
+  width: 14px;
+  height: 14px;
+}
+.tabs-wrapper {
+  position: relative;
+  width: 100%;
+}
+.tabs-wrapper .el-tabs__header {
+  display: flex;
+  align-items: center;
+}
+.tabs-wrapper .el-tabs__header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--border-light);
+}
+.tabs-wrapper .el-tabs__nav-wrap::after {
+  display: none;
+}
+.tabs-wrapper > .tabs-overflow-content {
+  margin-top: 16px;
+}
+.tabs-wrapper > .el-tabs.tabs-overflow-active .el-tabs__content {
+  display: none;
+}
+.tabs-wrapper > .el-dropdown {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+  height: var(--el-tabs-header-height, 32px);
+  display: inline-flex;
+  align-items: center;
+}
+.tabs-wrapper.is-large > .el-dropdown {
+  font-size: 18px;
+}
+.tabs-wrapper.is-default > .el-dropdown {
+  font-size: 16px;
+}
+.tabs-wrapper.is-small > .el-dropdown {
+  font-size: 14px;
+}
+.tabs-wrapper.tabs-separator > .el-dropdown {
+  font-size: 20px;
+}
+.tabs-wrapper.tabs-separator.is-small > .el-dropdown {
+  font-size: 16px;
+}
+.tabs-overflow-trigger {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  color: var(--el-text-color-secondary);
+  outline: none;
+  font-size: inherit;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.tabs-overflow-trigger svg {
+  width: auto;
+  height: auto;
+  transition: transform 0.2s ease;
+}
+.tabs-overflow-trigger.is-open svg {
+  transform: rotate(180deg);
+}
+.tabs-overflow-trigger.is-active,
+.tabs-overflow-trigger.is-active svg {
+  color: var(--brand-50);
+}
+.tabs-overflow-trigger:hover {
+  color: var(--color-brand-hover);
+}
+.tabs-overflow-trigger.is-active {
+  color: var(--brand-50);
+}
+.el-dropdown-menu .el-dropdown-menu__item.is-active {
+  color: var(--el-color-primary);
+}

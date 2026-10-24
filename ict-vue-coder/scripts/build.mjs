@@ -18,7 +18,7 @@
 //   5. 提取使用到的 Lucide 图标(扫描 <Icon name="x" /> / :name="{...}" / icon: "x"),
 //      在 lucide-icon-nodes.json(1777 icons)中校验,非 Lucide 名 → WARN,
 //      将图标 nodes 注入 shared/icon.js 模块(const LUCIDE = {...})
-//   6. 内联六层 CSS — base/light/theme/dark/el-base(EP 基础样式)/el(EP 换肤层)
+//   6. 内联全部产物 — base/light/theme/dark 四层 token + element/ 换肤文件夹 CSS 进 <style>
 //      进 <style>(font url() 重写为 HTML 根相对路径)
 //   7. CSS lint: 组件 CSS 禁止 :root/.dark 块、禁止未知 token、hex 硬编码 → WARN
 //   8. 产出可直接双击打开(file://)的 index.page.html(inline 脚本为普通 classic
@@ -27,8 +27,8 @@
 // Usage:  node build.mjs --dir "<scaffold path>"
 
 import { readFile, writeFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
-import { extname, resolve, dirname } from "node:path";
+import { existsSync, readdirSync } from "node:fs";
+import { extname, resolve, dirname, basename } from "node:path";
 
 // --- parse --dir argument (the scaffold path to build) ---
 const args = process.argv.slice(2);
@@ -42,9 +42,20 @@ const ROOT = resolve(args[dirIdx + 1]);
 const ENTRY = resolve(ROOT, "app.vue");
 const OUT = resolve(ROOT, "index.page.html");
 const STYLE_DIR = resolve(ROOT, "assets/style");
-// 六层样式加载序: base(基础色阶) → light(:root 语义) → theme(终极语义别名)
-// → dark(.dark 覆盖) → el-base(EP 官方基础样式) → el(EP 换肤层,.dark 规则随暗色生效)
-const STYLE_FILES = ["base.css", "light.css", "theme.css", "dark.css", "el-base.css", "el.css"].map((f) => resolve(STYLE_DIR, f));
+// 样式加载序: 四层 token(base 基础色阶 → light :root 语义 → theme 终极语义别名
+// → dark .dark 覆盖)+ element/ 换肤文件夹(base.css = EP 官方样式 + ICT 变量桥接
+// 亮/暗,最先加载;其余组件 css 按文件名字母序随后,.dark 规则随暗色生效 —
+// 新增/删除组件 css 文件自动纳入,无需改脚本)
+const TOKEN_FILES = ["base.css", "light.css", "theme.css", "dark.css"].map((f) => resolve(STYLE_DIR, f));
+const ELEMENT_DIR = resolve(STYLE_DIR, "element");
+function listElementCss() {
+  if (!existsSync(ELEMENT_DIR)) {
+    throw new Error(`style/element folder missing: ${ELEMENT_DIR}`);
+  }
+  const others = readdirSync(ELEMENT_DIR).filter((f) => f.endsWith(".css") && f !== "base.css").sort();
+  return [resolve(ELEMENT_DIR, "base.css"), ...others.map((f) => resolve(ELEMENT_DIR, f))];
+}
+const STYLE_FILES = [...TOKEN_FILES, ...listElementCss()];
 const LUCIDE_JSON = resolve(ROOT, "assets/library/lucide-icon-nodes.json");
 const ICONS_MODULE = "assets/shared/icon.js";
 
@@ -634,7 +645,7 @@ const html = `<!DOCTYPE html>
 <script src="./assets/library/echarts.min.js"></script>
 <!-- 5. vue-i18n (offline, exposes VueI18n; 多语言页面按需使用) -->
 <script src="./assets/library/vue-i18n.global.prod.js"></script>
-<!-- 6. 六层 CSS(base → light → theme → dark → el-base(EP 基础) → el(EP 换肤层))内联 -->
+<!-- 6. CSS 内联:四层 token(base → light → theme → dark)+ element/ 换肤文件夹(base 桥接 → 组件级) -->
 <style>
 ${cssParts.join("\n\n")}
 </style>
@@ -656,6 +667,6 @@ ${script}
 await writeFile(OUT, html, "utf8");
 console.log(`OK  ${OUT}`);
 console.log(`    modules (${modules.length}): ${modules.map((m) => m.label).join(", ")}`);
-console.log(`    css     (${cssEntries.length + STYLE_FILES.length}): style/(base,light,theme,dark,el-base,el) + ${cssEntries.map((c) => c.label).join(", ")}`);
+console.log(`    css     (${cssEntries.length + STYLE_FILES.length}): style/(base,light,theme,dark) + element/(${STYLE_FILES.slice(4).map((f) => basename(f)).join(",")}) + ${cssEntries.map((c) => c.label).join(", ")}`);
 console.log(`    icons   (${iconTableEntries.length}): ${[...iconRefs.keys()].sort().join(", ") || "none"}`);
 console.log(`    entry   : __export[${JSON.stringify(entryKey)}]`);
