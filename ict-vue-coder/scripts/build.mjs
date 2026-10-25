@@ -2,10 +2,11 @@
 // build.mjs — ICT Vue 页面的零依赖 "mini bundler"(ict-vue-coder)。
 //
 // What it does:
-//   1. 加载 app.vue(页面入口),递归跟随相对 import(.vue/.js 模块、.css 文件)
+//   1. 加载 app.vue(页面入口),递归跟随相对 import(.vue/.ts/.js 模块、.css 文件)
 //   2. SFC 拆块: .vue 拆为 template / script / style(顶层块,template 嵌套感知);
-//      script 走剥 import 流水线,template 挂为字符串交给浏览器端 Vue 编译器
-//      (vue.global.prod.js full 版自带编译,无需 Babel),style 并入 CSS 收集
+//      script lang="ts" 与 .ts 模块先经 Node 内置 stripTypeScriptTypes 剥离类型
+//      (可擦除语法;enum/namespace 等不支持),再进入剥 import 流水线;
+//      template 挂为字符串交给浏览器端 Vue 编译器(vue.global.prod.js full 版自带,无需 Babel)
 //   3. 外部库 import 映射为全局:
 //        vue         → Vue          (命名导入)
 //        element-plus→ ElementPlus  (命名导入;ElMessage 等)
@@ -29,6 +30,14 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync, readdirSync } from "node:fs";
 import { extname, resolve, dirname, basename } from "node:path";
+import { stripTypeScriptTypes } from "node:module";
+
+// 静默 stripTypeScriptTypes 的实验性警告(功能在 Node 22.13+ 稳定可用,警告噪音会干扰输出协议)
+process.removeAllListeners("warning");
+process.on("warning", (w) => {
+  if (w.name === "ExperimentalWarning" && /stripTypeScriptTypes|Type Stripping/i.test(w.message)) return;
+  console.error(w.stack);
+});
 
 // --- parse --dir argument (the scaffold path to build) ---
 const args = process.argv.slice(2);
@@ -146,18 +155,38 @@ function findTemplateClose(raw, from, label) {
   return null;
 }
 
-// SFC 块属性校验:template/script/style 均不允许任何属性(lang/scoped/setup 全部禁止)
+// SFC 块属性校验:template/style 禁止任何属性;script 仅允许 lang="ts"
 function assertNoBlockAttrs(tag, attrs, label) {
   if (attrs && attrs.trim()) {
     if (tag === "script" && /\bsetup\b/.test(attrs)) {
       throw new Error(`${label}: <script setup> 不支持 — 写显式 setup() 或 Options API(export default { setup() { ... return {...} } })`);
     }
-    throw new Error(`${label}: <${tag}${attrs}> 不支持 — SFC 块不允许属性(lang/scoped/setup 等均禁用;组件样式用全局 class 或同目录 index.css)`);
+    throw new Error(`${label}: <${tag}${attrs}> 不支持 — 该块不允许属性(lang/scoped/setup 等均禁用;组件样式用全局 class 或同目录 index.css)`);
+  }
+}
+
+// script 块属性:无属性 → "js";lang="ts" → "ts";其余报错
+function parseScriptLang(attrs, label) {
+  const a = (attrs || "").trim();
+  if (!a) return "js";
+  if (/^lang\s*=\s*["']ts["']$/.test(a)) return "ts";
+  if (/\bsetup\b/.test(a)) {
+    throw new Error(`${label}: <script setup> 不支持 — 写显式 setup() 或 Options API(export default { setup() { ... return {...} } })`);
+  }
+  throw new Error(`${label}: <script${attrs}> 不支持 — 仅允许 lang="ts"`);
+}
+
+// TS 类型剥离(Node ≥ 22.13 内置,mode: strip = 可擦除语法)
+function stripTs(code, label) {
+  try {
+    return stripTypeScriptTypes(code);
+  } catch (e) {
+    throw new Error(`${label}: TS 语法错误或使用了不可擦除语法(enum/namespace/参数属性/import 等) — ${e.message}`);
   }
 }
 
 function parseSfc(raw, label) {
-  const out = { template: null, script: null, styles: [] };
+  const out = { template: null, script: null, scriptLang: "js", styles: [] };
   let i = 0;
   while (i < raw.length) {
     if (raw.startsWith("<!--", i)) {
@@ -185,12 +214,13 @@ function parseSfc(raw, label) {
       const rest = raw.slice(contentStart);
       const cm = closeRe.exec(rest);
       if (!cm) throw new Error(`${label}: <${tag}> 块未闭合`);
-      assertNoBlockAttrs(tag, attrs, label);
       const content = rest.slice(0, cm.index);
       if (tag === "script") {
         if (out.script !== null) throw new Error(`${label}: 仅允许一个 <script> 块`);
+        out.scriptLang = parseScriptLang(attrs, label);
         out.script = content;
       } else {
+        assertNoBlockAttrs(tag, attrs, label);
         out.styles.push(content);
       }
       i = contentStart + cm.index + cm[0].length;
@@ -272,14 +302,17 @@ async function loadModule(filePath) {
   let sfcStyles = [];
   let code = raw;
 
-  // --- SFC: 拆块 ---
+  // --- SFC: 拆块(script lang="ts" 先剥离类型再进流水线) ---
   if (ext === ".vue") {
     const sfc = parseSfc(raw, label);
     isSfc = true;
     template = sfc.template;
     sfcStyles = sfc.styles;
-    // 纯模板组件(无 script)合法 — 合成空 options
-    code = sfc.script && sfc.script.trim() ? sfc.script : "export default {};";
+    let script = sfc.script && sfc.script.trim() ? sfc.script : "export default {};";
+    if (sfc.scriptLang === "ts") script = stripTs(script, label);
+    code = script;
+  } else if (ext === ".ts") {
+    code = stripTs(raw, label);
   }
 
   // --- strip & map imports ---
@@ -309,7 +342,15 @@ async function loadModule(filePath) {
     }
     const dep = resolve(dirname(filePath), source);
     if (!existsSync(dep)) {
-      throw new Error(`${label}: dependency not found: ${relLabel(dep) || dep} (import 路径必须包含扩展名 .vue/.js/.css)`);
+      // 省略扩展名时自动补全 .ts(./device → ./device.ts);仍不存在再报错
+      const tsCandidate = dep + ".ts";
+      if (extname(dep) === "" && existsSync(tsCandidate)) {
+        deps.push(tsCandidate);
+        if (def) defImports.push({ local: def, dep: tsCandidate });
+        splitNames(named, label).forEach((n) => bundleNames.push(n));
+        return "";
+      }
+      throw new Error(`${label}: dependency not found: ${relLabel(dep) || dep} (import 路径必须包含扩展名 .vue/.ts/.js/.css)`);
     }
     deps.push(dep);
     if (def) defImports.push({ local: def, dep });
@@ -318,9 +359,11 @@ async function loadModule(filePath) {
   });
 
   code = code.replace(SIDE_EFFECT_RE, (_match, source) => {
-    const dep = resolve(dirname(filePath), source);
+    let dep = resolve(dirname(filePath), source);
     if (!existsSync(dep)) {
-      throw new Error(`${label}: dependency not found: ${relLabel(dep) || dep} (import 路径必须包含扩展名 .vue/.js/.css)`);
+      const tsCandidate = dep + ".ts";
+      if (extname(dep) === "" && existsSync(tsCandidate)) dep = tsCandidate;
+      else throw new Error(`${label}: dependency not found: ${relLabel(dep) || dep} (import 路径必须包含扩展名 .vue/.ts/.js/.css)`);
     }
     deps.push(dep);
     return "";
@@ -344,14 +387,14 @@ async function loadModule(filePath) {
   let defaultPoolKey = null;
 
   if (isSfc) {
-    // SFC: export default <expr> → const __sfc = <expr>;命名导出禁止(放同目录 .js)
+    // SFC: export default <expr> → const __sfc = <expr>;命名导出禁止(放同目录 .ts)
     const defaults = [...code.matchAll(/^[ \t]*export\s+default\b/gm)];
     if (defaults.length === 0) {
       throw new Error(`${label}: <script> 必须有 export default(组件 options 对象:export default { ... } 或 export default { setup() {...} })`);
     }
     if (defaults.length > 1) throw new Error(`${label}: 仅允许一个 export default`);
     if (/^[ \t]*export\s+(?!default\b)[\w{]/m.test(code)) {
-      throw new Error(`${label}: SFC <script> 不支持命名导出(export const/function)— 提取到同目录 .js 文件`);
+      throw new Error(`${label}: SFC <script> 不支持命名导出(export const/function)— 提取到同目录 .ts 文件`);
     }
     code = code.replace(/^[ \t]*export\s+default\s*/m, "const __sfc = ");
     defaultPoolKey = label;
@@ -394,6 +437,16 @@ async function loadModule(filePath) {
       exportAssigns.push({ key: name, value: name });
       return `let ${name}`;
     });
+  }
+
+  // 残留 export 检测:合法形态(default / function / const / let;TS 的 export type 已被剥离)
+  // 全部替换后仍残留的 export(如 export { a, b } 列表、export * from、export class)
+  // 在 classic script 里是语法错误 — 在构建期直接报错,不留到运行时
+  const leftoverExport = code.match(/^[ \t]*export\s*(?:\{|,|\*|class\b|async\b)/m) || code.match(/^[ \t]*export\s+\w/m);
+  if (leftoverExport) {
+    throw new Error(
+      `${label}: 不支持的 export 形式 ("${leftoverExport[0].trim().slice(0, 40)}") — 仅支持 export default / export function / export const / export let;export { a, b } 列表、export * from、export class 均不支持`
+    );
   }
 
   scanIconUsage(raw, label);
@@ -450,10 +503,13 @@ function wrapModule(mod) {
 
 await loadModule(ENTRY);
 
-// i18n 门控:src/i18n.js 存在即打包(页面源码无需显式 import,epilogue 自动 app.use)
-const I18N_MODULE = resolve(ROOT, "src", "i18n.js");
-if (existsSync(I18N_MODULE)) {
-  await loadModule(I18N_MODULE);
+// i18n 门控:src/i18n.ts(.js 兼容旧脚手架)存在即打包(页面源码无需显式 import,epilogue 自动 app.use)
+for (const i18nName of ["i18n.ts", "i18n.js"]) {
+  const p = resolve(ROOT, "src", i18nName);
+  if (existsSync(p)) {
+    await loadModule(p);
+    break;
+  }
 }
 
 if (!entryKey) {
@@ -618,8 +674,8 @@ const script = [
   "/* ===== create app ===== */",
   `const __app = Vue.createApp(__export[${JSON.stringify(entryKey)}]);`,
   "__app.use(ElementPlus);",
-  // i18n 门控安装:src/i18n.js default-export 一个 createI18n 实例时自动 app.use(多语言页面按需创建)
-  'const __i18n = __export["src/i18n.js"] || __export.i18n;',
+  // i18n 门控安装:src/i18n.ts(.js 兼容)default-export 一个 createI18n 实例时自动 app.use(多语言页面按需创建)
+  'const __i18n = __export["src/i18n.ts"] || __export["src/i18n.js"] || __export.i18n;',
   'if (__i18n && typeof __i18n.install === "function") __app.use(__i18n);',
   '__app.mount("#root");',
 ].join("\n");

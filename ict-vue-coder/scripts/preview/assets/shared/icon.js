@@ -236,6 +236,30 @@ function resolveSize(size) {
   return size;
 }
 
+// Lucide 离线渲染(表数据由 build 时注入);名称不在表内返回 null
+function lucideSvg(vm) {
+  const nodes = lookupIcon(vm.name);
+  if (!nodes) return null;
+  return h(
+    "svg",
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      width: vm.resolvedSize,
+      height: vm.resolvedSize,
+      viewBox: "0 0 24 24",
+      fill: "none",
+      "stroke-width": vm.strokeWidth,
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round",
+      "aria-hidden": "true",
+      id: vm.id || undefined,
+      title: vm.title || undefined,
+      style: { stroke: vm.color || "currentColor", ...vm.cursorStyle },
+    },
+    nodes.map(([tag, attrs], i) => h(tag, { key: i, ...attrs }))
+  );
+}
+
 export const Icon = {
   name: "Icon",
   props: {
@@ -357,26 +381,25 @@ export const Icon = {
 
     // icon-plus 不可用(离线) → Lucide 回退
     if (this.plus === false) {
-      const nodes = lookupIcon(this.name);
-      if (!nodes) return null;
-      return h(
-        "svg",
-        {
-          xmlns: "http://www.w3.org/2000/svg",
+      return lucideSvg(this);
+    }
+
+    // icon-plus 可用但该名称未取到(匹配失败/请求失败)→ Lucide 兜底渲染,
+    // 避免在线模式下低命中名(如 boxes/bot 等工程名)渲染为空白
+    if (!this.svg) {
+      const lucideFallback = lucideSvg(this);
+      if (lucideFallback) return lucideFallback;
+      return h("span", {
+        id: this.id || undefined,
+        "aria-hidden": "true",
+        title: this.title || undefined,
+        style: {
+          display: "inline-block",
           width: this.resolvedSize,
           height: this.resolvedSize,
-          viewBox: "0 0 24 24",
-          fill: "none",
-          "stroke-width": this.strokeWidth,
-          "stroke-linecap": "round",
-          "stroke-linejoin": "round",
-          "aria-hidden": "true",
-          id: this.id || undefined,
-          title: this.title || undefined,
-          style: { stroke: this.color || "currentColor", ...this.cursorStyle },
+          ...this.cursorStyle,
         },
-        nodes.map(([tag, attrs], i) => h(tag, { key: i, ...attrs }))
-      );
+      });
     }
 
     // icon-plus 可用 → 注入拉取的 SVG 文本(宽高只在包装 span 上)
@@ -390,7 +413,7 @@ export const Icon = {
         height: this.resolvedSize,
         ...this.cursorStyle,
       },
-      ...(this.svg ? { innerHTML: this.svg } : {}),
+      innerHTML: this.svg,
     });
   },
 };

@@ -5,7 +5,7 @@
 //   ├── assets/    → 链接(junction/symlink, 失败则拷贝)到 skill 的 scripts/preview/assets
 //   ├── app.vue    → 入口 starter(根组件 + el-config-provider + 布局骨架)
 //   ├── app.css    → 应用级基础样式
-//   └── src/       → 页面源码(context.js + mock/ + components/ views/ 空目录)
+//   └── src/       → 页面源码(context.ts + mock/ + components/ views/ 空目录)
 //
 // 幂等: 若 preview/app.vue 已存在 → 复用现有脚手架,不覆盖任何文件(修改会话场景)。
 //
@@ -83,13 +83,13 @@ for (const p of REQUIRED) {
 
 const dest = join(base, "preview");
 
-const STARTER_APP = `<!-- App entry — ICT Vue page
+const STARTER_APP = `<!-- App entry — ICT Vue page (TypeScript)
 Layering convention (one folder per component, kebab-case + index.vue):
-  Layer 1 global state  → src/context.js         (reactive store: global state + dark mode toggle)
-  Layer 2 mock data     → src/mock/              (per-domain files, e.g. device.js / alarm.js)
-  Layer 3 reusable      → src/components/{name}/ (cross-view, e.g. status-tag / section-card)
-  Layer 4 views         → src/views/{name}/      (one per tab/section, e.g. device-table / header-bar)
-  Layer 5 layout        → app.vue                (el-config-provider + root container assembly)
+  Layer 1 global state  → src/context.ts          (reactive store: global state + dark mode toggle)
+  Layer 2 mock data     → src/mock/               (per-domain files, e.g. device.ts / alarm.ts)
+  Layer 3 reusable      → src/components/{name}/  (cross-view, e.g. status-tag / section-card)
+  Layer 4 views         → src/views/{name}/       (one per tab/section, e.g. device-table / header-bar)
+  Layer 5 layout        → app.vue                 (el-config-provider + root container assembly)
 
 Styling: custom styles in component <style> block or sibling index.css; prefer tokens for visual values.
 -->
@@ -102,7 +102,7 @@ Styling: custom styles in component <style> block or sibling index.css; prefer t
   </el-config-provider>
 </template>
 
-<script>
+<script lang="ts">
 import zhCn from "./assets/shared/element-zh.js";
 import "./app.css";
 
@@ -121,7 +121,11 @@ const STARTER_CONTEXT = `import { reactive, watchEffect } from "vue";
 // Layer 1: 全局状态 — 主题模式与业务状态
 // 换肤单轨驱动:isDark 只切换 <html> 的 .dark class;
 // 普通 H5 元素(token 四层)与 Element Plus 组件(element/ 换肤文件夹)同源跟随,无需组件树参与换肤。
-const state = reactive({
+interface AppState {
+  isDark: boolean;
+}
+
+const state: AppState = reactive({
   isDark: false,
 });
 
@@ -132,11 +136,11 @@ watchEffect(() => {
 });
 
 // 组合式入口:setup() { return { app: useApp() } } → 模板用 app.isDark
-export function useApp() {
+export function useApp(): AppState {
   return state;
 }
 
-export function toggleDark() {
+export function toggleDark(): void {
   state.isDark = !state.isDark;
 }
 `;
@@ -199,7 +203,7 @@ try {
   if (!runtimeOk) fail(`assets/library runtime js not reachable at: ${libraryDir}`);
 
   writeFileSync(join(dest, "app.vue"), STARTER_APP, "utf8");
-  writeFileSync(join(dest, "src", "context.js"), STARTER_CONTEXT, "utf8");
+  writeFileSync(join(dest, "src", "context.ts"), STARTER_CONTEXT, "utf8");
   writeFileSync(join(dest, "app.css"), STARTER_CSS, "utf8");
 
   console.log("RESULT: OK");

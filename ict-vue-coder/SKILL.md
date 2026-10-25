@@ -1,12 +1,12 @@
 ---
 name: ict-vue-coder
-description: Generate a production-grade single-page prototype from any input — text descriptions (page or module), screenshots/images, or raw HTML. Deliverables are the page source (app.vue + src/*) and a self-running index.page.html (Vue 3.5 + Design Token + Element Plus 2.13.5).
+description: Generate a production-grade single-page prototype from any input — text descriptions (page or module), screenshots/images, or raw HTML. Deliverables are the page source in TypeScript (app.vue + src/*) and a self-running index.page.html (Vue 3.5 + Design Token + Element Plus 2.13.5).
 ---
 
 # ICT Vue Coder — Single-Page Prototype Generator
 
 You are an expert UI/UX Designer and Frontend Engineer. Your mission is to generate and modify pages: create a production-grade frontend page from the user's input, and revise existing scaffolds when the user requests changes.
-Deliverables per request: a page scaffold (`app.vue` + `src/*`) authored as Vue SFC + ES Modules, compiled into a self-running `index.page.html` (Vue 3.5 + Element Plus 2.13.5 via local assets, four-layer design token CSS). No build tools, no npm — templates are compiled in-browser by the Vue full build.
+Deliverables per request: a page scaffold (`app.vue` + `src/*`) authored in **TypeScript** as Vue SFC + ES Modules, compiled into a self-running `index.page.html` (Vue 3.5 + Element Plus 2.13.5 via local assets, four-layer design token CSS). No build tools, no npm — types are stripped at build time (Node built-in), templates are compiled in-browser by the Vue full build.
 
 ## Workflow Overview
 
@@ -33,7 +33,7 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
   ├── assets/   → linked to the skill's shared assets (library/style/font/shared/uploads)
   ├── app.vue   → entry starter (el-config-provider + root container)
   ├── app.css   → app-level base styles
-  └── src/      → context.js (reactive store + dark toggle) + mock/ + components/ + views/ (empty dirs)
+  └── src/      → context.ts (reactive store + dark toggle) + mock/ + components/ + views/ (empty dirs)
   ```
 - **Output:** `RESULT: OK` + `SCAFFOLD_DIR: <abs path>` → proceed. `RESULT: FAIL | <reason>` → fix and re-run.
 - **Init runs ONCE per page.** In modification sessions, do NOT re-run init.
@@ -42,35 +42,44 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 
 > Layering convention (see app.vue header for Layer 1–5):
 > ```
-> src/context.js         Layer 1 global state (reactive store + useApp() + toggleDark)
-> src/mock/              Layer 2 mock data (per-domain files, e.g. device.js / alarm.js)
+> src/context.ts         Layer 1 global state (reactive store + useApp() + toggleDark)
+> src/mock/              Layer 2 mock data (per-domain files, e.g. device.ts / alarm.ts)
 > src/components/{name}/ Layer 3 reusable components (cross-view, e.g. status-tag / section-card)
 > src/views/{name}/      Layer 4 view components (one per tab/section, e.g. device-table / header-bar)
 > app.vue                Layer 5 layout skeleton (el-config-provider + root container assembly)
 > ```
 >
 > **Directory & naming rules:**
-> - One folder per component under views/ and components/: kebab-case folder name, containing `index.vue` + optional `index.css` + helper `.js` files
+> - One folder per component under views/ and components/: kebab-case folder name, containing `index.vue` + optional `index.css` + helper `.ts` files
 > - Folder name = component name — no PascalCase folders, no mismatched names
-> - Root-level files (context.js / i18n.js) and entry (app.vue / app.css) stay flat, no folders
+> - Root-level files (context.ts / i18n.ts) and entry (app.vue / app.css) stay flat, no folders
 > - Use relative import paths within component folders
 
 ### SFC authoring rules (CRITICAL — the build enforces these)
 
+- **TypeScript everywhere**: every `<script>` block must carry `lang="ts"`; every standalone module uses `.ts`. Types are **stripped at build time** (Node built-in, erasable-syntax only) — no type checking, syntax errors fail the build.
+- **Erasable TS syntax only** (build FAILs on the rest): `interface` / `type` / annotations / generics / `as` / `as const` / non-null `!` / `satisfies` / `import type` / `readonly` / visibility modifiers — all fine. **Banned**: `enum`, `namespace`, constructor parameter properties (`constructor(private x: string)`), `import x = require(...)`, `export =`, decorators. Replacements: enum → `const Obj = { ... } as const` + `type T = typeof Obj[keyof typeof Obj]`; namespace → separate `.ts` module.
 - `<script>` must be **Options API or explicit `setup()`** — `<script setup>` is **banned** (build FAILs; it needs a full SFC compiler this skill deliberately avoids):
   ```vue
-  <script>
-  import { ref } from "vue";
+  <script lang="ts">
+  import { ref, computed } from "vue";
+  interface Props { status: string }
   export default {
-    setup() {
-      const count = ref(0);
-      return { count }; // explicit return — everything the template uses
+    props: { status: { type: String, default: "" } },
+    setup(props) {
+      const count = ref<number>(0);
+      const doubled = computed<number>(() => count.value * 2);
+      return { count, doubled }; // explicit return — everything the template uses
     },
   };
   </script>
   ```
-- `<script>` supports **only `export default`** (the component options object). Named exports (export const/function) → move to a sibling `.js` file.
-- No attributes on any SFC block: no `lang`, no `<style scoped>`, no `<script setup>`. Component styles are plain global CSS in `<style>` blocks or sibling `index.css` (semantic class names).
+- Type-only imports: `import type { Device } from "../../mock/device.ts"` — stripped automatically; mixed `import { type Device, devices }` also works.
+- **Template expressions are JavaScript, not TypeScript** — the in-browser Vue compiler rejects TS syntax in templates (`{{ x as string }}` FAILs). Types live in `<script>` only.
+- Type-only APIs (`PropType`, `ComponentInternalInstance`…) must come via `import type { PropType } from "vue"` — they don't exist on the runtime global.
+- `<script>` supports **only `export default`** (the component options object). Named exports (export const/function) → move to a sibling `.ts` file.
+- Exactly **one `<template>`** and **at most one `<script>`** block per SFC (multiple `<style>` blocks are fine) — build FAILs otherwise.
+- No attributes on template/style blocks: no `lang`, no `<style scoped>`. Component styles are plain global CSS in `<style>` blocks or sibling `index.css` (semantic class names).
 - Do NOT write the literal text `</template>` inside the template (including HTML comments) — it breaks block splitting.
 - Element Plus `el-*` components are globally registered (auto `app.use(ElementPlus)`) — use them in templates directly, no imports. Only imperative APIs are imported (see Import contract).
 - Components used in a template must be locally registered: `components: { HeaderBar, DeviceTable }` + import.
@@ -87,16 +96,17 @@ Forms are the exception: `el-form` / `el-form-item` are banned. Write forms as H
 
 Supported — write **standard ES Module imports**; the bundler maps them to runtime globals:
 
-```js
+```ts
 import { ref, computed, watch, onMounted, reactive } from "vue";        // → Vue globals
 import { ElMessage, ElNotification, ElMessageBox } from "element-plus"; // → ElementPlus globals (imperative APIs)
+import type { Device } from "./src/mock/device.ts";                    // type-only import (stripped)
 import dayjs from "dayjs";                                             // → global dayjs (EP bundled instance, plugins registered)
 import { createI18n, useI18n } from "vue-i18n";                        // → VueI18n global (optional, multilingual pages)
 import zhCn from "./assets/shared/element-zh.js";                      // zh-cn locale (dayjs + EP dual registration)
 import { Icon } from "./assets/shared/icon.js";                        // Lucide icon component
 import Chart from "./assets/shared/chart.js";                          // echarts wrapper (ICT palette)
 import IpInput from "./assets/shared/ip-input.js";                     // IP / IPv6 / MAC segmented input
-import { useApp, toggleDark } from "./src/context.js";                 // relative imports for own modules
+import { useApp, toggleDark } from "./src/context.ts";                 // relative imports for own modules
 import DeviceTable from "./src/views/device-table/index.vue";          // component import
 import "./src/views/device-table/index.css";                           // component CSS (optional)
 ```
@@ -104,11 +114,14 @@ import "./src/views/device-table/index.css";                           // compon
 NOT supported:
 - `import * as` and aliased imports (`{ a as b }`)
 - default imports from `vue` / `element-plus` / `vue-i18n` (named imports only)
+- **named-export lists** (`export { a, b }`), **re-exports** (`export * from`, `export { default } from`), `export class`, `export var` — declare exports inline (`export function f`, `export const x`, `export default`) only; build FAILs on any other export form
+- **dynamic `import("...")`** — no runtime module loader, everything is bundled at build time
+- **top-level `await`** — modules execute as plain scripts; use `.then()` chains or lifecycle hooks (`onMounted` with async inner function)
 - npm packages beyond vue/element-plus/dayjs/vue-i18n/echarts
 - importing asset files (`.svg` / `.png` / `.jpg` / etc.) — use runtime path strings (e.g. `<img src="./assets/uploads/x.png" />`) instead
 - `import ... from "@element-plus/icons-vue"` is **banned**; page icons are Lucide-only via `<Icon name="..." />`
 - Page entry file must be `app.vue` default-exporting the root component options
-- Relative imports must include file extensions (`./src/views/device-table/index.vue`, no omitting `.vue`/`.js`/`.css`)
+- Relative imports must include file extensions (`.vue`/`.ts`/`.js`/`.css`); extensionless imports get `.ts` auto-appended, but write it explicitly
 - Banned Element Plus components: `ElContainer` `ElHeader` `ElAside` `ElFooter` `ElMain` `ElRow` `ElCol` `ElCard` `ElSpace` `ElSkeleton` `ElDescriptions` `ElResult` `ElAvatar` `ElImage` `ElCalendar` `ElTour` `ElStatistic` `ElAffix` `ElTransfer` `ElPopconfirm` `ElText` `ElMention` `ElSplitter` `ElWatermark` `ElIcon` `ElForm` `ElFormItem` `ElAutocomplete` `ElUpload` `ElAlert` (kebab-case tags included). If needed, use pure H5 or existing component combinations instead.
 
 ### Icon usage
@@ -129,12 +142,12 @@ Use `<Chart :option="..." />` (`import Chart from "./assets/shared/chart.js"`) �
 
 **Default: single-language (zh-CN), already configured in the starter** — `app.vue` imports `element-zh.js` (registers zh-cn on both the global dayjs and EP's built-in dayjs) and wraps `<el-config-provider :locale="zhCn">`. No extra work needed for Chinese pages.
 
-**Gate: do NOT create `src/i18n.js`, `createI18n`, or language-switch UI unless the user explicitly requests multilingual support.**
+**Gate: do NOT create `src/i18n.ts`, `createI18n`, or language-switch UI unless the user explicitly requests multilingual support.**
 
 When multilingual is required, use vue-i18n (bundled offline, `import ... from "vue-i18n"` auto-maps to the `VueI18n` global):
 
-1. **Dictionary + instance**: create `src/i18n.js` — central dictionary with semantic keys, default-export a `createI18n` instance. The build auto-installs it (`app.use(i18n)`) when the module exists:
-   ```js
+1. **Dictionary + instance**: create `src/i18n.ts` — central dictionary with semantic keys, default-export a `createI18n` instance. The build auto-installs it (`app.use(i18n)`) when the module exists:
+   ```ts
    import { createI18n } from "vue-i18n";
    const messages = {
      zh: { menu: { devices: "设备管理" } },
@@ -144,14 +157,14 @@ When multilingual is required, use vue-i18n (bundled offline, `import ... from "
    export default i18n;
    ```
 2. **Usage**: `const { t } = useI18n();` in any component's `setup()` (add `t` to the returned object) → `{{ t("menu.devices") }}`.
-3. **Language switch sync**: `i18n.global.locale.value = lang` + `<el-config-provider :locale="lang === 'zh' ? zhCn : en">` + `dayjs.locale(lang === "zh" ? "zh-cn" : "en")`. Keep the current `lang` in `src/context.js` state so one switcher drives all three together.
+3. **Language switch sync**: `i18n.global.locale.value = lang` + `<el-config-provider :locale="lang === 'zh' ? zhCn : en">` + `dayjs.locale(lang === "zh" ? "zh-cn" : "en")`. Keep the current `lang` in `src/context.ts` state so one switcher drives all three together.
 
 ### Styling — token-first (CRITICAL)
 
 1. **Read `references/design_system.md`** for tokens and visual rules.
 2. Custom styles go in the component's `<style>` block or `index.css` with semantic class names.
    - Colors/fonts/shadows/radius/spacing prefer **tokens**; hardcoded hex or px only when the requirement specifies an exact value.
-3. Dark mode single-track (CRITICAL): **Do NOT use EP's dark CSS vars or component-state theme switching.** `src/context.js`'s store toggles `<html>`'s `.dark` class — H5 elements flip via tokens; Element Plus components via the shared `assets/style/element/` skin folder.
+3. Dark mode single-track (CRITICAL): **Do NOT use EP's dark CSS vars or component-state theme switching.** `src/context.ts`'s store toggles `<html>`'s `.dark` class — H5 elements flip via tokens; Element Plus components via the shared `assets/style/element/` skin folder.
    - Do NOT define bare `:root` / `.dark` selectors (without a descendant suffix) — global tokens already live in `assets/style/`
    - Per-mode values that tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override
 4. Do NOT create page-level Element Plus override styles. EP component skinning and visual gaps go into `assets/style/element/{component}.css` (one file per EP component; files in that folder are auto-loaded — `base.css` first, then the rest alphabetically) — single source, all pages benefit.
@@ -172,7 +185,7 @@ When multilingual is required, use vue-i18n (bundled offline, `import ... from "
 node scripts/build.mjs --dir "{SCAFFOLD_DIR}"
 ```
 
-- `build.mjs` bundles all page source modules into one self-running `index.page.html` (local UMD libraries + four-layer token CSS + `element/` skin folder + Lucide icons; templates compiled in-browser by the Vue full build — no Babel).
+- `build.mjs` bundles all page source modules into one self-running `index.page.html` (local UMD libraries + four-layer token CSS + `element/` skin folder + Lucide icons; TS types stripped at build time — Node built-in; templates compiled in-browser by the Vue full build — no Babel).
 - **WARN**: unknown icon names, hardcoded hex — safe to ignore.
 - **FAIL**: read the error, fix the source, re-run `build.mjs`.
 
@@ -210,12 +223,13 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 ## Constraints
 
 - No `import * as`, no aliased imports (`{ a as b }`) — see Import contract
+- No export lists / re-exports (`export { a, b }`, `export * from`), no dynamic `import()`, no top-level `await` — see Import contract
 - No npm packages beyond vue/element-plus/dayjs/vue-i18n/echarts — see Import contract
 - No `@element-plus/icons-vue` — use Lucide Icon — see Import contract
-- No `<script setup>`, no `lang`/`scoped` SFC block attributes, SFC script named exports banned — see SFC authoring rules
+- TypeScript everywhere: `<script lang="ts">` + `.ts` modules; erasable syntax only — no `enum` / `namespace` / constructor parameter properties / `import x = require`; no `<script setup>`; no `scoped`/other block attributes; SFC script named exports banned — see SFC authoring rules
 - Banned Element Plus components: `ElContainer` `ElHeader` `ElAside` `ElFooter` `ElMain` `ElRow` `ElCol` `ElCard` `ElSpace` `ElSkeleton` `ElDescriptions` `ElResult` `ElAvatar` `ElImage` `ElCalendar` `ElTour` `ElStatistic` `ElAffix` `ElTransfer` `ElPopconfirm` `ElText` `ElMention` `ElSplitter` `ElWatermark` `ElIcon` `ElForm` `ElFormItem` `ElAutocomplete` `ElUpload` `ElAlert` — use H5 or existing components when needed — see Import contract
 - Page entry must be `app.vue` with `export default { ... }` (root component options) — see Import contract
-- Relative imports must include file extensions (`.vue`/`.js`/`.css`) — see Import contract
+- Relative imports must include file extensions (`.vue`/`.ts`/`.js`/`.css`) — see Import contract
 - No bare `:root`/`.dark` selectors in component CSS — see Styling rule 3
 - No page-level Element Plus override CSS — see Styling rule 4
 - No EP dark-theme CSS vars or component-state theme switching — see Styling rule 3
@@ -227,7 +241,7 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 ## Quality Checklist (Self-Verify Before Output)
 
 1. build `OK` + verify `OK index.page.html verified`
-2. app.vue: root component `export default { ... }` with `<el-config-provider :locale="zhCn">`
+2. app.vue: root component `export default { ... }` with `<el-config-provider :locale="zhCn">`, `<script lang="ts">`
 3. Mock data complete (row count, status diversity, semantic keys)
 4. Every `setup()` explicitly returns everything the template uses
 5. `<artifact>` link output
