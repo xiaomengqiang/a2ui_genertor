@@ -45,13 +45,51 @@ const columns = [
 const rows = list.map((d) => ({ id: d.id, name: d.name, state: d.state, ip: d.ip, op: null }));
 ```
 
+#### 列宽迁移规则（antd → eview-react）
+
+迁移 `columns` 时先统计源 `columns` 里设了 `width` 的列数：
+
+```jsx
+// 源 antd：每列都设了 width（常见于配 scroll.x 或 ict-coder 统一设宽场景）
+// ❌ 不要逐列平移 width——这些多是 antd 按 scroll.x/列宽合计做横向滚动布局的相对值
+const antdColumns = [
+  { title: 'ID', dataIndex: 'id', width: 80 },
+  { title: '名称', dataIndex: 'name', width: 120 },
+  { title: '状态', dataIndex: 'state', width: 100 },
+  { title: 'IP', dataIndex: 'ip', width: 140 },
+  { title: '操作', dataIndex: 'op', width: 160, fixed: 'right' },  // 固定列
+];
+
+// ✅ 全列设宽 → 除固定列（按 §5 冻结列规则判定需迁移 freezeCol 的）保留 width 外，其余列去掉 width
+const columns = [
+  { title: 'ID', key: 'id', allowSort: false },                    // width 去掉
+  { title: '名称', key: 'name', allowSort: false },                // width 去掉
+  { title: '状态', key: 'state', allowSort: false, render: ... },  // width 去掉
+  { title: 'IP', key: 'ip', allowSort: false },                    // width 去掉
+  { title: '操作', key: 'op', allowSort: false, width: 160, freezeCol: true },  // 固定列保留 width
+];
+// 表上配 freezeColPosition="right"（仅当真横向溢出时，见 §5 冻结列行）
+
+// 源 antd：只有部分列设了 width（混合）→ 按原值映射（这些是源项目有意为之的精确列宽）
+const antdColumnsMixed = [
+  { title: 'ID', dataIndex: 'id' },              // 无 width
+  { title: '名称', dataIndex: 'name', width: 200 },  // 有 width
+  { title: '状态', dataIndex: 'state' },         // 无 width
+];
+const columnsMixed = [
+  { title: 'ID', key: 'id', allowSort: false },
+  { title: '名称', key: 'name', width: 200, allowSort: false },  // 保留
+  { title: '状态', key: 'state', allowSort: false },
+];
+```
+
 #### 列定义形状（ColumnProps 高频字段）
 
 ```tsx
 interface TableColumn {
   title: string | React.ReactNode;          // 列头
   key?: string;                             // 对象行取值 / 自定义排序时的字段名
-  width?: string | number;                  // 不填自适应
+  width?: string | number;                  // 不填自适应。⚠️ **源 antd 的 `columns` 每列都设 `width` 时迁移规则**：除需迁移 `freezeCol` 的固定列（`fixed:'left'/'right'` 且真横向溢出，按 §5 冻结列行判定）**保留 `width`** 外，其余列**统一去掉 `width` 不映射**——源全列设宽多是 antd 按 `scroll.x`/列宽合计做横向滚动布局的相对值，平移到 eview 会导致列宽错乱；源只有部分列设宽（混合）时按原值映射
   align?: 'left' | 'center' | 'right';
   allowSort?: boolean;                      // 默认 true——源 antd 未设 sorter 的列迁移时需显式设 false，否则所有列表头都带排序箭头
   sort?: 'asc' | 'desc' | 'origin';         // 初始排序态
@@ -195,6 +233,6 @@ onRowCheck={(row) => setChecked([...checked, row])}
 | `enableColumnFilter` / `itemOrderChanger` / `onFilterOkClick` | `boolean` / `boolean` / `(hideRow, displayRow, columns) => boolean` | 列筛选弹窗 |
 | `enableRowExpand` / `onRowExpend` / `expandedRow` / `enableMulitiExpand` | `boolean` / `(row) => ReactNode` / `(string \| number)[]` / `boolean` | 行展开 |
 | `enableColumnDrag` / `enableColumnWidthFit` / `freezeColPosition` / `virtualScroll` / `virtualShowNum` | — | 列宽拖拽（默认开）/ 自适应 / 冻结列位置 / 虚拟滚动（3.5.10） |
-| `freezeCol`（列级）/ `freezeColPosition`（表级） | `boolean` / `string` | 冻结列：列上设 `freezeCol: true` 标记冻结，表上 `freezeColPosition` 设位置。⚠️ eview 的 `freezeCol` **无条件冻结**（sticky+阴影），antd 的 `columns[].fixed` 仅在表格横向滚动（`scroll.x` 溢出）时才有视觉效果——源列写了 `fixed` ≠ 源页面视觉冻结。**迁移默认不写 `freezeCol`/`freezeColPosition`**；仅当源列有 `fixed:'left'/'right'` **且**源表 `scroll.x`/列宽合计明显超出容器宽（迁移后真的会横向滚动）时才映射：`fixed:'right'`→列 `freezeCol:true` + 表 `freezeColPosition="right"`，`fixed:'left'`→表 `freezeColPosition="left"`。 |
+| `freezeCol`（列级）/ `freezeColPosition`（表级） | `boolean` / `string` | 冻结列：列上设 `freezeCol: true` 标记冻结，表上 `freezeColPosition` 设位置。⚠️ eview 的 `freezeCol` **无条件冻结**（sticky+阴影），antd 的 `columns[].fixed` 仅在表格横向滚动（`scroll.x` 溢出）时才有视觉效果——源列写了 `fixed` ≠ 源页面视觉冻结。**迁移默认不写 `freezeCol`/`freezeColPosition`**；仅当源列有 `fixed:'left'/'right'` **且**源表 `scroll.x`/列宽合计明显超出容器宽（迁移后真的会横向滚动）时才映射：`fixed:'right'`→列 `freezeCol:true` + 表 `freezeColPosition="right"`，`fixed:'left'`→表 `freezeColPosition="left"`。**判定为需迁移 `freezeCol` 的固定列保留 `width`**（冻结列需固定宽以维持 sticky 视觉效果），其余列按 §2 列定义形状 `width` 行的全列设宽规则处理。 |
 | `isRequiredToUpdateColumns` / `enableColumnCompareUpdate` | `boolean`，默认 `false` | 更新 columns 是否生效 / 比较后再更新。**⚠️ `enableColumnCompareUpdate` 默认 `false`——更新 `columns` prop 不重新渲染列定义（columns 变化不生效）。源 antd 的 `columns` 经常动态变化（条件列/权限列/筛选后列集/`useMemo` 依赖变化重建），迁移时默认显式加 `enableColumnCompareUpdate={true}`，否则源项目里 columns 变化的逻辑全部失效**（见 [migration-workflow.md](../migration-workflow.md) Table columns 更新 warning） |
 | `getCheckedRowsIndexes()` / `getSelectedRowIndex()` / `setCheckedRows(indexes)` / `getDataset()` / `setRowEditable(id, columns)` | 命令式方法 | 取勾选序号 / 选中行序号 / 设勾选 / 取数据 / 设行可编辑。⚠️ **`getCheckedRowsData()` 实测返回数据不对——需要选中行数据时用 `checkedIndexes`（`onRowCheck`/`onHeaderCheck` 回调给的行序号数组）配合 `dataset` 按索引取值（`checkedIndexes.map(i => dataset[i])`），不要用 `ref.getCheckedRowsData()`** |

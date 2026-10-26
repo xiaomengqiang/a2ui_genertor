@@ -128,6 +128,11 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 > **Table 外层宽度**：eview-react 的 Table **默认给最外层 dom 加行内样式 `width:100%;height:100%;`**，在 flex 容器、Grid 布局、卡片内嵌等场景下会撑破父容器、占满高度挤压兄弟元素。**迁移时显式加 `width="unset"` 重置组件库默认行内宽度**——但要先看源 antd Table 有无 width 相关设置：源有显式容器宽度（`style={{ width: ... }}` / className + CSS 设宽）→ 映射到 eview-react `width` prop；`scroll={{ x: ... }}` **直接抛弃不转**（eview `width` 是最外层 dom 宽度，不是 antd 列宽计算/横向滚动阈值概念，实测映射会导致表格宽度错误）；源无显式容器宽度 → 加 `width="unset"`。判定方法：搜源 `<Table` 是否带 `style` 含 `width`、`className` 对应 CSS 是否设宽度。见 [Table.md](components/Table.md) §5 API 速查 `width` 行。
 >
 > **Table columns 更新**：eview-react 的 `enableColumnCompareUpdate` **默认 `false`**，更新 `columns` prop 时不会重新渲染列定义（diff 比较被关掉，columns 变化不生效）。源 antd 的 `columns` 经常动态变化（条件列、权限列、筛选后列集、`useMemo` 依赖变化重建 columns）。**迁移时默认显式加 `enableColumnCompareUpdate={true}`**，否则源项目里 columns 变化的逻辑全部失效。见 [Table.md](components/Table.md) §5 API 速查 `enableColumnCompareUpdate` 行。
+>
+> **Table 列宽**：源 antd 的 `columns` **每一列都设了 `width`**（常见于配了 `scroll.x` 或 ict-coder 产出的表格统一设宽场景）时，这些 `width` 多是 antd 内部按 `scroll.x` 阈值/列宽合计做横向滚动布局的相对值，**不是页面对每列的精确像素要求**。eview-react 的列 `width` 行为与 antd 不同（最外层 dom 走 `width:100%`，列宽自适应优先 + `enableColumnWidthFit`），直接把源列 `width` 逐列平移会导致列宽分布错误、横向撑破或挤压。**迁移规则**：
+> - **源 `columns` 每列都有 `width`** → 除**固定列**（`fixed: 'left'` / `fixed: 'right'`，且按"Table 冻结列"规则判定需迁移 `freezeCol` 的）**保留 `width`**（冻结列需固定宽以维持 sticky 视觉效果）外，其余列**统一去掉 `width`**，不映射到 eview-react 列定义（让组件自适应/列宽拖拽处理）
+> - **源 `columns` 只有部分列设了 `width`**（混合）→ 按既有规则，仅设宽的列原样映射 `width`（这些是源项目有意为之的精确列宽，非全列填充布局值）
+> 判定方法：先统计源 `columns` 数组里**设了 `width` 的列数**，等于总列数即"每列都有 width"分支，否则走混合分支。见 [Table.md](components/Table.md) §2 列定义形状 + §5 `width` 行。
 
 **硬约束**：遵守 SKILL.md 的"eview-react 硬约束"章节（12 条）。导入路径改为 `import X from '@nce/eview-react/X'`。
 
