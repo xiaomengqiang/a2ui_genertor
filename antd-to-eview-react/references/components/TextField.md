@@ -122,6 +122,7 @@ const handleSubmit = () => {
 | `maxLength` | `number` | 最大长度 |
 | `suffix` | `React.ReactNode` | 后缀元素 |
 | `disabled` / `readOnly` | `boolean`，默认 `false` | 灰化 / 只读 |
+| `size` | `'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸；与 antd `size` 枚举一致，可直接透传 |
 | `inputStyle` / `labelStyle` / `containerStyle` / `tipStyle` | `CSSProperties` | 局部样式 |
 | `enableFixWidth` | `'small' \| 'middle' \| 'large' \| 'none'`，默认 `none` | label 与输入框间隔 |
 | `ref.getValue()` / `ref.validate()` / `ref.focus()` | 命令式方法 | 取值 / 触发校验（返回 boolean）/ 聚焦 |

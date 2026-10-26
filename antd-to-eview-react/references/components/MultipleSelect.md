@@ -113,6 +113,7 @@ onChange={(v) => setDc(v)}   // 少了 setSites([])
 | `label` / `labelPosition` | `string` / `'before' \| 'after'`（默认 before） | 名称文字及位置 |
 | `required` / `hintType` | `boolean`（默认 false）/ `'div' \| 'tip'`（默认 div） | 必填 / 提示形式 |
 | `disabled` | `boolean`，默认 `false` | 禁用 |
+| `size` | `'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸；与 antd `size` 枚举一致，可直接透传 |
 | `selectAll` / `selectAllText` | `boolean`（默认 false）/ `string` | 全选项 |
 | `searchable` | `boolean` | 下拉搜索 |
 | `enableCloseIcon` | `boolean`，默认 `false` | 已选项带关闭小图标 |

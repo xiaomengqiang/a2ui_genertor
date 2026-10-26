@@ -87,6 +87,7 @@ onChange={(value, oldValue, type) => { if (type === 'input') … }}
 | `showSearchTip` | `boolean`，默认 `true` | 无匹配时显示 "Not Found" |
 | `virtualScroll` | `boolean` | 虚拟滚动（> 100 项） |
 | `disabled` | `boolean`，默认 `false` | 灰化 |
+| `size` | `'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸；与 antd `size` 枚举一致，可直接透传 |
 | `label` / `labelPosition` | `string` / `'before' \| 'after'`（默认 before） | 名称文字 |
 | `popupDirection` / `zindex` / `onOpenPopup` / `onClosePopup` / `popUpProps` | — | 下拉层 |
 | `inputProps` / `enableFixWidth` / `selectStyle` / `optionStyle`（及 className） | — | 样式与原生属性透传 |
