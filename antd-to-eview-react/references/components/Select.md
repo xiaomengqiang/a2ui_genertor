@@ -146,6 +146,7 @@ const handleProvinceChange = (v) => { setProvince(v); loadCities(v); };
 | `onFocus` / `onBlur` | `(event) => void` | 聚焦 / 失焦 |
 | `onDropdownVisibleChange` / `onSelectClick` / `onClosePopup` | 回调 | 下拉显隐、点击、关闭 |
 | `disabled` / `required` | `boolean`，默认 `false` | 灰化 / 必填 |
+| `size` | `'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸；与 antd `size` 枚举一致，可直接透传 |
 | `validator` | `(value) => { result, message }` | 自定义校验，`result: true` 通过 |
 | `hintType` | `'div' \| 'tip'`，默认 `div` | 错误提示形式 |
 | `enableClear` | `boolean`，默认 `false` | hover 显示清除按钮 |

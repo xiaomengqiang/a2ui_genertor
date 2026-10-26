@@ -1,7 +1,7 @@
 # Button 组件功能逻辑规格
 
 > 资料来源：TypeDoc `Button/types`、`ButtonGroup/types` + 官网 Button 页示例。
-> ⚠️ `status` 缺 `text`、`size` 缺 `small` 在源码类型里，但 TypeDoc 表与示例都有 → 以表 + 示例为准。
+> ⚠️ `status` 缺 `text` 在源码类型里，但 TypeDoc 表与示例都有 → 以表 + 示例为准。
 > ⚠️ `onClick(event, additionalData)`——**第二个参数**才是业务数据；eview 没有 `type`/`loading`/`htmlType`，文字用 `text`，主/次/危险/纯文字用 `status`。处理中靠 `disabled` + 文案切换表达（无 `loading`）。
 
 ## 1. 功能定位
@@ -92,7 +92,7 @@ import { IconPlusIcPublicSave, IconPlusIcPublicRefresh } from '@hui/icon-plus';
 |-----|--------------|------|
 | `text` / `children` | `any` / `React.ReactNode` | 按钮文字；**带 `leftIcon`/`rightIcon`/`icon` 时必须用 `text`，不能用 children——children 会让图标不渲染**（无图标时二者等价） |
 | `status` | `'default' \| 'primary' \| 'risk' \| 'text'`，默认 `default` | 主 / 次 / 危险 / 纯文字；**不是 `type`** |
-| `size` | `'normal' \| 'large' \| 'small'`，默认 `normal` | 尺寸 |
+| `size` | `'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸；**与 antd `size` 枚举一致，可直接透传**（旧 `normal`→`middle`） |
 | `disabled` | `boolean`，默认 `false` | 灰化；处理中也用它表达 |
 | `focused` | `boolean`，默认 `false` | 是否默认聚焦 |
 | `leftIcon` / `rightIcon` | `string \| React.ReactElement` | 图标路径或 icon+ 组件（`IconPlus.tsx`） |
