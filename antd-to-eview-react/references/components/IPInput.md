@@ -73,6 +73,7 @@ onChange={(t) => setIpType(t)}   // 少了 setIp('')
 | `delimiter` | `string` | 分隔符（v4 默认 `.`，v6 默认 `:`） |
 | `required` / `validator` / `hintType` | `boolean` / `(value) => { result, message }` / `'div' \| 'tip'` | 校验 |
 | `disabled` / `readOnly` | `boolean`，默认 `false` | 灰化 / 只读 |
+| `size` | `'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸；与 antd `size` 枚举一致，可直接透传 |
 | `autoSetZero` | `boolean` | 自动补 0 |
 | `enableFocusAndInputNext` | `boolean`，默认 `false` | 段满后再输入自动跳到下一段并填入 |
 | `liftDelimiterOnPaste` | `boolean`，默认 `false` | MAC 粘贴带分隔符串的处理 |

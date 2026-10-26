@@ -8,7 +8,7 @@
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Button type="primary"` | `Button status="primary"` | `type`→`status`（default/primary/risk/text）；无 `loading`/`htmlType`/`danger`；文字用 `text`（**带 `leftIcon`/`rightIcon`/`icon` 时必须用 `text`，不能用 children，否则图标不渲染**；无图标时可等价用 children）；处理中用 `disabled`+文案切换 |
+| `Button type="primary"` | `Button status="primary"` | `type`→`status`（default/primary/risk/text）；无 `loading`/`htmlType`/`danger`；文字用 `text`（**带 `leftIcon`/`rightIcon`/`icon` 时必须用 `text`，不能用 children，否则图标不渲染**；无图标时可等价用 children）；处理中用 `disabled`+文案切换；`size` 现支持 `small/middle/large`（默认 `middle`），与 antd 一致可透传（旧 `normal`→`middle`） |
 | `Button danger` | `Button status="risk"` | 同上 |
 | `Button type="text" shape="circle" icon={<Icon/>}`（无 children，纯图标按钮） | `<IconPlusIc* onClick title/>` 直接 | antd `shape="circle"`/`type="text"`+`icon`+无 children 是纯图标按钮信号；**剥 Button 外壳，`onClick`/`title` 直接搬到内层 `<IconPlusIc* />`**（`IconButton` 已弃用）；antd 的 `message.success` 提示文案移到原生 `title` 属性；**`icon` 的尺寸（`<Icon size>` / antd `style.fontSize`）吸附后写到 `<IconPlusIc* iconSize={N} />`（默认 14；吸附规则见 [match-icons.cjs](../scripts/match-icons.cjs)）** |
 | `Button icon={...}`（有文字 children） | `Button leftIcon` / `rightIcon` | 仅当有文字 children 时；无 children 的纯图标按钮剥外壳走 `<IconPlusIc* onClick title/>`（见上行，`IconButton` 已弃用）；**`icon` 的尺寸同样落到内层 `<IconPlusIc* iconSize={N} />`；文字搬 `text=`，不要保留 children（children 与 leftIcon/rightIcon 同时存在会让图标不渲染）** |
@@ -19,6 +19,8 @@
 | `Divider` | `Divider` | API 基本一致；`type="vertical"` 行内竖线 |
 
 ## 表单与输入
+
+> **`size` 现支持**：`TextField` / `SearchInput` / `Select` / `MultipleSelect` / `InputSelect` / `TreeSelector` 现支持 `size: 'small' \| 'middle' \| 'large'`（默认 `middle`），枚举与 antd 一致、可直接透传；迁移时无需丢弃源 antd `size`（`IPInput`、`PopUpMenu` 同步支持，见各自文档）。
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|

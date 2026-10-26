@@ -208,4 +208,5 @@ import { OptionType } from '@nce/eview-react/PopUpMenu';
 | `onBlur` | `(value?: any, event?: React.ReactElement) => void` | 原声明；失焦（如点外部）回调 |
 | `onClickOutside` / `onKeyDown` | `any` / `(event: any) => void` | 点外部（参数未声明）/ 键盘事件 |
 | `hasScroll` | `boolean`，默认 `false` | 滚动开关，详细行为未说明 |
+| `size` | `'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸；与 antd `Dropdown` 触发器 `size` 枚举一致，可直接透传 |
 | 常规 | — | `id` · `className`（string）、`style`（React.CSSProperties） |

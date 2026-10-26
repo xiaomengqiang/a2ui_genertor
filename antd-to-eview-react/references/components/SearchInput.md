@@ -122,6 +122,7 @@ const doSearch = (value: string) => { /* clearTimeout + setTimeout + ++versionRe
 | `hintType` | `'div' \| 'tip'`，默认 `div` | 提示形式 |
 | `showTip` | `boolean`，默认 `false` | 文本超长时显示提示 |
 | `disabled` | `boolean`，默认 `false` | 灰化 |
+| `size` | `'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸；与 antd `size` 枚举一致，可直接透传 |
 | `inputProps` | `InputHTMLAttributes` | 透传给原生 input |
 | `zindex` | `string`，默认 `9999` | 弹层层级 |
 | `inputStyle` / `inputClassName` / `labelStyle` / `labelClassName` / `style` / `className` / `id` | — | 常规透传 |

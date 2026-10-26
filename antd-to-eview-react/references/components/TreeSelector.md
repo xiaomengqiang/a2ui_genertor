@@ -213,6 +213,7 @@ onChange={(nodes, oldValue) => save(nodes[0].value, oldValue)}
 | `enableCheckbox` | `boolean` | 开启多选；默认使用单选 |
 | `clearable` | `boolean` | 显示清除能力；清除事件及空值契约未确认 |
 | `required` / `disabled` | `boolean`，默认 false | 必填 / 灰化 |
+| `size` | `'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸；与 antd `size` 枚举一致，可直接透传 |
 | `expandedKeys` | `string[]` | 默认展开项；不承诺完全受控展开 |
 | `isClickableNonLeaf` | `boolean`，默认 false | 非叶节点可选，仅单选 |
 | `onlySelect` | `boolean`，默认 false | 仅单选；输入用于过滤，失焦清掉未选定输入 |
