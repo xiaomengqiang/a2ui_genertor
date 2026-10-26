@@ -90,6 +90,7 @@ Chart wrapper: `flex: 1` + `minHeight: 0` or a fixed rem floor (vertical); `minW
 | `HillChart` (山峰图) | Absolute-value ranking |
 | `JadeJueChart` (玉玦图) | Ranked proportion |
 | `ProcessChart` (多组进度图) | Completion progress, percentage/ratio ranking |
+| `RadarChart` (雷达图) | Multivariate comparison across dimensions |
 
 ## Colors
 

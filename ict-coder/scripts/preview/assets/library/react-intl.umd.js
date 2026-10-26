@@ -1,4 +1,4 @@
-/*! react-intl 6.8.9 (formatjs) — offline bundle for ict-react-coder
+/*! react-intl 6.8.9 (formatjs) — offline bundle for ict-coder
  * React 为外部依赖,运行时使用已有全局 window.React;本文件暴露 window.ReactIntl
  * 由 esbuild 离线打包生成,不要手改 */
 var ReactIntl = (function () {

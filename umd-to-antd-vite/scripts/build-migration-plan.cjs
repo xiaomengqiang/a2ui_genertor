@@ -218,9 +218,9 @@ for (const [antdName, files] of Object.entries(antdComponents)) {
   });
 }
 
-// ========== 2b. 注入 IPInput 迁移行（ict-react-coder 手写共享件，非 antd 导入，步骤 2 扫不到） ==========
+// ========== 2b. 注入 IPInput 迁移行（ict-coder 手写共享件，非 antd 导入，步骤 2 扫不到） ==========
 // 触发条件：.umd-conversion.json 的 ipInputCallSites.callSites 非空（extract-umd.cjs §4.7 扫到 <IpInput> 调用点）
-// antd 无 IPInput 组件，ict-react-coder 在 assets/shared/ 或 src/components/ip-input/ 手写了一份；
+// antd 无 IPInput 组件，ict-coder 在 assets/shared/ 或 src/components/ip-input/ 手写了一份；
 // extract-umd.cjs 只扫 from 'antd' 导入，该手写件零 antd 依赖（assets/shared/ 版本）或仅内部用 antd Input（src/components/ 版本），
 // antdComponents 不含 IPInput 键 → 上面 §2 循环不会为它生成行 → 此处补注入，让下游步骤 0/2 能看到。
 
@@ -234,17 +234,17 @@ if (ipInputInfo && ipInputInfo.callSites && ipInputInfo.callSites.length) {
     eview: 'IPInput',
     importPath: '@/shared/IPInput',
     shellComponent: true,
-    keyDiffs: 'ict-react-coder 手写 IPInput 共享件（非 antd 组件）。迁移到 @/shared/IPInput（scaffold 包壳，转发 @nce/eview-react/IPInput）。关键差异：① 删除手写共享件（' + ipSharedFiles.join(', ') + '），import 路径改为 import IPInput from "@/shared/IPInput"；② type 值：源 "ipv4"→"v4"、"ipv6"→"v6"、"mac"→"mac"（不变）；③ size（large/middle/small）eview 无对应 API，删或用 className 控制尺寸；④ status="error" → 用 validator 返回 { result:false, message } + hintType="tip"；⑤ onChange/onBlur 首参均为完整字符串（与源一致，回调签名不变）；⑥ value 传完整字符串（如 "192.168.1.1"），不要拆成数组；⑦ 组件名 IpInput→IPInput（默认导入名随意，建议大写以匹配文档）',
+    keyDiffs: 'ict-coder 手写 IPInput 共享件（非 antd 组件）。迁移到 @/shared/IPInput（scaffold 包壳，转发 @nce/eview-react/IPInput）。关键差异：① 删除手写共享件（' + ipSharedFiles.join(', ') + '），import 路径改为 import IPInput from "@/shared/IPInput"；② type 值：源 "ipv4"→"v4"、"ipv6"→"v6"、"mac"→"mac"（不变）；③ size（large/middle/small）eview 无对应 API，删或用 className 控制尺寸；④ status="error" → 用 validator 返回 { result:false, message } + hintType="tip"；⑤ onChange/onBlur 首参均为完整字符串（与源一致，回调签名不变）；⑥ value 传完整字符串（如 "192.168.1.1"），不要拆成数组；⑦ 组件名 IpInput→IPInput（默认导入名随意，建议大写以匹配文档）',
     ref: 'components/IPInput.md',
     files: ipFiles,
     sharedFilesToRemove: ipSharedFiles,
   });
-  console.log(`[build-migration-plan] 注入 IPInput 迁移行（ict-react-coder 手写件 → @/shared/IPInput）: ${ipFiles.length} 个调用文件`);
+  console.log(`[build-migration-plan] 注入 IPInput 迁移行（ict-coder 手写件 → @/shared/IPInput）: ${ipFiles.length} 个调用文件`);
 }
 
-// ========== 2c. 注入 Chart 迁移行（ict-react-coder 内置图表共享件，非 antd 导入，步骤 2 扫不到） ==========
+// ========== 2c. 注入 Chart 迁移行（ict-coder 内置图表共享件，非 antd 导入，步骤 2 扫不到） ==========
 // 触发条件：.umd-conversion.json 的 chartCallSites.callSites 非空（extract-umd.cjs §4.9 扫到 <Chart> 调用点）
-// antd 无 Chart 组件，ict-react-coder 在 assets/shared/chart.jsx 内置了图表封装（HUICharts wrapper）；
+// antd 无 Chart 组件，ict-coder 在 assets/shared/chart.jsx 内置了图表封装（HUICharts wrapper）；
 // extract-umd.cjs 只扫 from 'antd' 导入，该共享件非 antd 组件，
 // antdComponents 不含 Chart 键 → 上面 §2 循环不会为它生成行 → 此处补注入，让下游步骤 0/2 能看到。
 
@@ -258,12 +258,12 @@ if (chartInfo && chartInfo.callSites && chartInfo.callSites.length) {
     eview: 'Chart',
     importPath: '@nce/eview-react/Chart',
     shellComponent: false,
-    keyDiffs: 'ict-react-coder 内置 Chart 共享件（非 antd 组件，从 assets/shared/chart.jsx 导入）。迁移到 @nce/eview-react/Chart。只改 import 路径，name + option 契约不变。⚠️ 每个 option 必须显式补 a2ui: true + theme（暗色派生 hdesign-dark/hdesign-light）：源 Chart 封装在 setSimpleOption 前统一注入这两项，改包导入后不会自动补——漏写则 a2ui 视觉规范失效、暗色切换图表主题不跟随。theme 从全局暗色状态派生（如 useApp().isDark ? "hdesign-dark" : "hdesign-light"）。推荐聚合 const chartBase = { a2ui: true, theme: ... } 后展开进各 option',
+    keyDiffs: 'ict-coder 内置 Chart 共享件（非 antd 组件，从 assets/shared/chart.jsx 导入）。迁移到 @nce/eview-react/Chart。只改 import 路径，name + option 契约不变。⚠️ 每个 option 必须显式补 a2ui: true + theme（暗色派生 hdesign-dark/hdesign-light）：源 Chart 封装在 setSimpleOption 前统一注入这两项，改包导入后不会自动补——漏写则 a2ui 视觉规范失效、暗色切换图表主题不跟随。theme 从全局暗色状态派生（如 useApp().isDark ? "hdesign-dark" : "hdesign-light"）。推荐聚合 const chartBase = { a2ui: true, theme: ... } 后展开进各 option',
     ref: 'components/Chart.md',
     files: chartFiles,
     sharedFilesToRemove: chartSharedFiles,
   });
-  console.log(`[build-migration-plan] 注入 Chart 迁移行（ict-react-coder 内置件 → @nce/eview-react/Chart）: ${chartFiles.length} 个调用文件`);
+  console.log(`[build-migration-plan] 注入 Chart 迁移行（ict-coder 内置件 → @nce/eview-react/Chart）: ${chartFiles.length} 个调用文件`);
 }
 
 // ========== 3. Global reference (static, inlined to save downstream reads) ==========

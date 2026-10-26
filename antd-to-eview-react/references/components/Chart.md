@@ -43,6 +43,22 @@ import Chart from '@nce/eview-react/Chart';
 />
 ```
 
+事件绑定走 `onChartRendered`，**参数即 echarts 实例，直接 `.on()` 绑定交互，不要二次 `getEchartsInstance()`**：
+
+```tsx
+<Chart
+  name="PieChart"
+  option={{ ...chartBase, data }}
+  onChartRendered={(echartsInstance) => {
+    if (!echartsInstance) return;
+    echartsInstance.on('click', (params) => {
+      if (!params || !params.name) return;
+      onSliceClick(params.name);
+    });
+  }}
+/>
+```
+
 ## 5. 数据结构
 
 ```tsx
@@ -51,7 +67,7 @@ interface ChartProps {
   option: object;  // echarts 风格配置项，原样透传；**必须含 a2ui: true 与 theme（随暗色派生）**
   className?: string;
   style?: React.CSSProperties;
-  onChartRendered?: (chart: any) => void;  // 渲染完成回调
+  onChartRendered?: (chart: any) => void;  // 渲染完成回调，chart参数即底层 echarts 实例，直接 .on()/.setOption()，禁止再调 getEchartsInstance()
 }
 ```
 
@@ -59,7 +75,8 @@ interface ChartProps {
 
 - 暗色模式：**`theme` 由业务 option 携带**（`isDark ? 'hdesign-dark' : 'hdesign-light'`，`isDark` 取自全局暗色状态如 `useApp()`），暗色切换 → option 变化 → 图表按新主题重建；组件**不会自动注入** theme
 - 容器尺寸变化（侧栏折叠 / 窗口缩放 / 响应式）：ResizeObserver 自动 resize
-- ref 方法：`getEchartsInstance()` 取底层 echarts 实例；`resizeHandler()` 手动触发 resize
+- **`onChartRendered(chart)` 的 `chart` 参数就是 echarts 实例本身**：直接 `chart.on('click', ...)` / `chart.setOption(...)`，**禁止**在回调内再调 `chart.getEchartsInstance()`——该方法只存在于组件 ref 上，回调参数没有
+- ref 方法（只在组件 ref 上调用，如 `chartRef.current.getEchartsInstance()`）：`getEchartsInstance()` 取底层 echarts 实例；`resizeHandler()` 手动触发 resize
 
 ## 7. 完整代码示例
 
@@ -105,6 +122,15 @@ const chart = echarts.init(dom);
 <Chart name="BarChart" option={{ xAxis: { data: [...] }, series: [{ type: 'bar', data: [...] }] }} />
 ```
 
+```tsx
+// ❌ onChartRendered 参数已是 echarts 实例，再调 getEchartsInstance() 取不到值（preview4 实测坑）；
+//    getEchartsInstance() 是组件 ref 上的方法（chartRef.current.getEchartsInstance()），回调参数上没有
+const handleChartRendered = (chart) => {
+  const echartsInstance = chart.getEchartsInstance(); // ❌
+  echartsInstance.on('click', ...);
+};
+```
+
 ## 9. API 速查
 
 | API | 类型 / 默认值 | 说明 |
@@ -112,7 +138,7 @@ const chart = echarts.init(dom);
 | `name` | `string` | 图表类型：`BarChart` / `LineChart` / `PieChart` / `GaugeChart` / `HillChart` / `JadeJueChart` / `ProcessChart` |
 | `option` | `object` | echarts 风格配置项，原样透传给 HUICharts `setSimpleOption`；**必含 `a2ui: true` 与 `theme`（随暗色派生 `hdesign-dark`/`hdesign-light`）** |
 | `className` / `style` | `string` / `CSSProperties` | 容器样式（wrapper 默认 `width:100%; height:100%`） |
-| `onChartRendered` | `(chart) => void` | 渲染完成回调，收底层 chart 实例 |
+| `onChartRendered` | `(echartsInstance) => void` | 渲染完成回调，参数即底层 echarts 实例，直接用（如 `echartsInstance.on('click', ...)`）；**禁止**在回调内再调 `chart.getEchartsInstance()`（该方法只在组件 ref 上） |
 | ref `getEchartsInstance()` | `() => echartsInstance \| null` | 取底层 echarts 实例 |
 | ref `resizeHandler()` | `() => void` | 手动触发 resize |
 

@@ -12,6 +12,8 @@
 
 - `direction`: `"vertical" | "horizontal"` — horizontal bar orientation
 - `stack`: boolean (default: false) — stacked comparison
+- `mini`: boolean — minimal display mode for small-size scenes, hides legend and axes
+- `dataZoom.show`: boolean — enable data zoom, for large data volume scenes
 - `markLine.top` / `markLine.bottom`: number — threshold reference lines (set only when thresholds are needed)
 
 ## Example

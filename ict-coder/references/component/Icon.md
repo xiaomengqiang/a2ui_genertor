@@ -45,7 +45,7 @@ const item = { icon: "home", label: "首页" };
 | `name` | string | — | Lucide 图标名（kebab-case） |
 | `src` | string | — | 用户提供的图片路径（svg/png/jpg）；与 `name` 同设时优先 |
 | `size` | string (rem) | `"1rem"` | 图标尺寸 rem 字符串 |
-| `color` | string | `currentColor` | 描边色（name 模式） |
+| `color` | string | `currentColor` | 描边色（name 模式）。仅支持 6 位 hex（如 `#0067D1`），不支持 rgba / rgb / 8 位 hex |
 | `className` | string | `""` | CSS 类（间距/hover 效果写这里） |
 | `style` | object | — | 内联样式 |
 | `id` | string | — | 元素 id |

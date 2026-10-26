@@ -12,7 +12,7 @@
 
 **回退路径（`migrationPlan` 为 `null`，上游未跑步骤 5）**：读 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，同时读 `antdIcons` 获取图标清单，进入 §0.2 手动对照 `component-mapping.md` 分类。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。
 
-**`antdIcons` 只统计 `@ant-design/icons` 命名导入，不代表有无图标**。ict-react-coder 产物普遍用**自定义 `<Icon name="...">` 运行时 shim**（`assets/shared/icon.jsx`，源码里的"方案A形式"组件）、不用 `@ant-design/icons`，故 `antdIcons` **恒为 `[]`**——但实际有大量 `<Icon name>` 调用点（复杂页面 31 处、preview3 20+ 处），**正是方案 C/B 要扫描改写的目标**。**判断是否有图标看 `iconCallSites` 字段（上游 `extract-umd.cjs` 预扫）或 `<Icon name` 调用点，不看 `antdIcons`**：
+**`antdIcons` 只统计 `@ant-design/icons` 命名导入，不代表有无图标**。ict-coder 产物普遍用**自定义 `<Icon name="...">` 运行时 shim**（`assets/shared/icon.jsx`，源码里的"方案A形式"组件）、不用 `@ant-design/icons`，故 `antdIcons` **恒为 `[]`**——但实际有大量 `<Icon name>` 调用点（复杂页面 31 处、preview3 20+ 处），**正是方案 C/B 要扫描改写的目标**。**判断是否有图标看 `iconCallSites` 字段（上游 `extract-umd.cjs` 预扫）或 `<Icon name` 调用点，不看 `antdIcons`**：
 > ```bash
 > # iconCallSites 已预扫时直接用；否则 grep 确认
 > grep -rl "<Icon\b" <目标工程>/src/
@@ -60,7 +60,7 @@
 
 ### 3.0 图标（方案 B/C 名匹配 + 静态 import）/ 图表（包导入）
 
-> **图标步骤触发条件 = `src/` 下存在 `<Icon name` 调用点（`grep -rl "<Icon\b" src/` 非空）或 `@ant-design/icons` 用法，与 `.umd-conversion.json` 的 `antdIcons` 是否为空无关**。源项目的 `<Icon name="...">` 运行时 shim（`assets/shared/icon.jsx`）是源码里的"方案A形式"组件，但**不等于产物方案A**：其 `<Icon name="字面量">` 调用点、以及**成员表达式 `name={t.icon}` / `name={MENU[0].icon}`（绑到同文件/跨文件静态数组）**都是方案 C/B 的**主要目标**，必须跑 `match-icons.cjs`（C）或在线匹配（B）转为 `import { IconPlusIcXxx } from '@hui/icon-plus'` 静态 import；只有真动态名（`name={row.iconField}` 类运行时数据，绑不到任何已扫文件中的静态数组常量）才落产物方案A shim。**`antdIcons: []` 时只要 src/ 有 `<Icon name` 站点就必跑图标步骤，禁止跳过**（ict-react-coder 产物 `antdIcons` 恒 `[]` 但有大量 `<Icon name>` 站点——见 §0.1 警告）。
+> **图标步骤触发条件 = `src/` 下存在 `<Icon name` 调用点（`grep -rl "<Icon\b" src/` 非空）或 `@ant-design/icons` 用法，与 `.umd-conversion.json` 的 `antdIcons` 是否为空无关**。源项目的 `<Icon name="...">` 运行时 shim（`assets/shared/icon.jsx`）是源码里的"方案A形式"组件，但**不等于产物方案A**：其 `<Icon name="字面量">` 调用点、以及**成员表达式 `name={t.icon}` / `name={MENU[0].icon}`（绑到同文件/跨文件静态数组）**都是方案 C/B 的**主要目标**，必须跑 `match-icons.cjs`（C）或在线匹配（B）转为 `import { IconPlusIcXxx } from '@hui/icon-plus'` 静态 import；只有真动态名（`name={row.iconField}` 类运行时数据，绑不到任何已扫文件中的静态数组常量）才落产物方案A shim。**`antdIcons: []` 时只要 src/ 有 `<Icon name` 站点就必跑图标步骤，禁止跳过**（ict-coder 产物 `antdIcons` 恒 `[]` 但有大量 `<Icon name>` 站点——见 §0.1 警告）。
 >
 > **已落方案A的产物可原地补救**：若产物调用点仍为 `<Icon name="字面量" .../>` 或 `name={t.icon}`（前次迁移漏跑图标步骤），直接 `node scripts/match-icons.cjs <工程根> --apply` 即可把字面量站点 + 数据数组动态名站点转为 C/B（脚本幂等：已含 `IconPlusIc` 的站点自动跳过）。`--apply` 还会自动把因改写引入 JSX 的 `.js`→`.jsx` / `.ts`→`.tsx` 并修引用方显式扩展名 import。
 

@@ -73,7 +73,7 @@ description: >-
 - **Table render i18n key 不对齐**：`t(cellValue, cellValue)` 取不到带前缀的 key，需 `t("deviceType." + value, value)`；脚本 `scripts/check-i18n-keys.cjs` 自动排查；见 [migration-workflow.md](references/migration-workflow.md) §3.5
 - **命名拼写异常**：`seprator`/`taggledChildren`/`disable` 等官方拼错；见 [component-mapping.md](references/component-mapping.md) 文末「属性拼写异常」表
 - **import 路径失效**：scaffold 后 `app.jsx` 在 `src/`，`./src/context.jsx` 须改 `./context.jsx`；脚本 `scripts/check-relative-imports.cjs` 按需排查（见 [§4.1](references/migration-workflow.md)）；步骤 4 默认跳过（路径已由前置 skill 修正）
-- **`antdIcons:[]` 误判无图标 → 跳过 `match-icons.cjs` → 全落方案A**：`antdIcons` 只统计 `@ant-design/icons` 命名导入，ict-react-coder 产物用自定义 `<Icon name>` 运行时 shim、`antdIcons` 恒 `[]` 但有大量 `<Icon name>` 调用点；**触发条件看 `<Icon name` 站点（`grep -rl "<Icon\b" src/`）不看 `antdIcons`**，`antdIcons: []` 禁止跳过 `match-icons.cjs`；见 [migration-workflow.md](references/migration-workflow.md) §0.1 警告 + §3.0
+- **`antdIcons:[]` 误判无图标 → 跳过 `match-icons.cjs` → 全落方案A**：`antdIcons` 只统计 `@ant-design/icons` 命名导入，ict-coder 产物用自定义 `<Icon name>` 运行时 shim、`antdIcons` 恒 `[]` 但有大量 `<Icon name>` 调用点；**触发条件看 `<Icon name` 站点（`grep -rl "<Icon\b" src/`）不看 `antdIcons`**，`antdIcons: []` 禁止跳过 `match-icons.cjs`；见 [migration-workflow.md](references/migration-workflow.md) §0.1 警告 + §3.0
 - **`columns[].fixed` 误加 `freezeCol`（冻结列视觉回归）**：eview 的 `freezeCol` **无条件冻结**（sticky+阴影），antd 的 `fixed` 仅在表格横向滚动（`scroll.x` 溢出）时才有视觉效果——源列写了 `fixed` ≠ 源页面视觉冻结。迁移**默认不写** `freezeCol`/`freezeColPosition`；仅当源列有 `fixed` **且**源表 `scroll.x`/列宽合计明显超出容器宽（迁移后真的会横向滚动）时才加列 `freezeCol: true` + 表 `freezeColPosition`；见 [component-mapping.md](references/component-mapping.md) Table 行
 - **图表 option 漏 `a2ui: true`/`theme`**：源 Chart 封装的注入行为不随包导入自动生效，所有图表 option 必须显式携带两项（theme 随暗色派生）；见 [components/Chart.md](references/components/Chart.md)
 
@@ -197,3 +197,9 @@ const columns = [
 ```jsx
 <Table dataset={rows} columns={columns} enableColumnCompareUpdate />
 ```
+
+### onChartRendered 回调内二次调 getEchartsInstance()
+
+**问题**：`onChartRendered(chart)` 的 `chart` 参数**已经是 echarts 实例本身**，但迁移时误把它当作组件实例再调 `chart.getEchartsInstance()`——该方法只存在于组件 ref 上（`chartRef.current.getEchartsInstance()`），回调参数上没有，取值为 `undefined` 导致事件绑定静默失效（preview4 实测坑）。
+
+**解决**：`onChartRendered` 回调内直接用参数绑事件/改配置：`chart.on('click', ...)`、`chart.setOption(...)`，**禁止**在回调内调 `getEchartsInstance()`。详见 [Chart.md](references/components/Chart.md) §4/§8。
