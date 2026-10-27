@@ -4,6 +4,32 @@
 >
 > 官网首推 **icon+ 图标库**：`import { IconPlusIcPublicSearch } from '@hui/icon-plus'`，按需引入、2000+ 图标；`type="filled"` 换风格、`iconColor` 换色、`iconSize` 换尺寸（B/C 静态 import 支持任意数字 / rem / px 字符串如 `"1.25rem"`，原样透传；**方案A shim 的 `getIcon` API 另需吸附到离散集 12/14/16/20/24/32/36/40/48/60**，见下表 A 行）。组件名合成 = `"IconPlusIc" + Domain + Name`（`Public`+`Search` → `IconPlusIcPublicSearch`，算法见 [match-icons.cjs](../../scripts/match-icons.cjs) `matchOne`）。eview-react 内置 `Icon name="ict_*"` 已下线；scaffold 同名自定义 `<Icon>` 是源项目契约保留件（方案A 范式），底层走 icon-plus 在线，**两者不同**。
 
+## name 解析与方案A 判定（统一原则 — 本文骨架）
+
+> **契约（一句话，全文围绕它）**：**方案 A（`src/shared/Icon` 运行时 fetch shim）仅当 name 的值集合是 OPEN（开放、无法在已扫文件中枚举尽）——icon 名来自后端接口响应字段（自由取值）/ prop 字段且数据源不在任何已扫文件。其余（每个有限、可静态追源字面量集合的 name）一律转 icon+ 静态 import。** size/color/variant 是独立 props，不影响方案选择。
+>
+> **不是**「遇到一种 icon 形态就加一段处理」——所有 name 表达式归约到同一个判定：**值集合是否闭合且在已扫文件**。闭合→转（脚本能静态到达的 auto-转；脚本追不到的交 LLM 按下表同一套方法转）；OPEN→方案A。转换法唯一（见下）。
+
+**name 表达式形态 taxonomy（完整 — 不再按形态 bolt-on 加章节）**
+
+| 形态 | 闭合？ | 处理 |
+|---|---|---|
+| 字面量 `name="x"` / braced `name={"x"}` / 同文件 const `const X="x";name={X}` / `@ant-design/icons` `<XxxOutlined/>` | 闭合 | C `--apply` 自动（confirmed）/ B 在线查名 |
+| 扁平三元 `cond?"a":"b"`（两分支字面量） | 闭合 | C 两分支 confirmed 自动 / B 手工 |
+| 链式/嵌套三元 `a?"x":b?"y":"z"`（全 leaf 字面量） | 闭合 | C 全 leaf confirmed 自动（nested 条件渲染）/ B 手工 |
+| 数组成员 `name={t.icon}` 绑 `const ARR=[{icon:"lit"}]` / 直接索引 `name={MENU[0].icon}` | 闭合 | C Phase B 自动 / B 手工 |
+| 对象地图 `cat=OBJ[key];cat.icon` 或 `name={OBJ[key].icon}`，`OBJ`=`const OBJ={…}` | 闭合 | C Phase B 对象地图回退自动 / B 手工 |
+| wrapper `icon` prop `<SoftTag icon="lit">`/`icon={const\|扁平三元\|成员}` | 闭合（调用方可解析） | C Phase C 自动 / B 手工 |
+| 跨边界 `name={x.icon}`，`x` 来自 props（源是父组件 useMemo 字面量 / useState 字面量 seed / 推入函数 `"lit"` 调用点） | **闭合但脚本追不动** | **untraced → LLM 按下法追源手工转**（C 下脚本报 untraced、不断言方案A）；`check-icon-shim --strict` 拦闭集误留 |
+| 裸标识符 `name={X}` 跨文件 const / `&&` 条件 `name={cond && "x"}` / 容器字段值是闭合三元 | 闭合（脚本未覆盖） | untraced → LLM 按下法手工转 / gate 拦 |
+| 真 OPEN `name={row.iconField}` 后端自由取值 / props 字段且源不在已扫文件 | **OPEN** | **方案 A**（保 shim + 手修 import 路径 `assets/shared/icon` → `@/shared/Icon`） |
+
+> **C 下 `match-icons.cjs` 标的 `untracedSites` ≠ 方案A**：脚本追不到源（含跨边界）只 keep 残留 `<Icon>` shim 可运行 + 修 import，**不断言 runtime、不 auto-保方案A**——每处交 LLM 按本表判（闭合→转 / OPEN→保 shim），`scripts/check-icon-shim.cjs --strict` 拦闭集误留与未判站点。
+
+**唯一转换法（适用所有闭合形态）**：枚举闭集叶子字面量 → 数据源处每个 `"lit"` 改 `<IconPlusIc… iconSize={取 render 站点 size} iconColor={['currentcolor']} />`（C catalog 匹配名 / B 在线查名；查不到用占位 `IconPlusIcPublicTransverseRectangleTemplate` + 候选进 residual）→ render `<Icon name={EXPR}/>` → `EXPR` 或 `{EXPR}`（按 §`<Icon name={X}/>` 改写的 `{}` 上下文规则）→ import 注入数据源文件、`.js`→`.jsx` 若引入 JSX。下文 §动态名 / §OBJ[runtimeKey].field / §跨组件边界 / §wrapper 是该法在不同形态上的应用实例，**不是彼此独立的 recipe**。
+
+> **闭合字面量不变量（半改防御）**：数据结构里的纯字符串字面量 `icon: "lit"` 按定义就是闭合集（值集合=写死字面量）——必须转 icon+，**永不可判 OPEN**。转换后任何残留 `icon:"lit"` 都是缺陷（典型回归：消费端 `<Icon name={x.icon}/>` 已转 `{x.icon}`、源 `icon:"lit"` 没转 → 页面渲染字符串）。`check-icon-shim.cjs --strict` 现扫描数据源字面量拦此半改态——形态无关，数据数组 / 对象地图 / 跨边界 useMemo / useState / wrapper 默认值皆覆盖；唯一放行是真 OPEN 运行时字段的默认/兜底，须 `.icon-shim-justified.json` 声明 `closedSet:false` + OPEN 证据 + `linksShim` 关联保留 shim。
+
 ## 渲染方式（三种）
 
 > 项目级二选一：迁移开始先探测 `https://octo.hdesign.huawei.com/`，可达（内网）→ B，不可达（外网）→ C；A 为 B/C 兜底，切定后保留 `src/shared/Icon`（不删）。本文 §1 起的 icon+ 用法是 B/C 范式（静态 import 目标态）。触发条件、`--apply` 机制、`antdIcons:[]` 陷阱见下方「迁移工作流要点」+ [migration-workflow.md](../migration-workflow.md) §0.1/§3.0。
@@ -30,7 +56,7 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 > 触发与 `--apply` 机制详见 [migration-workflow.md](../migration-workflow.md) §0.1（`antdIcons` 陷阱）+ §3.0（B/C 步骤）；本节为速查。
 
 - **触发条件**：`src/` 下有 `<Icon name` 调用点（`grep -rl "<Icon\b" src/` 非空）或 `@ant-design/icons` 用法即走图标步骤，**与 `.umd-conversion.json` 的 `antdIcons` 是否为空无关**——ict-coder 产物用自定义 `<Icon name>` shim、`antdIcons` 恒 `[]` 但有大量站点，**`antdIcons: []` 禁止跳过 `match-icons.cjs`**。
-- **源码 `<Icon name>` shim ≠ 产物方案A**：`<Icon name="字面量">` 站点必须转 C/B 静态 import；**成员表达式 `name={t.icon}` / `name={MENU[0].icon}` 也由 `--apply` 自动转 B/C**（绑到静态数组即塞 icon+ 元素进 data + render 改 `{t.icon}`）；**自定义 wrapper 组件（SoftTag/ToggleRow：接收 `icon` prop、内部 `<Icon name={icon}/>` 渲染）也由 `--apply` Phase C 自动转 B/C**（调用点 `icon="字面量"`/`icon={常量}`/`icon={扁平三元}` → `icon={<IconPlusIc…/>}`，内部 → `{icon}`；`icon={成员}` 透传 + 数据数组元素化），仅真运行时数据（`name={row.iconField}` 类、wrapper 调用方 `icon={expr}` 不可静态解析触发安全闸）落产物方案A。
+- **源码 `<Icon name>` shim ≠ 产物方案A**：`<Icon name="字面量">` 站点必须转 C/B 静态 import；**成员表达式 `name={t.icon}` / `name={MENU[0].icon}` 也由 `--apply` 自动转 B/C**（绑到静态数组/对象地图即塞 icon+ 元素进 data + render 改 `{t.icon}`）；**自定义 wrapper 组件**也由 `--apply` Phase C 自动转 B/C（调用点 `icon="字面量"`/`icon={常量}`/`icon={扁平三元}` → `icon={<IconPlusIc…/>}`，内部 → `{icon}`；`icon={成员}` 透传 + 容器元素化）。追不到源的（含跨边界 props/useMemo/推入函数闭合集、wrapper 安全闸整组不可解析）→ 报 `untracedSites`（**不断言方案A**、keep 残留 `<Icon>` shim 可运行+修 import），交 LLM 按 §name 解析 统一原则判（闭合→转 / 真 OPEN→保 shim），`check-icon-shim --strict` 拦闭集误留。仅真 OPEN（后端自由取值 `row.iconField` 类）才落方案A。
 - **方案C `--apply`**：落 confirmed（SEMANTIC/L1-L4）+ 扁平三元两分支均 confirmed + **数据数组图标整组改写**（命中用真实组件，未命中用占位 `IconPlusIcPublicTransverseRectangleTemplate`）；residual 不自动 apply。报告写 OS 临时目录、不进产物根、`--apply` 结束清理。**禁止因 residual 整体放弃方案C**——residual 由 LLM 在会话内按控制台/临时报告逐条复核。
 - **`.js→.jsx` 自动转换**：`--apply` 把因改写引入 JSX（替换串含 `<IconPlusIc`）的 `.js`→`.jsx` / `.ts`→`.tsx`，并扫 `src/` 修引用方显式 `.js`/`.ts` 扩展名 import（无扩展名 import 不动）；非 `src/` 引用（vite.config、index.html）不处理，需人工核对。
 - **已落方案A的产物可原地补救**：调用点仍为 `<Icon name="字面量" .../>` 或 `name={t.icon}` 时，直接 `node scripts/match-icons.cjs <工程根> --apply`（脚本幂等，已含 `IconPlusIc` 的站点自动跳过）。
@@ -38,14 +64,15 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 ### 硬规则
 
 - eview-react 内置 `Icon name="ict_*"` 已下线，**不要用**；也不要用 `@ant-design/icons`——一律用 `@hui/icon-plus` 的 `IconPlusIc*` 静态 import。
-- **方案 A（`src/shared/Icon` shim）仅用于真运行时数据**：`name` 的值在迁移时不可预知（来自接口/props 字段、或成员表达式绑不到任何已扫文件中的静态数组常量）。字面量、同文件常量、三元、**成员表达式 `name={t.icon}` / `name={MENU[0].icon}`（绑到静态数组）一律走 B/C 静态 import**（`match-icons.cjs --apply` 自动改写），不许默认退方案 A。**自定义 wrapper 组件**（`icon` prop + 内部 `<Icon name={icon}/>`）同理自动转 B/C，仅当调用方 `icon={expr}` 不可静态解析（安全闸）才整组退方案 A。
+- **方案 A 判定见 §name 解析与方案A 判定（统一原则）**：方案A 仅 OPEN 集合；闭合集（含跨 prop/useMemo/推入函数边界、对象地图、wrapper）一律转 B/C——C 脚本能静态到达的 auto-转，追不到的报 `untracedSites`（不断言方案A、keep 残留 shim 可运行）交 LLM 按统一转换法转，`check-icon-shim --strict` 拦闭集误留。
+- **residual 阶段两条铁律**：① **禁止引用不存在的 Icon.md 章节**当保留方案 A 的依据（实测回归：LLM 可能臆造诸如「函数参数传入的 icon prop（跨组件边界）」「OBJ[runtimeKey] 计算属性访问」之类 Icon.md 根本没有的章节名——一切引用须以 Icon.md 实有标题为准）；② 每处残留 shim 站点必须附 **closed-set 追源结论**（源在哪、字面量集合、是否闭合、为何 OPEN），不得空泛写「跨组件边界」了事。`scripts/check-icon-shim.cjs --strict` 自动拦：无结论 / `closedSet:true` / 引用幻觉章节 / reason 缺 OPEN 证据 → 退出码 1。
 - 可点击图标（编辑/删除/刷新等）直接给 icon+ 挂 `onClick` + 原生 `title` 属性（hover 提示），**`IconButton` 已弃用**：`<IconPlusIcPublicTrash onClick={remove} title="删除" />`；禁用态见 §3）。
 - **antd 纯图标按钮（`Button type="text" shape="circle" icon={...}` 无 children）→ 剥 Button 外壳，`onClick`/`title` 直接搬到内层 `<IconPlusIc* />`**（见 [component-mapping.md](../component-mapping.md) 图标行；脚本 `--apply` 已先把内层 `<Icon>`→`<IconPlusIc>` 并吸附 `iconSize`，LLM 只需剥外壳 + 搬 onClick/title）。
 - **带图标的 Button 文字必须用 `text=`，不能写 children**（children 会让图标不渲染，见 [Button.md](Button.md) §4）。
 
 ### 动态名：数组循环 `name={t.icon}` / 直接索引 `name={MENU[0].icon}`
 
-> 成员表达式动态名**现已由 `match-icons.cjs --apply` 自动解析**（方案 C/B，不退方案 A）。脚本 Phase B 把 `name={IDENT.field}`（循环变量 `t.icon`）或 `name={IDENT[i].field}`（直接索引 `MENU[0].icon`）绑定到同文件/跨文件静态数组字面量，自动改写整组；仅绑不到静态数组源（接口/props 等真运行时数据）才退方案 A 保留 `<Icon>` shim。
+> §name 解析 统一方法在数组成员形态上的应用实例（taxonomy 行「数组成员/直接索引」）。`match-icons.cjs --apply` Phase B 把 `name={IDENT.field}`（循环变量 `t.icon`）或 `name={IDENT[i].field}`（直接索引 `MENU[0].icon`）绑定到同文件/跨文件静态数组字面量，自动改写整组；追不到静态数组源 → 报 `untracedSites`（不断言方案A），交 LLM 按 §name 解析 判（跨边界闭合集→转 / 真 OPEN→保 shim）。
 
 **自动改写形态（`--apply` 落地）**：
 
@@ -75,9 +102,68 @@ const data = [
 - **整组全改写**：数组内每个 `icon: "lit"` 字段都改写——命中的用真实 icon+ 组件，**未命中的用 icon+ 默认占位图标 `IconPlusIcPublicTransverseRectangleTemplate` 顶替**（保证 render `{t.icon}` 永远拿到 React 元素，不出现"一半字符串一半元素"的中间态）。未命中项同时进 residual 报告带 top-K 候选，供 LLM 后续把占位换成贴切图标。
 - **render 站点按上下文替换**：`<Icon name={EXPR}/>` → `EXPR`（箭头隐式返回体 / prop 表达式容器 `leftIcon={<Icon/>}` / 括号位）或 `{EXPR}`（独立 JSX 子节点 `<div><Icon/></div>`）。EXPR 即原表达式（`t.icon` / `MENU[0].icon`）。
 - **`size`/`color`/`variant`**：取自 render 站点，透传进 data 元素的 `iconSize`/`iconColor`/`type`（`iconSize` 支持 rem/px/数字，B/C 不转换）。
-- **绑不到静态数组源**（`IDENT` 非循环变量、也非任何已扫文件中的 `const ARR = [...]`；或数组含非字符串字面量字段，集合不封闭；或跨文件同名多名歧义）→ **真运行时数据，退方案 A**：`<Icon name={IDENT.field}/>` 保留，仅修 `shared/Icon` shim 的 import 路径（`assets/shared/icon` → `@/shared/Icon`，具名→默认），报告 `runtimeDataSites` 段交 LLM 确认。
+- **绑不到静态数组源**（`IDENT` 非循环变量、也非任何已扫文件中的 `const ARR = [...]`；或数组含非字符串字面量字段，集合不封闭；或跨文件同名多名歧义）→ **untraced**：脚本 keep 残留 `<Icon name={IDENT.field}/>` shim 可运行 + 修 `shared/Icon` import 路径（`assets/shared/icon` → `@/shared/Icon`，具名→默认），报 `untracedSites` 段交 LLM 按 §name 解析 判（闭合→转 / 真 OPEN→保 shim）；**不断言方案A**。`check-icon-shim --strict` 拦闭集误留。
 - **`.js`→`.jsx`**：data 文件塞进 `<IconPlusIc…/>` 元素即引入 JSX，`--apply` 自动把该 `.js` 转 `.jsx`（`.ts`→`.tsx`），并修引用方显式 `.js`/`.ts` 扩展名 import（无扩展名 import 不动，解析器仍命中 `.jsx`）。
 - 仅**标识符** `name={x}`（常量传播未命中）与**链式/嵌套三元** `name={a ? 'x' : b ? 'y' : 'z'}` 仍交 LLM 在 residual 阶段按 catalog/候选解析（recipe：name→组件 map + fallback `<Icon name={t.icon}/>` 兜底未知 key）。
+
+### OBJ[runtimeKey].field 静态对象地图（cat.icon）
+
+> 形态：`const cat = STYLE_MAP[runtimeKey];`（同文件/跨文件）→ `<Icon name={cat.icon} .../>`，其中 `STYLE_MAP` 是 `const OBJ = { k1: { icon: "lit1", ... }, k2: { icon: "lit2", ... } }` 静态闭合对象。`runtimeKey` 运行时才知值，但**值域是对象 keys 的闭合集**，每个 key 对应的 `icon` 是字符串字面量 → 整组可转 icon+。`runtimeKey` 运行时不影响闭合性判定——枚举全部值的 `icon` 字面量即得完整集合。
+
+**判定闭合**：对象每个值的 `icon` 字段都是字符串字面量（无变量/三元/标识符）→ 集合封闭 → 转；任一非字面量 → 集合不封闭 → untraced（交 LLM 按 §name 解析 判，真 OPEN 才方案A）。
+
+**recipe**（C 脚本已自动 / B LLM 手工同法）：
+1. 对象声明处每个 `icon: "lit"` → `icon: <IconPlusIc… iconSize={取 render 站点 size} iconColor={['currentcolor']} />`（C 由 catalog `matchOne` 匹配名；B 由在线 `getIconInfo` API 查名）；查不到用占位 `IconPlusIcPublicTransverseRectangleTemplate` 顶替并带候选进 residual。
+2. render `<Icon name={cat.icon}/>` → `{cat.icon}`（JSX 子节点位包 `{}`，表达式位裸，按 §`<Icon name={X}/>` 改写的 `{}` 上下文规则）。
+3. 该 `.js` 文件因引入 JSX → `.jsx`，修引用方显式 `.js` 扩展名 import。
+
+```tsx
+// 前
+const STYLE_MAP = {
+  phone: { icon: "smartphone", text: "...", bg: "..." },
+  headphones: { icon: "headphones", text: "...", bg: "..." },
+};
+const cat = STYLE_MAP[item.type];
+<Icon name={cat.icon} size="0.875rem" />
+
+// 后
+import { IconPlusIcPublicSmartphone, IconPlusIcPublicHeadphones } from '@hui/icon-plus';
+const STYLE_MAP = {
+  phone: { icon: <IconPlusIcPublicSmartphone iconSize="0.875rem" iconColor={['currentcolor']} />, text: "...", bg: "..." },
+  headphones: { icon: <IconPlusIcPublicHeadphones iconSize="0.875rem" iconColor={['currentcolor']} />, text: "...", bg: "..." },
+};
+const cat = STYLE_MAP[item.type];
+{cat.icon}
+```
+
+**C 下 `match-icons.cjs --apply` 自动改写**（Phase B 对象地图回退，复用数据数组全部机制）；B 下 LLM 按本 recipe 手工。
+
+### 跨组件边界 props 闭合字面量集（name={x.icon}）
+
+> 形态：`<Icon name={x.icon}/>` 中 `x` 来自 **props**（函数参数解构），但 prop 数据源是**闭合字面量集**——useMemo 返回字面量数组 / useState 由字面量数组 seed / 推入函数 `"lit"` 调用点字面量。**跨 prop/useMemo/推入函数边界本身不构成方案 A**：源集合闭合可追源就转。这是脚本盲区（纯正则追不动跨组件数据流），B/C 都靠本 recipe + `check-icon-shim.cjs --strict` 兜底。
+
+**判定闭合**：追源到数据声明处——
+- **useMemo 返回字面量数组**（`useMemo(() => [{ icon: "lit", ... }, ...], …)`）→ 字面量集合闭合 → 转；
+- **useState 字面量 seed**（`useState(SEED.map(...))`，`SEED` 是 `const SEED = [{ icon: "lit" }, ...]`）→ seed 字面量闭合 → 转；
+- **推入函数调用点字面量**（如 `appendEntry("lit", ...)`：`setEntries((prev) => [{ id, icon, ... }, ...]`，`icon` 是调用方第一参字面量）→ 扫所有调用方第一参字面量，与 seed 并集 → 闭合则转（把调用方 `"lit"` 改成 `<IconPlusIc…/>` 元素，shorthand `{ icon }` 接收元素透传）。
+追不到源 / 源在后端接口响应字段（自由取值）→ 才退方案 A。
+
+**recipe**（B/C 都 LLM 手工追源；**C 下 `match-icons.cjs` 把这类标 `untracedSites`——不断言方案A、keep 残留 shim 可运行；LLM 按 §name 解析 统一原则判，闭合即转，`check-icon-shim --strict` 拦闭集误留**）：
+1. 数据源处（useMemo 字面量 / seed 数组 / 推入函数调用点字面量）把 `icon: "lit"` 或调用方 `"lit"` → `<IconPlusIc…/>` 元素（B 在线查名 / C catalog 匹配）。
+2. render `<Icon name={x.icon}/>` → `{x.icon}`（按 `{}` 上下文规则）。
+3. import 注入数据源文件；`.js`→`.jsx` 若引入 JSX。
+
+```tsx
+// 前（子组件：items prop ← 父组件 useMemo 字面量）
+// 父组件:  const items = useMemo(() => [{ icon: "shopping-cart", ... }, ...], …);
+// 子组件: function ItemList({ items }) { return items.map((x) => <Icon name={x.icon} size="1rem"/>); }
+
+// 后
+// 父组件:
+import { IconPlusIcPublicShoppingCart, ... } from '@hui/icon-plus';
+const items = useMemo(() => [{ icon: <IconPlusIcPublicShoppingCart iconSize="1rem" iconColor={['currentcolor']} />, ... }, ...], …);
+// 子组件: function ItemList({ items }) { return items.map((x) => x.icon); }   // 子节点位 {x.icon} / 表达式位裸 x.icon 按上下文
+```
 
 ### `<Icon name={X}/>` 改写的 `{}` 上下文规则
 
@@ -113,12 +199,12 @@ const data = [
 | `icon="字面量"` / `icon={常量}`（同文件 `const X = "lit"` 传播命中） | `icon={<IconPlusIc… iconSize=…/>}`（**尺寸/颜色取自 wrapper 内部 `<Icon/>` 的 size/color**）；未命中 → 占位 `IconPlusIcPublicTransverseRectangleTemplate` |
 | `icon={cond ? "a" : "b"}` 扁平两分支字面量 | `icon={cond ? <A…/> : <B…/>}`（任一未命中→该分支占位） |
 | `icon={IDENT.field}` 成员（`item.icon` / `MENU[0].icon`） | 调用点**不改**（透传）；数据数组 `FIELD:"lit"` → `FIELD:<IconPlusIc…/>` 元素化（复用数据数组 Phase B 流水线） |
-| `icon={链式/嵌套三元}` / 裸标识符未命中常量 / 追不到数组源 | **安全闸：整组退方案 A**（见下） |
+| `icon={链式/嵌套三元}` / 裸标识符未命中常量 / 追不到容器源 | **安全闸：整组 untraced**（见下） |
 | 无 `icon` prop | 不动（`icon` undefined → `{icon}` 渲染空） |
 
 **wrapper 内部** `<Icon name={icon} size="0.75rem"/>` → `{icon}` / 裸 `icon`，按上文 `<Icon name={X}/>` 的 `{}` 上下文规则判：JSX 子节点位（`<span><Icon name={icon}/></span>`）→ `{icon}`；三元分支位（`{icon ? <Icon name={icon}/> : null}`）→ 裸 `icon`（结果 `{icon ? icon : null}`，LLM 可精简为 `{icon}`）。`icon` prop 契约由「字符串名」变「ReactNode」。
 
-**安全闸**：若某 wrapper 存在任一**不可静态解析**的 `icon={expr}` 调用方（链式/嵌套三元、未命中常量的裸标识符、成员表达式追不到静态数组源），**整组跳过自动改写** → wrapper 内部 `<Icon name={icon}/>` 保留走方案 A shim（修 `shared/icon` import 路径），调用方维持原样，报告 `propWrapperResidual` 段交 LLM。理由：wrapper 内部与调用方强耦合——内部转 `{icon}` 透传后，传字符串的调用方会渲染成文本；传元素的调用方又要求内部是透传。二者必须同态，故任一不可解析即整组退 A（与"真运行时数据退方案 A"一致）。LLM residual 处理 `propWrapperResidual` 时：若 `expr` 可追源到静态字面量/数组 → 按 B/C 改写两半；若真运行时 → 保留 shim。
+**安全闸**：若某 wrapper 存在任一**不可静态解析**的 `icon={expr}` 调用方（链式/嵌套三元、未命中常量的裸标识符、成员表达式追不到容器源），**整组跳过自动改写** → wrapper 内部 `<Icon name={icon}/>` 保留 `<Icon>` shim（脚本 keep 残留可运行+修 `shared/Icon` import），调用方维持原样，报告 `propWrapperResidual`/`untracedSites` 交 LLM。**不断言方案A**——理由：wrapper 内部与调用方强耦合（内部转 `{icon}` 透传后，传字符串的调用方会渲染成文本；传元素的调用方又要求内部是透传；二者必须同态，故任一不可解析即整组 untraced）。LLM residual 处理时：若 `expr` 可追源到静态字面量/数组/对象地图（闭合集）→ 按 §name 解析 统一转换法改写两半；若真 OPEN（后端自由取值）→ 保 shim。`check-icon-shim --strict` 拦闭集误留。
 
 ## 1. 功能定位
 
@@ -212,7 +298,21 @@ icon: group.icon
 
 // ❌ wrapper 存在不可静态解析的调用方仍强改内部 → 传字符串的调用方渲染成文本
 <BadWrapper icon={pickIcon(row)} label="alert" />   // pickIcon(row) 运行时才知值
-//   正确：安全闸整组退方案 A——内部保留 <Icon name={icon}/> shim，调用方维持原样，交 LLM residual
+//   正确：安全闸整组 untraced——内部保留 <Icon name={icon}/> shim（keep 可运行+修 import），调用方维持原样，交 LLM 按 §name 解析 判（闭合→转 / 真 OPEN→保 shim）
+```
+
+```jsx
+// ❌ 跨边界半改：消费端转了、数据源没转 → 渲染文本
+//   源（父组件）：const statsCards = useMemo(() => [{ key:"orders", icon: "shopping-cart", ... }, ...], …);
+//                 <OverviewCards cards={statsCards} />
+//   消费（子组件）：cards.map((c) => <span><Icon name={c.icon} size="1rem"/></span>)
+//   半改产物：消费端 <Icon name={c.icon}/> → {c.icon}，但源 icon: "shopping-cart" 没转
+//             → {c.icon} 拿到字符串 "shopping-cart"，页面上渲染成文字而非图标
+//   正确：两半同改——源 icon: "shopping-cart" → icon: <IconPlusIcPublicShoppingCart iconSize="1rem" iconColor={['currentcolor']}/>
+//                              + import { IconPlusIcPublicShoppingCart } from '@hui/icon-plus' 注入源文件（.js→.jsx 若引入 JSX）
+//         消费 {c.icon} 不动（此时已是 React 元素）
+//   match-icons.cjs 追不到 useMemo / 跨 props 源（标 untraced、不断言方案A）→ 按 §跨组件边界 recipe 手工追源两半同改；
+//   check-icon-shim --strict 扫数据源 icon:"lit" 残留拦此半改态（见上文「闭合字面量不变量」）。
 ```
 
 ## 5. API 速查
