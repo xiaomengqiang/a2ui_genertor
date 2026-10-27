@@ -17,6 +17,12 @@
  *   - reason 里「…」/§X 引用的 Icon.md 章节名须实有（防幻觉）
  *   - 无对应 justification 条目 → 报 UNJUSTIFIED
  *
+ * 数据源字面量半改扫描（形态无关）：另扫数据结构里的 icon-ish 字段字符串字面量
+ *   `icon|iconName|iconType|iconKey : "lit"`（对象字段位，不命中 JSX 属性 icon=...）。纯字符串字面量
+ *   按定义闭合 → 必须转 icon+；转换后仍命中即未转 → 报 UNCONVERTED-ICON-SOURCE（消费端已转 {x.icon}
+ *   而源未转→渲染文本）。唯一放行：真 OPEN 运行时字段的默认/兜底，且消费端是保留并判 OPEN 的 <Icon>
+ *   shim → 须在该字面量条目补 closedSet:false + OPEN 证据 + linksShim 指向该 shim 站点（闸门校验）。
+ *
  * 用法：
  *   node check-icon-shim.cjs <目标工程根>              # 输出报告，退出码 0
  *   node check-icon-shim.cjs <目标工程根> --strict     # 任一 UNJUSTIFIED 站点退出码 1
@@ -190,6 +196,9 @@ function main() {
   const files = walk(srcDir, []);
   const unjustified = [];
   const staleImports = [];
+  const unconvertedSources = []; // 数据结构里残留的 icon:"lit" 字面量（半改态：消费端转 {x.icon}、源未转→渲染文本）
+  const convertedConsumers = []; // 已转消费端签名 {x.icon}（配对上下文，帮定位半改对）
+  const openShimSites = new Set(); // 判 OPEN 放行的保留 <Icon> shim 站点（baseFile:line / normFile:line），供数据源字面量 linksShim 校验
   let totalShimSites = 0;
   // 旧 shim import 正则：legacy 具名 `import { Icon } from "...(assets/)?shared/icon(s).jsx?"（未改成 `@/shared/Icon` 默认导入）
   const staleShimImportRe = /import\s*\{\s*Icon\s*\}\s*from\s*['"][^'"]*?(?:assets\/)?shared\/icons?\.jsx?['"]/;
@@ -236,6 +245,60 @@ function main() {
           continue;
         }
       }
+      // 该 shim 站点判 OPEN 放行 → 记入 openShimSites，供数据源字面量 linksShim 校验
+      openShimSites.add(`${baseFile}:${line}`);
+      openShimSites.add(`${normFile}:${line}`);
+    }
+  }
+
+  // ── 数据源字面量扫描：转换后数据结构里残留的 icon:"lit" 字符串（半改态）
+  // 形态无关：数据数组 / 对象地图 / 跨边界 useMemo / useState / wrapper 默认值里的 icon 字段纯字符串字面量
+  //   按定义闭合（值集合=写死字面量）→ 必须转 icon+，不可判 OPEN。转换后仍命中即未转。
+  // 放行唯一例外：字面量是某真 OPEN 运行时字段的默认/兜底，且消费端是保留并判 OPEN 的 <Icon> shim
+  //   → 须在 .icon-shim-justified.json 给该字面量一条 closedSet:false + OPEN 证据 + linksShim 指向该 shim。
+  const ICON_FIELD_RE = /\b(icon|iconName|iconType|iconKey)\s*:\s*["']([A-Za-z][\w-]*)["']/g;
+  const CONV_CONSUMER_RE = /\{([A-Za-z_$][\w$]*)\.(icon|iconName|iconType|iconKey)\}/g; // 已转消费端 {x.icon}
+  for (const file of files) {
+    if (rel(file).includes('/shared/Icon/')) continue;
+    const text = fs.readFileSync(file, 'utf8');
+    let m;
+    ICON_FIELD_RE.lastIndex = 0;
+    while ((m = ICON_FIELD_RE.exec(text)) !== null) {
+      const line = lineOfOffset(text, m.index);
+      const field = m[1];
+      const value = m[2];
+      const normFile = rel(file).replace(/^.*?src\//, 'src/');
+      const baseFile = path.basename(file);
+      const j =
+        justByKey.get(`${normFile}:${line}`) ||
+        justByKey.get(`${baseFile}:${line}`) ||
+        justByBaseLine.get(`${baseFile}:${line}`);
+      // 放行：判 OPEN + OPEN 证据 + linksShim 指向有效保留 shim
+      let justified = false;
+      if (j && j.closedSet === false) {
+        const reason = String(j.reason || '');
+        const hasOpen = OPEN_KEYWORDS.some((k) => reason.includes(k));
+        const link = String(j.linksShim || '');
+        const ci = link.lastIndexOf(':');
+        if (hasOpen && ci > 0) {
+          const lBase = link.slice(0, ci).split('/').pop();
+          const lLine = link.slice(ci + 1);
+          if (openShimSites.has(`${lBase}:${lLine}`) || openShimSites.has(`${link.slice(0, ci)}:${lLine}`)) {
+            justified = true;
+          }
+        }
+      }
+      if (!justified) {
+        unconvertedSources.push({
+          file: rel(file), line, field, value,
+          issue: 'UNCONVERTED-ICON-SOURCE',
+          detail: `数据结构 ${field}: "${value}" 仍是字符串字面量（按定义闭合须转 icon+）——若消费端已转 {x.${field}} 则半改致渲染文本；转 icon+（源在别文件也追过去改），或在 .icon-shim-justified.json 声明 closedSet:false + OPEN 证据 + linksShim 关联保留 shim`,
+        });
+      }
+    }
+    CONV_CONSUMER_RE.lastIndex = 0;
+    while ((m = CONV_CONSUMER_RE.exec(text)) !== null) {
+      convertedConsumers.push({ file: rel(file), line: lineOfOffset(text, m.index), expr: m[0] });
     }
   }
 
@@ -245,7 +308,7 @@ function main() {
   console.log('        untraced 站点（脚本追不到源）交 LLM 按 Icon.md §name 解析 判，本闸拦闭集误留与未判站点。');
   console.log(`  扫描范围: src/（${files.length} 个文件，${totalShimSites} 处 <Icon> shim 站点，已排除 src/shared/Icon/）`);
   console.log(`  闭合性结论条目: ${justifications.length} 条（.icon-shim-justified.json）`);
-  console.log(`  UNJUSTIFIED: ${unjustified.length} 处；STALE-SHIM-IMPORT: ${staleImports.length} 处`);
+  console.log(`  UNJUSTIFIED: ${unjustified.length} 处；STALE-SHIM-IMPORT: ${staleImports.length} 处；UNCONVERTED-ICON-SOURCE: ${unconvertedSources.length} 处`);
   if (unjustified.length) {
     console.log('');
     for (const u of unjustified) {
@@ -260,18 +323,34 @@ function main() {
       console.log(`      ${s.detail}`);
     }
   }
-  if (unjustified.length || staleImports.length) {
+  if (unconvertedSources.length) {
+    console.log('');
+    for (const u of unconvertedSources) {
+      console.log(`  ✗ ${u.file}:${u.line}  ${u.field}="${u.value}"  [${u.issue}]`);
+      console.log(`      ${u.detail}`);
+    }
+    if (convertedConsumers.length) {
+      console.log('  配对：已转消费端签名（{x.icon}，源若未转即半改对）：');
+      for (const c of convertedConsumers.slice(0, 20)) {
+        console.log(`    · ${c.file}:${c.line}  ${c.expr}`);
+      }
+      if (convertedConsumers.length > 20) console.log(`    …余 ${convertedConsumers.length - 20} 处`);
+    }
+  }
+  if (unjustified.length || staleImports.length || unconvertedSources.length) {
     console.log('');
     console.log('修复：按 Icon.md §name 解析与方案A 判定（统一原则）枚举闭集叶子转 icon+，');
     console.log('     或在 .icon-shim-justified.json 补具体 OPEN 集合证据（后端接口/运行时自由取值/props 字段且源不在已扫文件）；');
     console.log('     STALE-SHIM-IMPORT：残留 <Icon> 文件手改 `import Icon from "@/shared/Icon"`（默认导入）。');
+    console.log('     UNCONVERTED-ICON-SOURCE：数据源两半同改——把 icon:"lit" 改 <IconPlusIc…/> + import 注入源文件（源在别文件也追过去改）；');
+    console.log('       仅真 OPEN 默认/兜底字面量可留，须 closedSet:false + OPEN 证据 + linksShim 关联保留 shim。');
   } else if (totalShimSites) {
-    console.log('  全部残留 shim 站点已声明具体 OPEN 集合证据、无 stale import——PASS');
+    console.log('  全部残留 shim 站点已声明具体 OPEN 集合证据、无 stale import、无数据源半改——PASS');
   } else {
-    console.log('  无残留 <Icon> shim 站点——PASS');
+    console.log('  无残留 <Icon> shim 站点、无数据源半改——PASS');
   }
 
-  if (opts.strict && (unjustified.length || staleImports.length)) {
+  if (opts.strict && (unjustified.length || staleImports.length || unconvertedSources.length)) {
     process.exit(1);
   }
 }

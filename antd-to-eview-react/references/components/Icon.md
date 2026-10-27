@@ -28,6 +28,8 @@
 
 **唯一转换法（适用所有闭合形态）**：枚举闭集叶子字面量 → 数据源处每个 `"lit"` 改 `<IconPlusIc… iconSize={取 render 站点 size} iconColor={['currentcolor']} />`（C catalog 匹配名 / B 在线查名；查不到用占位 `IconPlusIcPublicTransverseRectangleTemplate` + 候选进 residual）→ render `<Icon name={EXPR}/>` → `EXPR` 或 `{EXPR}`（按 §`<Icon name={X}/>` 改写的 `{}` 上下文规则）→ import 注入数据源文件、`.js`→`.jsx` 若引入 JSX。下文 §动态名 / §OBJ[runtimeKey].field / §跨组件边界 / §wrapper 是该法在不同形态上的应用实例，**不是彼此独立的 recipe**。
 
+> **闭合字面量不变量（半改防御）**：数据结构里的纯字符串字面量 `icon: "lit"` 按定义就是闭合集（值集合=写死字面量）——必须转 icon+，**永不可判 OPEN**。转换后任何残留 `icon:"lit"` 都是缺陷（典型回归：消费端 `<Icon name={x.icon}/>` 已转 `{x.icon}`、源 `icon:"lit"` 没转 → 页面渲染字符串）。`check-icon-shim.cjs --strict` 现扫描数据源字面量拦此半改态——形态无关，数据数组 / 对象地图 / 跨边界 useMemo / useState / wrapper 默认值皆覆盖；唯一放行是真 OPEN 运行时字段的默认/兜底，须 `.icon-shim-justified.json` 声明 `closedSet:false` + OPEN 证据 + `linksShim` 关联保留 shim。
+
 ## 渲染方式（三种）
 
 > 项目级二选一：迁移开始先探测 `https://octo.hdesign.huawei.com/`，可达（内网）→ B，不可达（外网）→ C；A 为 B/C 兜底，切定后保留 `src/shared/Icon`（不删）。本文 §1 起的 icon+ 用法是 B/C 范式（静态 import 目标态）。触发条件、`--apply` 机制、`antdIcons:[]` 陷阱见下方「迁移工作流要点」+ [migration-workflow.md](../migration-workflow.md) §0.1/§3.0。
@@ -297,6 +299,20 @@ icon: group.icon
 // ❌ wrapper 存在不可静态解析的调用方仍强改内部 → 传字符串的调用方渲染成文本
 <BadWrapper icon={pickIcon(row)} label="alert" />   // pickIcon(row) 运行时才知值
 //   正确：安全闸整组 untraced——内部保留 <Icon name={icon}/> shim（keep 可运行+修 import），调用方维持原样，交 LLM 按 §name 解析 判（闭合→转 / 真 OPEN→保 shim）
+```
+
+```jsx
+// ❌ 跨边界半改：消费端转了、数据源没转 → 渲染文本
+//   源（父组件）：const statsCards = useMemo(() => [{ key:"orders", icon: "shopping-cart", ... }, ...], …);
+//                 <OverviewCards cards={statsCards} />
+//   消费（子组件）：cards.map((c) => <span><Icon name={c.icon} size="1rem"/></span>)
+//   半改产物：消费端 <Icon name={c.icon}/> → {c.icon}，但源 icon: "shopping-cart" 没转
+//             → {c.icon} 拿到字符串 "shopping-cart"，页面上渲染成文字而非图标
+//   正确：两半同改——源 icon: "shopping-cart" → icon: <IconPlusIcPublicShoppingCart iconSize="1rem" iconColor={['currentcolor']}/>
+//                              + import { IconPlusIcPublicShoppingCart } from '@hui/icon-plus' 注入源文件（.js→.jsx 若引入 JSX）
+//         消费 {c.icon} 不动（此时已是 React 元素）
+//   match-icons.cjs 追不到 useMemo / 跨 props 源（标 untraced、不断言方案A）→ 按 §跨组件边界 recipe 手工追源两半同改；
+//   check-icon-shim --strict 扫数据源 icon:"lit" 残留拦此半改态（见上文「闭合字面量不变量」）。
 ```
 
 ## 5. API 速查
