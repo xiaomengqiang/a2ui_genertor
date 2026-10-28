@@ -62,6 +62,7 @@ const handoff = JSON.parse(fs.readFileSync(handoffPath, 'utf8'));
 const SHELL_COMPONENTS = [
   'Select', 'TextField', 'InputSelect', 'MultipleSelect', 'SearchInput', 'TextArea',
   'Tag', 'DatePicker', 'Spinner', 'Steps', 'Cascader', 'TreeSelector', 'IPInput', 'TimePicker',
+  'Crumbs',
 ];
 
 // ========== 1. Parse component-mapping.md into lookup table ==========

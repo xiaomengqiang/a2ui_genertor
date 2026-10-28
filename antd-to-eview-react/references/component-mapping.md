@@ -24,7 +24,7 @@
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
-| `Input` | `TextField` | `onChange(value, oldValue, event)` 首参是值；`validator` 返回 `{result,message}`；`required` 自带星号；无 `allowClear`/`prefix`/`rules`/`onPressEnter`；⚠️ 导入 `@/shared/TextField`（包壳，非 `@nce/eview-react/TextField`） |
+| `Input` | `TextField` | `onChange(value, oldValue, event)` 首参是值；`validator` 返回 `{result,message}`；`required` 自带星号；无 `allowClear`/`rules`/`onPressEnter`；**`prefix`/`suffix` 直接透传**（包壳 `@/shared/TextField` 已支持 `prefix`——内部 `.prefix-wrapper` 绝对定位实现，用法与 `suffix` 一致；`suffix` 透传 eview 原生；antd 调用点 `prefix`/`suffix` 原样搬，**禁止用外层 DOM 包裹 TextField + 前后缀节点**）；⚠️ 导入 `@/shared/TextField`（包壳，非 `@nce/eview-react/TextField`） |
 | `Input.TextArea` | `TextArea` | `onChange(targetValue, value, event)`；`onBlur(event)` 无 value；`maxLength` 自带右下角计数（替代 `showCount`）；无 `autoSize`/`allowClear`；无 ref 方法；⚠️ 导入 `@/shared/TextArea`（包壳，非 `@nce/eview-react/TextArea`） |
 | `Input.Search` | `SearchInput` | `onSearch` 值变化也触发（需防抖）；`onClear(value)`；`placeholder` 保留；`onSuggest` vs `popItems` 互斥；⚠️ 导入 `@/shared/SearchInput`（包壳，非 `@nce/eview-react/SearchInput`） |
 | `Input.Password` | `TextField type="password"` | 需 `isAllowToModifyPasswordByProps` 才能 props 清空/回填；`autoComplete="off"` |
@@ -94,7 +94,7 @@
 |------|-----------|-------------|
 | `Layout` / `Header` / `Sider` / `Content` | 手写 CSS 布局 | 见 [handwrite-templates.md](handwrite-templates.md) §4 |
 | `Menu` | `Accordion` | `items`→`data`（`key`/`label`→`value`/`title`）；`selectedKeys` 数组→`selectedValue` 单 string；`onClick({key})`→`onClick(node)`；`inlineCollapsed`→`expanded`/`onExpand`（⚠️ `expanded={true}`=收起，语义反转）；多级导航用 Accordion，简单平铺列表仍可手写；见 [Accordion.md](components/Accordion.md) |
-| `Breadcrumb` | `Crumbs` | `data=[{title,url?}]`；最后一项无 url；`seprator`（拼错）；`onClick(data,event)` 组件级 |
+| `Breadcrumb` | `Crumbs` | `data=[{title,url?}]`；最后一项无 url；`seprator`（拼错）；`onClick(data,event)` 组件级；⚠️ 导入 `@/shared/Crumbs`（包壳，非 `@nce/eview-react/Crumbs`） |
 | `Affix` | 手写 `position:sticky` | 无对应 |
 | `BackTop` | 手写 | 无对应 |
 | `Row` / `Col` | 手写 flex/grid | eview-react 有 `Row`/`Col` 导出名但无 Reference |

@@ -1,5 +1,6 @@
 # Crumbs 组件功能逻辑规格（面包屑）
 
+> 导入：`import Crumbs from '@/shared/Crumbs'`（scaffold 包壳，透明转发 `@nce/eview-react/Crumbs`，API 不变）。
 > 资料来源：TypeDoc `Crumbs/Crumbs` + 官网 Crumbs 页示例。
 > ⚠️ 组件名是 **`Crumbs`**（不是 Breadcrumb）；`data=[{ title, url?, enable?, icon? }]` 驱动，**最后一项不传 `url` 即当前页**；点击回调是组件级 `onClick(data, event)`，不是每项自己的 onClick。
 > ⚠️ 分隔符属性拼写是 **`seprator`**（官方即如此），默认 `>`。

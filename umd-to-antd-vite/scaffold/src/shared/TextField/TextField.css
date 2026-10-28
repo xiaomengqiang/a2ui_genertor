@@ -3,6 +3,26 @@
     min-width: 0px;
 }
 
+.evTextField-custom:where(:has(.prefix-wrapper)) {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+}
+
+.evTextField-custom:where(:has(.prefix-wrapper)) .ev_textField {
+    width: 100%;
+}
+
+.evTextField-custom:where(:has(.prefix-wrapper)) .ev_textField_input {
+    padding-left: 2.5rem;
+}
+
+.evTextField-custom .prefix-wrapper {
+    line-height: 0;
+    position: absolute;
+    left: 0.6875rem;
+}
+
 .evTextField-custom .ev_textField_input {
     width: inherit;
 }

@@ -34,7 +34,7 @@ description: >-
 
 ## scaffold 预制骨架
 
-骨架由本 skill 的 `scaffold/` 目录维护，步骤 1 一键拷贝。骨架已含 eview-react 依赖、`aui3_1` body 类、`ConfigProvider` + `IntlProvider`、HarmonyOS 字体、icon shim（`src/shared/Icon/`，folder + 默认导出）；`vite.config.js` 预配 `@`→`./src` 别名 + icon-plus proxy/transform；`src/shared/` 下 Select/TextField/InputSelect/MultipleSelect/SearchInput/TextArea/Tag/DatePicker/Spinner/Steps/Cascader/TreeSelector/IPInput/TimePicker 包壳组件（多数透明转发 `@nce/eview-react` 供下游 antd-to-eview-react 从 `@/shared/X` 导入；Steps 包壳附带尺寸类名 xs/sm/lg 与 dot 模式样式见同目录 Steps.css；Cascader 为手写组件 API 基本同 antd）。`src/styles/` 下 `light.css` / `theme.css` / `dark.css` 为空壳占位，步骤 2 从产物 `assets/style/` 拷贝填充；`base.css` 预制 eview 专用样式（`ev_no_wcag`/`ev_form_item`），步骤 2 append ict `base.css`（`@font-face` 路径改写 `/font/`）。
+骨架由本 skill 的 `scaffold/` 目录维护，步骤 1 一键拷贝。骨架已含 eview-react 依赖、`aui3_1` body 类、`ConfigProvider` + `IntlProvider`、HarmonyOS 字体、icon shim（`src/shared/Icon/`，folder + 默认导出）；`vite.config.js` 预配 `@`→`./src` 别名 + icon-plus proxy/transform；`src/shared/` 下 Select/TextField/InputSelect/MultipleSelect/SearchInput/TextArea/Tag/DatePicker/Spinner/Steps/Cascader/TreeSelector/IPInput/TimePicker/Crumbs 包壳组件（多数透明转发 `@nce/eview-react` 供下游 antd-to-eview-react 从 `@/shared/X` 导入；TextField 包壳扩展了 `prefix` prop——`.prefix-wrapper` 绝对定位实现，用法同 `suffix`；Steps 包壳附带尺寸类名 xs/sm/lg 与 dot 模式样式见同目录 Steps.css；Cascader 为手写组件 API 基本同 antd）。`src/styles/` 下 `light.css` / `theme.css` / `dark.css` 为空壳占位，步骤 2 从产物 `assets/style/` 拷贝填充；`base.css` 预制 eview 专用样式（`ev_no_wcag`/`ev_form_item`），步骤 2 append ict `base.css`（`@font-face` 路径改写 `/font/`）。
 
 用法：`node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标题] [--force]`
 

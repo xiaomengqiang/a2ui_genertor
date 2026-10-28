@@ -1,6 +1,6 @@
 # TextField 组件功能逻辑规格
 
-> 导入：`import TextField from '@/shared/TextField'`（scaffold 包壳，透明转发 `@nce/eview-react/TextField`，API 不变）。
+> 导入：`import TextField from '@/shared/TextField'`（scaffold 包壳，转发 `@nce/eview-react/TextField`；包壳扩展了 `prefix` prop——`.prefix-wrapper` 绝对定位实现，用法同 `suffix`，见 §6）。
 
 > 资料来源：TypeDoc `TextField/TextField` + 官网 TextField 页示例。
 > ⚠️ `validator` 返回值 `result` 语义：API 表写"是否有错误"，但官方示例都是 **`result: true` = 校验通过**、`message` 只在失败时展示 → 以示例为准。
@@ -77,8 +77,11 @@ const handleSubmit = () => {
 // ❌ 把 event 当第一个参数（那是原生 input 的签名）
 <TextField onChange={(e) => setName(e.target.value)} />
 
-// ❌ antd 习惯：TextField 没有 rules / prefix / allowClear / onPressEnter
+// ❌ antd 习惯：TextField 没有 rules / allowClear / onPressEnter（prefix/suffix 已支持，见 §6）
 <TextField rules={[{ required: true }]} allowClear onPressEnter={search} />
+
+// ❌ suffix/prefix 用外层 DOM 包裹（包壳已支持 prefix/suffix prop 直接透传，不要自己包 div）
+<div className="input-wrap"><TextField {...rest} /><IconPlusIc* /></div>   // 应写 <TextField suffix={<IconPlusIc*/>} />
 
 // ❌ validator 返回布尔或改字段名，组件不识别（必须是 { result, message }）
 <TextField validator={(v) => v.length > 3} />
@@ -120,14 +123,30 @@ const handleSubmit = () => {
 | `isCharacterAllowed` | `(value, id) => boolean` | 返回 false 的输入不落入 |
 | `format` | `'number' \| 'any'`，默认 `any` | `number` 只能输数字 |
 | `maxLength` | `number` | 最大长度 |
-| `suffix` | `React.ReactNode` | 后缀元素 |
+| `suffix` | `React.ReactNode` | 后缀元素（eview 原生，直接透传） |
+| `prefix` | `React.ReactNode` | 前缀元素（**包壳层自定义实现**——`.prefix-wrapper` 绝对定位 `left:0.6875rem` + input `padding-left:2.5rem`；仅 `@/shared/TextField` 支持，`@nce/eview-react/TextField` 无此 prop） |
 | `disabled` / `readOnly` | `boolean`，默认 `false` | 灰化 / 只读 |
 | `size` | `'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸；与 antd `size` 枚举一致，可直接透传 |
 | `inputStyle` / `labelStyle` / `containerStyle` / `tipStyle` | `CSSProperties` | 局部样式 |
 | `enableFixWidth` | `'small' \| 'middle' \| 'large' \| 'none'`，默认 `none` | label 与输入框间隔 |
 | `ref.getValue()` / `ref.validate()` / `ref.focus()` | 命令式方法 | 取值 / 触发校验（返回 boolean）/ 聚焦 |
 
-## 6. 常后缀单位的输入
-带后缀单位的输入：`suffix="Mbps"`
-后缀图标：`suffix={<Icon />}`
-如果Antd中的代码使用了前缀，用`suffix`代替前缀图标
+## 6. 前缀 / 后缀（prefix / suffix）
+
+**antd Input 的 `prefix` / `suffix` 直接透传给 TextField 的同名 prop，禁止用外层 DOM 包裹。**
+
+```jsx
+// ✅ suffix 直接透传（eview 原生 prop）
+<TextField label="带宽" value={bw} suffix="Mbps" onChange={v => setBw(v)} />
+<TextField label="搜索" value={kw} suffix={<IconPlusIcPublicSearch onClick={search} />} onChange={v => setKw(v)} />
+
+// ✅ prefix 直接透传（包壳层实现，用法与 suffix 一致）
+<TextField label="金额" value={amt} prefix="¥" onChange={v => setAmt(v)} />
+<TextField label="电话" value={tel} prefix={<IconPlusIcPublicPhone />} onChange={v => setTel(v)} />
+
+// ❌ 不要用外层 div 包裹 TextField + 前后缀节点——包壳已支持 prefix/suffix prop
+<div className="input-wrap"><TextField {...rest} /><span>Mbps</span></div>
+// 应写 <TextField suffix="Mbps" {...rest} />
+```
+
+> `suffix` 透传给 `@nce/eview-react/TextField` 原生渲染；`prefix` 由 `@/shared/TextField` 包壳层用 `.prefix-wrapper` 绝对定位实现（CSS `:has(.prefix-wrapper)` 触发 `inline-flex` + input `padding-left:2.5rem`）。两者调用方式一致，antd 调用点 `prefix`/`suffix` 原样搬过来即可。

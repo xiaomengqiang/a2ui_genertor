@@ -30,7 +30,7 @@ const EXTS = new Set(['.js', '.jsx', '.ts', '.tsx']);
 const SHELL_COMPONENTS = [
   'Tag', 'Select', 'TextField', 'InputSelect', 'MultipleSelect', 'SearchInput',
   'TextArea', 'DatePicker', 'Spinner', 'Steps', 'Cascader', 'TreeSelector',
-  'IPInput', 'TimePicker',
+  'IPInput', 'TimePicker', 'Crumbs',
 ];
 
 // skipDirs：遇到这些目录名不递归进去。src/shared/ 是包壳组件的**实现文件**所在
