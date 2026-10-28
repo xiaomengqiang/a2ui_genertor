@@ -2511,6 +2511,7 @@ input.ant-input.ant-input-sm {
   border-radius: var(--radius-md);
   padding: 0.125rem;
   background: var(--color-fill);
+  width: initial !important;
   /* 尺寸变体：label 基础样式固定了行高/字号，需按 antd 的 lg/sm 类分别覆盖
      规格高度为最外层（.ant-segmented）高度 = label 行高 + 轨道上下内边距 4px：大 40 = 36+4，小 28 = 24+4 */
 }
