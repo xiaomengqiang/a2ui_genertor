@@ -45,6 +45,12 @@ const stats = {
   ipInputCallSites: { sharedFiles: [], imports: [], callSites: [] },
   chartCallSites: { sharedFiles: [], imports: [], callSites: [] },
   uploadsAssets: { copied: [], copiedCount: 0, pathRewrite: { from: './assets/uploads/', to: '/uploads/' } },
+  // 源项目 CSS token 定义快照（供下游 check-token-drift.cjs 对照防 token 漂移）
+  sourceCssTokens: {},
+  // 源项目业务 CSS 写死色值快照（供下游 check-css.cjs 对照防色值漂移）
+  sourceCssColors: {},
+  // 源 antd 输入/包壳对应组件调用点的 style/className 快照（供下游 check-props-preserved.cjs 对照防迁移时丢失）
+  inputPropCallSites: [],
 };
 
 // ========== 1. 从产物 assets/style/ 拷贝 4 层 CSS（ict-coder 已分好类：base/light/theme/dark） ==========
@@ -99,7 +105,28 @@ function copyStyleFiles() {
     console.log(`[extract-umd] ant.css: 跳过（eview-react 用 aui3_1.css 替代）`);
   }
 
+  // 扫描 4 层 CSS 的 token 定义生成 sourceCssTokens 快照（供下游 check-token-drift.cjs 对照）
+  for (const name of ['base.css', 'light.css', 'theme.css', 'dark.css']) {
+    const src = path.join(assetsStyleDir, name);
+    if (fs.existsSync(src)) {
+      stats.sourceCssTokens[name] = extractCssTokens(fs.readFileSync(src, 'utf8'));
+    }
+  }
+
   return cssFilesWritten;
+}
+
+// 提取 CSS 内容中所有自定义属性定义（--xxx: value;）为 { name: value } 映射
+// 逐行扫描：值取到第一个 ; （正确处理尾注释如 --x: 1rem; /* 10px */）
+function extractCssTokens(cssContent) {
+  const tokens = {};
+  const lines = cssContent.split('\n');
+  const declRe = /^\s*(--[A-Za-z0-9-]+)\s*:\s*([^;]+);/;
+  for (const line of lines) {
+    const m = line.match(declRe);
+    if (m) tokens[m[1]] = m[2].trim();
+  }
+  return tokens;
 }
 
 const cssFilesWritten = copyStyleFiles();
@@ -401,6 +428,138 @@ if (stats.iconCallSites.length) {
   console.log(`[extract-umd] <Icon> 调用点: ${stats.iconCallSites.length} 处 (字面量=${literal}, 动态=${dynamic}, 无name=${noneName})`);
 }
 
+// ========== 4.6b 扫描源 antd 输入/包壳对应组件调用点的 style/className（供下游 check-props-preserved.cjs 对照） ==========
+
+// 从 < 开始，找到当前标签结束（>），跳过字符串和 {} 表达式（防止溢出到下一个 JSX 元素）
+// ⚠️ 此函数实现须与 antd-to-eview-react/scripts/check-props-preserved.cjs 的 tagWindow 保持一致
+function tagWindow(code, start) {
+  let i = start + 1;
+  let inStr = null;
+  let braceDepth = 0;
+  while (i < code.length) {
+    const ch = code[i];
+    if (inStr) {
+      if (ch === '\\') { i += 2; continue; }
+      if (ch === inStr) inStr = null;
+      i++; continue;
+    }
+    if (ch === '"' || ch === "'") { inStr = ch; i++; continue; }
+    if (ch === '{') { braceDepth++; i++; continue; }
+    if (ch === '}') { braceDepth--; i++; continue; }
+    if (braceDepth === 0 && ch === '>') return code.slice(start, i + 1);
+    i++;
+  }
+  return code.slice(start, start + 600);
+}
+
+// antd 组件 → eview 家族映射（顺序敏感：Input.TextArea/Search/Password 必须在 bare Input 之前）
+const INPUT_PROP_PATTERNS = [
+  { re: /<Input\.TextArea\b/g, component: 'Input.TextArea', family: 'TextArea' },
+  { re: /<Input\.Search\b/g, component: 'Input.Search', family: 'SearchInput' },
+  { re: /<Input\.Password\b/g, component: 'Input.Password', family: 'TextField' },
+  { re: /<Input\b(?=[\s/>])/g, component: 'Input', family: 'TextField' },
+  { re: /<InputNumber\b/g, component: 'InputNumber', family: 'Spinner' },
+  { re: /<Select\b/g, component: 'Select', family: 'Select' },
+  { re: /<DatePicker\b/g, component: 'DatePicker', family: 'DatePicker' },
+  { re: /<TimePicker\b/g, component: 'TimePicker', family: 'TimePicker' },
+  { re: /<Cascader\b/g, component: 'Cascader', family: 'Cascader' },
+  { re: /<TreeSelect\b/g, component: 'TreeSelect', family: 'TreeSelector' },
+  { re: /<Tag\b/g, component: 'Tag', family: 'Tag' },
+  { re: /<Steps\b/g, component: 'Steps', family: 'Steps' },
+];
+
+function scanInputPropCallSites() {
+  const sites = [];
+  for (const { fullPath, relFile } of collectScanFiles(/\.(jsx?|tsx?)$/)) {
+    const code = fs.readFileSync(fullPath, 'utf8');
+    for (const p of INPUT_PROP_PATTERNS) {
+      p.re.lastIndex = 0;
+      let m;
+      while ((m = p.re.exec(code)) !== null) {
+        const startPos = m.index;
+        const window = tagWindow(code, startPos);
+        const lineNum = code.slice(0, startPos).split('\n').length;
+        // 提取 style
+        const styleLitM = window.match(/style\s*=\s*\{([^}]+)\}/);
+        const hasStyle = !!styleLitM;
+        const styleSource = styleLitM ? styleLitM[1].trim() : null;
+        // 提取 className
+        const classLitM = window.match(/className\s*=\s*["']([^"']+)["']/);
+        const classDynM = window.match(/className\s*=\s*\{([^}]+)\}/);
+        const hasClassName = !!(classLitM || classDynM);
+        const classNameValue = classLitM ? classLitM[1] : (classDynM ? classDynM[1].trim() : null);
+        sites.push({
+          file: relFile, line: lineNum,
+          component: p.component, family: p.family,
+          hasStyle, styleSource, hasClassName, classNameValue,
+        });
+      }
+    }
+  }
+  return sites;
+}
+stats.inputPropCallSites = scanInputPropCallSites();
+if (stats.inputPropCallSites.length) {
+  const withStyle = stats.inputPropCallSites.filter(s => s.hasStyle).length;
+  const withClass = stats.inputPropCallSites.filter(s => s.hasClassName).length;
+  console.log(`[extract-umd] 输入组件 style/className 快照: ${stats.inputPropCallSites.length} 处 (带style=${withStyle}, 带className=${withClass})`);
+}
+
+// ========== 4.6c 扫描源业务 CSS 写死色值（供下游 check-css.cjs 对照防色值漂移） ==========
+
+// 色值提取逻辑须与 antd-to-eview-react/scripts/check-css.cjs 的 extractColorsFromCss 保持一致
+// （hex 规范化小写；rgb/rgba/hsl/hsla 去空格规范化；跳过 var() 行的 fallback；跳过变量定义行 --xxx:；跳过 url(#...)）
+function stripCssCommentsKeepLines(text) {
+  return text.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
+}
+function isVarDeclLine(line) {
+  return /^\s*--[A-Za-z0-9-]+\s*:/.test(line);
+}
+function extractColorsFromCssFile(filePath) {
+  const raw = fs.readFileSync(filePath, 'utf8');
+  const text = stripCssCommentsKeepLines(raw);
+  const lines = text.split('\n');
+  const colors = [];
+  for (let i = 0; i < lines.length; i++) {
+    const ln = lines[i];
+    const lineNo = i + 1;
+    if (!ln.trim()) continue;
+    if (isVarDeclLine(ln)) continue; // 变量定义行 --xxx: #value 是定义，不是写死使用
+    if (/\bvar\s*\(/.test(ln)) continue; // var() 行的色值视为 fallback，不计入硬色值快照
+    let m;
+    const hexRe = /#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b/g;
+    while ((m = hexRe.exec(ln)) !== null) {
+      const before = ln.slice(Math.max(0, m.index - 6), m.index);
+      if (/url\s*\(\s*['"]?$/.test(before)) continue; // 排除 url(#...)
+      colors.push({ line: lineNo, value: m[0].toLowerCase() });
+    }
+    const funcRe = /\b(rgba?|hsla?)\s*\(([^)]*)\)/g;
+    while ((m = funcRe.exec(ln)) !== null) {
+      const norm = (m[1] + '(' + m[2].replace(/\s+/g, '') + ')').toLowerCase();
+      colors.push({ line: lineNo, value: norm });
+    }
+  }
+  return colors;
+}
+function scanSourceCssColors() {
+  const result = {};
+  for (const { fullPath, relFile } of collectScanFiles(/\.css$/)) {
+    // 路径规范化：去 src/ 前缀（与产物 check-css.cjs 的 normFile 一致）
+    let normFile = relFile.replace(/^\.?\/?src\//, '');
+    // 排除产物 scaffold 专属层
+    if (normFile.startsWith('styles/') || normFile.startsWith('shared/')) continue;
+    const colors = extractColorsFromCssFile(fullPath);
+    if (colors.length) result[normFile] = colors;
+  }
+  return result;
+}
+stats.sourceCssColors = scanSourceCssColors();
+{
+  const fileCount = Object.keys(stats.sourceCssColors).length;
+  const colorCount = Object.values(stats.sourceCssColors).reduce((s, a) => s + a.length, 0);
+  if (colorCount) console.log(`[extract-umd] 业务 CSS 写死色值快照: ${colorCount} 处 (跨 ${fileCount} 个文件)`);
+}
+
 // ========== 4.7 扫描 IPInput 调用点（ict-coder 手写共享件，非 antd 导入，extract-umd 默认扫不到） ==========
 
 function scanIpInputCallSites() {
@@ -580,6 +739,7 @@ const handoff = {
   antdComponents: stats.antdComponents,
   antdIcons: stats.antdIcons,
   iconCallSites: stats.iconCallSites,
+  inputPropCallSites: stats.inputPropCallSites,
   ipInputCallSites: stats.ipInputCallSites,
   chartCallSites: stats.chartCallSites,
   uploadsAssets: stats.uploadsAssets,
@@ -588,6 +748,10 @@ const handoff = {
     files: stats.styleFiles,
     cssFiles: cssFilesWritten,
   },
+  // 源项目 CSS token 定义快照（4 层 CSS 的 --xxx: value 定义）
+  sourceCssTokens: stats.sourceCssTokens,
+  // 源项目业务 CSS 写死色值快照（每文件按出现顺序的色值列表）
+  sourceCssColors: stats.sourceCssColors,
   srcFiles: stats.srcFiles,
   darkMode: {
     method: 'css-vars + aui3_1_dark class (antd darkAlgorithm removed in step 3)',

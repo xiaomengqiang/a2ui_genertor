@@ -262,17 +262,17 @@ node <skill目录>/scripts/check-provider.cjs <目标工程根>
 
 发现硬 FAIL → exit 1，列文件:行号 + 违规类型。修复后重跑直至 exit 0。
 
-### 4.7 CSS 色值 + ev_ 类名检查（advisory 必跑）
+### 4.7 CSS 色值漂移（对照源快照）+ ev_ 类名检查（advisory 必跑）
 
-> 对应 SKILL.md 硬约束⑦。CSS 不写死色值（用源项目 CSS 变量/原始 token）；类名用业务前缀 `app-` 不用 `ev_`。脚本自动排除 `src/styles/`（token 定义层，`:root` 里 `--brand-50:#xxx` 是变量定义）和 `src/shared/`（包壳层，需用 `ev_wizard_*` 等类名覆盖组件库样式），只扫业务 CSS（`src/views/`、`src/components/`、`src/app.css` 等）。
+> 对应 SKILL.md 硬约束⑦。原项目 CSS 有时写死色值是**允许的**（忠实保留即可），但迁移**不能擅自改色值**；类名用业务前缀 `app-` 不用 `ev_`。脚本自动排除 `src/styles/`（token 定义层）和 `src/shared/`（包壳层，需用 `ev_wizard_*` 等类名覆盖组件库样式），只扫业务 CSS。
 
-脚本 `scripts/check-css.cjs`，检查三类：① 业务 CSS 写死色值（裸 hex/rgb/rgba/hsl/hsla，行内无 `var()`）→ advisory；② `var()` 内 fallback 色值 → advisory（合理降级，建议核对）；③ 业务 CSS 用 `.ev_xxx` 类名 → advisory（自定义违规 vs 覆盖组件库，需核对）。跳过变量定义行（`--xxx:`）。
+脚本 `scripts/check-css.cjs`，对照 `.umd-conversion.json` 的 `sourceCssColors` 快照（由 `umd-to-antd-vite` `extract-umd.cjs` 扫源业务 CSS 写死色值生成）按文件 + 出现顺序配对源/产物色值，检查：① **COLOR_DRIFT**——同位置色值不同（迁移擅自改了色值，应改回源值）；② **COLOR_ADDED**——产物有色值、源同位置没有（迁移新增，需确认合理）；③ **COLOR_DROPPED**——源有色值、产物同位置没有（迁移删了，需确认合理）；④ **EV_CLASSNAME**——业务 CSS 用 `.ev_xxx` 类名（自定义违规 vs 覆盖组件库，需核对）。跳过变量定义行（`--xxx:`）和 `var()` 行的 fallback。
 
 ```bash
 node <skill目录>/scripts/check-css.cjs <目标工程根>
 ```
 
-advisory 模式 exit 0，但每个待核项必须在 `.migration-result.json` 的 `cssReviews` 写明决策（如 `"header-bar:144 color:#fff → 改 var(--color-text-inverse)"`）。未逐条回应视同 FAIL。
+advisory 模式 exit 0，但每个待核项必须在 `.migration-result.json` 的 `cssReviews` 写明决策（如 `"test.css:6 COLOR_DRIFT 源#000→产物#f00，已改回源值"` 或 `"ev_checkbox 是覆盖组件库样式，保留"`）。未逐条回应视同 FAIL。**前置依赖**：`.umd-conversion.json` 须含 `sourceCssColors` 字段（由 `extract-umd.cjs` 生成；若产物由旧版生成需重跑 extract-umd 或手动补该字段）。
 
 ### 4.8 色值 token 漂移检查（对照源快照，必跑）
 
@@ -317,7 +317,19 @@ node <skill目录>/scripts/check-steps-defaults.cjs <目标工程根>
 
 advisory 模式 exit 0，但每个待核 `<Steps>` 必须在 `.migration-result.json` 的 `stepsReviews` 写明决策（如 `"源 antd 用默认形态，已补 labelPlacement='horizontal'"` 或 `"源显式 vertical，保留"`）。未逐条回应视同 FAIL。
 
-### 4.11 常见报错对照
+### 4.11 黑白主题双轨切换检查（必跑，硬 FAIL）
+
+> 对应 SKILL.md 硬约束⑬。源项目是**单轨驱动**（只切 `<html>` 的 `.dark`），产物需要**双轨驱动**：① 切 `<html>` 的 `.dark`（自定义 token 四层跟随）+ ② 切 `<body>` 的 `aui3_1_dark`（eview 组件库暗色覆盖层跟随）+ ③ 入口 import `aui3_1_dark.css`（body 轨切了 class 才有对应样式）。三者配套，少任一轨黑白主题切换即坏。`umd-to-antd-vite` 步骤 3 已完成转换，但步骤 2 替换组件时可能误删/改坏，本检查兜底。
+
+脚本 `scripts/check-dark-mode.cjs`，前置判断产物是否有暗色需求（CSS 有 `.dark` 选择器 或 JS 有 `isDark`/`toggleDark`），有需求才检查三轨完整性：① html 轨 `document.documentElement.classList.toggle("dark", isDark)`；② body 轨 `document.body.classList.toggle("aui3_1_dark", isDark)`；③ CSS import `aui3_1_dark.css`。缺任一轨 → 硬 FAIL。无暗色需求 → PASS 不报。
+
+```bash
+node <skill目录>/scripts/check-dark-mode.cjs <目标工程根>
+```
+
+硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（结构完整性检查，非 advisory）。
+
+### 4.12 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -328,11 +340,11 @@ advisory 模式 exit 0，但每个待核 `<Steps>` 必须在 `.migration-result.
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 但 `data.js` 里 value 是短代码、i18n key 带前缀 | 在 render 里补命名空间前缀：`t("deviceType." + value, value)`；详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 4.12 验证
+### 4.13 验证
 
 跑验证脚本，把结果写入 `<目标工程根>/.migration-result.json`。
 
-> **十个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。
+> **十一个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。
 
 **验证步骤**（全部必跑，按序）：
 1. 相对导入检查**跳过**（见 §4.1）
@@ -345,7 +357,8 @@ advisory 模式 exit 0，但每个待核 `<Steps>` 必须在 `.migration-result.
 8. 跑 `node <skill目录>/scripts/check-token-drift.cjs <目标工程根>`（§4.8，token 值漂移硬 FAIL + advisory 须回应写入 `tokenDriftReviews`）
 9. 跑 `node <skill目录>/scripts/check-props-preserved.cjs <目标工程根>`（§4.9，advisory，逐条回应写入 `propsPreservedReviews`）
 10. 跑 `node <skill目录>/scripts/check-steps-defaults.cjs <目标工程根>`（§4.10，advisory，逐条回应写入 `stepsReviews`）
-11. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
+11. 跑 `node <skill目录>/scripts/check-dark-mode.cjs <目标工程根>`（§4.11，**硬 FAIL**，exit≠0 即 FAIL）
+12. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
 
 **结果文件**：把结果写入 `<目标工程根>/.migration-result.json`（覆盖写），JSON 结构：
 
@@ -365,14 +378,15 @@ advisory 模式 exit 0，但每个待核 `<Steps>` 必须在 `.migration-result.
     "token-drift": "PASS/FAIL",
     "props-preserved": "PASS/FAIL",
     "steps-defaults": "PASS/FAIL",
+    "dark-mode": "PASS/FAIL",
     "npm-install": "PASS/SKIP"
   },
   "tableDefaultReviews": [
     { "file": "src/views/.../list.jsx", "line": 92, "allowSort": "源无 sorter，已加 allowSort:false", "enableZebraCrossing": "源无斑马纹，已加 false", "enableColumnCompareUpdate": "源 columns 动态，已加 true", "width": "源无显式宽度，已加 width=\"unset\"", "freezeCol": "无", "columnsAllWidth": "6 列全带 width，已删操作列 width 让其自适应" }
   ],
   "cssReviews": [
-    { "file": "src/views/header-bar/index.css", "line": 144, "type": "HARD_COLOR", "value": "#fff", "decision": "改 var(--color-text-inverse)" },
-    { "file": "src/views/top-customers/index.css", "line": 59, "type": "HARD_COLOR", "value": "linear-gradient(...)", "decision": "渐变两端改 var(--color-alert)/var(--color-warning)" },
+    { "file": "src/views/.../form.css", "line": 6, "type": "COLOR_DRIFT", "value": "源#000→产物#f00", "decision": "迁移擅自改值，已改回源值 #000" },
+    { "file": "src/views/.../form.css", "line": 15, "type": "COLOR_ADDED", "value": "#def", "decision": "迁移新增渐变端色值，合理保留" },
     { "file": "src/views/my-todo/index.css", "line": 90, "type": "EV_CLASSNAME", "value": ".ev_checkbox", "decision": "覆盖组件库样式，保留" }
   ],
   "tokenDriftReviews": [
