@@ -2,7 +2,7 @@
 /**
  * check-table-defaults.cjs — Table 默认值反向坑检查（advisory）
  *
- * 对应 SKILL.md 已知坑点「Table 排序/斑马纹/外层宽度/columns 更新」四连：
+ * 对应 Table.md §4/§5「Table 排序/斑马纹/外层宽度/columns 更新」四连：
  * eview-react 的 Table 多个默认值与 antd **相反**——迁移时最易忘、最常错。
  * 本脚本只扫迁移后产物，无法访问源 antd 项目，故全 advisory：列出每个 <Table>
  * 缺哪几项标记，强制迁移方逐条对照源 antd 回应（写入 .migration-result.json）。
@@ -263,7 +263,7 @@ function main() {
   }
 
   console.log('结论: 待核对 — 上述 <Table> 需逐条对照源 antd 项目确认后补 props。');
-  console.log('  详见 SKILL.md 已知坑点「Table 排序项/斑马纹/外层宽度/columns 更新」+ components/Table.md §5。');
+  console.log('  详见 components/Table.md §4/§5（Table 排序项/斑马纹/外层宽度/columns 更新）。');
   if (strict) process.exit(1);
 }
 

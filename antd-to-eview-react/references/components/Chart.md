@@ -3,7 +3,7 @@
 > **资料来源**（eview-react 官方资料，不随 skill 打包）：`@nce/eview-react/Chart`；契约与源项目的 `<Chart>` 一致（`name` + `option`）。完整 API 以官方 TypeDoc 为准。
 >
 > ⚠️ 迁移时只改 import 路径：`./assets/shared/chart.jsx` → `@nce/eview-react/Chart`。无需 UMD `<script>` 注入或自写封装。
-> ⚠️ **所有图表 option 必须显式携带 `a2ui: true` 与 `theme`**：源项目 Chart 封装在 `setSimpleOption` 前统一注入这两项（`{ theme: isDark ? "hdesign-dark" : "hdesign-light", a2ui: true, ...option }`），改包导入后**不会自动补**——漏写则图表 a2ui 视觉规范失效、暗色切换后主题不跟随（实测坑，见 SKILL.md 已知坑点）。
+> ⚠️ **所有图表 option 必须显式携带 `a2ui: true` 与 `theme`**：源项目 Chart 封装在 `setSimpleOption` 前统一注入这两项（`{ theme: isDark ? "hdesign-dark" : "hdesign-light", a2ui: true, ...option }`），改包导入后**不会自动补**——漏写则图表 a2ui 视觉规范失效、暗色切换后主题不跟随（实测坑，见 §4/§8）。
 > ⚠️ 旧 scaffold 的 `src/shared/chart.jsx` + `public/library/`（`echarts.min.js` + `hui-charts.umd.js`）方案已废弃，改用 `@nce/eview-react/Chart` 原生组件。
 
 ## 1. 功能定位

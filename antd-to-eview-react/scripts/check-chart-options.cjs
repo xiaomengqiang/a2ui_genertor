@@ -2,7 +2,7 @@
 /**
  * check-chart-options.cjs — 图表 option 必含 a2ui: true 与 theme 检查
  *
- * 对应 SKILL.md 硬约束⑪ + 已知坑点「图表 option 缺 a2ui:true 与 theme 标识」：
+ * 对应 SKILL.md 硬约束⑪ + Chart.md「图表 option 缺 a2ui:true 与 theme 标识」：
  * 源项目 Chart 封装（assets/shared/chart.jsx）在 setSimpleOption 前统一注入
  * theme（暗色派生）与 a2ui: true。改 @nce/eview-react/Chart 包导入后不会自动补——
  * 漏写则图表 a2ui 视觉规范失效、暗色切换后主题不跟随。

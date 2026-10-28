@@ -45,15 +45,13 @@
 
 ### 2.5 IntlProvider 放在 main.jsx（不要跟着 AppShell 搬）
 
-> scenario A/B 的 IntlProvider 已由上游 `umd-to-antd-vite` 步骤 3 在 `main.jsx` 正确放置，本节主要针对 scenario C（迁 react-intl）接线时。**高频踩坑点。** IntlProvider 必须是 `main.jsx` 中 `ConfigProvider` 的**直接子级**（不是在 `app.jsx`/AppShell 里），否则弹层（Dialog 等 portal）取不到业务文案报 `MISSING_TRANSLATION`；locale 用 `"zh"` 不是 `"zh-CN"`。完整代码（含 `Root` 包一层读 lang、合并 `componentsLocales` + 业务文案、反例对照）见 [i18n-migration.md](i18n-migration.md) §4。
+> scenario A/B 的 IntlProvider 已由上游 `umd-to-antd-vite` 步骤 3 在 `main.jsx` 正确放置，本节主要针对 scenario C（迁 react-intl）接线时。**高频踩坑点。** IntlProvider 必须在 `main.jsx` 最外层直接包 `<App/>`（不是在 `app.jsx`/AppShell 里），否则弹层（Dialog 等 portal）取不到业务文案报 `MISSING_TRANSLATION`；locale 用 `"zh"` 不是 `"zh-CN"`。完整代码（含 `Root` 包一层读 lang、合并 `componentsLocales` + 业务文案、反例对照）见 [i18n-migration.md](i18n-migration.md) §4。
 
 ```jsx
 // main.jsx 结构（详见 i18n-migration.md §4.1）
-<ConfigProvider>
-    <AppProvider>
-        <Root />           {/* Root 里读 lang → IntlProvider → App */}
-    </AppProvider>
-</ConfigProvider>
+<AppProvider>
+    <Root />           {/* Root 里读 lang → IntlProvider → App */}
+</AppProvider>
 ```
 
 ## 步骤 2：逐组件替换
@@ -230,7 +228,7 @@ node <skill目录>/scripts/check-imports.cjs <目标工程根>
 
 ### 4.4 图表 option 检查（必跑）
 
-> 对应 SKILL.md 硬约束⑪ + 已知坑点「图表 option 缺 a2ui:true 与 theme 标识」。源 Chart 封装在 `setSimpleOption` 前注入的 `theme` + `a2ui: true` 不会随包导入自动补——漏写则图表 a2ui 视觉规范失效、暗色不跟随。这是改 import 路径时最容易忘的项。
+> 对应 SKILL.md 硬约束⑪ + [Chart.md](components/Chart.md)「图表 option 缺 a2ui:true 与 theme 标识」。源 Chart 封装在 `setSimpleOption` 前注入的 `theme` + `a2ui: true` 不会随包导入自动补——漏写则图表 a2ui 视觉规范失效、暗色不跟随。这是改 import 路径时最容易忘的项。
 
 脚本 `scripts/check-chart-options.cjs`，检查两类问题：① 残留 `setSimpleOption(`（源 Chart 封装未替换为 `@nce/eview-react/Chart` 包导入）→ 硬 FAIL；② 每个 `<Chart option={X}>` 的 X 是否含 `a2ui: true` 与 `theme`——支持内联对象、变量定义（追同文件 `const X={...}`/`useMemo`）、`...chartBase` 聚合展开三种写法，追不到的外部变量标 advisory。
 
@@ -242,7 +240,7 @@ node <skill目录>/scripts/check-chart-options.cjs <目标工程根>
 
 ### 4.5 Table 默认值反向坑检查（advisory 必跑）
 
-> 对应 SKILL.md 已知坑点「Table 排序项/斑马纹/外层宽度/columns 更新」四连——eview-react 的 Table 多个默认值与 antd **相反**，迁移时最易忘、最常错。脚本无法访问源 antd 项目，故全 advisory：列出每个 `<Table>` 缺哪几项标记，**强制迁移方逐条对照源 antd 回应**（决策写入 `.migration-result.json` 的 `tableDefaultReviews`）。这一步把「靠 AI 记住」的约束变成「AI 必须逐条回应」。
+> 对应 [Table.md](components/Table.md) §4/§5「Table 排序项/斑马纹/外层宽度/columns 更新」四连——eview-react 的 Table 多个默认值与 antd **相反**，迁移时最易忘、最常错。脚本无法访问源 antd 项目，故全 advisory：列出每个 `<Table>` 缺哪几项标记，**强制迁移方逐条对照源 antd 回应**（决策写入 `.migration-result.json` 的 `tableDefaultReviews`）。这一步把「靠 AI 记住」的约束变成「AI 必须逐条回应」。
 
 脚本 `scripts/check-table-defaults.cjs`，对每个 `<Table>` 标六项：① `enableZebraCrossing`（eview 默认 true 开斑马纹 vs antd 默认无）、② `allowSort`（列级属性，eview 默认 true 全列带排序箭头 vs antd 默认无，检查 columns 数组每列是否标 allowSort）、③ `enableColumnCompareUpdate`（eview 默认 false，columns 动态失效）、④ `width`（eview 默认行内 100%/100% 撑破布局）、⑤ `freezeCol`（eview 无条件冻结，含则需确认源真会横向滚动）、⑥ **`columnsAllWidth`（列级，columns 所有列都带 width 会导致 eview-react Table 显示异常——应至少有一列不设 width 让其自适应剩余空间；脚本解析 columns 数组逐列检查 width，全列带 width 则报）**。
 
@@ -256,7 +254,7 @@ advisory 模式 exit 0，但每个待核 `<Table>` 必须在 `.migration-result.
 
 > 对应 SKILL.md 硬约束③ Provider。IntlProvider 放错位置是高频踩坑点：迁移时容易把 IntlProvider 跟着 AppShell 一起搬到 `app.jsx`/`context.jsx`，导致弹层（Dialog 等 portal）取不到业务文案报 `MISSING_TRANSLATION`。
 
-脚本 `scripts/check-provider.cjs`，基于 **scaffold 实际结构**：IntlProvider 应在 `main.jsx` 顶层 `render()` 最外层直接包 `<App/>`（scaffold 全程不用 ConfigProvider；硬约束③文本中「ConfigProvider 的直接子级」与 scaffold 实际结构不符，脚本不检查 ConfigProvider 存在性，避免误报正确产物）。检查四项：① main 文件无 `<IntlProvider>` → FAIL（被搬走）；② 非 main 文件含 `<IntlProvider>` → FAIL；③ `locale="zh-CN"` → FAIL（应为 `"zh"`）；④ main 无 `locale="zh"` → advisory（scenario C 变量注入需核对）。扫描前移除注释。
+脚本 `scripts/check-provider.cjs`，基于 **scaffold 实际结构**：IntlProvider 应在 `main.jsx` 顶层 `render()` 最外层直接包 `<App/>`。检查四项：① main 文件无 `<IntlProvider>` → FAIL（被搬走）；② 非 main 文件含 `<IntlProvider>` → FAIL；③ `locale="zh-CN"` → FAIL（应为 `"zh"`）；④ main 无 `locale="zh"` → advisory（scenario C 变量注入需核对）。扫描前移除注释。
 
 ```bash
 node <skill目录>/scripts/check-provider.cjs <目标工程根>
@@ -326,7 +324,7 @@ advisory 模式 exit 0，但每个待核 `<Steps>` 必须在 `.migration-result.
 | `Element type is invalid` | 缺 peer 依赖 | 补装 `@cloudsop/horizon` 等 |
 | 组件无样式 | 未引 css 或缺类名 | 引 `aui3_1.css` + `<body>` 加 `class="aui3_1"` |
 | 弹层文案是 key | 缺 IntlProvider | 加 `IntlProvider` + `messages` |
-| `MISSING_TRANSLATION: Missing message "xxx" for locale "zh"` | IntlProvider 放在 `app.jsx`/AppShell 里，不是 `ConfigProvider` 的直接子级 | 把 IntlProvider 搬到 `main.jsx` 作为 `ConfigProvider` 直接子级；详见 [i18n-migration.md](i18n-migration.md) §4 |
+| `MISSING_TRANSLATION: Missing message "xxx" for locale "zh"` | IntlProvider 放在 `app.jsx`/AppShell 里，不在 `main.jsx` 最外层 | 把 IntlProvider 搬到 `main.jsx` 最外层直接包 `<App/>`；详见 [i18n-migration.md](i18n-migration.md) §4 |
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 但 `data.js` 里 value 是短代码、i18n key 带前缀 | 在 render 里补命名空间前缀：`t("deviceType." + value, value)`；详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 

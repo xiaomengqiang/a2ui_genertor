@@ -45,6 +45,8 @@ const columns = [
 const rows = list.map((d) => ({ id: d.id, name: d.name, state: d.state, ip: d.ip, op: null }));
 ```
 
+> **操作列按钮间距**：antd 用 `<Space>` 或 `<Space size="middle">` 包裹按钮获得间距。迁移后不要用 `<>...</>` Fragment 包裹（无间距），改用 `<div style={{ display: 'flex', gap: '1rem' }}>`（gap 默认 `1rem`；源 antd `<Space>` 有显式 `size` 的按源值取，如 `size={24}`→`gap:'24px'`）。如需竖线分隔符见 [Divider.md](Divider.md) § 操作列。
+
 #### 列定义形状（ColumnProps 高频字段）
 
 ```tsx
@@ -112,6 +114,41 @@ const expandedRow = (row: any) => {
 };
 <Table … onRowClick={(row: any, event) => openDetail(row?.rawData)} enableRowExpand onRowExpend={expandedRow} />
 ```
+
+### 分页栏位置偏移
+
+> **实测坑**：eview-react 的 Table 自带分页栏渲染在**表格组件内部**底部（`Table/index.css` 第 423-425 行 `.ev_table_has_paging { height: calc(100% - 3rem); }`），这个百分比高度相对于 Table 外层容器计算。当外层容器无固定高度（由内容撑开）且父容器有 `padding`（如卡片容器 `.device-table { padding: var(--spacing-inset); }`）时：
+> - **无 `maxHeight`**：`calc(100% - 3rem)` 计算失效（父容器无固定高度），表格内容撑开后分页栏被推到父容器 padding 区域之外，视觉上超出白色卡片底部。
+> - **设 `maxHeight`**：表格内容区被约束在 `maxHeight` 内，分页栏在内部底部不会超出；但内容很少时会留过多空白，不够灵活。
+
+**方案 A（推荐 —— 覆盖组件库 CSS，适合内容动态变化场景）**：
+
+```css
+/* 在业务 CSS 中覆盖组件库的百分比高度，让表格内容由内容自然撑开 */
+.device-table .ev_table_has_paging {
+  height: auto;
+}
+.device-table .ev_paging.ev_table_paging {
+  height: auto;
+  padding-top: 1rem;
+}
+```
+
+表格内容区 `height: auto` 由行数自然决定，分页栏紧随其后排列在内容区下方，被父容器的 `padding` 完整包裹。
+
+**方案 B（适合固定高度卡片场景）**：
+
+```jsx
+<Table
+  dataset={rows}
+  enablePagination
+  enableAutoPaging
+  pageSize={8}
+  maxHeight={480}      // 约束表格内容区高度，让分页栏在表格底部以内
+/>
+```
+
+> `maxHeight` 不含分页栏高度，`maxHeight + 分页栏` = 表格总高度。详见 §5 API 速查 `height`/`minHeight`/`maxHeight`。
 
 ## 3. 联动说明
 

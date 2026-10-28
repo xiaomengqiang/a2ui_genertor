@@ -6,11 +6,9 @@
  * 迁移时容易把 IntlProvider 跟着 AppShell 一起搬到 app.jsx/context.jsx，
  * 导致弹层（Dialog 等 portal）取不到业务文案报 MISSING_TRANSLATION。
  *
- * 注意——基于 scaffold 实际结构：scaffold main.jsx 的正确形态是 IntlProvider
- * 在 main.jsx 顶层 render() 的最外层直接包 <App/>（无 ConfigProvider 包裹，
- * scaffold 全程不使用 ConfigProvider；硬约束③文本中「ConfigProvider 的直接子级」
- * 与 scaffold 实际结构不符，故本脚本不检查 ConfigProvider 存在性，只检查 IntlProvider
- * 在 main.jsx + locale 正确）。这样脚本不会误报正确的 scaffold 产物。
+ * 基于 scaffold 实际结构：scaffold main.jsx 的正确形态是 IntlProvider
+ * 在 main.jsx 顶层 render() 的最外层直接包 <App/>。脚本检查 IntlProvider
+ * 在 main.jsx + locale 正确。
  *
  * 检查项：
  *   1. INTLPROVIDER_NOT_IN_MAIN  main.jsx 不含 <IntlProvider → FAIL（应无 main 文件，或被搬走）

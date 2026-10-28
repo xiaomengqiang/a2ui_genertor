@@ -50,6 +50,12 @@ import { IconPlusIcPublicInfo } from '@hui/icon-plus';
 - 关闭 / 自动消失 → `setNotice(null)`（自动消失时组件不回调 `onClose`，靠换 key 即可，不必同步 state）
 - 定位分两种模式：页面级全局提示用 `position: fixed` 浮在屏幕顶部居中（见 §2 示例，复刻 antd `message`）；区域级提示可 inline 放在被操作区上方（不脱离文档流）。DivMessage 自身不管定位，选哪种都靠外层包裹元素承接。
 
+### 通知浮层与输入组件焦点竞争
+
+> **实测坑**：`DivMessage` 通过 `setNotice` 渲染在父组件渲染树中时，每次 `notify` 产生新的 `notice` 对象导致父组件重渲染。`DivMessage` 挂载时触发的副作用（焦点竞争）导致 eview-react 输入组件（TextField、Select 等）在重渲染中丢失焦点。
+
+**解决**：在 `setField` / `onChange` 等用户输入回调中调用 `setNotice(null)` 关闭浮层，避免焦点竞争。如果需保留提示，可把通知浮层抽离为独立组件（如 `createPortal` 到 `document.body` + 独立 `useState`），使其不参与表单组件的渲染树。
+
 ## 4. 反面示例
 
 ```tsx
