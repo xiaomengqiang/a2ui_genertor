@@ -649,6 +649,81 @@ function resolveArrayDecl(arrName, renderFile, textCache) {
   return null;
 }
 
+// ─── 对象地图图标解析（cat = OBJ[runtimeKey]; cat.icon）──────────────────────
+// 对象地图形态：const cat = CATEGORY_STYLE[first.cat]; <Icon name={cat.icon}/>
+// CATEGORY_STYLE 是 const OBJ = { k1: { icon: "lit1", ... }, k2: { icon: "lit2", ... } } 静态闭合对象。
+// 与数据数组（name={t.icon} 绑 const ARR = [...]）互补：Phase B 的 resolveArrayDecl 只找 `= [`，
+// 对象地图 `= {` 走本组函数。命中后复用数据数组全部改写机制（buildDataIconElement/wrapIfNeeded/
+// dataIconSites apply 路径/renameJsxFiles+fixExplicitExtensionImports），只新增「对象字面量解析」。
+
+// 扫 const|let|var IDENT = OBJ[...] / IDENT = OBJ.member（OBJ 为标识符），返回源对象名 OBJ 或 null。
+// 覆盖 const cat = CATEGORY_STYLE[first.cat] 与 const cat = CATEGORY_STYLE[x.cat]。
+// 不收 IDENT = OBJ（无下标/无成员链）——那是整个对象赋值，cat.icon 访问对象本身非其值字段，另走它法。
+function findObjectMapBinding(text, ident) {
+  const esc = ident.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // 等号右侧须是「标识符 + 至少一个下标 [..] 或 .member」——排除 IDENT = {（对象声明自身）/ IDENT = lit
+  const re = new RegExp(
+    `\\b(?:const|let|var)\\s+${esc}\\s*=\\s*([A-Za-z_$][\\w$]*)\\s*(?:\\[[^\\]]+\\]+|\\.[A-Za-z_$][\\w$]*)`
+  );
+  const m = re.exec(text);
+  return m ? m[1] : null;
+}
+
+// 在 text 里找 `(?:export )?(?:const|let|var) OBJ = {`，返回 '{' 的索引；找不到返回 -1。
+function findObjectDecl(text, objName) {
+  const esc = objName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`(?:export\\s+)?(?:const|let|var)\\s+${esc}\\s*=\\s*(\\{)`, 'g');
+  const m = re.exec(text);
+  if (!m) return -1;
+  return m.index + m[0].length - 1; // 指向 '{'
+}
+
+// 解析对象变量 OBJ 的声明位置：先同文件（renderFile），再跨文件按名唯一性找；
+// 返回 { objFile, objOpenIdx } 或 null（找不到/多名歧义）。
+function resolveObjectDecl(objName, renderFile, textCache) {
+  const renderText = textCache.get(renderFile);
+  const idx = findObjectDecl(renderText, objName);
+  if (idx !== -1) return { objFile: renderFile, objOpenIdx: idx };
+  const hits = [];
+  for (const [f, t] of textCache) {
+    if (f === renderFile) continue;
+    const i2 = findObjectDecl(t, objName);
+    if (i2 !== -1) hits.push({ file: f, idx: i2 });
+  }
+  if (hits.length === 1) return { objFile: hits[0].file, objOpenIdx: hits[0].idx };
+  return null;
+}
+
+// 在对象字面量（objOpenIdx 指向 '{'）内抓所有 `FIELD: "lit"` 字符串字面量条目（含 offset/length/raw）。
+// 对象地图值是 { icon: "smartphone", text: ..., bg: ... }——抓内层 icon:（与 extractDataIconFields
+// 同正则，作用域换成 balancedSlice 对象内层文本，offset 相对全文）。
+function extractObjectIconFields(text, objOpenIdx, fieldName) {
+  const slice = balancedSlice(text, objOpenIdx);
+  if (!slice) return [];
+  const base = objOpenIdx + 1;
+  const esc = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`\\b${esc}\\s*:\\s*["']([^"']*)["']`, 'g');
+  const out = [];
+  let m;
+  while ((m = re.exec(slice.inner)) !== null) {
+    out.push({ value: m[1], offset: base + m.index, length: m[0].length, raw: m[0] });
+  }
+  return out;
+}
+
+// 对象里是否存在非字符串字面量的 FIELD 值（变量/三元/标识符等）→ 集合不封闭，不能安全转 icon+ 元素。
+function hasNonLiteralObjectField(text, objOpenIdx, fieldName) {
+  const slice = balancedSlice(text, objOpenIdx);
+  if (!slice) return true; // 解析不出就保守当非封闭
+  const esc = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`\\b${esc}\\s*:\\s*([^,}\\n]+?)\\s*(?=[,}\\n])`, 'g');
+  let m;
+  while ((m = re.exec(slice.inner)) !== null) {
+    if (!/^["'][^"']*["']$/.test(m[1].trim())) return true;
+  }
+  return false;
+}
+
 // ─── 调用点扫描 ─────────────────────────────────────────────────────────────
 
 // 捕获 <Icon .../> 标签（含多行、嵌在 prop 内）。返回 [{ offset, tag, file, line }]
@@ -706,7 +781,7 @@ function scanDynamicIcons(text, constMap) {
   const ternaryChained = [];
   const variables = [];
   const literals = [];
-  const members = []; // 成员表达式 name={IDENT.FIELD}：交 Phase B 解析同文件静态数组（命中→dataIconSite，追不到源→runtimeData）
+  const members = []; // 成员表达式 name={IDENT.FIELD}：交 Phase B 解析同文件/跨文件静态数组/对象地图（命中→dataIconSite，追不到源→untraced，交 LLM+gate）
   const re = /<Icon\b[\s\S]*?(?:\/>|<\/Icon>)/g;
   let m;
   while ((m = re.exec(text)) !== null) {
@@ -916,13 +991,19 @@ function reportConsole(scan, byName) {
     }
   }
 
-  // 链式/嵌套三元 → leaf 候选交 LLM 拼装
+  // 链式/嵌套三元 → 全 leaf confirmed 自动改写；任一 residual 交 LLM 拼装
   if (scan.chainedTernarySites && scan.chainedTernarySites.length) {
     console.log('');
-    console.log(`链式/嵌套三元 name（交 LLM 拼装条件渲染）: ${scan.chainedTernarySites.length} 处`);
+    console.log(`链式/嵌套三元 name（全 leaf confirmed → 自动 nested 条件渲染；任一 residual → 交 LLM 拼装）: ${scan.chainedTernarySites.length} 处`);
     for (const t of scan.chainedTernarySites) {
-      console.log(`  ${rel(t.file)}:${t.line}  cond: ${t.cond}`);
+      const flag = t.allConfirmed ? '[confirmed]' : '[residual，交 LLM 拼装]';
+      console.log(`  ${rel(t.file)}:${t.line}  cond: ${t.cond}  ${flag}`);
       console.log(`    - ${t.original.trim()}`);
+      if (t.allConfirmed) {
+        const importNames = [...new Set(t.leafCandidates.map((c) => c.match.componentName))].join(', ');
+        console.log(`    + import { ${importNames} } from '@hui/icon-plus';`);
+        console.log(`    + ${t.replacement}`);
+      }
       for (const c of t.leafCandidates) {
         const st = c.match.status === 'confirmed' ? c.match.level : `${c.match.level}(residual)`;
         console.log(`    + leaf ${c.sourceName} → ${c.match.componentName} (${st})  候选: ${fmtCandidates(c.match.candidates)}`);
@@ -957,11 +1038,12 @@ function reportConsole(scan, byName) {
     }
   }
 
-  // 运行时数据图标：name={IDENT.FIELD} 绑不到同文件/跨文件静态数组（接口/props）→ 保留 <Icon> 走方案A，仅修 shim import 路径
-  if (scan.runtimeDataSites && scan.runtimeDataSites.length) {
+  // untraced 图标：name={IDENT.FIELD} 追不到同文件/跨文件静态容器/const（含跨边界 props/useMemo/推入函数）→ 不 auto-保方案A、不断言 runtime
+  // ——keep 残留 <Icon> shim 可运行（修 import），每处交 LLM 按 closed-set 原则判：闭集→转 / 真 OPEN→保 shim；check-icon-shim.cjs --strict 拦闭集误留
+  if (scan.untracedSites && scan.untracedSites.length) {
     console.log('');
-    console.log(`运行时数据图标（追不到静态数组源=真运行时，保留 <Icon> 走方案A，修 shared/Icon shim 路径，具名→默认导入）: ${scan.runtimeDataSites.length} 处`);
-    for (const r of scan.runtimeDataSites) {
+    console.log(`追不到源（untraced，交 LLM 按 closed-set 原则判：闭集→转 icon+ / 真 OPEN→保 shim；脚本 keep shim 可运行+修 import，gate 拦闭集误留）: ${scan.untracedSites.length} 处`);
+    for (const r of scan.untracedSites) {
       console.log(`  ${rel(r.file)}:${r.line}  name={${r.expr}}  [${r.reason}]`);
       console.log(`    - ${r.original.trim()}`);
     }
@@ -1048,19 +1130,27 @@ function writeJson(scan, byName, outPath) {
       ],
     };
   });
-  const chainedTernarySites = (scan.chainedTernarySites || []).map((t) => ({
-    file: rel(t.file),
-    line: t.line,
-    cond: t.cond,
-    original: t.original.trim(),
-    leafCandidates: t.leafCandidates.map((c) => ({
-      sourceName: c.sourceName,
-      status: c.match.status,
-      matchLevel: c.match.level,
-      componentName: c.match.componentName,
-      candidates: c.match.candidates || undefined,
-    })),
-  }));
+  const chainedTernarySites = (scan.chainedTernarySites || []).map((t) => {
+    if (t.allConfirmed) {
+      const f = rel(t.file);
+      t.leafCandidates.forEach((c) => (imports[f] = imports[f] || new Set()).add(c.match.componentName));
+    }
+    return {
+      file: rel(t.file),
+      line: t.line,
+      cond: t.cond,
+      allConfirmed: t.allConfirmed === true,
+      original: t.original.trim(),
+      replacement: t.replacement,
+      leafCandidates: t.leafCandidates.map((c) => ({
+        sourceName: c.sourceName,
+        status: c.match.status,
+        matchLevel: c.match.level,
+        componentName: c.match.componentName,
+        candidates: c.match.candidates || undefined,
+      })),
+    };
+  });
   const variableSites = (scan.variableSites || []).map((v) => ({
     file: rel(v.file),
     line: v.line,
@@ -1093,7 +1183,7 @@ function writeJson(scan, byName, outPath) {
       })),
     };
   });
-  const runtimeDataSites = (scan.runtimeDataSites || []).map((r) => ({
+  const untracedSites = (scan.untracedSites || []).map((r) => ({
     file: rel(r.file),
     line: r.line,
     expr: r.expr,
@@ -1152,18 +1242,18 @@ function writeJson(scan, byName, outPath) {
       variableCount: variableSites.length,
       dataIconSiteCount: dataIconSites.length,
       dataIconPlaceholderCount,
-      runtimeDataCount: runtimeDataSites.length,
+      untracedCount: untracedSites.length,
       propWrapperSiteCount: propWrapperSites.length,
       propWrapperResidualCount: propWrapperResidual.length,
       propWrapperPlaceholderCount,
-      needsLlmReview: residualCount + ternarySites.filter((t) => !t.allConfirmed).length + chainedTernarySites.length + variableSites.length + dataIconPlaceholderCount + runtimeDataSites.length + propWrapperResidual.length,
+      needsLlmReview: residualCount + ternarySites.filter((t) => !t.allConfirmed).length + chainedTernarySites.filter((t) => !t.allConfirmed).length + variableSites.length + dataIconPlaceholderCount + untracedSites.length + propWrapperResidual.length,
     },
     icons,
     ternarySites,
     chainedTernarySites,
     variableSites,
     dataIconSites,
-    runtimeDataSites,
+    untracedSites,
     propWrapperSites,
     propWrapperResidual,
     imports: Object.fromEntries(Object.entries(imports).map(([k, v]) => [k, [...v].sort()])),
@@ -1202,6 +1292,15 @@ function applyRewrites(scan, byName, srcDir) {
     if (/<IconPlusIc\b/.test(t.tag)) continue;
     p.edits.push({ tag: t.tag, offset: t.offset, repl: t.replacement });
   }
+  // 链式/嵌套三元 name 调用点：全 leaf confirmed 才自动改写（同扁平三元机制：leaf 按序换 icon+ 元素 → nested 条件渲染）
+  for (const t of scan.chainedTernarySites || []) {
+    if (!t.allConfirmed) continue;
+    const p = plan(t.file);
+    t.leafCandidates.forEach((c) => p.imports.add(c.match.componentName));
+    // 幂等：tag 已含 IconPlusIc（前次已改写），跳过
+    if (/<IconPlusIc\b/.test(t.tag)) continue;
+    p.edits.push({ tag: t.tag, offset: t.offset, repl: t.replacement });
+  }
   // 数据数组图标站点：数组里 FIELD:"lit" → FIELD:<Comp .../>（在 arrayFile），render <Icon name={t.field}/> → {t.field}（在 renderFile）；组件 import 进 arrayFile
   for (const d of scan.dataIconSites || []) {
     const ap = plan(d.arrayFile);
@@ -1233,17 +1332,16 @@ function applyRewrites(scan, byName, srcDir) {
   // 旧 Icon import 清理正则（文件已无 <Icon 调用时移除）：覆盖 legacy 具名 shared/icon(s).jsx（scaffold 旧产物/源项目）与新默认 @/shared/Icon（scaffold 重构后）
   const oldIconImportRe = /^\s*import\s*(?:\{\s*Icon\s*\}|Icon)\s*from\s*['"](?:[^'"]*?(?:assets\/)?shared\/icons?\.jsx?|@\/shared\/Icon)['"];?\s*\r?\n?/gm;
 
-  // 运行时数据站点所在文件 + 安全闸退 A 的 wrapper 文件：保留 <Icon> 走方案A，仅修 shared/icon shim 的 import 路径（assets/shared → @/shared/Icon，具名→默认）
-  const runtimeFiles = new Set(
-    (scan.runtimeDataSites || []).map((r) => r.file).concat(scan.shimKeepFiles || [])
+  // untraced 站点（追不到源）+ 安全闸 wrapper 残留文件：纳入 byFile 以触写（不 auto-保方案A、不断言 runtime——
+  // 仅 keep 残留 <Icon> shim 可运行：修 import 路径让产物不崩，每处残留交 LLM 按 closed-set 原则判、check-icon-shim --strict 拦）
+  const untracedFiles = new Set(
+    (scan.untracedSites || []).map((r) => r.file).concat(scan.shimKeepFiles || [])
   );
-  for (const f of runtimeFiles) plan(f); // 纳入 byFile 以触发 fixShimImportPath（即便无其他改写）
+  for (const f of untracedFiles) plan(f); // 纳入 byFile 以触写（即便无其他改写，仍修 shim import 让残留 <Icon> 可运行）
 
   let touched = 0;
   for (const [file, { edits, imports }] of byFile) {
     let text = fs.readFileSync(file, 'utf8');
-    // 方案A：修 shim import 路径（assets/shared/icon → @/shared/Icon，具名→默认）
-    if (runtimeFiles.has(file)) text = fixShimImportPath(text);
     // 解析每个 edit 的实际位置（offset 可能因前序编辑漂移，先按 offset 定位，失败再从头找）
     const resolved = [];
     const seenFrom = new Set(); // 同位置多 edit（多个 render 站点引用同一数组条目）去重，仅取首个
@@ -1256,10 +1354,12 @@ function applyRewrites(scan, byName, srcDir) {
       resolved.push({ from: idx, to: idx + e.tag.length, repl: e.repl });
     }
     if (!resolved.length) {
-      // 调用点都已改写但 import 仍缺 → 补 import + 清旧 shim import + 方案A 路径修正
-      if (!imports.size && !runtimeFiles.has(file)) continue;
+      // 调用点都已改写但 import 仍缺 / untraced 文件 → 补 import + 残留 <Icon> 修 shim 路径
+      if (!imports.size && !untracedFiles.has(file)) continue;
       if (imports.size) text = ensureImport(text, [...imports].sort());
-      if (!/<Icon\b/.test(text)) text = text.replace(oldIconImportRe, '');
+      // 残留 <Icon>（untraced / 真 OPEN）→ 修 shim import 让其可运行（不断言方案A，gate 拦闭集误留）；无 <Icon> → 清旧 import
+      if (/<Icon\b/.test(text)) text = fixShimImportPath(text);
+      else text = text.replace(oldIconImportRe, '');
       fs.writeFileSync(file, text, 'utf8');
       touched++;
       continue;
@@ -1271,16 +1371,15 @@ function applyRewrites(scan, byName, srcDir) {
     }
     // 注入 @hui/icon-plus import（幂等：已有则合并去重）
     if (imports.size) text = ensureImport(text, [...imports].sort());
-    // 若文件已无 <Icon 调用，移除旧的 shared/Icon(默认) 或 legacy shared/icon(x)(具名) Icon import
-    if (!/<Icon\b/.test(text)) {
-      text = text.replace(oldIconImportRe, '');
-    }
+    // 残留 <Icon>（untraced / 真 OPEN）→ 修 shim import 让其可运行（不断言方案A，gate 拦闭集误留）；无 <Icon> → 清旧 import
+    if (/<Icon\b/.test(text)) text = fixShimImportPath(text);
+    else text = text.replace(oldIconImportRe, '');
     fs.writeFileSync(file, text, 'utf8');
     touched++;
   }
 
   // .js→.jsx / .ts→.tsx 转换 pass：本次改写引入 JSX（替换串含 <IconPlusIc）的 .js/.ts 文件转扩展名，并修引用方显式扩展名 import
-  const renamed = renameJsxFiles(byFile, runtimeFiles);
+  const renamed = renameJsxFiles(byFile, untracedFiles);
   if (renamed.size) {
     fixExplicitExtensionImports(renamed, srcDir);
     console.log(`[match-icons] --apply: ${renamed.size} 个 .js/.ts 文件转 .jsx/.tsx（引入 JSX）并修引用方显式扩展名 import。`);
@@ -1294,7 +1393,7 @@ function editIntroducesJsx(edits) {
 }
 
 // 把因改写引入 JSX 的 .js→.jsx / .ts→.tsx 重命名，写回新路径删旧；返回 Map<oldAbs,newAbs>。仅扫本次有改写的文件（byFile keys）+ 方案A 文件（保留 <Icon>，但其引用方可能因 data 文件重命名需修）。
-function renameJsxFiles(byFile, runtimeFiles) {
+function renameJsxFiles(byFile, untracedFiles) {
   const renamed = new Map();
   for (const [file, { edits }] of byFile) {
     if (!editIntroducesJsx(edits)) continue;
@@ -1414,10 +1513,10 @@ function main() {
     chainedTernarySites: [],
     variableSites: [],
     dataIconSites: [],
-    runtimeDataSites: [],
+    untracedSites: [], // 追不到源（含跨边界 props/useMemo/推入函数）→ 不断言 runtime、不 auto-保方案A：keep 残留 <Icon> shim 可运行 + 修 import，交 LLM 按 closed-set 判、gate 拦
     propWrapperSites: [], // 图标-prop wrapper（自动改写）：调用点 icon= → icon={<IconPlusIc…/>} + 内部 → {icon}
-    propWrapperResidual: [], // 安全闸退方案 A 的 wrapper（不可静态解析的 icon={expr} 调用方）
-    shimKeepFiles: [], // 保留 <Icon> 走方案 A 的文件（修 shared/icon shim 路径）：skipped/歧义 wrapper
+    propWrapperResidual: [], // 安全闸 wrapper（任一调用方不可静态解析）→ 整组 untraced 交 LLM+gate（不 auto-保方案A）
+    shimKeepFiles: [], // untraced wrapper 文件（歧义/safety-gate）：keep 残留 shim 可运行 + 修 import，gate 拦
   };
   // byName: sourceName -> { normalized, match, sites: [{file,line,original,replacement,offset,tag}] }
   const byName = {};
@@ -1465,7 +1564,7 @@ function main() {
     scan.totalSites++;
   }
 
-  // 链式/嵌套三元：各字面量分支 leaf 各自匹配，交 LLM 拼装条件渲染
+  // 链式/嵌套三元：各字面量分支 leaf 各自匹配；**全 leaf confirmed → 自动拼 nested 条件渲染**（同扁平三元）；任一 residual → 交 LLM 拼装
   function addChainedTernarySite(t, file, text) {
     const line = lineOfOffset(text, t.offset);
     const props = extractIconProps(t.tag);
@@ -1475,6 +1574,14 @@ function main() {
       const match = byName[srcName] ? byName[srcName].match : match1(normalized);
       return { sourceName: srcName, normalized, match, replacement: buildReplacement(match, props, context) };
     });
+    const allConfirmed = leafCandidates.every((c) => c.match.status === 'confirmed');
+    // 构 nested 条件渲染：t.cond 里每个字面量 leaf 按 leafRe 出现序换成对应 icon+ 元素（条件部分含字面量的边角形态不在自动范围）
+    let leafIdx = 0;
+    const inner = t.cond.replace(/["']([^"']*)["']/g, () => {
+      const lc = leafCandidates[leafIdx++];
+      return lc.replacement;
+    });
+    const replacement = wrapIfNeeded(inner, text, t.offset);
     scan.chainedTernarySites.push({
       file,
       line,
@@ -1483,6 +1590,8 @@ function main() {
       original: t.tag,
       cond: t.cond,
       leafCandidates,
+      replacement,
+      allConfirmed,
     });
     scan.totalSites++;
   }
@@ -1560,7 +1669,7 @@ function main() {
     }
   }
 
-  // Phase B：解析成员表达式站点 → dataIconSite（同文件/跨文件静态数组）或 runtimeDataSite（追不到源=真运行时）
+  // Phase B：解析成员表达式站点 → dataIconSite（同文件/跨文件静态数组/对象地图）或 untracedSite（追不到源→交 LLM 按 closed-set 判，不 auto-保方案A）
   for (const site of memberSites) {
     const renderText = textCache.get(site.file);
     // 绑定数组变量名 ARR：root 是循环变量（.map/forEach/for-of 绑到 ARR）；否则 root 自身是数组常量（直接索引 MENU[0].icon）
@@ -1571,28 +1680,61 @@ function main() {
       directArray = true;
     }
     const decl = resolveArrayDecl(arrName, site.file, textCache);
+    // 对象地图回退：arrName 解析不到数组 const 时，root 可能是「= OBJ[runtimeKey] 的局部变量」
+    // （const cat = CATEGORY_STYLE[key]），或 root 直接是对象名（<Icon name={CATEGORY_STYLE[x].icon}/>）。
+    // 命中后与数据数组共用同一 dataIconSite 形态 + apply 路径（buildDataIconElement/wrapIfNeeded/renameJsxFiles）。
+    let objName = null;
+    let objDecl = null;
+    let directObject = false;
     if (!decl) {
-      // 追不到源（无循环绑定且 root 非任何已扫文件中的数组常量 / 跨文件多名歧义）→ 真运行时数据 → 方案A
-      scan.runtimeDataSites.push({
+      objName = findObjectMapBinding(renderText, site.root);
+      if (!objName) {
+        objName = site.root; // 直接形态：root 即对象名（resolveObjectDecl 会验证它确为对象常量）
+        directObject = true;
+      }
+      objDecl = resolveObjectDecl(objName, site.file, textCache);
+    }
+    if (!decl && !objDecl) {
+      // 追不到源（无循环绑定且 root 非任何已扫文件中的数组/对象常量 / 跨文件多名歧义 / 跨边界 props）→ untraced：交 LLM 按 closed-set 判（闭集→转 / 真 OPEN→保 shim），不 auto-保方案A
+      scan.untracedSites.push({
         file: site.file, line: site.line, offset: site.offset, tag: site.tag, original: site.tag,
         expr: site.expr, reason: 'no-loop-binding-or-array-const',
       });
       continue;
     }
-    const { arrayFile, arrOpenIdx } = decl;
-    const arrText = textCache.get(arrayFile);
+    // 容器：数组（decl）或对象地图（objDecl）。统一取容器文件文本 + 开括号索引 + 闭合性/抽取函数。
+    let containerFile, containerOpenIdx, containerName, directContainer;
+    let fnHasNonLiteral, fnExtract, nonLiteralReason;
+    if (decl) {
+      containerFile = decl.arrayFile;
+      containerOpenIdx = decl.arrOpenIdx;
+      containerName = arrName;
+      directContainer = directArray;
+      fnHasNonLiteral = hasNonLiteralField;
+      fnExtract = extractDataIconFields;
+      nonLiteralReason = 'non-literal-field-in-array';
+    } else {
+      containerFile = objDecl.objFile;
+      containerOpenIdx = objDecl.objOpenIdx;
+      containerName = objName;
+      directContainer = directObject;
+      fnHasNonLiteral = hasNonLiteralObjectField;
+      fnExtract = extractObjectIconFields;
+      nonLiteralReason = 'non-literal-field-in-object';
+    }
+    const containerText = textCache.get(containerFile);
     // 集合不封闭（含非字符串字面量字段）→ 不能安全转元素，退方案A
-    if (hasNonLiteralField(arrText, arrOpenIdx, site.fieldName)) {
-      scan.runtimeDataSites.push({
+    if (fnHasNonLiteral(containerText, containerOpenIdx, site.fieldName)) {
+      scan.untracedSites.push({
         file: site.file, line: site.line, offset: site.offset, tag: site.tag, original: site.tag,
-        expr: site.expr, reason: 'non-literal-field-in-array',
+        expr: site.expr, reason: nonLiteralReason,
       });
       continue;
     }
-    const entries = extractDataIconFields(arrText, arrOpenIdx, site.fieldName);
+    const entries = fnExtract(containerText, containerOpenIdx, site.fieldName);
     if (!entries.length) {
-      // 数组里没有该字段的字符串字面量（可能全是非字面量，或字段名不匹配）
-      scan.runtimeDataSites.push({
+      // 容器里没有该字段的字符串字面量（可能全是非字面量，或字段名不匹配）
+      scan.untracedSites.push({
         file: site.file, line: site.line, offset: site.offset, tag: site.tag, original: site.tag,
         expr: site.expr, reason: 'no-string-literal-entries',
       });
@@ -1626,11 +1768,11 @@ function main() {
       renderOriginal: site.tag,
       renderReplacement: renderRepl,
       renderExpr: site.expr,
-      arrayFile,
-      arrayName: arrName,
+      arrayFile: containerFile,
+      arrayName: containerName,
       fieldName: site.fieldName,
       root: site.root,
-      directArray,
+      directArray: directContainer,
       entries: resolved,
     });
   }
@@ -1726,25 +1868,43 @@ function main() {
             } else if (memMatch) {
               const ident = memMatch[1];
               const fieldName = memMatch[2];
+              // 统一容器解析（同 Phase B）：先数组（循环绑定/直接索引），失败则对象地图回退（const cat=OBJ[key] / 直接 OBJ[key].field）
               let arrName = findLoopBinding(ct, ident);
               let directArray = false;
               if (!arrName) { arrName = ident; directArray = true; }
-              const decl = resolveArrayDecl(arrName, cf, textCache);
+              let decl = resolveArrayDecl(arrName, cf, textCache);
+              let containerKind = 'array';
+              let containerName = arrName;
+              let directContainer = directArray;
               if (!decl) {
-                c.kind = 'unresolvable'; c.expr = expr; callers.push(c);
-                skipped = true; skipReason = skipReason || 'no-array-source'; continue;
+                let objName = findObjectMapBinding(ct, ident);
+                let directObject = false;
+                if (!objName) { objName = ident; directObject = true; }
+                const objDecl = resolveObjectDecl(objName, cf, textCache);
+                if (!objDecl) {
+                  c.kind = 'unresolvable'; c.expr = expr; callers.push(c);
+                  skipped = true; skipReason = skipReason || 'no-traceable-source'; continue;
+                }
+                decl = { containerFile: objDecl.objFile, containerOpenIdx: objDecl.objOpenIdx };
+                containerKind = 'object';
+                containerName = objName;
+                directContainer = directObject;
+              } else {
+                decl = { containerFile: decl.arrayFile, containerOpenIdx: decl.arrOpenIdx };
               }
-              const arrText = textCache.get(decl.arrayFile);
-              if (hasNonLiteralField(arrText, decl.arrOpenIdx, fieldName)) {
+              const containerText = textCache.get(decl.containerFile);
+              const fnHasNonLiteral = containerKind === 'array' ? hasNonLiteralField : hasNonLiteralObjectField;
+              const fnExtract = containerKind === 'array' ? extractDataIconFields : extractObjectIconFields;
+              if (fnHasNonLiteral(containerText, decl.containerOpenIdx, fieldName)) {
                 c.kind = 'unresolvable'; c.expr = expr; callers.push(c);
-                skipped = true; skipReason = skipReason || 'non-literal-field'; continue;
+                skipped = true; skipReason = skipReason || (containerKind === 'array' ? 'non-literal-field' : 'non-literal-field-in-object'); continue;
               }
-              const entries0 = extractDataIconFields(arrText, decl.arrOpenIdx, fieldName);
+              const entries0 = fnExtract(containerText, decl.containerOpenIdx, fieldName);
               if (!entries0.length) {
                 c.kind = 'unresolvable'; c.expr = expr; callers.push(c);
                 skipped = true; skipReason = skipReason || 'no-string-literal-entries'; continue;
               }
-              c.kind = 'member'; c.ident = ident; c.fieldName = fieldName; c.arrName = arrName; c.directArray = directArray; c.decl = decl; callers.push(c);
+              c.kind = 'member'; c.ident = ident; c.fieldName = fieldName; c.containerName = containerName; c.directContainer = directContainer; c.decl = decl; c.containerKind = containerKind; callers.push(c);
             } else {
               c.kind = 'unresolvable'; c.expr = expr; callers.push(c);
               skipped = true; skipReason = skipReason || 'unparsable-icon-expr';
@@ -1788,9 +1948,10 @@ function main() {
           importSet.add(ac); importSet.add(bc);
           hasConvertCaller = true;
         } else if (c.kind === 'member') {
-          // 数据数组元素化 → push dataIconSite，render 站点 = wrapper 内部（与 propWrapperSites 内部 edit 同位，seenFrom 去重）
-          const arrText = textCache.get(c.decl.arrayFile);
-          const entries = extractDataIconFields(arrText, c.decl.arrOpenIdx, c.fieldName).map((e) => {
+          // 容器元素化（数组/对象地图）→ push dataIconSite，render 站点 = wrapper 内部（与 propWrapperSites 内部 edit 同位，seenFrom 去重）
+          const containerText = textCache.get(c.decl.containerFile);
+          const fnExtract = c.containerKind === 'array' ? extractDataIconFields : extractObjectIconFields;
+          const entries = fnExtract(containerText, c.decl.containerOpenIdx, c.fieldName).map((e) => {
             const norm = normalizeSourceName(e.value);
             const mres = byName[e.value] ? byName[e.value].match : match1(norm);
             const comp = mres.status === 'confirmed' ? mres.componentName : PLACEHOLDER.componentName;
@@ -1800,7 +1961,7 @@ function main() {
           scan.dataIconSites.push({
             renderFile: wrapperFile, renderLine: wrapperLine, renderOffset, renderTag, renderOriginal: renderTag,
             renderReplacement: internalReplacement, renderExpr: 'icon',
-            arrayFile: c.decl.arrayFile, arrayName: c.arrName, fieldName: c.fieldName, root: c.ident, directArray: c.directArray,
+            arrayFile: c.decl.containerFile, arrayName: c.containerName, fieldName: c.fieldName, root: c.ident, directArray: c.directContainer,
             entries,
           });
           hasConvertCaller = true;
@@ -1823,10 +1984,10 @@ function main() {
   const residualCount =
     Object.keys(byName).filter((n) => byName[n].match.status !== 'confirmed').length +
     (scan.ternarySites || []).filter((t) => !t.allConfirmed).length +
-    (scan.chainedTernarySites || []).length +
+    (scan.chainedTernarySites || []).filter((t) => !t.allConfirmed).length +
     (scan.variableSites || []).length +
     (scan.dataIconSites || []).reduce((a, d) => a + d.entries.filter((e) => e.isPlaceholder).length, 0) +
-    (scan.runtimeDataSites || []).length +
+    (scan.untracedSites || []).length +
     (scan.propWrapperResidual || []).length;
   console.log(`\n[match-icons] 报告写入临时目录 ${outPath}（residual ${residualCount} 处待 LLM 复核；不进产物）`);
 
