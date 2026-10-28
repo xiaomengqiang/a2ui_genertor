@@ -128,11 +128,6 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 > **Table 外层宽度**：eview-react 的 Table **默认给最外层 dom 加行内样式 `width:100%;height:100%;`**，在 flex 容器、Grid 布局、卡片内嵌等场景下会撑破父容器、占满高度挤压兄弟元素。**迁移时显式加 `width="unset"` 重置组件库默认行内宽度**——但要先看源 antd Table 有无 width 相关设置：源有显式容器宽度（`style={{ width: ... }}` / className + CSS 设宽）→ 映射到 eview-react `width` prop；`scroll={{ x: ... }}` **直接抛弃不转**（eview `width` 是最外层 dom 宽度，不是 antd 列宽计算/横向滚动阈值概念，实测映射会导致表格宽度错误）；源无显式容器宽度 → 加 `width="unset"`。判定方法：搜源 `<Table` 是否带 `style` 含 `width`、`className` 对应 CSS 是否设宽度。见 [Table.md](components/Table.md) §5 API 速查 `width` 行。
 >
 > **Table columns 更新**：eview-react 的 `enableColumnCompareUpdate` **默认 `false`**，更新 `columns` prop 时不会重新渲染列定义（diff 比较被关掉，columns 变化不生效）。源 antd 的 `columns` 经常动态变化（条件列、权限列、筛选后列集、`useMemo` 依赖变化重建 columns）。**迁移时默认显式加 `enableColumnCompareUpdate={true}`**，否则源项目里 columns 变化的逻辑全部失效。见 [Table.md](components/Table.md) §5 API 速查 `enableColumnCompareUpdate` 行。
->
-> **Table 列宽**：源 antd 的 `columns` **每一列都设了 `width`**（常见于配了 `scroll.x` 或 ict-coder 产出的表格统一设宽场景）时，这些 `width` 多是 antd 内部按 `scroll.x` 阈值/列宽合计做横向滚动布局的相对值，**不是页面对每列的精确像素要求**。eview-react 的列 `width` 行为与 antd 不同（最外层 dom 走 `width:100%`，列宽自适应优先 + `enableColumnWidthFit`），直接把源列 `width` 逐列平移会导致列宽分布错误、横向撑破或挤压。**迁移规则**：
-> - **源 `columns` 每列都有 `width`** → 除**固定列**（`fixed: 'left'` / `fixed: 'right'`，且按"Table 冻结列"规则判定需迁移 `freezeCol` 的）**保留 `width`**（冻结列需固定宽以维持 sticky 视觉效果）外，其余列**统一去掉 `width`**，不映射到 eview-react 列定义（让组件自适应/列宽拖拽处理）
-> - **源 `columns` 只有部分列设了 `width`**（混合）→ 按既有规则，仅设宽的列原样映射 `width`（这些是源项目有意为之的精确列宽，非全列填充布局值）
-> 判定方法：先统计源 `columns` 数组里**设了 `width` 的列数**，等于总列数即"每列都有 width"分支，否则走混合分支。见 [Table.md](components/Table.md) §2 列定义形状 + §5 `width` 行。
 
 **硬约束**：遵守 SKILL.md 的"eview-react 硬约束"章节（12 条）。导入路径改为 `import X from '@nce/eview-react/X'`。
 
@@ -217,7 +212,110 @@ node scripts/check-i18n-keys.cjs .
 
 脚本默认 advisory（退出码 0，输出报告供人工核对）；加 `--strict` 时发现高危调用退出码 1，可接入 CI。
 
-### 4.3 常见报错对照
+### 4.3 导入路径硬约束检查（必跑）
+
+> 对应 SKILL.md 硬约束① 导入路径。导入路径 100% 静态可判、无歧义，故本检查全量硬 FAIL——任何违规必须修复后重跑，不能跳过。改 import 路径是迁移的核心动作，本脚本是防止「包壳组件从错路径导入 / RadioGroup 套错包 / 残留 antd」的机器兜底。
+
+脚本 `scripts/check-imports.cjs`，纯静态正则，自动跳过 `src/shared/`（包壳实现文件内部转发 `@nce/eview-react/<X>` 是正确的，只有业务代码从该路径导入才算违规）。检查五类违规：残留 `from 'antd'`/`from 'antd/...'`、残留 `@ant-design/icons`、`import { RadioGroup } from '@nce/eview-react/Radio'`（须默认导入自 `@nce/eview-react/RadioGroup`）、包壳组件从 `@nce/eview-react/<X>` 导入（须从 `@/shared/<X>`）。
+
+```bash
+node <skill目录>/scripts/check-imports.cjs <目标工程根>
+```
+
+发现违规 → exit 1，逐条列文件:行号 + 违规类型 + 修复指引。修复后重跑直至 exit 0。
+
+### 4.4 图表 option 检查（必跑）
+
+> 对应 SKILL.md 硬约束⑪ + 已知坑点「图表 option 缺 a2ui:true 与 theme 标识」。源 Chart 封装在 `setSimpleOption` 前注入的 `theme` + `a2ui: true` 不会随包导入自动补——漏写则图表 a2ui 视觉规范失效、暗色不跟随。这是改 import 路径时最容易忘的项。
+
+脚本 `scripts/check-chart-options.cjs`，检查两类问题：① 残留 `setSimpleOption(`（源 Chart 封装未替换为 `@nce/eview-react/Chart` 包导入）→ 硬 FAIL；② 每个 `<Chart option={X}>` 的 X 是否含 `a2ui: true` 与 `theme`——支持内联对象、变量定义（追同文件 `const X={...}`/`useMemo`）、`...chartBase` 聚合展开三种写法，追不到的外部变量标 advisory。
+
+```bash
+node <skill目录>/scripts/check-chart-options.cjs <目标工程根>
+```
+
+有硬 FAIL → exit 1；纯 advisory（option 是外部变量）→ exit 0 但报告需人工确认。推荐 `const chartBase = { a2ui: true, theme: ... }` 聚合后展开进各 option（见 [components/Chart.md](components/Chart.md)）。
+
+### 4.5 Table 默认值反向坑检查（advisory 必跑）
+
+> 对应 SKILL.md 已知坑点「Table 排序项/斑马纹/外层宽度/columns 更新」四连——eview-react 的 Table 多个默认值与 antd **相反**，迁移时最易忘、最常错。脚本无法访问源 antd 项目，故全 advisory：列出每个 `<Table>` 缺哪几项标记，**强制迁移方逐条对照源 antd 回应**（决策写入 `.migration-result.json` 的 `tableDefaultReviews`）。这一步把「靠 AI 记住」的约束变成「AI 必须逐条回应」。
+
+脚本 `scripts/check-table-defaults.cjs`，对每个 `<Table>` 标六项：① `enableZebraCrossing`（eview 默认 true 开斑马纹 vs antd 默认无）、② `allowSort`（列级属性，eview 默认 true 全列带排序箭头 vs antd 默认无，检查 columns 数组每列是否标 allowSort）、③ `enableColumnCompareUpdate`（eview 默认 false，columns 动态失效）、④ `width`（eview 默认行内 100%/100% 撑破布局）、⑤ `freezeCol`（eview 无条件冻结，含则需确认源真会横向滚动）、⑥ **`columnsAllWidth`（列级，columns 所有列都带 width 会导致 eview-react Table 显示异常——应至少有一列不设 width 让其自适应剩余空间；脚本解析 columns 数组逐列检查 width，全列带 width 则报）**。
+
+```bash
+node <skill目录>/scripts/check-table-defaults.cjs <目标工程根>
+```
+
+advisory 模式 exit 0，但每个待核 `<Table>` 必须在 `.migration-result.json` 的 `tableDefaultReviews` 写明决策（如 `"源无 sorter，已加 allowSort:false"` 或 `"columns 6 列全带 width，已删操作列 width 让其自适应"`）。未逐条回应视同 FAIL。
+
+### 4.6 IntlProvider 位置 + locale 检查（必跑，硬 FAIL）
+
+> 对应 SKILL.md 硬约束③ Provider。IntlProvider 放错位置是高频踩坑点：迁移时容易把 IntlProvider 跟着 AppShell 一起搬到 `app.jsx`/`context.jsx`，导致弹层（Dialog 等 portal）取不到业务文案报 `MISSING_TRANSLATION`。
+
+脚本 `scripts/check-provider.cjs`，基于 **scaffold 实际结构**：IntlProvider 应在 `main.jsx` 顶层 `render()` 最外层直接包 `<App/>`（scaffold 全程不用 ConfigProvider；硬约束③文本中「ConfigProvider 的直接子级」与 scaffold 实际结构不符，脚本不检查 ConfigProvider 存在性，避免误报正确产物）。检查四项：① main 文件无 `<IntlProvider>` → FAIL（被搬走）；② 非 main 文件含 `<IntlProvider>` → FAIL；③ `locale="zh-CN"` → FAIL（应为 `"zh"`）；④ main 无 `locale="zh"` → advisory（scenario C 变量注入需核对）。扫描前移除注释。
+
+```bash
+node <skill目录>/scripts/check-provider.cjs <目标工程根>
+```
+
+发现硬 FAIL → exit 1，列文件:行号 + 违规类型。修复后重跑直至 exit 0。
+
+### 4.7 CSS 色值 + ev_ 类名检查（advisory 必跑）
+
+> 对应 SKILL.md 硬约束⑦。CSS 不写死色值（用源项目 CSS 变量/原始 token）；类名用业务前缀 `app-` 不用 `ev_`。脚本自动排除 `src/styles/`（token 定义层，`:root` 里 `--brand-50:#xxx` 是变量定义）和 `src/shared/`（包壳层，需用 `ev_wizard_*` 等类名覆盖组件库样式），只扫业务 CSS（`src/views/`、`src/components/`、`src/app.css` 等）。
+
+脚本 `scripts/check-css.cjs`，检查三类：① 业务 CSS 写死色值（裸 hex/rgb/rgba/hsl/hsla，行内无 `var()`）→ advisory；② `var()` 内 fallback 色值 → advisory（合理降级，建议核对）；③ 业务 CSS 用 `.ev_xxx` 类名 → advisory（自定义违规 vs 覆盖组件库，需核对）。跳过变量定义行（`--xxx:`）。
+
+```bash
+node <skill目录>/scripts/check-css.cjs <目标工程根>
+```
+
+advisory 模式 exit 0，但每个待核项必须在 `.migration-result.json` 的 `cssReviews` 写明决策（如 `"header-bar:144 color:#fff → 改 var(--color-text-inverse)"`）。未逐条回应视同 FAIL。
+
+### 4.8 色值 token 漂移检查（对照源快照，必跑）
+
+> 对应需求：从 antd 向私有组件转换时，手写样式的色值 token 不应修改（不漂移）。`umd-to-antd-vite` 的 `extract-umd.cjs` 步骤 2 已扫描源项目 `assets/style/` 四层 CSS 的 `--xxx: value` 定义，写入 `.umd-conversion.json` 的 `sourceCssTokens` 字段（每层一个 name→value 映射）。本脚本读该快照对照产物，无需访问源项目——解决「对照源项目」的根本边界。
+
+脚本 `scripts/check-token-drift.cjs`，检查四类：
+1. **TOKEN_VALUE_DRIFT（硬 FAIL）**：产物 `src/styles/*.css` 的 token 定义值与源快照不一致（如源 `--brand-50: #0067D1`，产物被改成 `#0077E0`）→ exit≠0
+2. **TOKEN_MISSING（advisory）**：源有但产物缺失的 token（可能误删）
+3. **TOKEN_ADDED（advisory）**：产物新增源没有的 token（scaffold 可能合理新增，需核对）
+4. **UNDEFINED_REF（advisory）**：业务 CSS 引用 `var(--xxx)` 但 `xxx` 未在任何 CSS 层定义——自动排除 JSX 内联 `style={{ "--xxx": ... }}` 注入的合法动态 token（如 `--tl-color` 由 `style={{ "--tl-color": t.color }}` 运行时设值）
+
+```bash
+node <skill目录>/scripts/check-token-drift.cjs <目标工程根>
+```
+
+硬 FAIL exit 1；advisory exit 0 但需在 `.migration-result.json` 的 `tokenDriftReviews` 写明决策。**前置依赖**：`.umd-conversion.json` 须含 `sourceCssTokens` 字段（由 `extract-umd.cjs` 生成；若产物由旧版生成需重跑 extract-umd 或手动补该字段）。
+
+### 4.9 包壳组件 style/className 保留检查（对照源快照，advisory 必跑）
+
+> 对应需求：从 antd 向私有组件转换时，包壳组件要把 antd 原组件身上的 `style` 和 `className` 都带上。AI 做组件替换时容易丢掉原组件的 style/className。`umd-to-antd-vite` 的 `extract-umd.cjs` 已扫描源项目每个 antd 输入/包壳对应组件调用点的 `hasStyle`/`hasClassName`/`styleSource`/`classNameValue`，写入 `.umd-conversion.json` 的 `inputPropCallSites` 字段。本脚本读快照对照产物。
+
+脚本 `scripts/check-props-preserved.cjs`，对照策略：按文件 + 家族 + 出现顺序配对源/产物调用点（搬代码保持结构，同文件同家族调用点出现顺序稳定；路径规范化去 `src/` 前缀使源根级 app.jsx 与产物 src/app.jsx 可配对）。检查三类：
+1. **STYLE_DROPPED（advisory）**：源调用点 hasStyle 但产物对应调用点无 style（可能合理，如 DatePicker 包壳内部已强制 width:100%）
+2. **CLASSNAME_DROPPED（advisory）**：源调用点 hasClassName 但产物对应调用点无 className
+3. **COUNT_MISMATCH（advisory）**：源/产物同文件同家族调用点数量不等（可能重构，无法精确配对）
+
+```bash
+node <skill目录>/scripts/check-props-preserved.cjs <目标工程根>
+```
+
+advisory 模式 exit 0，但每个待核项必须在 `.migration-result.json` 的 `propsPreservedReviews` 写明决策（如 `"Spinner L113 style 丢失 → 应补回 style={{width:'100%'}}"` 或 `"DatePicker style 由包壳内部 width:100% 处理，合理丢弃"`）。未逐条回应视同 FAIL。**前置依赖**：`.umd-conversion.json` 须含 `inputPropCallSites` 字段（由 `extract-umd.cjs` 生成）。
+
+### 4.10 Steps labelPlacement 默认值反向坑检查（advisory 必跑）
+
+> 对应 components/Steps.md 规格第 5 行 + API 表——又一个「eview 默认值与 antd 相反」的坑（同 Table 默认值反向坑系列）。antd 默认形态文字在图标右侧 = `labelPlacement="horizontal"`，但 eview-react 默认是 `vertical`（文字在图标下方）。迁移时若不显式设 `labelPlacement="horizontal"`，视觉与 antd 不一致。
+
+脚本 `scripts/check-steps-defaults.cjs`，对每个 `<Steps>` 检查：① 缺 `labelPlacement` → advisory（eview 默认 vertical，antd 默认 horizontal，需对照源确认补 horizontal）；② `labelPlacement="vertical"` → advisory（核对源是否真用竖排）；③ 动态值 → advisory（确认运行时为 horizontal）。
+
+```bash
+node <skill目录>/scripts/check-steps-defaults.cjs <目标工程根>
+```
+
+advisory 模式 exit 0，但每个待核 `<Steps>` 必须在 `.migration-result.json` 的 `stepsReviews` 写明决策（如 `"源 antd 用默认形态，已补 labelPlacement='horizontal'"` 或 `"源显式 vertical，保留"`）。未逐条回应视同 FAIL。
+
+### 4.11 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -228,14 +326,24 @@ node scripts/check-i18n-keys.cjs .
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 但 `data.js` 里 value 是短代码、i18n key 带前缀 | 在 render 里补命名空间前缀：`t("deviceType." + value, value)`；详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 4.4 验证
+### 4.12 验证
 
 跑验证脚本，把结果写入 `<目标工程根>/.migration-result.json`。
 
-**验证步骤**：
+> **十个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。
+
+**验证步骤**（全部必跑，按序）：
 1. 相对导入检查**跳过**（见 §4.1）
-2. 跑 `node <skill目录>/scripts/check-i18n-keys.cjs <目标工程根>`
-3. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
+2. 跑 `node <skill目录>/scripts/check-i18n-keys.cjs <目标工程根>`（§4.2，advisory，高危调用记 FAIL）
+3. 跑 `node <skill目录>/scripts/check-imports.cjs <目标工程根>`（§4.3，**硬 FAIL**，exit≠0 即 FAIL）
+4. 跑 `node <skill目录>/scripts/check-chart-options.cjs <目标工程根>`（§4.4，硬 FAIL + advisory）
+5. 跑 `node <skill目录>/scripts/check-table-defaults.cjs <目标工程根>`（§4.5，advisory，逐条回应写入 `tableDefaultReviews`）
+6. 跑 `node <skill目录>/scripts/check-provider.cjs <目标工程根>`（§4.6，**硬 FAIL**，exit≠0 即 FAIL）
+7. 跑 `node <skill目录>/scripts/check-css.cjs <目标工程根>`（§4.7，advisory，逐条回应写入 `cssReviews`）
+8. 跑 `node <skill目录>/scripts/check-token-drift.cjs <目标工程根>`（§4.8，token 值漂移硬 FAIL + advisory 须回应写入 `tokenDriftReviews`）
+9. 跑 `node <skill目录>/scripts/check-props-preserved.cjs <目标工程根>`（§4.9，advisory，逐条回应写入 `propsPreservedReviews`）
+10. 跑 `node <skill目录>/scripts/check-steps-defaults.cjs <目标工程根>`（§4.10，advisory，逐条回应写入 `stepsReviews`）
+11. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
 
 **结果文件**：把结果写入 `<目标工程根>/.migration-result.json`（覆盖写），JSON 结构：
 
@@ -245,16 +353,50 @@ node scripts/check-i18n-keys.cjs .
   "round": {round},
   "failures": ["失败点 1", ...],
   "checks": {
-    "relative-imports": "PASS/FAIL",
+    "relative-imports": "PASS(skip)",
     "i18n-keys": "PASS/FAIL",
+    "imports": "PASS/FAIL",
+    "chart-options": "PASS/FAIL/ADVISORY",
+    "table-defaults": "PASS/FAIL",
+    "provider": "PASS/FAIL",
+    "css": "PASS/FAIL",
+    "token-drift": "PASS/FAIL",
+    "props-preserved": "PASS/FAIL",
+    "steps-defaults": "PASS/FAIL",
     "npm-install": "PASS/SKIP"
   },
+  "tableDefaultReviews": [
+    { "file": "src/views/.../list.jsx", "line": 92, "allowSort": "源无 sorter，已加 allowSort:false", "enableZebraCrossing": "源无斑马纹，已加 false", "enableColumnCompareUpdate": "源 columns 动态，已加 true", "width": "源无显式宽度，已加 width=\"unset\"", "freezeCol": "无", "columnsAllWidth": "6 列全带 width，已删操作列 width 让其自适应" }
+  ],
+  "cssReviews": [
+    { "file": "src/views/header-bar/index.css", "line": 144, "type": "HARD_COLOR", "value": "#fff", "decision": "改 var(--color-text-inverse)" },
+    { "file": "src/views/top-customers/index.css", "line": 59, "type": "HARD_COLOR", "value": "linear-gradient(...)", "decision": "渐变两端改 var(--color-alert)/var(--color-warning)" },
+    { "file": "src/views/my-todo/index.css", "line": 90, "type": "EV_CLASSNAME", "value": ".ev_checkbox", "decision": "覆盖组件库样式，保留" }
+  ],
+  "tokenDriftReviews": [
+    { "type": "UNDEFINED_REF", "file": "src/views/.../demo.css", "line": 10, "token": "--my-color", "decision": "改用源项目已定义的 --on-surface" },
+    { "type": "TOKEN_ADDED", "file": "src/styles/base.css", "token": "--new-var", "decision": "scaffold 合理新增，保留" }
+  ],
+  "propsPreservedReviews": [
+    { "type": "STYLE_DROPPED", "file": "src/views/.../form.jsx", "line": 113, "family": "Spinner", "sourceStyle": "width: \"100%\"", "decision": "应补回 style={{width:'100%'}}" },
+    { "type": "STYLE_DROPPED", "file": "src/views/.../form.jsx", "line": 148, "family": "DatePicker", "sourceStyle": "width: \"100%\"", "decision": "DatePicker 包壳内部已强制 width:100%，合理丢弃" }
+  ],
+  "stepsReviews": [
+    { "file": "src/views/.../wizard.jsx", "line": 20, "code": "LABEL_PLACEMENT_MISSING", "decision": "源 antd 用默认形态，已补 labelPlacement='horizontal'" }
+  ],
   "notes": "可选说明"
 }
 ```
 
 - 所有验收项全过 → status="PASS"，failures=[]
 - 任一不过（SKIP 不算不过）→ status="FAIL"，failures 逐条写清具体失败点
-- npm-install=SKIP 不影响整体 status（notes 写明外网环境降级，仅静态检查 i18n-keys 生效）
+- npm-install=SKIP 不影响整体 status（notes 写明外网环境降级，仅静态检查生效）
+- `table-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<Table>` 必须在 `tableDefaultReviews` 写明决策**；未逐条回应 → FAIL
+- `steps-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<Steps>` 必须在 `stepsReviews` 写明决策**；未逐条回应 → FAIL
+- `css` advisory：脚本 exit=0 但有待核项时，**每个待核项必须在 `cssReviews` 写明决策**；未逐条回应 → FAIL
+- `token-drift` advisory（TOKEN_MISSING/TOKEN_ADDED/UNDEFINED_REF）：脚本 exit=0 但有待核项时，**每个待核项必须在 `tokenDriftReviews` 写明决策**；未逐条回应 → FAIL
+- `props-preserved` advisory（STYLE_DROPPED/CLASSNAME_DROPPED/COUNT_MISMATCH）：脚本 exit=0 但有待核项时，**每个待核项必须在 `propsPreservedReviews` 写明决策**（合理丢弃如 DatePicker 包壳已处理宽度，否则应补回）；未逐条回应 → FAIL
+- `chart-options` 纯 advisory（option 是外部变量追不到）不计 FAIL，但需在 notes 说明已人工确认
+- `provider` advisory（locale 用变量注入）不计 FAIL，但需在 notes 说明已人工确认值为 "zh"
 
 **循环上限**：默认 5 轮（round 1 首次验证，round 2~5 修复后重测）。验证 FAIL 时主 agent 直接读 `.migration-result.json` 的 `failures` 字段，回到步骤 2 自己修复，再重新验证（round + 1）。第 5 轮仍 FAIL 必须停止，向用户报告失败项 + 建议人工介入。
