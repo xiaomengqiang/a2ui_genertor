@@ -1809,19 +1809,23 @@ input.ant-input.ant-input-sm {
   color: var(--color-text-primary);
 }
 .ant-badge .ant-badge-count {
-  /* 单数字 16×16（border-box 含 padding/border）：水平 padding 3px 保证 1 位数字不撑破；
-       多位数字宽度 = 内容 + padding 自动撑开；line-height 与 height 一致实现垂直居中 */
-  /* 水平 padding 4px；line-height 对齐内容盒高度（1rem - 上下 border 2px），文字精确垂直居中 */
+  /* 单数字 16×16 正圆（半径=高度一半）；多位数字按内容+padding 撑开成胶囊；
+       不设 line-height（antd 默认 20px 偏大会压偏文字），用 flex 垂直居中兜底 */
   box-sizing: border-box;
   min-width: 1rem;
   height: 1rem;
   padding: 0 0.25rem;
+  border-radius: 0.5rem;
+  align-items: center;
   font-size: var(--font-size-base);
-  line-height: calc(1rem - 2px);
-  border: 1px solid var(--gray-0);
   box-shadow: 0 0 0 1px var(--gray-0);
   background-color: var(--color-error);
   color: var(--color-text-inverse);
+  /* 数字滚动结构：antd 固定 20px 高，滚动条与行盒对齐 16px 盒高，配合 align-items 精确垂直居中 */
+}
+.ant-badge .ant-badge-count > bdi > .ant-scroll-number-only {
+  height: 1rem;
+  line-height: 1rem;
 }
 .ant-badge .ant-badge-dot {
   box-shadow: 0 0 0 1px var(--gray-0);
@@ -1832,7 +1836,6 @@ input.ant-input.ant-input-sm {
   color: var(--color-text-primary);
 }
 .dark .ant-badge .ant-badge-count {
-  border: 1px solid rgb(from var(--gray-0) r g b / 0);
   box-shadow: 0 0 0 1px rgb(from var(--gray-0) r g b / 0);
 }
 .dark .ant-badge .ant-badge-dot {
