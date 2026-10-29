@@ -197,10 +197,10 @@ const columns = [
   { title: '金额', key: 'amount', width: 130 },
   { title: '操作', key: 'action', width: 80 },   // 全列带 width → 表格显示异常
 ];
-// ✅ 至少一列不设 width，让其自适应剩余空间（通常操作列或文本列去 width）
+// ✅ 去掉所有列的 width，让组件自己排布列宽
 const columns = [
-  { title: '客户', key: 'customer', width: 220 },
-  { title: '金额', key: 'amount', width: 130 },
+  { title: '客户', key: 'customer'},
+  { title: '金额', key: 'amount'},
   { title: '操作', key: 'action' },              // 不设 width，自适应剩余空间
 ];
 
