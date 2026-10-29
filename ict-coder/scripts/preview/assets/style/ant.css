@@ -257,7 +257,6 @@ input.ant-input.ant-input-sm {
 }
 .ant-input-affix-wrapper .ant-input-suffix svg {
   color: var(--color-icon-secondary);
-  stroke: var(--color-icon-secondary);
 }
 .ant-input-outlined {
   border-color: var(--color-border);
