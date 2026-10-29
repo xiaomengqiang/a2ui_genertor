@@ -70,6 +70,33 @@ interface WorkTab {
 }
 ```
 
+### 受控数组页签（antd items + activeKey + onChange 的正确迁移）
+
+> ⚠️ antd 的 `<Tabs items={[{key,label}]} activeKey={k} onChange={setK} />` 是**字符串 key 受控**，eview 的 `Tab` 是**数字 index 受控**（`selectedIndex` + `onClick(index,title,event)`）。迁移的核心是 **index ↔ key 正确桥接**——`title` 是展示文案、可能重复、**不等于 key**，**禁止拿 title 当 key 对比**。
+
+```tsx
+const tabs = [
+  { key: 'overview', label: '概览', children: <Overview /> },
+  { key: 'monitor', label: '监控', children: <Monitor /> },
+];
+const [activeKey, setActiveKey] = useState('overview');
+
+<Tab
+  draggable={false}
+  selectedIndex={tabs.findIndex((t) => t.key === activeKey)}   // ✅ key → index
+  onClick={(index, title, event) => {
+    // ✅ 用 index 回查 key，绝不拿 title 当 key
+    setActiveKey(tabs[index].key);
+  }}
+>
+  {tabs.map((t) => (
+    <TabItem key={t.key} title={t.label}>{t.children}</TabItem>
+  ))}
+</Tab>
+```
+
+> 原则：eview Tab 是 **index 驱动**；antd 的 `key` 是字符串标识符、`label` 是文案，二者不可互相替代——桥接只能通过 `tabs[index].key`，不能用 `title`。
+
 ### 竖排 / 禁用 / 图标 / 自定义标题
 
 ```tsx
@@ -91,8 +118,11 @@ import { IconPlusIcPublicHome } from '@hui/icon-plus';
 ## 4. 反面示例
 
 ```tsx
-// ❌ antd 写法：没有 items / TabPane / activeKey / onChange
+// ❌ antd items 数组受控写法（eview 无 items/activeKey/onChange）→ ✅ 正确改写见 §2「受控数组页签」
 <Tabs activeKey={key} items={[{ key: '1', label: '概览' }]} onChange={setKey} />
+
+// ❌ 把 title 当 key 对比（title 是文案、可重复；eview 是 index 驱动，应 tabs[index].key）
+<Tab onClick={(index, title) => setActiveKey(title)} />
 
 // ❌ 用 onChange 接切换事件，Tab 的切换回调是 onClick
 <Tab onChange={(index) => setActiveIndex(index)} />
