@@ -383,14 +383,25 @@ if (i18nInfo.businessLocaleFiles.length) console.log(`[extract-umd] 业务语言
 function scanIconCallSites() {
   const callSites = [];
 
-  for (const { fullPath, relFile } of collectScanFiles(/\.(jsx?|tsx?)$/)) {
+  // 扫描范围：collectScanFiles（src/ + 根级 jsx）+ index.page.html 本身（ict-coder 产物源码常内联在 HTML）
+  const scanTargets = collectScanFiles(/\.(jsx?|tsx?)$/).map(({ fullPath, relFile }) => ({ fullPath, relFile }));
+  if (fs.existsSync(sourceFile) && /\.html?$/i.test(sourceFile)) {
+    scanTargets.push({ fullPath: sourceFile, relFile: path.basename(sourceFile) });
+  }
+
+  // 交互 props 名清单（改写后必须保留，对应 antd-to-eview-react Icon.md「⚠️ 硬约束：改写 <Icon> 调用点必须保留原 DOM/交互 props」）
+  // 命中即记进 iconCallSites.interactiveProps，供下游 check-icon-shim.cjs 配对核对
+  const INTERACTIVE_PROP_RE = /\b(onClick|onDoubleClick|onMouseDown|onMouseUp|onMouseEnter|onMouseLeave|onMouseMove|onMouseOver|onMouseOut|onKeyDown|onKeyPress|onKeyUp|onFocus|onBlur|onTouchStart|onTouchEnd|onTouchMove|onPress|title|aria-[A-Za-z-]+|role|tabIndex|style|className|class|id|data-[A-Za-z-]+)\b/;
+
+  for (const { fullPath, relFile } of scanTargets) {
     const code = fs.readFileSync(fullPath, 'utf8');
 
     const iconRe = /<Icon\b/g;
     let m;
     while ((m = iconRe.exec(code)) !== null) {
       const startPos = m.index;
-      const window = code.slice(startPos, startPos + 300);
+      // 窗口扩到 600 容纳多行 + 多 props 的调用点（原 300 可能截断 title/onClick）
+      const window = code.slice(startPos, startPos + 600);
       const lineNum = code.slice(0, startPos).split('\n').length;
 
       const nameLitMatch = window.match(/name\s*=\s*["']([^"']+)["']/);
@@ -407,12 +418,34 @@ function scanIconCallSites() {
         nameType = 'dynamic';
       }
 
-      callSites.push({
+      // 提取本调用点的交互 props 清单（含值签名，供下游 check 精确配对核对）
+      // 截取整个 <Icon ...> 标签（平衡 /> 或 </Icon>）
+      let tagEnd = window.indexOf('/>');
+      if (tagEnd < 0) tagEnd = window.indexOf('</Icon>');
+      if (tagEnd < 0) tagEnd = window.length;
+      const tagText = window.slice(0, tagEnd);
+      const interactiveProps = [];
+      let pm;
+      // 逐 prop 匹配：prop名 = {值} / prop名 = "值" / prop名 = '值' / prop名（布尔简写）
+      const propRe = /\b(onClick|onDoubleClick|onMouseDown|onMouseUp|onMouseEnter|onMouseLeave|onMouseMove|onMouseOver|onMouseOut|onKeyDown|onKeyPress|onKeyUp|onFocus|onBlur|onTouchStart|onTouchEnd|onTouchMove|onPress|title|role|tabIndex|aria-[A-Za-z-]+|data-[A-Za-z-]+|style|className|class|id)\b\s*(?:(=)\s*(?:\{([^}]*)\}|["']([^"']*)["']))?/g;
+      while ((pm = propRe.exec(tagText)) !== null) {
+        const propName = pm[1];
+        const hasValue = pm[2] === '=';
+        const valueExpr = pm[3] !== undefined ? pm[3].trim() : (pm[4] !== undefined ? pm[4] : null);
+        interactiveProps.push({ name: propName, value: valueExpr, hasValue });
+      }
+
+      const site = {
         file: relFile,
         line: lineNum,
         name: nameValue,
         type: nameType,
-      });
+      };
+      // 仅当有交互 props 时记录（避免普通静态图标站点膨胀交接文件）
+      if (interactiveProps.length) {
+        site.interactiveProps = interactiveProps;
+      }
+      callSites.push(site);
     }
   }
 

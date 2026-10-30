@@ -72,6 +72,8 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 
 > **`{}` 上下文规则（缺陷一/二教训）**：剥离 `<Icon name={X}/>` 包装时，改写结果 `X`（如 `cond ? <A/> : <B/>`、`group.icon`）**仅当原处 JSX 子节点位才包 `{X}`**；三元分支/对象值/数组元素/prop 容器/箭头体/return 等表达式位一律裸 `X`，否则 `{}` 被解析为对象字面量/块语句而语法报错。脚本 `--apply`（三元 + 数据数组 render + 图标-prop wrapper 内部）已按 `wrapIfNeeded` 遵守；LLM residual 手改链式三元、prop 驱动调用方同步更新、wrapper 安全闸 residual 等场景务必同此规则。详见 [Icon.md](components/Icon.md)「`<Icon name={X}/>` 改写的 `{}` 上下文规则」表 +「图标-prop wrapper 组件」小节。
 
+> **⚠️ props 保留规则（缺陷三教训，必读）**：`match-icons.cjs --apply` 把 `<Icon name=.../>` 改写成 `<IconPlusIc*/>`（含三元条件渲染）时**只处理 name→icon+ 名映射 + iconSize 吸附，不会自动搬运原 `<Icon>` 上的其余 props**（`onClick`/`title`/`aria-*`/`style`/`className` 等）。LLM residual 手改、剥 Button/IconButton 外壳同理——**必须显式把原调用点的所有非 icon props 原样搬到新 icon+ 元素**，否则交互断链。高频受害：主题切换图标漏 `onClick={toggleDark}` → `isDark` 永远初值、暗色三轨永不触发（`check-dark-mode.cjs` 静态 PASS 拦不住，见 §4.11 盲区）。完整改写清单 + 正反例 + 孙 agent 收尾复核约束见 [Icon.md](components/Icon.md)「⚠️ 硬约束：改写 `<Icon>` 调用点必须保留原 DOM/交互 props」。阶段3 收尾必须 grep `toggleDark` 确认有实际调用点（详见 §4.11 配套人工校验）。
+
 | 组件 | 源项目用法 | 迁移后（B/C 静态 import） |
 |------|-----------|------------------|
 | Icon | `<Icon name="search" size={14} />`（`./assets/shared/icon.jsx`） | `import { IconPlusIcPublicSearch } from '@hui/icon-plus'` + `<IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />`（名由 B 在线 / C catalog 匹配；C 的 confirmed 自动落、residual 交 LLM 从候选选） |

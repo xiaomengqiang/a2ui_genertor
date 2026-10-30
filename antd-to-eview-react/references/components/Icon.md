@@ -258,6 +258,39 @@ import { IconPlusIcPublicSearch, IconPlusIcPublicTrash, IconPlusIcPublicEdit } f
 > - **a11y（可选）**：icon+ 非 `<button>` 元素、默认不可键盘聚焦/Enter 触发；无障碍敏感位加 `role="button" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn();}}}`。常规表格操作列可省。
 > - **antd 纯图标 Button 迁移**：`<Button type="text" shape="circle" icon={<Icon name="trash-2" size="0.875rem"/>} title="删除规则" onClick={remove}/>` → 脚本 `--apply` 先把内层 `<Icon>`→`<IconPlusIcPublicTrash iconSize={14}/>`（detectContext 识别 Button 语境、吸附尺寸），LLM 再剥 Button 外壳、把 `onClick`/`title` 搬到 icon+：`<IconPlusIcPublicTrash onClick={remove} title="删除规则" iconSize={14} />`。
 
+#### ⚠️ 硬约束：改写 `<Icon>` 调用点必须保留原 DOM/交互 props（onClick/onMouse*/title/aria-* 等）
+
+**match-icons.cjs --apply 把 `<Icon name=.../>` 改写成 `<IconPlusIcXxx/>`（含三元条件渲染 `{isDark ? <IconPlusIcSun/> : <IconPlusIcMoon/>}`）时，只处理 name→icon+ 名映射 + iconSize 吸附，不会自动搬运原 `<Icon>` 上的其余 props。** LLM 手工/residual 改写、剥 Button/IconButton 外壳时同理——**必须显式把原调用点上的所有非 icon props 原样搬到新 icon+ 元素上**，否则事件丢失、交互断链。
+
+高频受害场景（基于实测回归）：
+
+- **主题切换图标**：`<Icon name={isDark?"sun":"moon"} onClick={toggleDark} title="切换主题"/>` → 改写成 `{isDark ? <IconPlusIcPublicSun onClick={toggleDark} title="切换到亮色"/> : <IconPlusIcPublicMoon onClick={toggleDark} title="切换到暗色"/>}`。**漏 `onClick` 会令 `toggleDark` 成死变量、`isDark` 永远初值 `false`，三轨暗色 useEffect 永不触发**——`html.dark`/`body.aui3_1_dark`/`aui3_1_dark.css`/`dark.css` 的 `.dark{--color-*}` 翻转全部不生效，表现为"切了没反应"。静态 `check-dark-mode.cjs`（纯三轨正则）PASS 也拦不住，因为三轨代码本身正确，断点在运行时点击入口。
+- **表格操作列图标**：`<Icon name="trash-2" onClick={()=>askDelete(row)} title="删除"/>` → 漏 `onClick` 后该行删除按钮变哑图标。
+- **导航/工具栏图标**：onClick 跳转/展开菜单类，漏 `onClick` 后入口失效。
+
+改写清单（逐项搬到新 icon+，缺一即回归）：
+
+| 原 prop | 处理 |
+|---|---|
+| `onClick` / `onDoubleClick` / `onMouseEnter` / `onMouseLeave` / `onMouse*` | **必须**原样搬 |
+| `title`（hover 提示） | **必须**原样搬（源有则搬，源无不强加） |
+| `aria-label` / `aria-*` / `role` / `tabIndex` / `onKeyDown`（a11y） | **必须**原样搬 |
+| `style` / `className` | **必须**原样搬 |
+| `id` / `data-*` | **必须**原样搬 |
+| `name` / `size` / `type`（原 Icon 专属） | name→icon+ 名、size→iconSize、type→filled/lined（由脚本 --apply 处理，LLM 复核） |
+
+```tsx
+// ❌ 回归：漏 onClick，toggleDark 成死变量，暗色切换失效（静态 check 拦不住）
+{isDark ? <IconPlusIcPublicSun iconSize="1.25rem" className="theme-toggle" />
+        : <IconPlusIcPublicMoon iconSize="1.25rem" className="theme-toggle" />}
+
+// ✅ 正确：onClick + title 原样搬（两个分支都要搬）
+{isDark ? <IconPlusIcPublicSun iconSize="1.25rem" className="theme-toggle" title="切换到亮色" onClick={toggleDark} />
+        : <IconPlusIcPublicMoon iconSize="1.25rem" className="theme-toggle" title="切换到暗色" onClick={toggleDark} />}
+```
+
+> **孙 agent 执行约束**：阶段3 图标替换收尾时，必须对每个**含 `onClick`/`title`/`aria-*` 的原 `<Icon>` 调用点**逐一回读改写后的 `<IconPlusIc*>` 确认 props 已搬运；confirmed 站点（脚本 --apply 改写）尤其易漏（脚本只动 name/size），residual 站点（LLM 手工）亦需复核。发现误删 props 立即补回，并把修复记进 `.icon-result.json` 的 confirmedSiteRepairs（参见 preview 工程的记录范式）。此约束是闭合 Icon 改写契约的最后一环——name/size 闭合但 props 丢失，交互同样断链。
+
 ## 3. 联动说明
 
 - 操作列可点击图标 → 编辑打开 Dialog / Drawer，删除打开 MessageDialog（[MessageDialog.md](MessageDialog.md)）；处理中用条件渲染或 `pointerEvents:'none'` 降级
