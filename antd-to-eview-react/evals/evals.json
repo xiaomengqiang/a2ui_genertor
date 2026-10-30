@@ -122,6 +122,35 @@
         "Rating 用 onClick 不是 onChange",
         "Steps.onClick 首参是 index（区别于 Tab 的 (index,title,event)）"
       ]
+    },
+    {
+      "id": 8,
+      "name": "图标迁移（字面量 + 数据数组动态名）",
+      "description": "将源项目 <Icon name=\"字面量\"/> 与 name={t.icon} 数据数组动态名迁移为 @hui/icon-plus 静态 import（方案 C/B，闭合集不落方案A）",
+      "input": "<Icon name=\"search\" size={14}/> + const menu=[{icon:\"server\"},{icon:\"user\"}]; menu.map(t=> <Icon name={t.icon} size={16}/>)",
+      "assertions": [
+        "字面量 <Icon name=\"search\"/> 替换为 <IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />",
+        "import { IconPlusIcPublicSearch } from '@hui/icon-plus'（NOT @ant-design/icons / 内置 Icon name=\"ict_*\"）",
+        "数据数组 icon: \"lit\" 字段改写为 icon: <IconPlusIc…/> 元素（命中用真实组件，未命中用占位 IconPlusIcPublicTransverseRectangleTemplate）",
+        "render <Icon name={t.icon}/> 改 {t.icon}（JSX 子节点位包 {}，箭头隐式返回位裸 t.icon）",
+        "NOT 残留 <Icon name= 调用点（闭合集已转，不落方案A shim）",
+        "NOT 数据源 icon: \"lit\" 字符串字面量残留（半改致渲染文本）",
+        ".js 文件塞进 <IconPlusIc…/> 元素后转 .jsx",
+        "iconSize 原样透传源 size（支持 rem/px/数字，不转换）"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "图标迁移幂等性",
+      "description": "验证 match-icons.cjs --apply 幂等：已含 IconPlusIc 的站点跳过、@hui/icon-plus import 合并去重不重复",
+      "input": "已含 import { IconPlusIcPublicSearch } from '@hui/icon-plus' 的文件再跑 --apply，且含新 <Icon name=\"trash-2\"/>",
+      "assertions": [
+        "已有 @hui/icon-plus import 合并去重（IconPlusIcPublicTrash 并入现有 import 行）",
+        "已含 IconPlusIc 的调用点跳过不改写",
+        "新 <Icon name=\"trash-2\"/> 转 IconPlusIcPublicTrash",
+        "连跑两次 --apply 第二次文件零变更（真幂等）",
+        "NOT 产生两条 import ... from '@hui/icon-plus'（重复具名 import 会 SyntaxError）"
+      ]
     }
   ]
 }
