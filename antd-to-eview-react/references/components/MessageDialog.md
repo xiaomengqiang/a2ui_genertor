@@ -63,6 +63,7 @@ interface PendingAction<T> { type: 'delete' | 'reset'; row: T }   // null = 关�
 ```tsx
 <MessageDialog
   type="highRisk"
+  iconLocation="title"
   isOpen={pending?.type === 'reset'}
   hasChecked={agreed}
   onCheckChange={(isChecked: boolean) => setAgreed(isChecked)}
@@ -81,6 +82,7 @@ interface PendingAction<T> { type: 'delete' | 'reset'; row: T }   // null = 关�
 ```tsx
 <MessageDialog
   type={result?.type ?? 'info'}
+  iconLocation="title"
   isOpen={!!result}
   content={result?.content}
   detail={result?.detail}
@@ -143,3 +145,10 @@ buttons={{ ok: { onClick: doReset } }}
 | `mountId` | `string`，默认 `body` | 挂载节点 |
 | `animationOff` / `autoSetPosition` | `boolean`，默认 `false` | 关动画 / 自动定位 |
 | `detailStyle` / `style` / `className` / `id` | — | 样式与标识 |
+
+## 6. type 参数与 antd 形态对比
+为 `confirm` 时，对应 antd的 `Modal.confirm`
+为 `info` 时，对应 antd的 `Modal.info`
+为 `success` 时，对应 antd的 `Modal.success`
+为 `warn` 时，对应 antd的 `Modal.warning`
+为 `error` 时，对应 antd的 `Modal.error`
