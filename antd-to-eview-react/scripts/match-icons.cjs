@@ -164,21 +164,35 @@ function bareName(name) {
   return String(name).replace(/\d*Textured$/, '');
 }
 
+// 把 entry 推进 Map<key, entry[]>（保持 catalog 顺序，供 L1/L2/L4 索引命中）。
+function pushMap(map, key, val) {
+  const arr = map.get(key);
+  if (arr) arr.push(val);
+  else map.set(key, [val]);
+}
+
 function loadCatalog(jsonPath) {
   const raw = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
   const index = [];
+  // 预建索引（最小侵入：index 仍是数组，附加 byLower/byBare/byToken 供 matchOne 短路，避免 7 次全量 filter）。
+  const byLower = new Map(); // lower → entry[]（L1 精确命中）
+  const byBare = new Map(); // bare → entry[]（L4 精确命中，命中后仍需 bare!==lower 过滤）
+  const byToken = new Map(); // token → entry[]（L2 token 倒排，求交集替代全量扫）
   for (const domain of Object.keys(raw)) {
     for (const name of raw[domain]) {
       const lower = String(name).toLowerCase();
-      index.push({
-        domain,
-        name,
-        lower,
-        tokens: new Set(tokenize(name)),
-        bare: bareName(name).toLowerCase(),
-      });
+      const bare = bareName(name).toLowerCase();
+      const tokens = new Set(tokenize(name));
+      const entry = { domain, name, lower, tokens, bare };
+      index.push(entry);
+      pushMap(byLower, lower, entry);
+      pushMap(byBare, bare, entry);
+      for (const t of tokens) pushMap(byToken, t, entry);
     }
   }
+  index.byLower = byLower;
+  index.byBare = byBare;
+  index.byToken = byToken;
   return index;
 }
 
@@ -313,6 +327,26 @@ function mkResidual(level, norm, index, topk, levelHits) {
   return { status: 'residual', level, fuzzy: true, candidates, ...match };
 }
 
+// L2 token 精确匹配（用 byToken 倒排索引求交集，替代全量 index.filter）：
+// 取所有 norm.tokens 的交集 entry，再过滤 tokens.size === norm.tokens.size（精确集，非超集）。
+// 结果保持 catalog 顺序（与原 index.filter 一致），pickBest/levelHits 行为不变。
+function tokenExactEntries(byToken, norm) {
+  const toks = norm.tokensArr;
+  if (!toks.length) return [];
+  let cand = byToken.get(toks[0]);
+  if (!cand) return [];
+  cand = cand.slice(); // 拷贝，避免污染倒排索引原数组
+  for (let i = 1; i < toks.length; i++) {
+    const arr = byToken.get(toks[i]);
+    if (!arr) return [];
+    const set = new Set(arr);
+    cand = cand.filter((c) => set.has(c));
+    if (!cand.length) return [];
+  }
+  const nsize = norm.tokens.size;
+  return cand.filter((c) => c.tokens.size === nsize);
+}
+
 function matchOne(norm, index, topk) {
   // 语义表 → confirmed
   const sem = matchSemantic(norm);
@@ -327,11 +361,25 @@ function matchOne(norm, index, topk) {
     };
   }
 
-  // 各 level 命中集合（不再首命中即返回；统一收 residual 候选）
-  const l1 = index.filter((c) => c.lower === norm.lower);
-  const l2 = index.filter((c) => c.tokens.size === norm.tokens.size && [...c.tokens].every((t) => norm.tokens.has(t)));
+  // CONFIRMED 短路（L1/L2/L4）：用预建索引命中即返回，省 residual 全量 filter。
+  // byLower/byBare/byToken 由 loadCatalog 附加；缺失时回退全量 filter 保行为一致。
+  const byLower = index.byLower;
+  const byBare = index.byBare;
+  const byToken = index.byToken;
+  const l1 = byLower ? byLower.get(norm.lower) || [] : index.filter((c) => c.lower === norm.lower);
+  if (l1.length >= 1) return mkConfirmed('L1', pickBest(l1));
+  const l2 = byToken
+    ? tokenExactEntries(byToken, norm)
+    : index.filter((c) => c.tokens.size === norm.tokens.size && [...c.tokens].every((t) => norm.tokens.has(t)));
+  if (l2.length >= 1) return mkConfirmed('L2', pickBest(l2));
+  const l4 = byBare
+    ? (byBare.get(norm.lower) || []).filter((c) => c.bare !== c.lower)
+    : index.filter((c) => c.bare === norm.lower && c.bare !== c.lower);
+  if (l4.length >= 1) return mkConfirmed('L4', pickBest(l4));
+
+  // RESIDUAL：仅此处算 L3/L5/L6/L7（频次低，保留全量 filter 保行为一致）。
+  // l1/l2/l4 此时为空（未短路返回），levelHits 中对应 spread 为空。
   const l3 = norm.lower.length >= 3 ? index.filter((c) => c.lower.startsWith(norm.lower)) : [];
-  const l4 = index.filter((c) => c.bare === norm.lower && c.bare !== c.lower);
 
   // L5 复数归一：settings→Setting、users→User
   let l5 = [];
@@ -354,11 +402,6 @@ function matchOne(norm, index, topk) {
     norm.tokensArr.length >= 2
       ? index.filter((c) => c.tokens.size > norm.tokens.size && [...norm.tokens].every((t) => c.tokens.has(t)))
       : [];
-
-  // CONFIRMED：L1/L2/L4 命中（唯一或多桶同名——多桶按最短完整名 tie-break，非 domainRank）
-  if (l1.length >= 1) return mkConfirmed('L1', pickBest(l1));
-  if (l2.length >= 1) return mkConfirmed('L2', pickBest(l2));
-  if (l4.length >= 1) return mkConfirmed('L4', pickBest(l4));
 
   // RESIDUAL：L3 prefix、L5-L7 fuzzy、UNMATCHED —— 一律带 top-K 候选交 LLM 选
   const levelHits = [
@@ -1451,7 +1494,7 @@ function fixExplicitExtensionImports(renamed, srcDir) {
 
 // 确保文件含 `import { ... } from '@hui/icon-plus'`；已有则合并去重，无则插到首个 import 之后
 function ensureImport(text, names) {
-  const re = /import\s*\{([^}]*)\}\s*from\s*['"]@nce\/icon-plus['"];?/g;
+  const re = /import\s*\{([^}]*)\}\s*from\s*['"]@hui\/icon-plus['"];?/g;
   const existing = new Set();
   let firstPos = -1;
   let m;
@@ -1465,7 +1508,7 @@ function ensureImport(text, names) {
   if (firstPos !== -1) {
     // 删除所有 @hui/icon-plus import 行（含前导空白与换行），再在首个 import 处插入合并行
     const stripped = text.replace(
-      /^\s*import\s*\{[^}]*\}\s*from\s*['"]@nce\/icon-plus['"];?\s*\r?\n?/gm,
+      /^\s*import\s*\{[^}]*\}\s*from\s*['"]@hui\/icon-plus['"];?\s*\r?\n?/gm,
       ''
     );
     const head = stripped.match(/^\s*import[^\n]*\r?\n/m);
