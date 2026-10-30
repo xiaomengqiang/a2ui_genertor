@@ -137,6 +137,7 @@ const [range, setRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
 | `onOkClick` / `onCancelClick` | `(obj, event, target?) => void` | 范围模式确定 / 取消；`obj` 含 `fromDateObj` / `toDateObj` / `fromSelectDate` / `toSelectDate` / `dateFormate` |
 | `onBlur` | `(ev: { event, value: Date, text, format }) => void` | 输入框失焦 |
 | `required` / `disabled` / `readOnly` | `boolean`，默认 `false` | 必填 / 禁用 / 输入框只读 |
+| `size` | `'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸；与 antd `size` 枚举一致，可直接透传 |
 | `placeholder` / `label` | `string` | 占位 / 名称 |
 | `hintType` | `'div' \| 'tip' \| 'none'`，默认 `tip` | 提示形式 |
 | `timeFormat` / `amPm` | `string`（默认 `hh:mm:ss`）/ `boolean` | datetime 时间格式 / 12 小时制 |

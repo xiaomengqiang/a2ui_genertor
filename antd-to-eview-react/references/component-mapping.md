@@ -20,7 +20,7 @@
 
 ## 表单与输入
 
-> **`size` 现支持**：`TextField` / `SearchInput` / `Select` / `MultipleSelect` / `InputSelect` / `TreeSelector` 现支持 `size: 'small' \| 'middle' \| 'large'`（默认 `middle`），枚举与 antd 一致、可直接透传；迁移时无需丢弃源 antd `size`（`IPInput`、`PopUpMenu` 同步支持，见各自文档）。
+> **`size` 现支持**：`TextField` / `SearchInput` / `Select` / `MultipleSelect` / `InputSelect` / `TreeSelector` / `DatePicker` / `TimePicker` 现支持 `size: 'small' \| 'middle' \| 'large'`（默认 `middle`），枚举与 antd 一致、可直接透传；迁移时无需丢弃源 antd `size`（`IPInput`、`PopUpMenu` 同步支持，见各自文档）。**`Steps` 原生支持 `size: 'mini' \| 'small' \| 'middle' \| 'large'`**（比通用三档多一个 `mini`，直接传 `size` prop；**antd dot（圆点）形态迁移用 `size="mini"`**，见 [Steps.md](components/Steps.md) §6）。
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
@@ -98,7 +98,7 @@
 | `Affix` | 手写 `position:sticky` | 无对应 |
 | `BackTop` | 手写 | 无对应 |
 | `Row` / `Col` | 手写 flex/grid | eview-react 有 `Row`/`Col` 导出名但无 Reference |
-| `Steps` | `Steps` | `current`→`currentStep`（对应 `data[].value` 不是下标）；`items`→`data=[{text,value}]`；`onClick(index)` 只允许回跳 |
+| `Steps` | `Steps` | `current`→`currentStep`（对应 `data[].value` 不是下标）；`items`→`data=[{text,value}]`；`onClick(index)` 只允许回跳；`size` 原生支持 `'mini' \| 'small' \| 'middle' \| 'large'`（比通用三档多 `mini`）；**antd dot（圆点）形态迁移用 `size="mini"`**（eview-react Steps 无 `type="dot"`）；导入 `@nce/eview-react/Steps`（非包壳） |
 
 ## 图标
 
