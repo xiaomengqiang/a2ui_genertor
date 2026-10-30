@@ -1,5 +1,6 @@
 # Steps 组件功能逻辑规格
 
+> 导入：`import Steps from '@nce/eview-react/Steps'`。
 > ⚠️ `currentStep` 对应 `data[].value`（不是下标）；`onClick(index)` 给的是**下标**，与 `currentStep` 不同源。
 > ⚠️ `direction="vertical"` 只在 demo 出现，API 表未列 → 可用但标注来源。
 > ⚠️ **antd 默认形态（文字在图标右侧）对应 eview-react `labelPlacement="horizontal"`**——eview-react 默认是 `vertical`（文字在图标下方），迁移时务必显式设为 `horizontal`，否则视觉与 antd 不一致。
@@ -111,6 +112,7 @@ import Wizards from '@nce/eview-react/Wizards';
 | `data` | `StepItem[]`，**必填** | 步骤配置；不配 `value` 时序号默认 1、2、3… |
 | `currentStep` | `string \| number`，默认 `0` | 当前步骤，**对应 `data[].value`** |
 | `disabled` | `boolean`，默认 `false` | 整条禁用 |
+| `size` | `'mini' \| 'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸（eview-react 原生；比通用三档多一个 `mini`）。**antd Steps 的 dot（圆点）形态迁移时用 `size="mini"`** |
 | `onClick` | `(index: number) => void`（3.5.16） | 点击步骤，参数是**下标** |
 | `labelPlacement` | `'vertical' \| 'horizontal'`，默认 `vertical`（3.6.10） | 文字在图标下方 / 右侧；**antd 默认 = `horizontal`，迁移须显式指定** |
 | `direction` | `'vertical'` | 竖排步骤条 |
@@ -122,38 +124,21 @@ import Wizards from '@nce/eview-react/Wizards';
 | `Item.status` | `string`，可选 `error`（3.6.10） | 报错态 |
 | `Item.className` | `string` | 每步类名 |
 
-## 6. 尺寸覆盖（CSS 类名）
+## 6. 尺寸（size）
 
-Wizards/Steps 组件无 `size` API，通过给容器加 CSS 类名选择三种尺寸。**须通过包壳组件 `@/shared/Steps` 使用**（scaffold 预置：`umd-to-antd-vite` 骨架 `src/shared/Steps/`，透明转发 `@nce/eview-react/Steps`），该包壳支持 `type` 透传：
-
-```tsx
-import Steps from "@/shared/Steps";
-
-// 普通模式（圆内有数字）
-<Steps className="ev_wizard_container_sm" data={...} />
-// dot 模式（实心圆点，无数字）
-<Steps type="dot" className="ev_wizard_container_sm" data={...} />
-```
-
-| 尺寸 | 容器类名 | 圆点大小 | 圆与线条间距 | 文字大小 |
-|------|---------|---------|-------------|---------|
-| 小 | `ev_wizard_container_xs` | 8px | 4px | 12px |
-| 中（默认） | `ev_wizard_container_sm` | 24px | 8px | 14px |
-| 大 | `ev_wizard_container_lg` | 32px | 8px | 16px |
-
-尺寸与 dot 样式已预置在 scaffold 包壳内（`umd-to-antd-vite/scaffold/src/shared/Steps/Steps.css`，随 `@/shared/Steps` import 自动生效）——**业务侧不写、不复制任何 CSS**，只写 `className`/`type`；样式细节直接查看该文件。老骨架（包壳加入前转化的工程）把三件套 `index.jsx`/`Steps.jsx`/`Steps.css` 拷入 `src/shared/Steps/` 即可。
-
-## 7. dot 模式
-
-通过 `@/shared/Steps` 包壳组件的 `type="dot"` 开启实心圆点模式（圆内无数字）。**小尺寸（`xs`）默认即为 dot 模式，无需传 `type`**。
+eview-react Steps **原生支持 `size` prop**，四种尺寸（比通用 `small`/`middle`/`large` 多一个 `mini`），直接传即可：
 
 ```tsx
-import Steps from "@/shared/Steps";
+import Steps from '@nce/eview-react/Steps';
 
-// dot 模式 — 中尺寸
-<Steps type="dot" className="ev_wizard_container_sm" data={...} />
-// dot 模式 — 大尺寸
-<Steps type="dot" className="ev_wizard_container_lg" data={...} />
-// 小尺寸默认就是圆点（不传 type 即可，传 type="dot" 也可以）
-<Steps className="ev_wizard_container_xs" data={...} />
+// 默认 middle，无需写 size
+<Steps data={...} />
+// mini — 最小尺寸（圆点形态）
+<Steps size="mini" data={...} />
+// small
+<Steps size="small" data={...} />
+// large
+<Steps size="large" data={...} />
 ```
+
+**迁移规则**：antd Steps 的 dot（圆点步骤条，`type="dot"` 或 `type="navigation"` 中带圆点视觉的）迁移时统一用 `size="mini"`，eview-react Steps 无 `type="dot"` prop。

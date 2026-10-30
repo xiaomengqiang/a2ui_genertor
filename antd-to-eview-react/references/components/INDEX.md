@@ -2,7 +2,7 @@
 
 迁移时按需查阅对应文档。组件映射总表见 [../component-mapping.md](../component-mapping.md)。
 
-> **包壳组件**：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`、`DatePicker`、`Spinner`、`Steps`、`Cascader`、`TreeSelector`、`IPInput`、`TimePicker`、`Crumbs` 为 scaffold 预置，从 `@/shared/<X>` 导入（多数透明转发 `@nce/eview-react/<X>`；`TextField` 包壳扩展了 `prefix` prop；`Cascader` 为手写组件 API 基本同 antd），不走 `@nce/eview-react/<X>`。清单见 SKILL.md 硬约束 #1。
+> **包壳组件**：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`、`DatePicker`、`Spinner`、`Cascader`、`TreeSelector`、`IPInput`、`TimePicker`、`Crumbs` 为 scaffold 预置，从 `@/shared/<X>` 导入（多数透明转发 `@nce/eview-react/<X>`；`TextField` 包壳扩展了 `prefix` prop；`Cascader` 为手写组件 API 基本同 antd），不走 `@nce/eview-react/<X>`。清单见 SKILL.md 硬约束 #1。
 
 ## 表单与输入
 

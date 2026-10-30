@@ -8,7 +8,7 @@
 
 源项目是 `umd-to-antd-vite` 产物，目标工程根必有 `.umd-conversion.json` 交接文件。
 
-**优先路径（`migrationPlan` 非 `null`，上游 `umd-to-antd-vite` 步骤 5 `build-migration-plan.cjs` 已生成 enriched 版）**：直接读 `migrationPlan` 数组作为分类评估清单——每项已含 `antd` / `category`（A/B/C）/ `eview` / **`importPath`**（含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底 Steps）/ **`shellComponent`** / **`keyDiffs`**（映射表完整原文，非一行摘要）/ `ref` / `files`。**A 类组件直接用 `keyDiffs` + `importPath` 替换，无需读 `component-mapping.md` 或 `components/<Name>.md`**；仅 B/C 类按 `ref` 指引读对应 reference。**Chart 迁移行已由 `build-migration-plan.cjs` §2c 自动注入**（读 `chartCallSites.callSites` 非空时 push，category A、importPath `@nce/eview-react/Chart`、keyDiffs 含 `a2ui: true`/`theme` 补全提醒）——步骤 2 按 keyDiffs 改 import 路径 + 补 `a2ui`/`theme` 即可，无需手动发现 `<Chart>` 调用点。同时读 `globalRef`（`.umd-conversion.json` 顶层）获取静态拼写异常 + 回调签名速查表，跳过读 `component-mapping.md` 文末速查表。直接跳到 §0.4 用 `migrationPlan` 的 `category` 统计规划步骤 3 替换顺序（§0.2/§0.3 跳过）。
+**优先路径（`migrationPlan` 非 `null`，上游 `umd-to-antd-vite` 步骤 5 `build-migration-plan.cjs` 已生成 enriched 版）**：直接读 `migrationPlan` 数组作为分类评估清单——每项已含 `antd` / `category`（A/B/C）/ `eview` / **`importPath`**（含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底）/ **`shellComponent`** / **`keyDiffs`**（映射表完整原文，非一行摘要）/ `ref` / `files`。**A 类组件直接用 `keyDiffs` + `importPath` 替换，无需读 `component-mapping.md` 或 `components/<Name>.md`**；仅 B/C 类按 `ref` 指引读对应 reference。**Chart 迁移行已由 `build-migration-plan.cjs` §2c 自动注入**（读 `chartCallSites.callSites` 非空时 push，category A、importPath `@nce/eview-react/Chart`、keyDiffs 含 `a2ui: true`/`theme` 补全提醒）——步骤 2 按 keyDiffs 改 import 路径 + 补 `a2ui`/`theme` 即可，无需手动发现 `<Chart>` 调用点。同时读 `globalRef`（`.umd-conversion.json` 顶层）获取静态拼写异常 + 回调签名速查表，跳过读 `component-mapping.md` 文末速查表。直接跳到 §0.4 用 `migrationPlan` 的 `category` 统计规划步骤 3 替换顺序（§0.2/§0.3 跳过）。
 
 **回退路径（`migrationPlan` 为 `null`，上游未跑步骤 5）**：读 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，同时读 `antdIcons` 获取图标清单，进入 §0.2 手动对照 `component-mapping.md` 分类。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。
 
@@ -85,7 +85,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 ### 3.1 A 类（有对应）：改 props
 
 对每个有对应的组件，执行：
-1. 改导入路径：用 `migrationPlan` 的 `importPath` 字段（已含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底 Steps/IPInput/TimePicker 等，无需手动判断；`shellComponent=true` 的从 `@/shared/<X>` 导入）
+1. 改导入路径：用 `migrationPlan` 的 `importPath` 字段（已含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底 IPInput/TimePicker 等，无需手动判断；`shellComponent=true` 的从 `@/shared/<X>` 导入）
 2. 改属性名：用 `migrationPlan` 的 `keyDiffs`（映射表完整原文）逐项替换；拼写异常查 `globalRef.spellingAnomalies`，回调签名查 `globalRef.callbackSignatures`——**无需读 `component-mapping.md`**
 3. 改回调签名：首参从 event 改为 value（`globalRef.callbackSignatures` 有每组件签名）
 4. 改数据格式：`options` 的 `label`→`text`，`items`→`data` 等（`keyDiffs` 已列）
@@ -102,7 +102,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 
 ### 3.3 C 类（模式转换）
 
-**Steps**：`current`→`currentStep`（对应 `data[].value` 不是下标）；`items`→`data=[{text,value}]`；`onClick(index)` 只允许回跳。见 [components/Steps.md](components/Steps.md)。
+**Steps**：`current`→`currentStep`（对应 `data[].value` 不是下标）；`items`→`data=[{text,value}]`；`onClick(index)` 只允许回跳；**antd dot（圆点）形态迁移用 `size="mini"`**（eview-react Steps 无 `type="dot"` prop）；导入 `@nce/eview-react/Steps`（非包壳）。见 [components/Steps.md](components/Steps.md)。
 
 **Modal / Modal.confirm**：`open`→`isOpen`；`footer`→`buttons=[{text,status,onClick}]`；`onClose` 不自动关闭（需 `setIsOpen(false)`）；`Modal.confirm()`→`MessageDialog type="confirm"`。见 [components/Dialog.md](components/Dialog.md) / [components/MessageDialog.md](components/MessageDialog.md)。
 
@@ -264,7 +264,7 @@ node <skill目录>/scripts/check-provider.cjs <目标工程根>
 
 ### 4.7 CSS 色值漂移（对照源快照）+ ev_ 类名检查（advisory 必跑）
 
-> 对应 SKILL.md 硬约束⑦。原项目 CSS 有时写死色值是**允许的**（忠实保留即可），但迁移**不能擅自改色值**；类名用业务前缀 `app-` 不用 `ev_`。脚本自动排除 `src/styles/`（token 定义层）和 `src/shared/`（包壳层，需用 `ev_wizard_*` 等类名覆盖组件库样式），只扫业务 CSS。
+> 对应 SKILL.md 硬约束⑦。原项目 CSS 有时写死色值是**允许的**（忠实保留即可），但迁移**不能擅自改色值**；类名用业务前缀 `app-` 不用 `ev_`。脚本自动排除 `src/styles/`（token 定义层）和 `src/shared/`（包壳层），只扫业务 CSS。
 
 脚本 `scripts/check-css.cjs`，对照 `.umd-conversion.json` 的 `sourceCssColors` 快照（由 `umd-to-antd-vite` `extract-umd.cjs` 扫源业务 CSS 写死色值生成）按文件 + 出现顺序配对源/产物色值，检查：① **COLOR_DRIFT**——同位置色值不同（迁移擅自改了色值，应改回源值）；② **COLOR_ADDED**——产物有色值、源同位置没有（迁移新增，需确认合理）；③ **COLOR_DROPPED**——源有色值、产物同位置没有（迁移删了，需确认合理）；④ **EV_CLASSNAME**——业务 CSS 用 `.ev_xxx` 类名（自定义违规 vs 覆盖组件库，需核对）。跳过变量定义行（`--xxx:`）和 `var()` 行的 fallback。
 

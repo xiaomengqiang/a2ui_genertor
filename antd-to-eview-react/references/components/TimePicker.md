@@ -192,6 +192,7 @@ timeRef.current.clear();
 | `onChange` | 原声明 any；实际 `(time: string[]) => void` | 零填充数字字符串，长度随 format / amPm；清空 [] |
 | `format` | `string`，默认 `'hh:mm:ss'` | 支持 hh:mm:ss / hh:mm / mm:ss |
 | `disabled` / `display` | `boolean`，默认 false / true | 禁用 / 整体显隐 |
+| `size` | `'small' \| 'middle' \| 'large'`，默认 `middle` | 尺寸；与 antd `size` 枚举一致，可直接透传 |
 | `label` / `labelPosition` | `string` / `'before' \| 'after'`，默认 before | 文本与位置 |
 | `required` | `boolean`，默认 false | 必填声明，不据此推断 ref 校验能力 |
 | `amPm` | `boolean`，默认 false | 小时范围 1–12；输入标记下标 3，输出位置随 format，业务负责 24 小时转换 |

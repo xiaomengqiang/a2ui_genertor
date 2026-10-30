@@ -16,7 +16,7 @@
  *
  * 排除范围（产物专属层不检查）：
  *   - src/styles/  token 定义层（:root 里 --brand-50:#xxx 是变量定义）
- *   - src/shared/   包壳层（Steps.css 等需用 ev_wizard_* 类名覆盖组件库样式）
+ *   - src/shared/   包壳层（包壳组件 CSS 需用 ev_ 类名覆盖组件库样式）
  *
  * 检查项：
  *   1. COLOR_DRIFT/ADDED/DROPPED  色值漂移（对照源快照）→ advisory

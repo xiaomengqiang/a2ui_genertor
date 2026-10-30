@@ -29,7 +29,7 @@ const EXTS = new Set(['.js', '.jsx', '.ts', '.tsx']);
 // 包壳组件清单（SKILL.md 硬约束①）：这些必须从 @/shared/<X> 导入，scaffold 预置转发
 const SHELL_COMPONENTS = [
   'Tag', 'Select', 'TextField', 'InputSelect', 'MultipleSelect', 'SearchInput',
-  'TextArea', 'DatePicker', 'Spinner', 'Steps', 'Cascader', 'TreeSelector',
+  'TextArea', 'DatePicker', 'Spinner', 'Cascader', 'TreeSelector',
   'IPInput', 'TimePicker', 'Crumbs',
 ];
 

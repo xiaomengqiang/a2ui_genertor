@@ -34,7 +34,7 @@ description: >-
 
 ## scaffold 预制骨架
 
-骨架由本 skill 的 `scaffold/` 目录维护，步骤 1 一键拷贝。骨架已含 eview-react 依赖、`aui3_1` body 类、`ConfigProvider` + `IntlProvider`、HarmonyOS 字体、icon shim（`src/shared/Icon/`，folder + 默认导出）；`vite.config.js` 预配 `@`→`./src` 别名 + icon-plus proxy/transform；`src/shared/` 下 Select/TextField/InputSelect/MultipleSelect/SearchInput/TextArea/Tag/DatePicker/Spinner/Steps/Cascader/TreeSelector/IPInput/TimePicker/Crumbs 包壳组件（多数透明转发 `@nce/eview-react` 供下游 antd-to-eview-react 从 `@/shared/X` 导入；TextField 包壳扩展了 `prefix` prop——`.prefix-wrapper` 绝对定位实现，用法同 `suffix`；Steps 包壳附带尺寸类名 xs/sm/lg 与 dot 模式样式见同目录 Steps.css；Cascader 为手写组件 API 基本同 antd）。`src/styles/` 下 `light.css` / `theme.css` / `dark.css` 为空壳占位，步骤 2 从产物 `assets/style/` 拷贝填充；`base.css` 预制 eview 专用样式（`ev_no_wcag`/`ev_form_item`），步骤 2 append ict `base.css`（`@font-face` 路径改写 `/font/`）。
+骨架由本 skill 的 `scaffold/` 目录维护，步骤 1 一键拷贝。骨架已含 eview-react 依赖、`aui3_1` body 类、`ConfigProvider` + `IntlProvider`、HarmonyOS 字体、icon shim（`src/shared/Icon/`，folder + 默认导出）；`vite.config.js` 预配 `@`→`./src` 别名 + icon-plus proxy/transform；`src/shared/` 下 Select/TextField/InputSelect/MultipleSelect/SearchInput/TextArea/Tag/DatePicker/Spinner/Cascader/TreeSelector/IPInput/TimePicker/Crumbs 包壳组件（多数透明转发 `@nce/eview-react` 供下游 antd-to-eview-react 从 `@/shared/X` 导入；TextField 包壳扩展了 `prefix` prop——`.prefix-wrapper` 绝对定位实现，用法同 `suffix`；Cascader 为手写组件 API 基本同 antd）。`src/styles/` 下 `light.css` / `theme.css` / `dark.css` 为空壳占位，步骤 2 从产物 `assets/style/` 拷贝填充；`base.css` 预制 eview 专用样式（`ev_no_wcag`/`ev_form_item`），步骤 2 append ict `base.css`（`@font-face` 路径改写 `/font/`）。
 
 用法：`node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标题] [--force]`
 
@@ -206,7 +206,7 @@ node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 脚本自动完成：
 1. 读 `.umd-conversion.json` 的 `antdComponents`
 2. 读 antd-to-eview-react 的 `references/component-mapping.md`，解析映射总表
-3. 对每个 antd 组件匹配映射行，分类 A/B/C + eview 替换名 + importPath（含 @/shared/ 包壳检测 + `SHELL_COMPONENTS` 硬编码列表兜底 Steps 等无 `@/shared/` keyDiffs 的包壳）+ shellComponent 标志 + 完整 keyDiffs（映射表原文，非摘要）+ ref 指引
+3. 对每个 antd 组件匹配映射行，分类 A/B/C + eview 替换名 + importPath（含 @/shared/ 包壳检测 + `SHELL_COMPONENTS` 硬编码列表兜底无 `@/shared/` keyDiffs 的包壳）+ shellComponent 标志 + 完整 keyDiffs（映射表原文，非摘要）+ ref 指引
 4. 写入 `globalRef`：静态拼写异常速查表（seprator/taggledChildren/disable/status/defaultLabel/toggled/iconSize）+ 回调签名速查表（TextField/Select/TextArea/Button/Tab/Toggle/Spinner/Checkbox/Radio/DragInput/TreeSelector 等 13 条）
 5. 写回 `.umd-conversion.json` 的 `migrationPlan` + `globalRef` 字段
 
@@ -218,7 +218,7 @@ node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 "migrationPlan": [
   { "antd": "Button", "category": "A", "eview": "Button", "importPath": "@nce/eview-react/Button", "shellComponent": false, "keyDiffs": "type→status（default/primary/risk/text）；无 loading/htmlType/danger...", "ref": "components/Button.md", "files": ["src/views/AppShell.jsx"] },
   { "antd": "Select", "category": "A", "eview": "Select", "importPath": "@/shared/Select", "shellComponent": true, "keyDiffs": "options 字段 label→text；placeholder→defaultLabel；onChange(value,oldValue,text,oldText,event) 五参...", "ref": "components/Select.md", "files": ["src/views/DeviceForm.jsx"] },
-  { "antd": "Steps", "category": "C", "eview": "Steps", "importPath": "@/shared/Steps", "shellComponent": true, "keyDiffs": "current→currentStep（对应 data[].value 不是下标）；items→data=[{text,value}]...", "ref": "components/Steps.md", "files": ["src/views/Wizard.jsx"] },
+  { "antd": "Steps", "category": "C", "eview": "Steps", "importPath": "@nce/eview-react/Steps", "shellComponent": false, "keyDiffs": "current→currentStep（对应 data[].value 不是下标）；items→data=[{text,value}]；size 原生 mini/small/middle/large，dot→size=mini...", "ref": "components/Steps.md", "files": ["src/views/Wizard.jsx"] },
   { "antd": "Modal", "category": "C", "eview": "Dialog", "importPath": "@nce/eview-react/Dialog", "shellComponent": false, "keyDiffs": "open→isOpen；footer→buttons=[{text,status,onClick}]；onClose 不自动关闭...", "ref": "components/Dialog.md", "files": ["src/views/DeviceForm.jsx"] },
   { "antd": "Layout", "category": "B", "eview": "手写", "importPath": null, "shellComponent": false, "keyDiffs": "无对应，CSS 布局", "ref": "handwrite-templates.md §4", "files": ["src/views/AppShell.jsx"] }
 ],
@@ -241,7 +241,7 @@ node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 3. **CSS 已外置、无需重提**：`base/light/theme/dark` 四层已在步骤 2 从产物 `assets/style/` 拷贝好，骨架的 `src/styles/` 原样保留
 4. **相对导入已修正**：`check-relative-imports.cjs` 已跑过，路径正确——下游验证里此子项跳过（`check-i18n-keys.cjs` 仍照跑）
 5. **代码只有一份**：双份代码已在步骤 3 归一
-6. **评估清单已前置（脚本自动化 + enriched）**：`migrationPlan` 由步骤 5 `build-migration-plan.cjs` 脚本生成（非主 agent 手动），下游步骤 0 直接读它作为组件分类评估清单——含 A/B/C 分类 + 替换名 + **importPath**（含 @/shared/ 包壳检测 + `SHELL_COMPONENTS` 硬编码兜底 Steps）+ **shellComponent** 标志 + **完整 keyDiffs**（映射表原文，非一行摘要）+ ref 指引 + 涉及文件。A 类组件无需再读 `component-mapping.md` 或 `components/<Name>.md`，仅 B/C 类按 `ref` 指引读对应 reference。`globalRef`（拼写异常 + 回调签名速查表）由同一脚本写入，下游跳过读 `component-mapping.md` 文末速查表
+6. **评估清单已前置（脚本自动化 + enriched）**：`migrationPlan` 由步骤 5 `build-migration-plan.cjs` 脚本生成（非主 agent 手动），下游步骤 0 直接读它作为组件分类评估清单——含 A/B/C 分类 + 替换名 + **importPath**（含 @/shared/ 包壳检测 + `SHELL_COMPONENTS` 硬编码兜底）+ **shellComponent** 标志 + **完整 keyDiffs**（映射表原文，非一行摘要）+ ref 指引 + 涉及文件。A 类组件无需再读 `component-mapping.md` 或 `components/<Name>.md`，仅 B/C 类按 `ref` 指引读对应 reference。`globalRef`（拼写异常 + 回调签名速查表）由同一脚本写入，下游跳过读 `component-mapping.md` 文末速查表
 7. **图标调用点已预扫**：`iconCallSites` 由步骤 2 `extract-umd.cjs` 预扫写入 `.umd-conversion.json`（字面量/动态/无 name 分类 + 文件 + 行号），下游图标步骤跳过 grep，直接用预扫结果跑 `match-icons.cjs`
 8. **图表调用点已预扫 + 迁移行已注入**：`chartCallSites` 由步骤 2 `extract-umd.cjs` §4.9 预扫写入 `.umd-conversion.json`（chartType 字面量/动态/无 name 分类 + 文件 + 行号 + 共享件路径），步骤 5 `build-migration-plan.cjs` 读 `chartCallSites.callSites` 非空时注入 Chart 迁移行到 `migrationPlan`（category A、importPath `@nce/eview-react/Chart`、keyDiffs 含 `a2ui: true`/`theme` 补全提醒）——下游步骤 0 直接见迁移行，步骤 2 按 keyDiffs 改 import 路径 + 补 `a2ui`/`theme`，无需手动发现 `<Chart>` 调用点
 
