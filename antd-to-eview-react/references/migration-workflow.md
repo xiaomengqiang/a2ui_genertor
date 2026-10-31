@@ -8,7 +8,7 @@
 
 源项目是 `umd-to-antd-vite` 产物，目标工程根必有 `.umd-conversion.json` 交接文件。
 
-**优先路径（`migrationPlan` 非 `null`，上游 `umd-to-antd-vite` 步骤 5 `build-migration-plan.cjs` 已生成 enriched 版）**：直接读 `migrationPlan` 数组作为分类评估清单——每项已含 `antd` / `category`（A/B/C）/ `eview` / **`importPath`**（含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底 Steps）/ **`shellComponent`** / **`keyDiffs`**（映射表完整原文，非一行摘要）/ `ref` / `files`。**A 类组件直接用 `keyDiffs` + `importPath` 替换，无需读 `component-mapping.md` 或 `components/<Name>.md`**；仅 B/C 类按 `ref` 指引读对应 reference。**Chart 迁移行已由 `build-migration-plan.cjs` §2c 自动注入**（读 `chartCallSites.callSites` 非空时 push，category A、importPath `@nce/eview-react/Chart`、keyDiffs 含 `a2ui: true`/`theme` 补全提醒）——步骤 2 按 keyDiffs 改 import 路径 + 补 `a2ui`/`theme` 即可，无需手动发现 `<Chart>` 调用点。同时读 `globalRef`（`.umd-conversion.json` 顶层）获取静态拼写异常 + 回调签名速查表，跳过读 `component-mapping.md` 文末速查表。直接跳到 §0.4 用 `migrationPlan` 的 `category` 统计规划步骤 3 替换顺序（§0.2/§0.3 跳过）。
+**优先路径（`migrationPlan` 非 `null`，上游 `umd-to-antd-vite` 步骤 5 `build-migration-plan.cjs` 已生成 enriched 版）**：直接读 `migrationPlan` 数组作为分类评估清单——每项已含 `antd` / `category`（A/B/C）/ `eview` / **`importPath`**（含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底）/ **`shellComponent`** / **`keyDiffs`**（映射表完整原文，非一行摘要）/ `ref` / `files`。**A 类组件直接用 `keyDiffs` + `importPath` 替换，无需读 `component-mapping.md` 或 `components/<Name>.md`**；仅 B/C 类按 `ref` 指引读对应 reference。**Chart 迁移行已由 `build-migration-plan.cjs` §2c 自动注入**（读 `chartCallSites.callSites` 非空时 push，category A、importPath `@nce/eview-react/Chart`、keyDiffs 含 `a2ui: true`/`theme` 补全提醒）——步骤 2 按 keyDiffs 改 import 路径 + 补 `a2ui`/`theme` 即可，无需手动发现 `<Chart>` 调用点。同时读 `globalRef`（`.umd-conversion.json` 顶层）获取静态拼写异常 + 回调签名速查表，跳过读 `component-mapping.md` 文末速查表。直接跳到 §0.4 用 `migrationPlan` 的 `category` 统计规划步骤 3 替换顺序（§0.2/§0.3 跳过）。
 
 **回退路径（`migrationPlan` 为 `null`，上游未跑步骤 5）**：读 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，同时读 `antdIcons` 获取图标清单，进入 §0.2 手动对照 `component-mapping.md` 分类。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。
 
@@ -72,6 +72,8 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 
 > **`{}` 上下文规则（缺陷一/二教训）**：剥离 `<Icon name={X}/>` 包装时，改写结果 `X`（如 `cond ? <A/> : <B/>`、`group.icon`）**仅当原处 JSX 子节点位才包 `{X}`**；三元分支/对象值/数组元素/prop 容器/箭头体/return 等表达式位一律裸 `X`，否则 `{}` 被解析为对象字面量/块语句而语法报错。脚本 `--apply`（三元 + 数据数组 render + 图标-prop wrapper 内部）已按 `wrapIfNeeded` 遵守；LLM residual 手改链式三元、prop 驱动调用方同步更新、wrapper 安全闸 residual 等场景务必同此规则。详见 [Icon.md](components/Icon.md)「`<Icon name={X}/>` 改写的 `{}` 上下文规则」表 +「图标-prop wrapper 组件」小节。
 
+> **⚠️ props 保留规则（缺陷三教训，必读）**：`match-icons.cjs --apply` 把 `<Icon name=.../>` 改写成 `<IconPlusIc*/>`（含三元条件渲染）时**只处理 name→icon+ 名映射 + iconSize 吸附，不会自动搬运原 `<Icon>` 上的其余 props**（`onClick`/`title`/`aria-*`/`style`/`className` 等）。LLM residual 手改、剥 Button/IconButton 外壳同理——**必须显式把原调用点的所有非 icon props 原样搬到新 icon+ 元素**，否则交互断链。高频受害：主题切换图标漏 `onClick={toggleDark}` → `isDark` 永远初值、暗色三轨永不触发（`check-dark-mode.cjs` 静态 PASS 拦不住，见 §4.11 盲区）。完整改写清单 + 正反例 + 孙 agent 收尾复核约束见 [Icon.md](components/Icon.md)「⚠️ 硬约束：改写 `<Icon>` 调用点必须保留原 DOM/交互 props」。阶段3 收尾必须 grep `toggleDark` 确认有实际调用点（详见 §4.11 配套人工校验）。
+
 | 组件 | 源项目用法 | 迁移后（B/C 静态 import） |
 |------|-----------|------------------|
 | Icon | `<Icon name="search" size={14} />`（`./assets/shared/icon.jsx`） | `import { IconPlusIcPublicSearch } from '@hui/icon-plus'` + `<IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />`（名由 B 在线 / C catalog 匹配；C 的 confirmed 自动落、residual 交 LLM 从候选选） |
@@ -85,7 +87,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 ### 3.1 A 类（有对应）：改 props
 
 对每个有对应的组件，执行：
-1. 改导入路径：用 `migrationPlan` 的 `importPath` 字段（已含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底 Steps/IPInput/TimePicker 等，无需手动判断；`shellComponent=true` 的从 `@/shared/<X>` 导入）
+1. 改导入路径：用 `migrationPlan` 的 `importPath` 字段（已含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底 IPInput/TimePicker 等，无需手动判断；`shellComponent=true` 的从 `@/shared/<X>` 导入）
 2. 改属性名：用 `migrationPlan` 的 `keyDiffs`（映射表完整原文）逐项替换；拼写异常查 `globalRef.spellingAnomalies`，回调签名查 `globalRef.callbackSignatures`——**无需读 `component-mapping.md`**
 3. 改回调签名：首参从 event 改为 value（`globalRef.callbackSignatures` 有每组件签名）
 4. 改数据格式：`options` 的 `label`→`text`，`items`→`data` 等（`keyDiffs` 已列）
@@ -102,7 +104,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 
 ### 3.3 C 类（模式转换）
 
-**Steps**：`current`→`currentStep`（对应 `data[].value` 不是下标）；`items`→`data=[{text,value}]`；`onClick(index)` 只允许回跳。见 [components/Steps.md](components/Steps.md)。
+**Steps**：`current`→`currentStep`（对应 `data[].value` 不是下标）；`items`→`data=[{text,value}]`；`onClick(index)` 只允许回跳；**antd dot（圆点）形态迁移用 `size="mini"`**（eview-react Steps 无 `type="dot"` prop）；导入 `@nce/eview-react/Steps`（非包壳）。见 [components/Steps.md](components/Steps.md)。
 
 **Modal / Modal.confirm**：`open`→`isOpen`；`footer`→`buttons=[{text,status,onClick}]`；`onClose` 不自动关闭（需 `setIsOpen(false)`）；`Modal.confirm()`→`MessageDialog type="confirm"`。见 [components/Dialog.md](components/Dialog.md) / [components/MessageDialog.md](components/MessageDialog.md)。
 
@@ -264,7 +266,7 @@ node <skill目录>/scripts/check-provider.cjs <目标工程根>
 
 ### 4.7 CSS 色值漂移（对照源快照）+ ev_ 类名检查（advisory 必跑）
 
-> 对应 SKILL.md 硬约束⑦。原项目 CSS 有时写死色值是**允许的**（忠实保留即可），但迁移**不能擅自改色值**；类名用业务前缀 `app-` 不用 `ev_`。脚本自动排除 `src/styles/`（token 定义层）和 `src/shared/`（包壳层，需用 `ev_wizard_*` 等类名覆盖组件库样式），只扫业务 CSS。
+> 对应 SKILL.md 硬约束⑦。原项目 CSS 有时写死色值是**允许的**（忠实保留即可），但迁移**不能擅自改色值**；类名用业务前缀 `app-` 不用 `ev_`。脚本自动排除 `src/styles/`（token 定义层）和 `src/shared/`（包壳层），只扫业务 CSS。
 
 脚本 `scripts/check-css.cjs`，对照 `.umd-conversion.json` 的 `sourceCssColors` 快照（由 `umd-to-antd-vite` `extract-umd.cjs` 扫源业务 CSS 写死色值生成）按文件 + 出现顺序配对源/产物色值，检查：① **COLOR_DRIFT**——同位置色值不同（迁移擅自改了色值，应改回源值）；② **COLOR_ADDED**——产物有色值、源同位置没有（迁移新增，需确认合理）；③ **COLOR_DROPPED**——源有色值、产物同位置没有（迁移删了，需确认合理）；④ **EV_CLASSNAME**——业务 CSS 用 `.ev_xxx` 类名（自定义违规 vs 覆盖组件库，需核对）。跳过变量定义行（`--xxx:`）和 `var()` 行的 fallback。
 
@@ -329,7 +331,19 @@ node <skill目录>/scripts/check-dark-mode.cjs <目标工程根>
 
 硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（结构完整性检查，非 advisory）。
 
-### 4.12 常见报错对照
+### 4.12 MessageDialog iconLocation 默认值反向坑检查（advisory 必跑）
+
+> 对应 components/MessageDialog.md §5 API 表 + §2 三处示例——又一个「eview 默认值与 antd 形态相反」的坑（同 Table/Steps 默认值反向坑系列）。eview-react MessageDialog 的 `iconLocation` 默认 `'content'`（图标在内容区），但 demo 统一用 `'title'`（图标在标题区）——这也是 antd `Modal.confirm` 的形态（图标出现在标题旁）。迁移时若不显式设 `iconLocation="title"`，图标位置与 antd 习惯不一致。
+
+脚本 `scripts/check-messagedialog-defaults.cjs`，对每个 `<MessageDialog>` 检查：① 缺 `iconLocation` → advisory（eview 默认 content，antd Modal.confirm 形态 = title，需补 title）；② `iconLocation="content"` → advisory（显式用了 eview 默认值，核对源是否确实要图标在内容区，否则改 title）；③ 动态值 → advisory（确认运行时值为 title）。
+
+```bash
+node <skill目录>/scripts/check-messagedialog-defaults.cjs <目标工程根>
+```
+
+advisory 模式 exit 0，但每个待核 `<MessageDialog>` 必须在 `.migration-result.json` 的 `messageDialogReviews` 写明决策（如 `"源 antd Modal.confirm 图标在标题区，已补 iconLocation='title'"` 或 `"源确实要图标在内容区，保留 content"`）。未逐条回应视同 FAIL。
+
+### 4.13 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -340,11 +354,11 @@ node <skill目录>/scripts/check-dark-mode.cjs <目标工程根>
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 但 `data.js` 里 value 是短代码、i18n key 带前缀 | 在 render 里补命名空间前缀：`t("deviceType." + value, value)`；详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 4.13 验证
+### 4.14 验证
 
 跑验证脚本，把结果写入 `<目标工程根>/.migration-result.json`。
 
-> **十一个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。
+> **十二个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。
 
 **验证步骤**（全部必跑，按序）：
 1. 相对导入检查**跳过**（见 §4.1）
@@ -358,7 +372,8 @@ node <skill目录>/scripts/check-dark-mode.cjs <目标工程根>
 9. 跑 `node <skill目录>/scripts/check-props-preserved.cjs <目标工程根>`（§4.9，advisory，逐条回应写入 `propsPreservedReviews`）
 10. 跑 `node <skill目录>/scripts/check-steps-defaults.cjs <目标工程根>`（§4.10，advisory，逐条回应写入 `stepsReviews`）
 11. 跑 `node <skill目录>/scripts/check-dark-mode.cjs <目标工程根>`（§4.11，**硬 FAIL**，exit≠0 即 FAIL）
-12. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
+12. 跑 `node <skill目录>/scripts/check-messagedialog-defaults.cjs <目标工程根>`（§4.12，advisory，逐条回应写入 `messageDialogReviews`）
+13. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
 
 **结果文件**：把结果写入 `<目标工程根>/.migration-result.json`（覆盖写），JSON 结构：
 
@@ -379,6 +394,7 @@ node <skill目录>/scripts/check-dark-mode.cjs <目标工程根>
     "props-preserved": "PASS/FAIL",
     "steps-defaults": "PASS/FAIL",
     "dark-mode": "PASS/FAIL",
+    "messagedialog-defaults": "PASS/FAIL",
     "npm-install": "PASS/SKIP"
   },
   "tableDefaultReviews": [
@@ -400,6 +416,9 @@ node <skill目录>/scripts/check-dark-mode.cjs <目标工程根>
   "stepsReviews": [
     { "file": "src/views/.../wizard.jsx", "line": 20, "code": "LABEL_PLACEMENT_MISSING", "decision": "源 antd 用默认形态，已补 labelPlacement='horizontal'" }
   ],
+  "messageDialogReviews": [
+    { "file": "src/views/.../list.jsx", "line": 45, "code": "ICON_LOCATION_MISSING", "decision": "源 antd Modal.confirm 图标在标题区，已补 iconLocation='title'" }
+  ],
   "notes": "可选说明"
 }
 ```
@@ -409,6 +428,7 @@ node <skill目录>/scripts/check-dark-mode.cjs <目标工程根>
 - npm-install=SKIP 不影响整体 status（notes 写明外网环境降级，仅静态检查生效）
 - `table-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<Table>` 必须在 `tableDefaultReviews` 写明决策**；未逐条回应 → FAIL
 - `steps-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<Steps>` 必须在 `stepsReviews` 写明决策**；未逐条回应 → FAIL
+- `messagedialog-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<MessageDialog>` 必须在 `messageDialogReviews` 写明决策**；未逐条回应 → FAIL
 - `css` advisory：脚本 exit=0 但有待核项时，**每个待核项必须在 `cssReviews` 写明决策**；未逐条回应 → FAIL
 - `token-drift` advisory（TOKEN_MISSING/TOKEN_ADDED/UNDEFINED_REF）：脚本 exit=0 但有待核项时，**每个待核项必须在 `tokenDriftReviews` 写明决策**；未逐条回应 → FAIL
 - `props-preserved` advisory（STYLE_DROPPED/CLASSNAME_DROPPED/COUNT_MISMATCH）：脚本 exit=0 但有待核项时，**每个待核项必须在 `propsPreservedReviews` 写明决策**（合理丢弃如 DatePicker 包壳已处理宽度，否则应补回）；未逐条回应 → FAIL

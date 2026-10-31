@@ -23,6 +23,17 @@
  *   而源未转→渲染文本）。唯一放行：真 OPEN 运行时字段的默认/兜底，且消费端是保留并判 OPEN 的 <Icon>
  *   shim → 须在该字面量条目补 closedSet:false + OPEN 证据 + linksShim 指向该 shim 站点（闸门校验）。
  *
+ * 改写后图标交互 props 丢失扫描（PROP_DROPPED_ON_ICON_REWRITE）：对应 Icon.md「⚠️ 硬约束：改写
+ *   <Icon> 调用点必须保留原 DOM/交互 props」。match-icons.cjs --apply 把 <Icon name=.../> 改写成
+ *   <IconPlusIcXxx/>（含三元条件渲染）时只处理 name→icon+ 名 + iconSize 吸附，不搬运原 <Icon> 上的
+ *   onClick/title/aria 等/style/className 等。
+ *   数据来源：读 .umd-conversion.json 的 iconCallSites.interactiveProps（由 umd-to-antd-vite 的
+ *   extract-umd.cjs 扫源 <Icon> 调用点记录，含 index.page.html 内联源码）。提取源调用点携带的关键
+ *   事件 handler 值签名（如 onClick={toggleDark} 的值 "toggleDark"），在产物 src/ 扫所有 <IconPlusIc*>
+ *   站点核对该值签名是否保留。源有 handler 值但产物所有 IconPlusIc 站点都无 → 报 PROP_DROPPED。
+ *   精确配对（非启发式）、误报极低。check-dark-mode.cjs 静态三轨 PASS 拦不住此运行时入口断裂，本检查
+ *   补盲区（实测回归：case4/case5/码趣 3 工程暗色失效即此缺陷，check-dark-mode 全 PASS 但 onClick 丢失）。
+ *
  * 用法：
  *   node check-icon-shim.cjs <目标工程根>              # 输出报告，退出码 0
  *   node check-icon-shim.cjs <目标工程根> --strict     # 任一 UNJUSTIFIED 站点退出码 1
@@ -302,13 +313,100 @@ function main() {
     }
   }
 
+  // ── 改写后 <IconPlusIc*> 交互 props 丢失扫描（PROP_DROPPED_ON_ICON_REWRITE）
+  // 对应 Icon.md「⚠️ 硬约束：改写 <Icon> 调用点必须保留原 DOM/交互 props」
+  // 数据来源：.umd-conversion.json 的 iconCallSites.interactiveProps（由 extract-umd.cjs 扫源 <Icon> 记录）。
+  //   match-icons.cjs --apply 把 <Icon name=.../> 改写成 <IconPlusIc*/>（含三元条件渲染）时只处理
+  //   name→icon+ 名 + iconSize 吸附，不搬运原 <Icon> 上的 onClick/title/aria-*/style/className 等。
+  // 检测策略（精确配对，非启发式）：读交接文档里带 interactiveProps 的源 <Icon> 调用点，提取关键事件
+  //   handler 的值签名（如 onClick={toggleDark} 的值 "toggleDark"），在产物 src/ 扫所有 <IconPlusIc*>
+  //   站点，逐一核对该值签名是否出现在某 IconPlusIc 站点的同名 prop 上。源有该 handler 值但产物无任何
+  //   IconPlusIc 站点携带 → 判 props 在改写时丢失 → 报 PROP_DROPPED_ON_ICON_REWRITE。
+  // 此检测读交接文档（用户要求"交接文档写明需检查 icon 的，check 读交接文档"），精确配对、误报极低。
+  //   check-dark-mode.cjs 静态三轨 PASS 拦不住此运行时入口断裂，本检查补盲区（实测回归：case4/case5/
+  //   码趣 3 工程暗色失效即此缺陷——源 <Icon onClick={toggleDark}> 改写后 onClick 丢失）。
+  const propDropped = [];
+  // 关键事件 handler prop（值是函数引用，丢失即交互断链；onClick 为主，兼 onMouse*/onKey*/onPress 等）
+  const HANDLER_PROPS = ['onClick', 'onDoubleClick', 'onMouseDown', 'onMouseUp', 'onMouseEnter',
+    'onMouseLeave', 'onMouseMove', 'onMouseOver', 'onMouseOut', 'onKeyDown', 'onKeyPress', 'onKeyUp',
+    'onFocus', 'onBlur', 'onTouchStart', 'onTouchEnd', 'onTouchMove', 'onPress'];
+  // 读交接文档 iconCallSites（带 interactiveProps 的源调用点）
+  let iconCallSites = [];
+  const convPath = path.join(targetRoot, '.umd-conversion.json');
+  if (fs.existsSync(convPath)) {
+    try {
+      const conv = JSON.parse(fs.readFileSync(convPath, 'utf8'));
+      iconCallSites = Array.isArray(conv.iconCallSites) ? conv.iconCallSites : [];
+    } catch (e) {
+      console.warn(`[check-icon-shim] .umd-conversion.json 解析失败（icon props 核对跳过）：${e.message}`);
+    }
+  }
+  // 提取源调用点里"关键事件 handler 的值签名"（如 onClick={toggleDark} → "toggleDark"）
+  // 仅取纯标识符/成员表达式值（排除箭头函数匿名值，因匿名值无稳定签名难配对）
+  // 排除"值名 == handler prop 名"的透传场景（如 onClick={onClick}，从 props 解构同名透传，
+  //   属 wrapper 组件动态 prop 传递、非固定函数引用，丢失检测无意义——产物保留即透传，不报）
+  const sourceHandlerValues = new Map(); // value → [{ prop, sourceSite }]
+  for (const site of iconCallSites) {
+    if (!site.interactiveProps) continue;
+    for (const p of site.interactiveProps) {
+      if (!HANDLER_PROPS.includes(p.name) || !p.hasValue || !p.value) continue;
+      // 纯标识符（toggleDark）或成员表达式（this.handle）；排除箭头函数/函数表达式（()=>...）
+      if (/^=>|^\(.*\)\s*=>|^function\b/.test(p.value)) continue;
+      const val = p.value.trim();
+      if (!/^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*$/.test(val)) continue;
+      // 排除同名透传（onClick={onClick} / onMouseDown={onMouseDown}）——wrapper 组件动态 prop 透传
+      if (val === p.name) continue;
+      if (!sourceHandlerValues.has(val)) sourceHandlerValues.set(val, []);
+      sourceHandlerValues.get(val).push({ prop: p.name, sourceSite: site });
+    }
+  }
+  if (sourceHandlerValues.size) {
+    // 扫产物 src/ 所有 <IconPlusIc*> 站点，收集它们携带的 handler 值签名
+    const IconPlusRe = /<IconPlusIc[A-Za-z0-9]*\b[\s\S]*?(?:\/>|<\/IconPlusIc[A-Za-z0-9]*>)/g;
+    const productHandlerValues = new Set(); // 产物 IconPlusIc 站点携带的 handler 值（如 toggleDark）
+    for (const file of files) {
+      if (rel(file).includes('/shared/Icon/')) continue;
+      const text = fs.readFileSync(file, 'utf8');
+      IconPlusRe.lastIndex = 0;
+      let im;
+      while ((im = IconPlusRe.exec(text)) !== null) {
+        const tag = im[0];
+        for (const hp of HANDLER_PROPS) {
+          // handler={value} 形态（平衡 {} 取值）
+          const re = new RegExp(`\\b${hp}\\s*=\\s*\\{([^}]*)\\}`);
+          const hm = tag.match(re);
+          if (hm) {
+            const v = hm[1].trim();
+            if (/^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*$/.test(v)) {
+              productHandlerValues.add(v);
+            }
+          }
+        }
+      }
+    }
+    // 核对：源有 handler 值，但产物所有 IconPlusIc 站点都无 → 报丢失
+    for (const [val, sources] of sourceHandlerValues) {
+      if (productHandlerValues.has(val)) continue; // 产物有该 handler 值 → 保留成功
+      for (const s of sources) {
+        propDropped.push({
+          file: s.sourceSite.file,
+          line: s.sourceSite.line,
+          fn: val,
+          sourceName: s.sourceSite.name,
+          issue: 'PROP_DROPPED_ON_ICON_REWRITE',
+          detail: `源 <Icon> 调用点（${s.sourceSite.file}:${s.sourceSite.line}，name=${s.sourceSite.name || '(无)'}）携带 ${s.prop}={${val}}，但产物 src/ 所有 <IconPlusIc*> 站点均无 ${s.prop}={${val}}——疑似 match-icons.cjs --apply / 手工图标替换把原 <Icon> 改写成 <IconPlusIc*> 时丢失了 ${s.prop}。check-dark-mode.cjs 静态三轨 PASS 拦不住此运行时入口断裂（${val} 若是暗色切换函数则 isDark 永不翻转）。修复：在产物对应图标站点补回 ${s.prop}={${val}}（+ title/role/tabIndex 等 a11y props），见 Icon.md「⚠️ 硬约束：改写 <Icon> 调用点必须保留原 DOM/交互 props」改写清单。`,
+        });
+      }
+    }
+  }
+
   // 报告
   console.log('[check-icon-shim] 方案A 兜底保留校验报告');
   console.log('  契约：方案A 仅 name 值集合 OPEN（后端自由取值）；闭合集（含跨 prop/useMemo/推入函数边界、对象地图）须转 icon+。');
   console.log('        untraced 站点（脚本追不到源）交 LLM 按 Icon.md §name 解析 判，本闸拦闭集误留与未判站点。');
   console.log(`  扫描范围: src/（${files.length} 个文件，${totalShimSites} 处 <Icon> shim 站点，已排除 src/shared/Icon/）`);
   console.log(`  闭合性结论条目: ${justifications.length} 条（.icon-shim-justified.json）`);
-  console.log(`  UNJUSTIFIED: ${unjustified.length} 处；STALE-SHIM-IMPORT: ${staleImports.length} 处；UNCONVERTED-ICON-SOURCE: ${unconvertedSources.length} 处`);
+  console.log(`  UNJUSTIFIED: ${unjustified.length} 处；STALE-SHIM-IMPORT: ${staleImports.length} 处；UNCONVERTED-ICON-SOURCE: ${unconvertedSources.length} 处；PROP_DROPPED_ON_ICON_REWRITE: ${propDropped.length} 处`);
   if (unjustified.length) {
     console.log('');
     for (const u of unjustified) {
@@ -337,20 +435,29 @@ function main() {
       if (convertedConsumers.length > 20) console.log(`    …余 ${convertedConsumers.length - 20} 处`);
     }
   }
-  if (unjustified.length || staleImports.length || unconvertedSources.length) {
+  if (propDropped.length) {
+    console.log('');
+    for (const p of propDropped) {
+      console.log(`  ✗ ${p.file}:${p.line}  fn=${p.fn}  [${p.issue}]`);
+      console.log(`      ${p.detail}`);
+    }
+  }
+  if (unjustified.length || staleImports.length || unconvertedSources.length || propDropped.length) {
     console.log('');
     console.log('修复：按 Icon.md §name 解析与方案A 判定（统一原则）枚举闭集叶子转 icon+，');
     console.log('     或在 .icon-shim-justified.json 补具体 OPEN 集合证据（后端接口/运行时自由取值/props 字段且源不在已扫文件）；');
     console.log('     STALE-SHIM-IMPORT：残留 <Icon> 文件手改 `import Icon from "@/shared/Icon"`（默认导入）。');
     console.log('     UNCONVERTED-ICON-SOURCE：数据源两半同改——把 icon:"lit" 改 <IconPlusIc…/> + import 注入源文件（源在别文件也追过去改）；');
     console.log('       仅真 OPEN 默认/兜底字面量可留，须 closedSet:false + OPEN 证据 + linksShim 关联保留 shim。');
+    console.log('     PROP_DROPPED_ON_ICON_REWRITE：给报出的暗色切换图标补回 onClick={fn}（+ title/role/tabIndex 等 a11y props），');
+    console.log('       见 Icon.md「⚠️ 硬约束：改写 <Icon> 调用点必须保留原 DOM/交互 props」改写清单。');
   } else if (totalShimSites) {
-    console.log('  全部残留 shim 站点已声明具体 OPEN 集合证据、无 stale import、无数据源半改——PASS');
+    console.log('  全部残留 shim 站点已声明具体 OPEN 集合证据、无 stale import、无数据源半改、无图标改写 props 丢失——PASS');
   } else {
-    console.log('  无残留 <Icon> shim 站点、无数据源半改——PASS');
+    console.log('  无残留 <Icon> shim 站点、无数据源半改、无图标改写 props 丢失——PASS');
   }
 
-  if (opts.strict && (unjustified.length || staleImports.length || unconvertedSources.length)) {
+  if (opts.strict && (unjustified.length || staleImports.length || unconvertedSources.length || propDropped.length)) {
     process.exit(1);
   }
 }

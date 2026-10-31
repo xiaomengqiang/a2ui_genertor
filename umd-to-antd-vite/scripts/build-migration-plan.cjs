@@ -57,11 +57,11 @@ const mappingPath = path.join(skillDir, 'references/component-mapping.md');
 const mappingText = fs.readFileSync(mappingPath, 'utf8');
 const handoff = JSON.parse(fs.readFileSync(handoffPath, 'utf8'));
 
-// scaffold 包壳组件硬编码清单（兜底：Steps 在 mapping table keyDiffs 里没有 @/shared/ 字样，
+// scaffold 包壳组件硬编码清单（兜底：部分包壳在 mapping table keyDiffs 里没有 @/shared/ 字样，
 // 需硬编码检测。其余包壳都能从 keyDiffs 的 @/shared/<X> 自动检测）
 const SHELL_COMPONENTS = [
   'Select', 'TextField', 'InputSelect', 'MultipleSelect', 'SearchInput', 'TextArea',
-  'Tag', 'DatePicker', 'Spinner', 'Steps', 'Cascader', 'TreeSelector', 'IPInput', 'TimePicker',
+  'Tag', 'DatePicker', 'Spinner', 'Cascader', 'TreeSelector', 'IPInput', 'TimePicker',
   'Crumbs',
 ];
 

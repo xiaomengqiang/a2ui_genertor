@@ -1935,6 +1935,9 @@ input.ant-input.ant-input-sm {
   border-color: var(--color-border);
   color: var(--color-text-placeholder);
   background-color: var(--color-fill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .ant-steps .ant-steps-item.ant-steps-item-wait .ant-steps-item-container .ant-steps-item-icon > .ant-steps-icon {
   color: var(--color-text-placeholder);
@@ -1969,6 +1972,9 @@ input.ant-input.ant-input-sm {
 .ant-steps .ant-steps-item .ant-steps-item-icon {
   font-size: var(--font-size-md);
   margin-inline-end: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .ant-steps .ant-steps-item-content {
   color: var(--color-text-secondary);
@@ -2468,12 +2474,13 @@ input.ant-input.ant-input-sm {
   margin-bottom: var(--spacing-0);
   height: 2.25rem;
   align-items: center;
+  line-height: initial;
 }
 .ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-switcher {
   width: 1rem;
   height: 1rem;
   line-height: 1rem;
-  margin-right: 0.25rem;
+  margin-right: 0;
   align-self: center;
 }
 .ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-switcher.ant-tree-switcher_close {
@@ -2510,6 +2517,13 @@ input.ant-input.ant-input-sm {
   border-radius: var(--radius-base);
   display: flex;
   align-items: center;
+  padding-inline: 0.25rem;
+  height: 1.75rem;
+}
+.ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-node-content-wrapper .ant-tree-iconEle {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
 }
 .ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-node-content-wrapper:hover {
   background: var(--color-fill);
@@ -3122,6 +3136,7 @@ input.ant-input.ant-input-sm {
 
 .ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor {
   line-height: 1.5rem;
+  font-size: var(--font-size-md);
 }
 .ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor::before {
   border-color: var(--color-border-separator);
@@ -3130,6 +3145,10 @@ input.ant-input.ant-input-sm {
 .ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor .ant-anchor-ink {
   background-color: var(--border-primary);
   border-radius: 1px;
+}
+.ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor .ant-anchor-link {
+  padding-block: 0.25rem;
+  padding-inline: 1rem 0;
 }
 .ant-anchor-wrapper:not(.ant-anchor-wrapper-horizontal) .ant-anchor .ant-anchor-link.ant-anchor-link-active .ant-anchor-link-title.ant-anchor-link-title-active:hover {
   color: var(--color-link);
