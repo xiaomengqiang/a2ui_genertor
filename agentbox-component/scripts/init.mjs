@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 // init.mjs
 // Copies the skill's preview template into a working scaffold:
-//   - [Artifact Folder]/preview when provided via --artifact-folder
-//   - otherwise ./preview under the current working directory
+//   - [Artifact Folder]/{name} when provided via --artifact-folder
+//   - otherwise ./{name} under the current working directory
+//   - {name} defaults to "preview"; override with --name (e.g. --name preview-components)
 //
 // What gets copied (default, clean scaffold):
 //   assets/  (+ assets/library local UMD libs — fully offline)
 //   demo.css                     (preset gallery skeleton)
-//   demo.jsx                     (fresh starter, see STARTER_DEMO below)
+//   demo.jsx                     (fresh neutral starter, see STARTER_DEMO below)
+//   components/                  (empty authoring dir)
+//   views/                       (empty authoring dir)
 //
 // NOT copied by default: example components (SegmentedSteps) and
 // the template's generated index.components.html. Add --with-examples to include example
@@ -15,11 +18,11 @@
 //
 // Idempotent: if {dest}/demo.jsx already exists, the scaffold is
 // REUSED — nothing is overwritten (user components, added icons, built HTML all
-// survive). This lets multiple sessions accumulate components in one folder.
+// survive). This lets multiple sessions accumulate work in one folder.
 //
 // Usage:
-//   node init.mjs [--artifact-folder "<abs path>"] [--with-examples]
-//   short: -a  -e
+//   node init.mjs [--artifact-folder "<abs path>"] [--name "<subfolder>"] [--with-examples]
+//   short: -a  -n  -e
 //
 // Output (agent-parseable):
 //   RESULT: OK
@@ -63,9 +66,10 @@ function hasFlag(long, short) {
 }
 
 const artifactFolder = getOpt("--artifact-folder", "-a");
+const name = getOpt("--name", "-n") || "preview";
 const withExamples = hasFlag("--with-examples", "-e");
 
-const dest = join(resolve(artifactFolder ? artifactFolder : process.cwd()), "preview");
+const dest = join(resolve(artifactFolder ? artifactFolder : process.cwd()), name);
 
 // --- validate template completeness ---
 for (const p of ["assets", "demo.css", "demo.jsx"]) {
@@ -78,16 +82,14 @@ if (existsSync(dest) && !statSync(dest).isDirectory()) {
 
 const STARTER_DEMO = `import "./demo.css";
 
+// Entry — thin: mounts views only. Composition lives in views/, atoms in components/.
+//   • Component workshop (preview-components): mount preview views (one per component / themed group)
+//   • Business page (preview): assemble page-section views into the layout
+
 export default function Demo() {
   return (
     <div className="demo-page">
-      <header className="demo-header">
-        <div className="demo-title">
-          <img src="./assets/uploads/logo.svg" alt="logo" style={{ width: 28, height: 28 }} />
-          <span>组件预览</span>
-        </div>
-        <p className="demo-subtitle">组件生成后将在此罗列其多种形态。</p>
-      </header>
+      {/* mount views here */}
     </div>
   );
 }
@@ -103,6 +105,7 @@ try {
 
   mkdirSync(dest, { recursive: true });
   mkdirSync(join(dest, "components"), { recursive: true });
+  mkdirSync(join(dest, "views"), { recursive: true });
 
   cpSync(join(TEMPLATE, "assets"), join(dest, "assets"), { recursive: true });
   copyFileSync(join(TEMPLATE, "demo.css"), join(dest, "demo.css"));
@@ -120,7 +123,7 @@ try {
   console.log("RESULT: OK");
   console.log(`PREVIEW_DIR: ${dest}`);
   console.log(withExamples ? "INIT: created (with example components)" : "INIT: created");
-  console.log(`NEXT: write components into components/, add sections to ${dest}/demo.jsx, then run: node scripts/build.mjs --dir "${dest}" && node scripts/verify-build.mjs --dir "${dest}"`);
+  console.log(`NEXT: author in ${dest} (components/ + views/ + demo.jsx entry), then run: node scripts/build.mjs --dir "${dest}" && node scripts/verify-build.mjs --dir "${dest}"`);
 } catch (err) {
   fail(err.message);
 }
