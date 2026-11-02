@@ -229,14 +229,14 @@ export default function Icon({
     return React.createElement("span", {
       className,
       "aria-hidden": true,
-      style: { ...style, width: size, height: size },
+      style: { ...style, display: "inline-flex", alignItems: "center", justifyContent: "center", verticalAlign: "middle", lineHeight: 0, width: size, height: size },
     });
   }
 
   return React.createElement("span", {
     className,
     "aria-hidden": true,
-    style: { ...style, width: size, height: size },
+    style: { ...style, display: "inline-flex", alignItems: "center", justifyContent: "center", verticalAlign: "middle", lineHeight: 0, width: size, height: size },
     dangerouslySetInnerHTML: { __html: svg },
   });
 }
