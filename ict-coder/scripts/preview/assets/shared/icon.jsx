@@ -377,7 +377,7 @@ export function Icon({
       "aria-hidden": true,
       onClick,
       title,
-      style: { ...mergedStyle, width: resolvedSize, height: resolvedSize },
+      style: { ...mergedStyle, display: "inline-flex", alignItems: "center", justifyContent: "center", verticalAlign: "middle", lineHeight: 0, width: resolvedSize, height: resolvedSize },
     });
   }
 
@@ -388,7 +388,7 @@ export function Icon({
     "aria-hidden": true,
     onClick,
     title,
-    style: { ...mergedStyle, width: resolvedSize, height: resolvedSize },
+    style: { ...mergedStyle, display: "inline-flex", alignItems: "center", justifyContent: "center", verticalAlign: "middle", lineHeight: 0, width: resolvedSize, height: resolvedSize },
     dangerouslySetInnerHTML: { __html: svg },
   });
 }
