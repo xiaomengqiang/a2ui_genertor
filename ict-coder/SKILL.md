@@ -45,6 +45,10 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 > src/mock/              Layer 2 mock data (per-domain files, e.g. device.js / alarm.js)
 > src/components/{name}/ Layer 3 reusable components (cross-view, e.g. status-tag / section-card)
 > src/views/{name}/      Layer 4 view components (one per tab/section, e.g. device-table / header-bar)
+> src/utils/             pure function utilities (formatNumber, debounce, etc.)
+> src/hooks/             custom React hooks (useDebounce, useTableData, etc.)
+> src/constants/         enums and config constants (STATUS_MAP, PAGE_SIZE, etc.)
+> src/styles/            cross-view shared CSS (utility classes, keyframes; not antd overrides)
 > app.jsx                Layer 5 layout skeleton (Provider + root container assembly)
 > ```
 >

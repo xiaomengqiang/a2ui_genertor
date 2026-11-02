@@ -87,6 +87,10 @@ const STARTER_APP = `// App entry — ICT React page
 //   Layer 2 mock data     → src/mock/              (per-domain files, e.g. device.js / alarm.js)
 //   Layer 3 reusable      → src/components/{name}/ (cross-view, e.g. status-tag / section-card)
 //   Layer 4 views         → src/views/{name}/      (one per tab/section, e.g. device-table / header-bar)
+//   src/utils/            → pure function utilities (formatNumber, debounce, etc.)
+//   src/hooks/            → custom React hooks (useDebounce, useTableData, etc.)
+//   src/constants/        → enums and config constants (STATUS_MAP, PAGE_SIZE, etc.)
+//   src/styles/           → cross-view shared CSS (utility classes, keyframes; not antd overrides)
 //   Layer 5 layout        → app.jsx                (Provider + root container assembly)
 //
 // Styling: custom styles in component folder's index.css; prefer tokens for visual values.
@@ -164,6 +168,13 @@ try {
   mkdirSync(join(dest, "src", "mock"), { recursive: true });
   mkdirSync(join(dest, "src", "components"), { recursive: true });
   mkdirSync(join(dest, "src", "views"), { recursive: true });
+  mkdirSync(join(dest, "src", "utils"), { recursive: true });
+  mkdirSync(join(dest, "src", "hooks"), { recursive: true });
+  mkdirSync(join(dest, "src", "constants"), { recursive: true });
+  mkdirSync(join(dest, "src", "styles"), { recursive: true });
+  for (const d of ["utils", "hooks", "constants", "styles"]) {
+    writeFileSync(join(dest, "src", d, ".gitkeep"), "", "utf8");
+  }
 
   // --- link assets (junction on win32 needs no admin; fallback: full copy) ---
   const assetsDst = join(dest, "assets");
