@@ -23,6 +23,10 @@
  *
  * iconSize：源 size 原样透传（icon+ 静态 import 支持 rem/px/数字，不转换；仅方案A shim 的 getIcon API 需转数字）。
  *
+ * passthrough：源 <Icon>/<XxxOutlined> 上未识别的 prop（onClick、onMouse*、id、title、data-*、aria-*、role、tabIndex、
+ *   {…spread}/布尔简写等）原样透传到 <IconPlusIc…/>，避免交互/无障碍/自定义属性在改写时丢失。
+ *   仅 name/size/color/variant/className/style 六个被显式映射的 prop 不走透传（已转成 iconSize/iconColor/type/className/style）。
+ *
  * 重要：references/icons/icon-plus-names.json 顶层 key（Public/Ict/Bpit…）**不是语义领域**，只是按图标名
  * 前置词分的桶；domainRank 已从决策路径退役（仅用于拼 componentName = IconPlusIc+domain+name）。
  * 候选打分用 token 重叠 + 子串包含（见 scoreCandidate/topKCandidates），不按桶优先。
@@ -545,7 +549,77 @@ function buildReplacement(match, props, context) {
     out.push(`style={${props.styleRest}}`);
   }
 
+  if (props.passthrough && props.passthrough.length) out.push(...props.passthrough);
+
   return `<${comp} ${out.join(' ')} />`;
+}
+
+// 已识别 prop 名（extractIconProps 显式映射，passthrough 不重复收）
+const KNOWN_PROPS = new Set(['name', 'size', 'color', 'variant', 'className', 'style']);
+
+// 扫标签属性区，收非已知 prop 的原文（保留 `prop="str"` / `prop={expr}` / `prop` 布尔简写 / `{...spread}`），
+// 用于把源 <Icon>/<XxxOutlined> 上的 onClick/id/data-*/aria-*/spread 等未识别 prop 原样透传到 <IconPlusIc…/>。
+// 与 getBracedProp 同样的最佳努力花括号边界（不识别字符串/注释内的括号）。
+function collectPassthroughProps(tag) {
+  const out = [];
+  const headM = tag.match(/^<([A-Za-z_$][\w$.-]*)\s*/);
+  if (!headM) return out;
+  let i = headM[0].length;
+  const n = tag.length;
+  // 开标签终点：第一个位于花括号外的 '>'（自闭合 '/>' 的 '>' 或开标签 '>'）。跳过 {...} 内的 '>'（如箭头 =>）。
+  let depth = 0;
+  let end = -1;
+  for (let j = i; j < n; j++) {
+    const c = tag[j];
+    if (c === '{') depth++;
+    else if (c === '}') depth--;
+    else if (depth === 0 && c === '>') { end = j; break; }
+  }
+  if (end === -1) return out;
+  while (i < end) {
+    while (i < end && /\s/.test(tag[i])) i++;
+    if (i >= end) break;
+    const ch = tag[i];
+    if (ch === '/' || ch === '>') break;
+    if (ch === '{') {
+      // spread {...rest} 或罕见 {expr} 属性 — 整段原样收（花括号平衡）
+      let d = 0;
+      const s = i;
+      for (; i < end; i++) {
+        if (tag[i] === '{') d++;
+        else if (tag[i] === '}') { d--; if (d === 0) { i++; break; } }
+      }
+      out.push(tag.slice(s, i));
+      continue;
+    }
+    const ns = i;
+    while (i < end && /[A-Za-z0-9_$-]/.test(tag[i])) i++;
+    const name = tag.slice(ns, i);
+    if (!name) { i++; continue; }
+    while (i < end && /\s/.test(tag[i])) i++;
+    if (tag[i] === '=') {
+      i++;
+      while (i < end && /\s/.test(tag[i])) i++;
+      if (tag[i] === '"' || tag[i] === "'") {
+        const q = tag[i];
+        i++;
+        while (i < end && tag[i] !== q) i++;
+        i++;
+      } else if (tag[i] === '{') {
+        let d = 0;
+        for (; i < end; i++) {
+          if (tag[i] === '{') d++;
+          else if (tag[i] === '}') { d--; if (d === 0) { i++; break; } }
+        }
+      } else {
+        while (i < end && /\S/.test(tag[i]) && tag[i] !== '/' && tag[i] !== '>') i++;
+      }
+      if (!KNOWN_PROPS.has(name)) out.push(tag.slice(ns, i));
+    } else if (!KNOWN_PROPS.has(name)) {
+      out.push(name);
+    }
+  }
+  return out;
 }
 
 // 从 <Icon .../> 标签文本抽取 props（按 §3.2 映射表）
@@ -581,6 +655,7 @@ function extractIconProps(tag) {
     rest = rest.replace(/,\s*}/g, '}').replace(/,\s*$/, '').trim();
     if (rest && rest !== '{}' && /\S/.test(rest.replace(/[{}]/g, ''))) props.styleRest = rest;
   }
+  props.passthrough = collectPassthroughProps(tag);
   return props;
 }
 
@@ -660,6 +735,7 @@ function buildDataIconElement(componentName, props, context) {
   if (props.classNameStr != null) out.push(`className="${props.classNameStr}"`);
   else if (props.classNameExpr != null) out.push(`className={${props.classNameExpr}}`);
   if (props.styleRest) out.push(`style={${props.styleRest}}`);
+  if (props.passthrough && props.passthrough.length) out.push(...props.passthrough);
   return `<${componentName} ${out.join(' ')} />`;
 }
 
