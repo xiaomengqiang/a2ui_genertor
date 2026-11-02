@@ -126,7 +126,7 @@
     {
       "id": 8,
       "name": "图标迁移（字面量 + 数据数组动态名）",
-      "description": "将源项目 <Icon name=\"字面量\"/> 与 name={t.icon} 数据数组动态名迁移为 @hui/icon-plus 静态 import（方案 C/B，闭合集不落方案A）",
+      "description": "将源项目 <Icon name=\"字面量\"/> 与 name={t.icon} 数据数组动态名迁移为 @hui/icon-plus 静态 import（方案 C 外网离线匹配；方案 B 为 LLM 在线 getIconInfo 手工匹配、不跑 match-icons.cjs，本 case 验 C 的 --apply 机制；闭合集不落方案A）",
       "input": "<Icon name=\"search\" size={14}/> + const menu=[{icon:\"server\"},{icon:\"user\"}]; menu.map(t=> <Icon name={t.icon} size={16}/>)",
       "assertions": [
         "字面量 <Icon name=\"search\"/> 替换为 <IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />",
@@ -136,7 +136,9 @@
         "NOT 残留 <Icon name= 调用点（闭合集已转，不落方案A shim）",
         "NOT 数据源 icon: \"lit\" 字符串字面量残留（半改致渲染文本）",
         ".js 文件塞进 <IconPlusIc…/> 元素后转 .jsx",
-        "iconSize 原样透传源 size（支持 rem/px/数字，不转换）"
+        "iconSize 原样透传源 size（支持 rem/px/数字，不转换）",
+        "NOT 产物中出现 catalog 不存在的 IconPlusIc 名（residual 只取候选[0]/占位/catalog 实有名，禁止拼接 IconPlusIc{Domain}{Name}）",
+        "无匹配孤儿名落占位 IconPlusIcPublicTransverseRectangleTemplate（非 <Icon> 残留、非臆造名）"
       ]
     },
     {

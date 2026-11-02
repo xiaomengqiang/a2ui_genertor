@@ -23,6 +23,10 @@
  *
  * iconSize：源 size 原样透传（icon+ 静态 import 支持 rem/px/数字，不转换；仅方案A shim 的 getIcon API 需转数字）。
  *
+ * passthrough：源 <Icon>/<XxxOutlined> 上未识别的 prop（onClick、onMouse*、id、title、data-*、aria-*、role、tabIndex、
+ *   {…spread}/布尔简写等）原样透传到 <IconPlusIc…/>，避免交互/无障碍/自定义属性在改写时丢失。
+ *   仅 name/size/color/variant/className/style 六个被显式映射的 prop 不走透传（已转成 iconSize/iconColor/type/className/style）。
+ *
  * 重要：references/icons/icon-plus-names.json 顶层 key（Public/Ict/Bpit…）**不是语义领域**，只是按图标名
  * 前置词分的桶；domainRank 已从决策路径退役（仅用于拼 componentName = IconPlusIc+domain+name）。
  * 候选打分用 token 重叠 + 子串包含（见 scoreCandidate/topKCandidates），不按桶优先。
@@ -81,6 +85,9 @@ const SEMANTIC_MAP = {
   'circle-alert': { domain: 'Public', name: 'Alert' },
   'sparkles': { domain: 'Public', name: 'Star' }, // catalog 无 Sparkle，取最近 Star
   'list-checks': { domain: 'Public', name: 'ListBullet' }, // catalog 无 ListCheck，取 ListBullet
+  // 实测补充：数字后缀 Lucide 名（tokenize 拆分前零 token 重叠，curate 为 confirmed 避免落孤儿占位）
+  'building-2': { domain: 'Public', name: 'Building' }, // catalog 无 Building2，取 Building@Public
+  'chevron-left': { domain: 'Public', name: 'LeftArrow' }, // catalog 无 ChevronLeft，取 LeftArrow@Public（与 chevron-right→RightArrow 对称）
 };
 
 // ─── 命令行 ─────────────────────────────────────────────────────────────────
@@ -151,8 +158,13 @@ function lineOfOffset(text, offset) {
 
 // PascalCase 名 → 小写 token 数组（如 BellClock → ['bell','clock']）
 function tokenize(name) {
-  // 在小写/数字 与 大写 之间插空格，再按空格/数字边界拆分并小写
-  const spaced = String(name).replace(/([a-z0-9])([A-Z])/g, '$1 $2');
+  // 在小写/数字 与 大写 之间插空格，再按非字母数字边界拆分并小写。
+  // 另在 字母 与 数字 之间插空格（Building2→Building 2），使数字后缀名能与无后缀 catalog 条目
+  // 共享 token（building-2 与 Building 共享 'building'）；双侧（catalog [:185] 与源名 [:289]）一致使用，
+  // 故 L1(lower 串)/L2(token 集合相等)/L4(bare) exact 命中零回归，仅 L3/L5-L7 fuzzy 增加粒度。
+  const spaced = String(name)
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Za-z])([0-9])/g, '$1 $2');
   return spaced
     .split(/[^A-Za-z0-9]+/)
     .filter(Boolean)
@@ -270,6 +282,13 @@ function pickBestGuess(levelHits) {
     .slice()
     .sort((a, b) => (LEVEL_PRIORITY[a.level] - LEVEL_PRIORITY[b.level]) || a.h.name.length - b.h.name.length);
   return sorted[0].h;
+}
+
+// 孤儿名：residual 且无任何 level 命中（level==='UNMATCHED'）且无候选（score 全 0）——catalog 无贴切对应。
+// --apply 自动落占位 IconPlusIcPublicTransverseRectangleTemplate（catalog 实有条目），不交 LLM 拼名（防臆造
+// 诸如 IconPlusIcPublicAlarm / IconPlusIcIctBuilding2 等非实有名）；后续由人工/SEMANTIC_MAP 升级。
+function isOrphan(match) {
+  return !!match && match.status === 'residual' && match.level === 'UNMATCHED' && !(match.candidates && match.candidates.length);
 }
 
 // ─── 源名归一化 ─────────────────────────────────────────────────────────────
@@ -545,7 +564,77 @@ function buildReplacement(match, props, context) {
     out.push(`style={${props.styleRest}}`);
   }
 
+  if (props.passthrough && props.passthrough.length) out.push(...props.passthrough);
+
   return `<${comp} ${out.join(' ')} />`;
+}
+
+// 已识别 prop 名（extractIconProps 显式映射，passthrough 不重复收）
+const KNOWN_PROPS = new Set(['name', 'size', 'color', 'variant', 'className', 'style']);
+
+// 扫标签属性区，收非已知 prop 的原文（保留 `prop="str"` / `prop={expr}` / `prop` 布尔简写 / `{...spread}`），
+// 用于把源 <Icon>/<XxxOutlined> 上的 onClick/id/data-*/aria-*/spread 等未识别 prop 原样透传到 <IconPlusIc…/>。
+// 与 getBracedProp 同样的最佳努力花括号边界（不识别字符串/注释内的括号）。
+function collectPassthroughProps(tag) {
+  const out = [];
+  const headM = tag.match(/^<([A-Za-z_$][\w$.-]*)\s*/);
+  if (!headM) return out;
+  let i = headM[0].length;
+  const n = tag.length;
+  // 开标签终点：第一个位于花括号外的 '>'（自闭合 '/>' 的 '>' 或开标签 '>'）。跳过 {...} 内的 '>'（如箭头 =>）。
+  let depth = 0;
+  let end = -1;
+  for (let j = i; j < n; j++) {
+    const c = tag[j];
+    if (c === '{') depth++;
+    else if (c === '}') depth--;
+    else if (depth === 0 && c === '>') { end = j; break; }
+  }
+  if (end === -1) return out;
+  while (i < end) {
+    while (i < end && /\s/.test(tag[i])) i++;
+    if (i >= end) break;
+    const ch = tag[i];
+    if (ch === '/' || ch === '>') break;
+    if (ch === '{') {
+      // spread {...rest} 或罕见 {expr} 属性 — 整段原样收（花括号平衡）
+      let d = 0;
+      const s = i;
+      for (; i < end; i++) {
+        if (tag[i] === '{') d++;
+        else if (tag[i] === '}') { d--; if (d === 0) { i++; break; } }
+      }
+      out.push(tag.slice(s, i));
+      continue;
+    }
+    const ns = i;
+    while (i < end && /[A-Za-z0-9_$-]/.test(tag[i])) i++;
+    const name = tag.slice(ns, i);
+    if (!name) { i++; continue; }
+    while (i < end && /\s/.test(tag[i])) i++;
+    if (tag[i] === '=') {
+      i++;
+      while (i < end && /\s/.test(tag[i])) i++;
+      if (tag[i] === '"' || tag[i] === "'") {
+        const q = tag[i];
+        i++;
+        while (i < end && tag[i] !== q) i++;
+        i++;
+      } else if (tag[i] === '{') {
+        let d = 0;
+        for (; i < end; i++) {
+          if (tag[i] === '{') d++;
+          else if (tag[i] === '}') { d--; if (d === 0) { i++; break; } }
+        }
+      } else {
+        while (i < end && /\S/.test(tag[i]) && tag[i] !== '/' && tag[i] !== '>') i++;
+      }
+      if (!KNOWN_PROPS.has(name)) out.push(tag.slice(ns, i));
+    } else if (!KNOWN_PROPS.has(name)) {
+      out.push(name);
+    }
+  }
+  return out;
 }
 
 // 从 <Icon .../> 标签文本抽取 props（按 §3.2 映射表）
@@ -581,6 +670,7 @@ function extractIconProps(tag) {
     rest = rest.replace(/,\s*}/g, '}').replace(/,\s*$/, '').trim();
     if (rest && rest !== '{}' && /\S/.test(rest.replace(/[{}]/g, ''))) props.styleRest = rest;
   }
+  props.passthrough = collectPassthroughProps(tag);
   return props;
 }
 
@@ -660,6 +750,7 @@ function buildDataIconElement(componentName, props, context) {
   if (props.classNameStr != null) out.push(`className="${props.classNameStr}"`);
   else if (props.classNameExpr != null) out.push(`className={${props.classNameExpr}}`);
   if (props.styleRest) out.push(`style={${props.styleRest}}`);
+  if (props.passthrough && props.passthrough.length) out.push(...props.passthrough);
   return `<${componentName} ${out.join(' ')} />`;
 }
 
@@ -978,11 +1069,12 @@ function fmtCandidates(cands) {
 function reportConsole(scan, byName) {
   const names = Object.keys(byName);
   const confirmed = names.filter((n) => byName[n].match.status === 'confirmed');
-  const residual = names.filter((n) => byName[n].match.status === 'residual');
+  const residual = names.filter((n) => byName[n].match.status === 'residual' && !isOrphan(byName[n].match));
+  const autoPlaceholder = names.filter((n) => isOrphan(byName[n].match));
 
   console.log('[match-icons] 图标匹配报告');
   console.log(`  扫描范围: src/（${scan.files} 个文件，${scan.totalSites} 个调用点）`);
-  console.log(`  唯一图标名: ${names.length} 个（confirmed ${confirmed.length} / residual ${residual.length}）`);
+  console.log(`  唯一图标名: ${names.length} 个（confirmed ${confirmed.length} / residual ${residual.length} / 孤儿占位 ${autoPlaceholder.length}）`);
   console.log('');
   console.log(`✓ confirmed（--apply 自动改写）: ${confirmed.length} 个`);
   for (const n of confirmed) {
@@ -999,6 +1091,17 @@ function reportConsole(scan, byName) {
     const locs = e.sites.map((s) => `${path.basename(s.file)}:${s.line}`).join(', ');
     console.log(`    ${n} [${level}] 建议 ${componentName}  (${e.sites.length} 处: ${locs})`);
     console.log(`      候选: ${fmtCandidates(candidates)}`);
+  }
+  // 孤儿名：catalog 无任何匹配（无候选、无 level 命中），--apply 自动落占位（catalog 实有名），
+  // 不交 LLM 拼名（防臆造非实有 IconPlusIc 名）；待人工/SEMANTIC_MAP 升级为更贴切图标。
+  if (autoPlaceholder.length) {
+    console.log('');
+    console.log(`◇ 孤儿名（catalog 无匹配，--apply 自动落占位 ${PLACEHOLDER.componentName}，待人工/SEMANTIC_MAP 升级）: ${autoPlaceholder.length} 个`);
+    for (const n of autoPlaceholder) {
+      const e = byName[n];
+      const locs = e.sites.map((s) => `${path.basename(s.file)}:${s.line}`).join(', ');
+      console.log(`    ${n} [UNMATCHED] → ${e.match.componentName}  (${e.sites.length} 处: ${locs})`);
+    }
   }
 
   // confirmed 调用点改写建议
@@ -1144,13 +1247,14 @@ function writeJson(scan, byName, outPath) {
       })),
     };
   });
-  // imports 只收 confirmed 名（residual 不自动 apply，不预占 import 名）
+  // imports 收 confirmed 名 + 孤儿占位名（两者均由 --apply 自动改写，需注入 import）；非孤儿 residual 不自动 apply，不预占 import 名
   const imports = {};
   for (const n of names) {
-    if (byName[n].match.status !== 'confirmed') continue;
+    const m = byName[n].match;
+    if (m.status !== 'confirmed' && !isOrphan(m)) continue;
     for (const s of byName[n].sites) {
       const f = rel(s.file);
-      (imports[f] = imports[f] || new Set()).add(byName[n].match.componentName);
+      (imports[f] = imports[f] || new Set()).add(m.componentName);
     }
   }
 
@@ -1274,12 +1378,24 @@ function writeJson(scan, byName, outPath) {
     (acc, pw) => acc + pw.callerEdits.filter((ce) => ce.isPlaceholder).length,
     0
   );
-  const residualCount = names.length - confirmedCount;
+  const residualCount = names.filter((n) => byName[n].match.status === 'residual' && !isOrphan(byName[n].match)).length;
+  const autoPlaceholderCount = names.filter((n) => isOrphan(byName[n].match)).length;
+  const autoPlaceholderSites = names
+    .filter((n) => isOrphan(byName[n].match))
+    .map((n) => {
+      const e = byName[n];
+      return {
+        sourceName: n,
+        componentName: e.match.componentName,
+        callSites: e.sites.map((s) => ({ file: rel(s.file), line: s.line, original: s.original.trim(), replacement: s.replacement })),
+      };
+    });
   const out = {
     summary: {
       total: names.length,
       confirmedCount,
       residualCount,
+      autoPlaceholderCount,
       ternaryCount: ternarySites.length,
       chainedTernaryCount: chainedTernarySites.length,
       variableCount: variableSites.length,
@@ -1292,6 +1408,7 @@ function writeJson(scan, byName, outPath) {
       needsLlmReview: residualCount + ternarySites.filter((t) => !t.allConfirmed).length + chainedTernarySites.filter((t) => !t.allConfirmed).length + variableSites.length + dataIconPlaceholderCount + untracedSites.length + propWrapperResidual.length,
     },
     icons,
+    autoPlaceholderSites,
     ternarySites,
     chainedTernarySites,
     variableSites,
@@ -1314,11 +1431,13 @@ function applyRewrites(scan, byName, srcDir) {
     return byFile.get(file);
   };
 
-  // 字面量 name 调用点：仅 confirmed 自动改写（residual/变量/链式三元交 LLM，不动）
+  // 字面量 name 调用点：confirmed 自动改写；孤儿（UNMATCHED 无候选）亦自动落占位（catalog 实有名，
+  // 防 LLM residual 阶段臆造非实有 IconPlusIc 名）；非孤儿 residual（有候选）交 LLM 选，不动。
   for (const n of Object.keys(byName)) {
-    if (byName[n].match.status !== 'confirmed') continue;
+    const m = byName[n].match;
+    if (m.status !== 'confirmed' && !isOrphan(m)) continue;
     for (const s of byName[n].sites) {
-      const comp = byName[n].match.componentName;
+      const comp = m.componentName;
       const p = plan(s.file);
       p.imports.add(comp);
       // 幂等：若调用点已被替换（tag 含目标组件名），跳过

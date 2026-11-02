@@ -56,8 +56,8 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 > 触发与 `--apply` 机制详见 [migration-workflow.md](../migration-workflow.md) §0.1（`antdIcons` 陷阱）+ §3.0（B/C 步骤）；本节为速查。
 
 - **触发条件**：`src/` 下有 `<Icon name` 调用点（`grep -rl "<Icon\b" src/` 非空）或 `@ant-design/icons` 用法即走图标步骤，**与 `.umd-conversion.json` 的 `antdIcons` 是否为空无关**——ict-coder 产物用自定义 `<Icon name>` shim、`antdIcons` 恒 `[]` 但有大量站点，**`antdIcons: []` 禁止跳过 `match-icons.cjs`**。
-- **源码 `<Icon name>` shim ≠ 产物方案A**：`<Icon name="字面量">` 站点必须转 C/B 静态 import；**成员表达式 `name={t.icon}` / `name={MENU[0].icon}` 也由 `--apply` 自动转 B/C**（绑到静态数组/对象地图即塞 icon+ 元素进 data + render 改 `{t.icon}`）；**自定义 wrapper 组件**也由 `--apply` Phase C 自动转 B/C（调用点 `icon="字面量"`/`icon={常量}`/`icon={扁平三元}` → `icon={<IconPlusIc…/>}`，内部 → `{icon}`；`icon={成员}` 透传 + 容器元素化）。追不到源的（含跨边界 props/useMemo/推入函数闭合集、wrapper 安全闸整组不可解析）→ 报 `untracedSites`，处置按 §name 解析 统一原则（闭合→转 / 真 OPEN→保 shim，详见该节 + §硬规则）。
-- **方案C `--apply`**：落 confirmed（SEMANTIC/L1-L4）+ 扁平三元两分支均 confirmed + **数据数组图标整组改写**（命中用真实组件，未命中用占位 `IconPlusIcPublicTransverseRectangleTemplate`）；residual 不自动 apply。报告写 OS 临时目录、不进产物根、`--apply` 结束清理。**禁止因 residual 整体放弃方案C**——residual 由 LLM 在会话内按控制台/临时报告逐条复核。
+- **源码 `<Icon name>` shim ≠ 产物方案A**：`<Icon name="字面量">` 站点必须转 B/C 静态 import；**成员表达式 `name={t.icon}` / `name={MENU[0].icon}` 在方案 C 下由 `--apply` 自动转**（绑到静态数组/对象地图即塞 icon+ 元素进 data + render 改 `{t.icon}`；方案 B 由 LLM 按本节 recipe 手工追源转，不跑 `--apply`）；**自定义 wrapper 组件**同（C 下由 `--apply` Phase C 自动转：调用点 `icon="字面量"`/`icon={常量}`/`icon={扁平三元}` → `icon={<IconPlusIc…/>}`，内部 → `{icon}`；`icon={成员}` 透传 + 容器元素化）。追不到源的（含跨边界 props/useMemo/推入函数闭合集、wrapper 安全闸整组不可解析）→ 报 `untracedSites`，处置按 §name 解析 统一原则（闭合→转 / 真 OPEN→保 shim，详见该节 + §硬规则）。
+- **方案C `--apply`**：落 confirmed（SEMANTIC/L1-L4）+ 扁平三元两分支均 confirmed + **数据数组图标整组改写**（命中用真实组件，未命中用占位 `IconPlusIcPublicTransverseRectangleTemplate`）+ **孤儿名自动落占位**（UNMATCHED 无候选的字面量，catalog 无任何匹配，直接占位防 LLM 臆造名）；非孤儿 residual（有候选）不自动 apply，交 LLM 选。报告写 OS 临时目录、不进产物根、`--apply` 结束清理。**禁止因 residual 整体放弃方案C**——residual 由 LLM 在会话内按控制台/临时报告逐条复核。
 - **`.js→.jsx` 自动转换**：`--apply` 把因改写引入 JSX（替换串含 `<IconPlusIc`）的 `.js`→`.jsx` / `.ts`→`.tsx`，并扫 `src/` 修引用方显式 `.js`/`.ts` 扩展名 import（无扩展名 import 不动）；非 `src/` 引用（vite.config、index.html）不处理，需人工核对。
 - **已落方案A的产物可原地补救**：调用点仍为 `<Icon name="字面量" .../>` 或 `name={t.icon}` 时，直接 `node scripts/match-icons.cjs <工程根> --apply`（脚本幂等，已含 `IconPlusIc` 的站点自动跳过）。
 
@@ -65,7 +65,7 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 
 - eview-react 内置 `Icon name="ict_*"` 已下线，**不要用**；也不要用 `@ant-design/icons`——一律用 `@hui/icon-plus` 的 `IconPlusIc*` 静态 import。
 - **方案 A 判定**：见 §name 解析与方案A 判定（统一原则）——方案A 仅 OPEN 集合，闭合集（含跨 prop/useMemo/推入函数边界、对象地图、wrapper）一律转 B/C；追不到源的报 `untracedSites` 交 LLM 判，`check-icon-shim --strict` 拦闭集误留。
-- **residual 阶段两条铁律**：① **禁止引用不存在的 Icon.md 章节**当保留方案 A 的依据（实测回归：LLM 可能臆造诸如「函数参数传入的 icon prop（跨组件边界）」「OBJ[runtimeKey] 计算属性访问」之类 Icon.md 根本没有的章节名——一切引用须以 Icon.md 实有标题为准）；② 每处残留 shim 站点必须附 **closed-set 追源结论**（源在哪、字面量集合、是否闭合、为何 OPEN），不得空泛写「跨组件边界」了事。`scripts/check-icon-shim.cjs --strict` 自动拦：无结论 / `closedSet:true` / 引用幻觉章节 / reason 缺 OPEN 证据 → 退出码 1。
+- **residual 阶段三条铁律**：① **禁止引用不存在的 Icon.md 章节**当保留方案 A 的依据（实测回归：LLM 可能臆造诸如「函数参数传入的 icon prop（跨组件边界）」「OBJ[runtimeKey] 计算属性访问」之类 Icon.md 根本没有的章节名——一切引用须以 Icon.md 实有标题为准）；② 每处残留 shim 站点必须附 **closed-set 追源结论**（源在哪、字面量集合、是否闭合、为何 OPEN），不得空泛写「跨组件边界」了事。`scripts/check-icon-shim.cjs --strict` 自动拦：无结论 / `closedSet:true` / 引用幻觉章节 / reason 缺 OPEN 证据 → 退出码 1；③ **禁止臆造 `IconPlusIc{Domain}{Name}`**——residual 名只能取候选[0] / 占位 `IconPlusIcPublicTransverseRectangleTemplate` / catalog 实有名，**不得自行拿桶前缀 + 源名 PascalCase 基名拼接**（实测回归：源 `siren`→`IconPlusIcPublicAlarm`，但 `Alarm` 只在 Ict 桶；源 `building-2`→`IconPlusIcIctBuilding2`，全库无 `Building2`）。真孤儿名（catalog 无任何匹配、无候选）由 `--apply` 自动落占位（不交 LLM 拼名）。此铁律对方案 B/C 均适用（二者均产 `IconPlusIc*` 静态 import）；**机器闸门 `scripts/check-icon-names.cjs` 仅方案 C 跑**——扫产物所有 `IconPlusIc*`（import specifier + JSX 标签）对照离线 catalog 实有集，任一非实有 → 退出码 1。方案 B 不跑此闸门（其名真值是在线 `getIconInfo` 接口/实包，非离线快照），名实有性由 `getIconInfo` 命中隐式保证。
 - 可点击图标（编辑/删除/刷新等）直接给 icon+ 挂 `onClick` + 原生 `title` 属性（hover 提示），**`IconButton` 已弃用**：`<IconPlusIcPublicTrash onClick={remove} title="删除" />`；禁用态见 §3）。
 - **antd 纯图标按钮（`Button type="text" shape="circle" icon={...}` 无 children）→ 剥 Button 外壳，`onClick`/`title` 直接搬到内层 `<IconPlusIc* />`**（见 [component-mapping.md](../component-mapping.md) 图标行；脚本 `--apply` 已先把内层 `<Icon>`→`<IconPlusIc>` 并吸附 `iconSize`，LLM 只需剥外壳 + 搬 onClick/title）。
 - **带图标的 Button 文字必须用 `text=`，不能写 children**（children 会让图标不渲染，见 [Button.md](Button.md) §4）。
@@ -185,7 +185,7 @@ const items = useMemo(() => [{ icon: <IconPlusIcPublicShoppingCart iconSize="1re
 
 ### 图标-prop wrapper 组件（SoftTag / ToggleRow 模式）
 
-> 自定义组件接收 `icon` prop（字符串名），内部 `<Icon name={icon}/>` 渲染。调用点的字面量不在 `<Icon>` 标签上（`<SoftTag icon="bell-ring">`）→ `scanIconComponent` 看不见；内部 `name={icon}` 是解构 prop 参数 → `scanDynamicIcons` 归变量 residual。两半耦合改写由 `match-icons.cjs --apply` **Phase C 自动处理**（方案 B/C，不退方案 A）。
+> 自定义组件接收 `icon` prop（字符串名），内部 `<Icon name={icon}/>` 渲染。调用点的字面量不在 `<Icon>` 标签上（`<SoftTag icon="bell-ring">`）→ `scanIconComponent` 看不见；内部 `name={icon}` 是解构 prop 参数 → `scanDynamicIcons` 归变量 residual。两半耦合改写在**方案 C 下由 `match-icons.cjs --apply` Phase C 自动处理**（不退方案 A）；**方案 B 由 LLM 按本 recipe 手工改写两半**（不跑 `--apply`）。
 
 **模式识别**（脚本 `scanIconPropWrappers`）：
 - `function NAME({ ..., icon, ... }) {...}` / `const NAME = ({ ..., icon, ... }) => {...}`（解构参数含 `icon` 绑定）；
