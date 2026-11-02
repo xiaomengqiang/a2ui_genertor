@@ -259,7 +259,7 @@ if (chartInfo && chartInfo.callSites && chartInfo.callSites.length) {
     eview: 'Chart',
     importPath: '@nce/eview-react/Chart',
     shellComponent: false,
-    keyDiffs: 'ict-coder 内置 Chart 共享件（非 antd 组件，从 assets/shared/chart.jsx 导入）。迁移到 @nce/eview-react/Chart。只改 import 路径，name + option 契约不变。⚠️ 每个 option 必须显式补 a2ui: true + theme（暗色派生 hdesign-dark/hdesign-light）：源 Chart 封装在 setSimpleOption 前统一注入这两项，改包导入后不会自动补——漏写则 a2ui 视觉规范失效、暗色切换图表主题不跟随。theme 从全局暗色状态派生（如 useApp().isDark ? "hdesign-dark" : "hdesign-light"）。推荐聚合 const chartBase = { a2ui: true, theme: ... } 后展开进各 option',
+    keyDiffs: 'ict-coder 内置 Chart 共享件（非 antd 组件，从 assets/shared/chart.jsx 导入）。迁移到 @nce/eview-react/Chart：改 import 路径 + option 补 a2ui: true + theme。源套壳自动 watch <html>.dark + 在 setSimpleOption 前注入 { theme, a2ui: true, ...option } + 暗色切换自动 re-render；改包导入后自动行为整体丢失，必须手动补。⚠️ theme 必须响应式引用 useApp().isDark（isDark 来自 src/context.jsx 的 AppProvider，上游 umd-to-antd-vite 步骤 3 已保留）：写法 const { isDark } = useApp() + theme: isDark ? "hdesign-dark" : "hdesign-light"，option 的 theme 引用 isDark 变量（禁止静态字符串，否则暗色切换图表不跟随）。推荐 const chartBase = { a2ui: true, theme: isDark ? "hdesign-dark" : "hdesign-light" } 聚合后展开进各 option（chartBase 引用 isDark 即响应式，暗色切换时组件 re-render → option 重建 → 图表跟随）',
     ref: 'components/Chart.md',
     files: chartFiles,
     sharedFilesToRemove: chartSharedFiles,

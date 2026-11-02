@@ -132,14 +132,15 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 操作：
 1. 把源项目 src/ 下的独立文件（或 _extracted/ 下的提取文件）搬入 <目标工程根>/src/
    - 保持目录结构（src/views/、src/components/ 等）
+   - **保留 src/context.jsx**（ict-coder 产物的 Layer 1 全局状态，含 `AppProvider` + `useApp` hook + isDark/dark toggle）：整文件搬入 <目标工程根>/src/context.jsx，**不改 AppProvider/useApp 的导出契约**——业务组件与下游 antd-to-eview-react 的 Chart theme 派生都依赖 `useApp().isDark`。若 context.jsx 里有 antd ConfigProvider 嵌套则删掉（eview-react ConfigProvider 已在 main.jsx）；AppProvider 内部的 isDark state + toggleDark 保留
    - 搬入源项目 icon.jsx 内容到 src/shared/Icon/Icon.jsx（`export function Icon`→`export default function Icon`，scaffold 的 index.jsx 桶 `export { default } from './Icon.jsx'` 已就位）；业务代码 `import { Icon } from ".../assets/shared/icon.jsx"` → `import Icon from "@/shared/Icon"`（默认导入，`@` 别名已由 vite.config.js 预配）
    - app.jsx 用源项目的版本替换 scaffold 的空壳 app.jsx，同时转换暗色模式：
      a. 删除 antd ConfigProvider（含 locale + theme.darkAlgorithm），eview-react ConfigProvider + IntlProvider 已在 main.jsx 配好
-     b. 保留源项目的 isDark 状态和切换 UI
-     c. 加 useEffect 切类名：
+     b. **isDark 从 useApp() 取**（`const { isDark, toggleDark } = useApp()`，来自 context.jsx 的 AppProvider）——**不要用 scaffold 空壳的本地 `useState`**；保留源项目的暗色切换 UI（toggleDark 调用点）
+     c. 加双轨 useEffect 切类名（源项目是单轨只切 `<html>.dark`，产物需双轨）：
         useEffect(() => {
-            document.body.classList.toggle('aui3_1_dark', isDark);
-            document.documentElement.classList.toggle('dark', isDark);
+            document.body.classList.toggle('aui3_1_dark', isDark);     // body 轨：eview 组件库暗色
+            document.documentElement.classList.toggle('dark', isDark); // html 轨：自定义 token 四层
         }, [isDark]);
 2. 修正所有相对导入路径：
    - ./src/context.jsx → ./context.jsx

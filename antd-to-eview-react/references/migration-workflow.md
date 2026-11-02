@@ -77,7 +77,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 | 组件 | 源项目用法 | 迁移后（B/C 静态 import） |
 |------|-----------|------------------|
 | Icon | `<Icon name="search" size={14} />`（`./assets/shared/icon.jsx`） | `import { IconPlusIcPublicSearch } from '@hui/icon-plus'` + `<IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />`（名由 B 在线 / C catalog 匹配；C 的 confirmed 自动落、residual 交 LLM 从候选选） |
-| Chart | `<Chart name="BarChart" option={...} />`（`../../../assets/shared/chart.jsx`） | `import Chart from '@nce/eview-react/Chart'`（任意位置，包导入；**Chart 已在 `migrationPlan` 里**——由 `build-migration-plan.cjs` §2c 读 `chartCallSites` 注入，keyDiffs 含 `a2ui`/`theme` 补全提醒；**option 必须显式补 `a2ui: true` + `theme`（暗色派生 `hdesign-dark`/`hdesign-light`），见 [Chart.md](components/Chart.md)**） |
+| Chart | `<Chart name="BarChart" option={...} />`（`../../../assets/shared/chart.jsx`） | `import Chart from '@nce/eview-react/Chart'`（任意位置，包导入；**Chart 已在 `migrationPlan` 里**——由 `build-migration-plan.cjs` §2c 读 `chartCallSites` 注入，keyDiffs 含 `a2ui`/`theme` 补全提醒；**option 必须显式补 `a2ui: true` + `theme`**：`theme` 必须响应式引用 `useApp().isDark`（`isDark` 来自 `src/context.jsx` 的 AppProvider，上游 `umd-to-antd-vite` 步骤 3 已保留）——`theme: isDark ? 'hdesign-dark' : 'hdesign-light'`，禁止静态字符串（暗色切换图表不跟随）；推荐 `const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' }` 聚合展开，见 [Chart.md](components/Chart.md)**） |
 
 > **方案 A（B/C 兜底，仅留真运行时数据）**：经脚本常量传播 + Phase B 数组绑定 + LLM 跨组件追源仍无法确定 icon+ 名的调用点（典型：`name={row.iconField}` 类**后端运行时数据**，row 来自接口/props、迁移时值不可预知；或成员表达式绑不到任何已扫文件中的静态数组常量；或数组含非字符串字面量字段、集合不封闭），保留 scaffold `src/shared/Icon` 的 `<Icon name="...">` 契约、调用点零改动，`--apply` 仅修 import 路径（`assets/shared/icon` → `@/shared/Icon`，具名→默认导入）。链式/嵌套三元、未追源标识符 `name={x}` 仍由 LLM 在 residual 阶段静态解析（recipe 见 [Icon.md](components/Icon.md)「动态名」段）；**成员表达式 `name={t.icon}` / `name={MENU[0].icon}` 绑到静态数组字面量（封闭集合）的，由 `--apply` 自动整组改写为 icon+ 元素塞进 data + render `{t.icon}`，不落 A**。见 [components/Icon.md](components/Icon.md) 渲染方式段。跑 `scripts/check-relative-imports.cjs`（§5.1）扫残留 `./assets/shared/...` 旧路径。
 >
@@ -230,15 +230,15 @@ node <skill目录>/scripts/check-imports.cjs <目标工程根>
 
 ### 4.4 图表 option 检查（必跑）
 
-> 对应 SKILL.md 硬约束⑪ + [Chart.md](components/Chart.md)「图表 option 缺 a2ui:true 与 theme 标识」。源 Chart 封装在 `setSimpleOption` 前注入的 `theme` + `a2ui: true` 不会随包导入自动补——漏写则图表 a2ui 视觉规范失效、暗色不跟随。这是改 import 路径时最容易忘的项。
+> 对应 SKILL.md 硬约束⑪ + [Chart.md](components/Chart.md)「图表 option 缺 a2ui:true 与 theme 标识」。源 Chart 套壳（ict-coder `assets/shared/chart.jsx`）自动 watch `<html>.dark` + 在 `setSimpleOption` 前注入 `theme` + `a2ui: true` + 暗色切换自动 re-render；改 `@nce/eview-react/Chart` 包导入后自动行为整体丢失——漏写则 a2ui 视觉规范失效、暗色不跟随。这是改 import 路径时最容易忘的项。
 
-脚本 `scripts/check-chart-options.cjs`，检查两类问题：① 残留 `setSimpleOption(`（源 Chart 封装未替换为 `@nce/eview-react/Chart` 包导入）→ 硬 FAIL；② 每个 `<Chart option={X}>` 的 X 是否含 `a2ui: true` 与 `theme`——支持内联对象、变量定义（追同文件 `const X={...}`/`useMemo`）、`...chartBase` 聚合展开三种写法，追不到的外部变量标 advisory。
+脚本 `scripts/check-chart-options.cjs`，检查三类问题：① 残留 `setSimpleOption(`（源 Chart 封装未替换为 `@nce/eview-react/Chart` 包导入）→ 硬 FAIL；② 每个 `<Chart option={X}>` 的 X 是否含 `a2ui: true` 与 `theme`——支持内联对象、变量定义（追同文件 `const X={...}`/`useMemo`）、`...chartBase` 聚合展开三种写法，追不到的外部变量标 advisory；③ **STATIC_THEME**：`theme` 值是静态字符串字面量（如 `'hdesign-light'`，非 `isDark` 动态派生）→ advisory（暗色切换时图表主题不跟随，应改 `theme: isDark ? 'hdesign-dark' : 'hdesign-light'`，`isDark` 来自 `useApp()`）。
 
 ```bash
 node <skill目录>/scripts/check-chart-options.cjs <目标工程根>
 ```
 
-有硬 FAIL → exit 1；纯 advisory（option 是外部变量）→ exit 0 但报告需人工确认。推荐 `const chartBase = { a2ui: true, theme: ... }` 聚合后展开进各 option（见 [components/Chart.md](components/Chart.md)）。
+有硬 FAIL → exit 1；纯 advisory（option 是外部变量 / STATIC_THEME）→ exit 0 但报告需人工确认。推荐 `const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' }` 聚合后展开进各 option（`isDark` 来自 `useApp()`，chartBase 引用 isDark 即响应式，见 [components/Chart.md](components/Chart.md)）。
 
 ### 4.5 Table 默认值反向坑检查（advisory 必跑）
 
