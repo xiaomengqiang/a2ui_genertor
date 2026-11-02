@@ -12,12 +12,12 @@
 
 **回退路径（`migrationPlan` 为 `null`，上游未跑步骤 5）**：读 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，同时读 `antdIcons` 获取图标清单，进入 §0.2 手动对照 `component-mapping.md` 分类。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。
 
-**`antdIcons` 只统计 `@ant-design/icons` 命名导入，不代表有无图标**。ict-coder 产物普遍用**自定义 `<Icon name="...">` 运行时 shim**（`assets/shared/icon.jsx`，源码里的"方案A形式"组件）、不用 `@ant-design/icons`，故 `antdIcons` **恒为 `[]`**——但实际有大量 `<Icon name>` 调用点（复杂页面 31 处、preview3 20+ 处），**正是方案 C/B 要扫描改写的目标**。**判断是否有图标看 `iconCallSites` 字段（上游 `extract-umd.cjs` 预扫）或 `<Icon name` 调用点，不看 `antdIcons`**：
+**`antdIcons` 只统计 `@ant-design/icons` 命名导入，不代表有无图标**。ict-coder 产物普遍用**自定义 `<Icon name="...">` 运行时 shim**（`assets/shared/icon.jsx`，源码里的"方案A形式"组件）、不用 `@ant-design/icons`，故 `antdIcons` **恒为 `[]`**——但实际有大量 `<Icon name>` 调用点（复杂页面 31 处、preview3 20+ 处），**正是方案 C/B 要识别改写的目标**（C 跑 `match-icons.cjs` 扫描、B 由 LLM 逐个在线 `getIconInfo` 匹配）。**判断是否有图标看 `iconCallSites` 字段（上游 `extract-umd.cjs` 预扫）或 `<Icon name` 调用点，不看 `antdIcons`**：
 > ```bash
 > # iconCallSites 已预扫时直接用；否则 grep 确认
 > grep -rl "<Icon\b" <目标工程>/src/
 > ```
-> `iconCallSites` 非空或 grep 输出非空即有图标站点，**必须走 §3.0 图标步骤**（C 跑 `match-icons.cjs` / B 在线匹配），**禁止因 `antdIcons: []` 跳过 `match-icons.cjs`**。源码 `<Icon name>` shim ≠ 产物方案A，其字面量站点必须转 C/B。
+> `iconCallSites` 非空或 grep 输出非空即有图标站点，**必须走 §3.0 图标步骤**（C 跑 `match-icons.cjs` / B 在线 `getIconInfo` 匹配），**禁止因 `antdIcons: []` 跳过图标步骤**（C 下即禁止跳过 `match-icons.cjs`）。源码 `<Icon name>` shim ≠ 产物方案A，其字面量站点必须转 B/C 静态 import。
 >
 > **`shimRetained` 引用必对得上 Icon.md 实有章节；每项附 closed-set 追源结论**：residual 阶段保留方案 A 的每处站点须在 `.icon-shim-justified.json` 写 `{ file, line, expr, source, closedSet, reason }`——`closedSet:true`（闭合）不该留（应转 icon+）；`closedSet:false` 须 reason 含具体 OPEN 证据（后端接口/运行时自由取值/props 字段且源不在已扫文件）。**禁止编造不存在的 Icon.md 章节引用**当保留依据（实测回归：LLM 可能臆造诸如「函数参数传入的 icon prop（跨组件边界）」「OBJ[runtimeKey] 计算属性访问」之类 Icon.md 根本没有的章节名——一切引用须以 Icon.md 实有标题为准）。`scripts/check-icon-shim.cjs --strict` 自动拦（见 §4）。
 
@@ -62,13 +62,13 @@
 
 > **图标步骤触发条件 = `src/` 下存在 `<Icon name` 调用点（`grep -rl "<Icon\b" src/` 非空）或 `@ant-design/icons` 用法，与 `.umd-conversion.json` 的 `antdIcons` 是否为空无关**。源项目的 `<Icon name="...">` 运行时 shim（`assets/shared/icon.jsx`）是源码里的"方案A形式"组件，但**不等于产物方案A**：其 `<Icon name="字面量">` 调用点、以及**成员表达式 `name={t.icon}` / `name={MENU[0].icon}`（绑到同文件/跨文件静态数组）**都是方案 C/B 的**主要目标**，必须跑 `match-icons.cjs`（C）或在线匹配（B）转为 `import { IconPlusIcXxx } from '@hui/icon-plus'` 静态 import；只有真动态名（`name={row.iconField}` 类运行时数据，绑不到任何已扫文件中的静态数组常量）才落产物方案A shim。**`antdIcons: []` 时只要 src/ 有 `<Icon name` 站点就必跑图标步骤，禁止跳过**（ict-coder 产物 `antdIcons` 恒 `[]` 但有大量 `<Icon name>` 站点——见 §0.1 警告）。
 >
-> **已落方案A的产物可原地补救**：若产物调用点仍为 `<Icon name="字面量" .../>` 或 `name={t.icon}`（前次迁移漏跑图标步骤），直接 `node scripts/match-icons.cjs <工程根> --apply` 即可把字面量站点 + 数据数组动态名站点转为 C/B（脚本幂等：已含 `IconPlusIc` 的站点自动跳过）。`--apply` 还会自动把因改写引入 JSX 的 `.js`→`.jsx` / `.ts`→`.tsx` 并修引用方显式扩展名 import。
+> **已落方案A的产物可原地补救**（仅方案 C）：若产物调用点仍为 `<Icon name="字面量" .../>` 或 `name={t.icon}`（前次迁移漏跑图标步骤），直接 `node scripts/match-icons.cjs <工程根> --apply` 即可把字面量站点 + 数据数组动态名站点转为方案 C 静态 import（脚本幂等：已含 `IconPlusIc` 的站点自动跳过）。**方案 B 项目不跑 `match-icons.cjs`**（其名匹配靠在线 `getIconInfo`，非离线 catalog）——B 的补救由 LLM 按 [Icon.md](components/Icon.md) recipe 手工追源转。`--apply` 还会自动把因改写引入 JSX 的 `.js`→`.jsx` / `.ts`→`.tsx` 并修引用方显式扩展名 import。
 
 **项目级先选 B 还是 C**：迁移开始先探测 `https://octo.hdesign.huawei.com/` 可达性（如 `curl -sI https://octo.hdesign.huawei.com/` / WebFetch），全项目统一一种：
 - **可达（内网）→ 方案 B**：LLM 调在线 `getIconInfo?keyword=<名>&topK=2&source_id=6` 接口匹配图标名 → `import { IconPlusIcXxx } from '@hui/icon-plus'` 静态 import。
 - **不可达（外网）→ 方案 C**：**跑 `node scripts/match-icons.cjs <目标工程根> --apply`**（`--apply` 是转换步骤、**不是可选**；scan-only 无 `--apply` 只出报告不转换、仅复核用，不作为转换手段）。`--apply` 扫 `src/` 下 `<Icon name="..." />`/`<Icon name={...}/>`（含常量传播、三元、变量分流）+ `@ant-design/icons` 调用点，按 [match-icons.cjs](../scripts/match-icons.cjs) `matchOne` 离线匹配 `icons/icon-plus-names.json`（顶层 key 是按图标名前置词分桶、**非语义领域**；候选打分用 token 重叠+子串，不按桶优先），**auto-转**：confirmed 字面量 + **闭集动态形态**（对象地图 `cat = OBJ[key]; cat.icon` / 数组 `name={t.icon}` / 扁平+链式三元 / wrapper `icon` prop / `@ant-design/icons`）→ `<IconPlusIc…/>` 静态 import + `.js`→`.jsx` 自动；未命中的用占位 `IconPlusIcPublicTransverseRectangleTemplate` 顶替并带候选进 residual。**residual**（未命中名带 top-K 候选 + untraced 跨边界 props/useMemo/推入函数闭合集）**不 auto-apply**——交 LLM 按 [Icon.md](components/Icon.md) §name 解析 统一原则处理（未命中名从候选选 / 跨边界追源转 / 真 OPEN 保 shim），再跑 `scripts/check-icon-shim.cjs --strict`（§4）拦闭集误留与未判站点。报告写 **OS 临时目录**（不进产物根）、`--apply` 结束清理。iconSize：源 `size` 原样透传（icon+ 静态 import 支持 rem/px/数字，不转换；仅方案A shim 的 getIcon API 转数字）。 **方案 A/B/C 的选择只由图标名决定**：size/color/variant 是独立 props（透传或 shim 内部处理），不影响方案选择——尺寸/颜色异常不因此退方案A，名匹配命中即落对应方案。`--topk N` 控候选数（默认 5）。**无网络依赖、彻底离线；禁止因 residual 整体放弃方案C**——residual 由 LLM 在会话内按控制台/临时报告逐条复核。
 
-B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcXxx } from '@hui/icon-plus'` 静态 import，把 `<Icon name="search" />` 替换为 `<IconPlusIcPublicSearch ... />`。组件名合成 = `"IconPlusIc" + Domain + Name`；无 `color` 时 `iconColor={['currentcolor']}`；`size`→`iconSize`（支持rem、px、数字）。C 的 confirmed = SEMANTIC + L1/L2/L4 命中（含多桶同名，按最短完整名 tie-break）；其余（L3 前缀、L5-L7 fuzzy、UNMATCHED、链式三元、未追源变量）一律 residual 带 top-K 候选交 LLM，**UNMATCHED 不再直接落占位**。**数据数组动态名 `name={t.icon}` / `name={MENU[0].icon}`**：Phase B 绑定同文件/跨文件静态数组字面量，`--apply` 整组改写——`icon: "lit"` → `icon: <IconPlusIc…/>`（命中用真实组件，未命中用占位 `IconPlusIcPublicTransverseRectangleTemplate` 顶替并带候选进 residual）、render `<Icon name={t.icon}/>` → `{t.icon}`；绑不到静态数组源（接口/props 真运行时）才退方案 A。**图标-prop wrapper 组件**（SoftTag/ToggleRow：自定义组件接收 `icon` prop、内部 `<Icon name={icon}/>` 渲染）：Phase C 自动改写——调用点 `icon="lit"`/`icon={常量}`/`icon={扁平三元}` → `icon={<IconPlusIc…/>}`（尺寸取自 wrapper 内部 `<Icon/>`），`icon={IDENT.field}` 成员调用方透传 + 数据数组元素化，wrapper 内部 `<Icon name={icon}/>` → `{icon}`/裸；调用方 `icon={expr}` 不可静态解析（链式三元/未追源变量）→ 安全闸整组退方案 A。**`.js`→`.jsx` / `.ts`→`.tsx`**：`--apply` 把因改写引入 JSX（替换串含 `<IconPlusIc`）的 `.js`/`.ts` 文件自动转扩展名，并扫 `src/` 修引用方显式 `.js`/`.ts` 扩展名 import（无扩展名 import 不动）；非 `src/` 引用（vite.config、index.html）不处理。
+B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcXxx } from '@hui/icon-plus'` 静态 import，把 `<Icon name="search" />` 替换为 `<IconPlusIcPublicSearch ... />`。组件名合成 = `"IconPlusIc" + Domain + Name`；无 `color` 时 `iconColor={['currentcolor']}`；`size`→`iconSize`（支持rem、px、数字）。C 的 confirmed = SEMANTIC + L1/L2/L4 命中（含多桶同名，按最短完整名 tie-break）；其余（L3 前缀、L5-L7 fuzzy、链式三元、未追源变量）一律 residual 带 top-K 候选交 LLM。**UNMATCHED**（无任何 level 命中）：有候选（substring/token 打分>0）仍 residual 交 LLM 选；**无候选的孤儿名（如 `siren`，catalog 无贴切对应）由 `--apply` 自动落占位 `IconPlusIcPublicTransverseRectangleTemplate`**（catalog 实有条目，防 LLM 拼臆造名），报告单列「孤儿占位」段待人工/SEMANTIC_MAP 升级。**数据数组动态名 `name={t.icon}` / `name={MENU[0].icon}`**：Phase B 绑定同文件/跨文件静态数组字面量，`--apply` 整组改写——`icon: "lit"` → `icon: <IconPlusIc…/>`（命中用真实组件，未命中用占位 `IconPlusIcPublicTransverseRectangleTemplate` 顶替并带候选进 residual）、render `<Icon name={t.icon}/>` → `{t.icon}`；绑不到静态数组源（接口/props 真运行时）才退方案 A。**图标-prop wrapper 组件**（SoftTag/ToggleRow：自定义组件接收 `icon` prop、内部 `<Icon name={icon}/>` 渲染）：Phase C 自动改写——调用点 `icon="lit"`/`icon={常量}`/`icon={扁平三元}` → `icon={<IconPlusIc…/>}`（尺寸取自 wrapper 内部 `<Icon/>`），`icon={IDENT.field}` 成员调用方透传 + 数据数组元素化，wrapper 内部 `<Icon name={icon}/>` → `{icon}`/裸；调用方 `icon={expr}` 不可静态解析（链式三元/未追源变量）→ 安全闸整组退方案 A。**`.js`→`.jsx` / `.ts`→`.tsx`**：`--apply` 把因改写引入 JSX（替换串含 `<IconPlusIc`）的 `.js`/`.ts` 文件自动转扩展名，并扫 `src/` 修引用方显式 `.js`/`.ts` 扩展名 import（无扩展名 import 不动）；非 `src/` 引用（vite.config、index.html）不处理。
 
 > **`{}` 上下文规则（缺陷一/二教训）**：剥离 `<Icon name={X}/>` 包装时，改写结果 `X`（如 `cond ? <A/> : <B/>`、`group.icon`）**仅当原处 JSX 子节点位才包 `{X}`**；三元分支/对象值/数组元素/prop 容器/箭头体/return 等表达式位一律裸 `X`，否则 `{}` 被解析为对象字面量/块语句而语法报错。脚本 `--apply`（三元 + 数据数组 render + 图标-prop wrapper 内部）已按 `wrapIfNeeded` 遵守；LLM residual 手改链式三元、prop 驱动调用方同步更新、wrapper 安全闸 residual 等场景务必同此规则。详见 [Icon.md](components/Icon.md)「`<Icon name={X}/>` 改写的 `{}` 上下文规则」表 +「图标-prop wrapper 组件」小节。
 
@@ -343,7 +343,21 @@ node <skill目录>/scripts/check-messagedialog-defaults.cjs <目标工程根>
 
 advisory 模式 exit 0，但每个待核 `<MessageDialog>` 必须在 `.migration-result.json` 的 `messageDialogReviews` 写明决策（如 `"源 antd Modal.confirm 图标在标题区，已补 iconLocation='title'"` 或 `"源确实要图标在内容区，保留 content"`）。未逐条回应视同 FAIL。
 
-### 4.13 常见报错对照
+### 4.13 IconPlusIc* 名实有性（check-icon-names.cjs）—— 仅方案 C
+
+> **方案 C 专属**：本闸门校验产物 `IconPlusIc*` 名是否为 `references/icons/icon-plus-names.json` **离线 catalog 快照**的实有条目——这正是方案 C 的真值（`match-icons.cjs` 离线匹配的唯一 ground truth）。**方案 B（内网）不跑此闸门**：方案 B 的名由在线 `getIconInfo` 接口匹配（真值是实包/在线服务，非离线快照），版本漂移时会出现「实包有、快照无」的名，跑此闸门会误报 FAIL。**方案 A** 产物无 `IconPlusIc*` 名（`<Icon>` shim），跑了亦 no-op。项目级 B/C 二选一（探 `https://octo.hdesign.huawei.com/` 可达性：内网→B / 外网→C），见 [§3.0](#) 与 [components/Icon.md](components/Icon.md) 渲染方式。
+
+方案 C 转换后，产物中每个 `IconPlusIc{Domain}{Name}` 标识符（import specifier、JSX 标签、标识符引用）都必须是该 catalog 的实有条目。防的回归：LLM residual 复核时臆造 `IconPlusIc{Domain}{Name}`——拿桶前缀 + 源名 PascalCase 基名拼接，既不验证 entry 在该桶存在、又常拼错桶（实测：源 `siren`→`IconPlusIcPublicAlarm`，但 `Alarm` 只在 Ict 桶；源 `building-2`→`IconPlusIcIctBuilding2`，全库无 `Building2`）。`match-icons.cjs --apply` 对孤儿名（catalog 无任何匹配、无候选）已自动落占位 `IconPlusIcPublicTransverseRectangleTemplate`（实有条目），本闸门兜底扫产物所有 `IconPlusIc*` 拦漏网的非实有名。
+
+脚本 `scripts/check-icon-names.cjs`，纯静态正则（去注释后扫 `IconPlusIc[A-Z][A-Za-z0-9]*`），跳过 `src/shared/`（同 `check-imports.cjs` 惯例），对照 catalog 实有集逐一校验。
+
+```bash
+node <skill目录>/scripts/check-icon-names.cjs <目标工程根>   # 仅方案 C（外网）项目跑
+```
+
+硬 FAIL：任一 `IconPlusIc*` 名非 catalog 实有条目 → exit 1（报 `INVALID-ICON-NAME` + file:line:名）。修复：residual 名只能取候选[0] / 占位 / catalog 实有名，禁止拼接 `IconPlusIc{Domain}{Name}`；孤儿名交 `match-icons.cjs --apply` 自动落占位。详见 [components/Icon.md](components/Icon.md) residual 铁律③。
+
+### 4.14 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -354,11 +368,11 @@ advisory 模式 exit 0，但每个待核 `<MessageDialog>` 必须在 `.migration
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 但 `data.js` 里 value 是短代码、i18n key 带前缀 | 在 render 里补命名空间前缀：`t("deviceType." + value, value)`；详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 4.14 验证
+### 4.15 验证
 
 跑验证脚本，把结果写入 `<目标工程根>/.migration-result.json`。
 
-> **十二个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。
+> **十二个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
 
 **验证步骤**（全部必跑，按序）：
 1. 相对导入检查**跳过**（见 §4.1）
@@ -374,6 +388,10 @@ advisory 模式 exit 0，但每个待核 `<MessageDialog>` 必须在 `.migration
 11. 跑 `node <skill目录>/scripts/check-dark-mode.cjs <目标工程根>`（§4.11，**硬 FAIL**，exit≠0 即 FAIL）
 12. 跑 `node <skill目录>/scripts/check-messagedialog-defaults.cjs <目标工程根>`（§4.12，advisory，逐条回应写入 `messageDialogReviews`）
 13. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
+
+**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 12 之后、npm install 之前**加跑）：
+- 跑 `node <skill目录>/scripts/check-icon-names.cjs <目标工程根>`（§4.13，**硬 FAIL**，exit≠0 即 FAIL——拦 LLM residual 臆造的非 catalog 实有 IconPlusIc* 名）。
+- **方案 B（内网）项目不跑此闸门**：其图标名真值是在线 `getIconInfo` 接口（实包），非离线 catalog 快照，跑会误报实包有而快照无的名。方案 A 产物无 `IconPlusIc*` 名，跑了亦 no-op。
 
 **结果文件**：把结果写入 `<目标工程根>/.migration-result.json`（覆盖写），JSON 结构：
 
