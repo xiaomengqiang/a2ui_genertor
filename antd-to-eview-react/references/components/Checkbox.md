@@ -3,6 +3,7 @@
 > 资料来源：TypeDoc `Checkbox/types`、`CheckboxGroup/types` + 官网 Checkbox 页示例。
 > ⚠️ `Checkbox.onChange(value, checked, event, additionalData)`——**第二个参数**才是勾选态（第一个是该项 `value`）；eview-react 没有 `indeterminate` / `e.target.checked`，半选用 `halfChecked`。
 > ⚠️ CheckboxGroup 的选项用 `data`（`{ value, text, checked?, tipText? }`），**不支持嵌 `<Checkbox>` children**；字段是 `text` 不是 `label`。
+> ⚠️ **单个 Checkbox 不支持 children**——antd `<Checkbox>{text}</Checkbox>` 的标签文字必须搬到 `label` prop：`<Checkbox label={text} />`（动态表达式同理 `<Checkbox label={item.label} />`）。
 > CheckboxGroup 官方示例与说明都收在 Checkbox 组件页下，本文一并覆盖；独立的 `CheckboxGroup.md` 留待后续。
 
 ## 1. 功能定位
@@ -98,6 +99,16 @@ const levelData = [
 <CheckboxGroup value={levels}>
   <Checkbox value={1} label="紧急" />
 </CheckboxGroup>
+
+// ❌ 单个 Checkbox 保留 antd children（eview Checkbox 不支持 children，文字必须走 label prop）
+<Checkbox value="agree" checked={agreed}>{agreeText}</Checkbox>
+// ✅ children 搬到 label prop
+<Checkbox value="agree" label={agreeText} checked={agreed} />
+
+// ❌ 退化成小写原生标签 / 拼写错（组件名必须大写 Checkbox）
+<checkbox>{item.label}</checbox>
+// ✅
+<Checkbox label={item.label} value={item.id} checked={checkedIds.has(item.id)} />
 
 // ❌ 把 onChange 第一个参数当勾选态（第一个是 value，第二个才是 checked）
 <Checkbox onChange={(checked) => setAgreed(checked)} />
