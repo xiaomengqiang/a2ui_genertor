@@ -148,18 +148,19 @@ function extractCitedSections(reason) {
 }
 
 function parseArgs(argv) {
-  const opts = { targetRoot: null, strict: false, iconMdPath: null };
+  const opts = { targetRoot: null, strict: false, iconMdPath: null, initJustified: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--strict') opts.strict = true;
+    else if (a === '--init-justified') opts.initJustified = true;
     else if (a === '--icon-md') opts.iconMdPath = argv[++i];
     else if (a === '-h' || a === '--help') {
-      console.error(`用法: node check-icon-shim.cjs <目标工程根> [--strict] [--icon-md <path>]`);
+      console.error(`用法: node check-icon-shim.cjs <目标工程根> [--strict] [--init-justified] [--icon-md <path>]\n  --init-justified  扫残留 <Icon> shim + 数据源 icon:"lit" 字面量，写出 .icon-shim-justified.json 骨架（file/line/expr/source 预填，closedSet/reason 留空待 LLM 填）`);
       process.exit(0);
     } else if (!a.startsWith('--')) opts.targetRoot = a;
   }
   if (!opts.targetRoot) {
-    console.error(`用法: node check-icon-shim.cjs <目标工程根> [--strict] [--icon-md <path>]`);
+    console.error(`用法: node check-icon-shim.cjs <目标工程根> [--strict] [--init-justified] [--icon-md <path>]`);
     process.exit(1);
   }
   return opts;
@@ -172,6 +173,78 @@ function main() {
   if (!fs.existsSync(srcDir)) {
     console.error(`[check-icon-shim] 目标工程无 src/ 目录: ${srcDir}`);
     process.exit(1);
+  }
+
+  // ── --init-justified：扫残留站点写 .icon-shim-justified.json 骨架（N5）─────────
+  // 复用 scanShimSites + 数据源字面量扫描拿全残留站点；file/line/expr/source 脚本预填，
+  // closedSet/reason 留空待 LLM 填（reason 须含 OPEN 关键词，见 OPEN_KEYWORDS）。
+  // 幂等：已存在的条目（按 file:line 键）保留不覆盖，仅补未覆盖站点。
+  if (opts.initJustified) {
+    const justPath = path.join(targetRoot, '.icon-shim-justified.json');
+    const files = walk(srcDir, []);
+    const skeleton = [];
+    const seenKeys = new Set();
+    // 统一 key 为 src/ 相对形态（兼容全路径/相对路径写入），与扫描侧 normFile 一致，防重复 init 产生重复条目。
+    const srcRel = (p) => {
+      const r = rel(p);
+      const idx = r.search(/(^|[\\\/])src[\\\/]/);
+      return idx >= 0 ? r.slice(r.indexOf('src')) : r.replace(/^\.?\//, '');
+    };
+    // 保留已存在条目（LLM 已填的 closedSet/reason 不覆盖）
+    let existing = [];
+    if (fs.existsSync(justPath)) {
+      try {
+        const parsed = JSON.parse(fs.readFileSync(justPath, 'utf8'));
+        if (Array.isArray(parsed)) existing = parsed;
+      } catch (e) {
+        console.warn(`[check-icon-shim] 现有 .icon-shim-justified.json 解析失败，将覆盖：${e.message}`);
+      }
+    }
+    for (const j of existing) {
+      if (!j || !j.file) continue;
+      seenKeys.add(`${srcRel(j.file)}:${j.line}`);
+      skeleton.push(j);
+    }
+    let addedShim = 0;
+    let addedSource = 0;
+    const ICON_FIELD_RE_INIT = /\b(icon|iconName|iconType|iconKey)\s*:\s*["']([A-Za-z][\w-]*)["']/g;
+    for (const file of files) {
+      if (rel(file).includes('/shared/Icon/')) continue;
+      const text = fs.readFileSync(file, 'utf8');
+      const normFile = srcRel(file);
+      // 残留 <Icon> shim 站点
+      for (const s of scanShimSites(text)) {
+        const line = lineOfOffset(text, s.offset);
+        const key = `${normFile}:${line}`;
+        if (seenKeys.has(key)) continue;
+        seenKeys.add(key);
+        skeleton.push({
+          file: rel(file), line, expr: s.nameExpr, source: 'shim-site',
+          closedSet: null, reason: '',
+        });
+        addedShim++;
+      }
+      // 数据源 icon:"lit" 字面量（半改态；须 closedSet:false + OPEN 证据 + linksShim 关联保留 shim）
+      ICON_FIELD_RE_INIT.lastIndex = 0;
+      let m;
+      while ((m = ICON_FIELD_RE_INIT.exec(text)) !== null) {
+        const line = lineOfOffset(text, m.index);
+        const key = `${normFile}:${line}`;
+        if (seenKeys.has(key)) continue;
+        seenKeys.add(key);
+        skeleton.push({
+          file: rel(file), line, expr: `${m[1]}:"${m[2]}"`, source: 'data-source-literal',
+          field: m[1], value: m[2], closedSet: null, reason: '', linksShim: '',
+        });
+        addedSource++;
+      }
+    }
+    skeleton.sort((a, b) => (a.file === b.file ? a.line - b.line : a.file < b.file ? -1 : 1));
+    fs.writeFileSync(justPath, JSON.stringify(skeleton, null, 2) + '\n', 'utf8');
+    console.log('[check-icon-shim] --init-justified 完成');
+    console.log(`  骨架写入 ${justPath}（共 ${skeleton.length} 条；保留已存在 ${existing.length} 条，新增 shim 站点 ${addedShim}、数据源字面量 ${addedSource}）。`);
+    console.log('  待 LLM 逐条填 closedSet + reason：闭合集→closedSet:true（应转 icon+，不该留 shim）；真 OPEN→closedSet:false 且 reason 须含 OPEN 证据（' + OPEN_KEYWORDS.join('/') + '）；数据源字面量另填 linksShim 指向保留 shim。');
+    return;
   }
 
   // Icon.md auto-locate：<skill>/references/components/Icon.md（脚本在 <skill>/scripts/）

@@ -36,7 +36,7 @@
 
 | 方式 | 是什么 | 迁移成本 | 何时用 |
 |------|--------|---------|--------|
-| **B. 在线名匹配 + 静态 import**（内网） | `import { IconPlusIcXxx } from '@hui/icon-plus'`，名靠在线 `getIconInfo?keyword=&topK=2&source_id=6&type=icon` 接口匹配；与 C 共用静态 import 范式，仅名匹配方式不同 | **中**：逐个查名替换调用点 | `https://octo.hdesign.huawei.com/` 可达（内网）；名查不到 → 方案A shim 兜底 |
+| **B. 在线名匹配 + 静态 import**（内网） | `import { IconPlusIcXxx } from '@hui/icon-plus'`，名靠在线 `getIconInfo?keyword=&topK=2&source_id=6&type=icon` 接口匹配；与 C 共用静态 import 范式，仅名匹配方式不同 | **中**：**执行 recipe 见下方「方案 B 在线匹配执行 recipe」；两段式：`--plan` 结构规划 → 去重唯一名 + 并行 getIconInfo + 决策日志 → `--apply-decisions` 用真名做结构改写；无占位、不读 catalog** | `https://octo.hdesign.huawei.com/` 可达（内网）；接口必返回名，故无占位 `IconPlusIcPublicTransverseRectangleTemplate` |
 | **C. catalog 离线匹配 + 静态 import**（外网，默认） | 读 skill 自带 `../icons/icon-plus-names.json`（顶层 key 是按图标名前置词分的桶，**非语义领域**）离线匹配 → `import { IconPlusIcXxx } from '@hui/icon-plus'` 静态 import（scaffold 已预置依赖）；混合策略：**confirmed**（SEMANTIC/L1-L4，含多桶同名按最短完整名 tie-break）`--apply` 自动改写，**residual**（前缀/fuzzy/未命中/链式三元/未追源变量）带 top-K 候选交 LLM 选、不自动 apply，UNMATCHED **不落占位而是带候选**；iconSize 原样透传（支持 rem/px/数字） | **低-中**：`node scripts/match-icons.cjs <工程根> [--apply]` | octo 接口不可达（外网）；无网络依赖、彻底离线；算法见 [match-icons.cjs](../../scripts/match-icons.cjs) |
 | **A. 自定义 `<Icon>` 组件**（B/C 兜底） | scaffold `src/shared/Icon`，保留源项目 `<Icon name="search" size={14} />` 契约；运行时 fetch icon-plus（getConfig → getIconInfo → getIcon 取 SVG 注入），probe 失败渲染 `null`。props：`name`/`src`/`size`（rem/px/数字，shim 内 `toApiSize` 吸附到 **12/14/16/20/24/32/36/40/48/60** 供 getIcon API）/`color`/`variant`/`className`/`style` | **最低**：调用点零改动，只改 import 路径 | B/C 实在识别不出 icon+ 名的调用点；转换后代码运行于内网，运行时 fetch 恒可达 |
 
@@ -61,7 +61,25 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 - **`.js→.jsx` 自动转换**：`--apply` 把因改写引入 JSX（替换串含 `<IconPlusIc`）的 `.js`→`.jsx` / `.ts`→`.tsx`，并扫 `src/` 修引用方显式 `.js`/`.ts` 扩展名 import（无扩展名 import 不动）；非 `src/` 引用（vite.config、index.html）不处理，需人工核对。
 - **已落方案A的产物可原地补救**：调用点仍为 `<Icon name="字面量" .../>` 或 `name={t.icon}` 时，直接 `node scripts/match-icons.cjs <工程根> --apply`（脚本幂等，已含 `IconPlusIc` 的站点自动跳过）。
 
-### 硬规则
+### 方案 B 在线匹配执行 recipe（两段式 · 去重 · 并行 · 决策日志）
+
+> 内网 `getIconInfo?keyword=<名>&topK=2&source_id=6&type=icon` **必定返回图标名**——B 永远有真实名可用，**不需要占位 `IconPlusIcPublicTransverseRectangleTemplate`**；B **不与本地 catalog 校验**（catalog 不作为名的来源进入产物，名真值是内网在线接口）。故 B 跑 `match-icons.cjs` 的姿势是**结构改写与名匹配彻底解耦**：脚本只做结构（叶子枚举 + render 改写 + import 注入 + `.js→.jsx`），名全部来自 getIconInfo 决策日志。`--plan` / `--apply-decisions` 是 B 专用模式，**不读 `references/icons/icon-plus-names.json`**；`--apply`（catalog 名匹配）是 C 专用，B 不跑。
+
+**步 1 结构规划（脚本 pass 1，不改文件）**：`node scripts/match-icons.cjs <工程根> --plan`——离线结构分析，跑 Phase A/B/C 的检测 + 闭集叶子枚举（字面量/扁平三元/链式三元/数据数组/对象地图/wrapper 调用方），**不调名匹配、不读 catalog、不改任何产物文件**（原 `<Icon>` shim 保留，中间态仍可编译）。产出 `icon-leaves.json`（写 OS 临时目录，不进产物根）：每条 `{ sourceKeyword, site:{file,line}, closedForm, renderSite?{size,color} }`；跨边界/未追源/动态变量/安全闸 wrapper 整组不可解析站点入 `untraced[]` 段（无 sourceKeyword，交 LLM 手工）。
+
+**步 2 提取唯一名集合（去重）**：读 `icon-leaves.json` 的 `sourceKeyword`（+ `.umd-conversion.json` 的 `iconCallSites[].name`，[extract-umd.cjs](../../umd-to-antd-vite/scripts/extract-umd.cjs) 不去重）→ `Set` 去重得唯一 keyword 集 U。**禁止逐站点现查现忘**——同名图标全工程只查一次。
+
+**步 3 决策日志（持久化缓存）**：维护 `icon-b-decisions.json`，每条 `{ keyword, iconPlusName, candidates[], selectedBecause }`。**每个唯一名只调一次** `getIconInfo?keyword=<名>&topK=2&source_id=6&type=icon`；查前先查表，命中即复用（会话内 + 跨 turn 缓存，摘要后不丢）。**首次调用记录实际响应 schema**（字段名以内网实测为准，文档不预设），后续按 pinned schema 解析。
+
+**步 4 同 turn 并行查**：同一 turn 内并行发多个独立 getIconInfo（WebFetch/curl，不同 keyword 互不依赖），U 个唯一名压到 ⌈U/k⌉ 轮（k≈5–8）。串行逐个查是耗时主因之一，并行批次直接降时。
+
+**步 5 选名规则（防臆造）**：从 topK=2 候选取名——① `IconPlusIc*` 名须**精确等于** getIconInfo 返回的某候选（**禁止**自行拿 `IconPlusIc` + Domain + 源名 PascalCase 拼接，防臆造非实有名）；② 多候选取名含源 keyword 子串者，再按最短完整名 tie-break；③ 接口必返回名，故每 keyword 必有选中名写入决策日志。
+
+**步 6 结构改写（脚本 pass 2，用真名）**：`node scripts/match-icons.cjs <工程根> --apply-decisions --decisions icon-b-decisions.json`——脚本做完整结构改写（Phase A/B/C：闭集叶子塞真实 `<IconPlusIc*>` + render 改写 `wrapIfNeeded` + import 注入合并去重 + `.js→.jsx`），**名取自决策日志，不读 catalog、无占位**。**决策日志缺某 keyword → 脚本报错列出缺失项 + 对应站点、零改写零占位、退出码 1**，强制 LLM 补齐决策日志再重跑（保证产物名 100% 来自 getIconInfo）。脚本幂等（已含 `IconPlusIc` 的站点自动跳过，连跑两次第二次零变更）。
+
+**步 7 residual（跨边界）**：`untraced[]` 段站点（跨边界追源：props/useMemo/useState/推入函数，见 §跨组件边界 props 闭合字面量集）按本文统一方法手工追源转；名同样先进决策日志去重再查（每唯一名只查一次）；改写后这些站点由 LLM 手改或统一处理。残留 `<Icon>` shim 站点跑 `scripts/check-icon-shim.cjs --init-justified` 预填 `.icon-shim-justified.json` 骨架（file/line/expr/source 脚本已知，只补 `closedSet`+`reason`），再 `--strict` 复核（拦闭集误留 / vague-reason / phantom-section-ref）。
+
+
 
 - eview-react 内置 `Icon name="ict_*"` 已下线，**不要用**；也不要用 `@ant-design/icons`——一律用 `@hui/icon-plus` 的 `IconPlusIc*` 静态 import。
 - **方案 A 判定**：见 §name 解析与方案A 判定（统一原则）——方案A 仅 OPEN 集合，闭合集（含跨 prop/useMemo/推入函数边界、对象地图、wrapper）一律转 B/C；追不到源的报 `untracedSites` 交 LLM 判，`check-icon-shim --strict` 拦闭集误留。

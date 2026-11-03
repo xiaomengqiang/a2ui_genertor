@@ -99,6 +99,12 @@ function parseArgs(argv) {
     includeAntdIcons: true,
     catalogPath: null,
     topk: 5,
+    // 方案 B 两段式（catalog-free，无占位）：
+    //   --plan              pass 1：结构规划，不改文件、不读 catalog，产 icon-leaves.json
+    //   --apply-decisions   pass 2：用 --decisions 决策日志的真名做完整结构改写（不读 catalog、无占位）
+    plan: false,
+    applyDecisions: false,
+    decisionsPath: null,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -110,6 +116,9 @@ function parseArgs(argv) {
       const v = Number(argv[++i]);
       if (Number.isInteger(v) && v > 0) opts.topk = v;
     }
+    else if (a === '--plan') opts.plan = true;
+    else if (a === '--apply-decisions') opts.applyDecisions = true;
+    else if (a === '--decisions') opts.decisionsPath = argv[++i];
     else if (a === '-h' || a === '--help') {
       printHelp();
       process.exit(0);
@@ -124,7 +133,11 @@ function parseArgs(argv) {
 
 function printHelp() {
   console.error(
-    `用法: node match-icons.cjs <目标工程根> [--apply] [--no-antd-icons] [--catalog <path>] [--topk N]`
+    `用法: node match-icons.cjs <目标工程根> [模式]
+  方案 C(catalog 名匹配): [--apply] [--no-antd-icons] [--catalog <path>] [--topk N]
+  方案 B 两段式(catalog-free,无占位):
+    --plan                                  pass 1 结构规划(不改文件,产 icon-leaves.json)
+    --apply-decisions --decisions <path>    pass 2 用决策日志真名做结构改写(缺名即报错)`
   );
 }
 
@@ -1647,17 +1660,163 @@ function ensureImport(text, names) {
   return merged + '\n' + text;
 }
 
+// ─── 方案 B 两段式：决策日志 + 叶子枚举（catalog-free，无占位）──────────────
+
+// 从 <Icon> 标签抽 size/color（render 站点信息，供 LLM 预期渲染形态；pass 2 会重算，非载重字段）。
+function safeRenderSite(tag) {
+  if (!tag) return null;
+  try {
+    const p = extractIconProps(tag);
+    const rs = {};
+    const size = p.sizeStr || p.sizeExpr;
+    if (size != null && size !== '') rs.size = size;
+    if (p.color != null && p.color !== '') rs.color = p.color;
+    return Object.keys(rs).length ? rs : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// 加载 LLM 维护的决策日志（--apply-decisions 用）。格式：[{ keyword, iconPlusName, candidates[], selectedBecause }]。
+// 返回 { byRaw, byLower, count }：名真值来自 getIconInfo 在线返回，catalog 零参与。
+function loadDecisions(decisionsPath) {
+  if (!decisionsPath) {
+    console.error('[match-icons] --apply-decisions 需配合 --decisions <path> 指定决策日志');
+    process.exit(1);
+  }
+  if (!fs.existsSync(decisionsPath)) {
+    console.error(`[match-icons] 决策日志未找到: ${decisionsPath}`);
+    process.exit(1);
+  }
+  let data;
+  try {
+    data = JSON.parse(fs.readFileSync(decisionsPath, 'utf8'));
+  } catch (e) {
+    console.error(`[match-icons] 决策日志解析失败: ${decisionsPath} (${e.message})`);
+    process.exit(1);
+  }
+  const arr = Array.isArray(data) ? data : (data && Array.isArray(data.entries) ? data.entries : null);
+  if (!arr) {
+    console.error(`[match-icons] 决策日志须为数组 [{ keyword, iconPlusName, ... }]: ${decisionsPath}`);
+    process.exit(1);
+  }
+  const byRaw = new Map();
+  const byLower = new Map();
+  for (const e of arr) {
+    if (!e || typeof e !== 'object') continue;
+    const kw = e.keyword != null ? String(e.keyword) : null;
+    const name = e.iconPlusName != null ? String(e.iconPlusName) : null;
+    if (!kw || !name) {
+      console.error(`[match-icons] 决策日志条目缺 keyword/iconPlusName: ${JSON.stringify(e)}`);
+      process.exit(1);
+    }
+    byRaw.set(kw, name);
+    byLower.set(kw.toLowerCase(), name);
+  }
+  return { byRaw, byLower, count: arr.length };
+}
+
+// 决策日志名解析（替换 matchOne/catalog）：命中 → confirmed + getIconInfo 真名；未命中 → missing 并记入 missingSet。
+// 名全部来自决策日志（getIconInfo 在线返回），catalog 不参与；缺名不静默落占位（main 在 apply 前拦截 missing 报错）。
+function resolveFromDecisions(norm, decisions, missingSet) {
+  const raw = norm.raw;
+  const name = decisions.byRaw.get(raw) || decisions.byLower.get(norm.lower);
+  if (name) return { status: 'confirmed', level: 'DECISION', componentName: name, candidates: [] };
+  if (!missingSet.has(raw)) missingSet.add(raw);
+  return { status: 'missing', keyword: raw, level: 'MISSING', candidates: [] };
+}
+
+// 收集所有闭集叶子（--plan 产 icon-leaves.json / --apply-decisions 校验 missing 用）。
+// 叶子集与扫描一一对应：字面量/antd/常量传播(byName)、扁平三元、链式三元、数据数组/对象地图、wrapper 调用方叶子。
+// lineOf(file, offset) => 行号（main 注入 textCache 版本，闭包访问文件文本）。
+function collectLeaves(scan, byName, lineOf) {
+  const leaves = [];
+  const untraced = [];
+  const pushLeaf = (sourceKeyword, file, line, closedForm, renderSite) => {
+    if (sourceKeyword == null || sourceKeyword === '') return;
+    leaves.push({ sourceKeyword, site: { file, line }, closedForm, ...(renderSite ? { renderSite } : {}) });
+  };
+  // 字面量 / antd / 常量传播命中（byName 每个 sourceName 可能多站点）
+  for (const name of Object.keys(byName)) {
+    for (const s of byName[name].sites) {
+      pushLeaf(name, s.file, s.line, 'literal', safeRenderSite(s.tag));
+    }
+  }
+  // 扁平三元：两候选各为叶子，站点为三元调用点
+  for (const t of scan.ternarySites || []) {
+    const rp = safeRenderSite(t.tag);
+    for (const c of t.candidates) pushLeaf(c.sourceName, t.file, t.line, 'ternary', rp);
+  }
+  // 链式/嵌套三元：各字面量 leaf 为叶子
+  for (const t of scan.chainedTernarySites || []) {
+    const rp = safeRenderSite(t.tag);
+    for (const c of t.leafCandidates) pushLeaf(c.sourceName, t.file, t.line, 'chained-ternary', rp);
+  }
+  // 数据数组 / 对象地图：叶子值在 arrayFile（line 由 offset 解），render 站点提供 size/color
+  for (const d of scan.dataIconSites || []) {
+    const rp = safeRenderSite(d.renderTag);
+    for (const e of d.entries) {
+      pushLeaf(e.value, d.arrayFile, lineOf(d.arrayFile, e.offset), 'data-binding', rp);
+    }
+  }
+  // wrapper 调用方叶子（字面量/三元；member 已进 dataIconSites，此处不重复）
+  for (const pw of scan.propWrapperSites || []) {
+    const rp = safeRenderSite(pw.internalTag);
+    for (const ce of pw.callerEdits || []) {
+      for (const l of ce.leaves || []) pushLeaf(l.sourceKeyword, ce.file, pw.wrapperLine, l.closedForm, rp);
+    }
+  }
+  // 跨边界 / 未追源 / 安全闸 wrapper 整组：无 sourceKeyword，交 LLM 手工
+  for (const u of scan.untracedSites || []) {
+    untraced.push({ file: u.file, line: u.line, expr: u.expr, reason: u.reason });
+  }
+  // 动态变量站点（name={prop}/name={state} 等，无静态源 keyword）→ 同属跨边界，交 LLM 手工
+  for (const v of scan.variableSites || []) {
+    untraced.push({ file: v.file, line: v.line, expr: v.expr, reason: v.isMember ? 'dynamic-member' : 'dynamic-variable' });
+  }
+  for (const r of scan.propWrapperResidual || []) {
+    untraced.push({ file: r.wrapperFile, line: r.wrapperLine, expr: r.wrapperName, reason: r.reason });
+  }
+  return { leaves, untraced };
+}
+
+// 写 icon-leaves.json 到 OS 临时目录（沿用报告写临时目录惯例，不进产物根）。
+// 每条 leaf：{ sourceKeyword, site:{file,line}, closedForm, renderSite?{size,color?} }；去重保留首次站点。
+function writeLeavesJson(leavesData, outPath) {
+  const seen = new Set();
+  const uniq = [];
+  for (const l of leavesData.leaves) {
+    if (seen.has(l.sourceKeyword)) continue;
+    seen.add(l.sourceKeyword);
+    uniq.push(l);
+  }
+  const payload = {
+    mode: 'plan',
+    uniqueKeywordCount: uniq.length,
+    totalLeafSites: leavesData.leaves.length,
+    leaves: uniq,
+    untraced: leavesData.untraced,
+    note: '每个唯一 sourceKeyword 调一次 getIconInfo?keyword=<名>&topK=2&source_id=6&type=icon，结果写入 icon-b-decisions.json；untraced 段按 Icon.md 跨边界 recipe 手工。',
+  };
+  fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
+  return { uniqueKeywordCount: uniq.length, totalLeafSites: leavesData.leaves.length, untracedCount: leavesData.untraced.length };
+}
+
 // ─── 主流程 ──────────────────────────────────────────────────────────────────
 
 function main() {
   const opts = parseArgs(process.argv.slice(2));
   const targetRoot = path.resolve(opts.targetRoot);
   const srcDir = path.join(targetRoot, 'src');
+  // 方案 B 两段式与方案 C(catalog) 是并列模式：plan/applyDecisions 不读 catalog、不塞占位；
+  // 仅 C 路径(--apply 或默认报告)需要 catalog 做名匹配。
+  const mode = opts.plan ? 'plan' : (opts.applyDecisions ? 'applyDecisions' : 'catalog');
+
   const catalogPath =
     opts.catalogPath ||
     path.join(__dirname, '..', 'references', 'icons', 'icon-plus-names.json');
 
-  if (!fs.existsSync(catalogPath)) {
+  if (mode === 'catalog' && !fs.existsSync(catalogPath)) {
     console.error(`[match-icons] catalog 未找到: ${catalogPath}`);
     process.exit(1);
   }
@@ -1666,7 +1825,7 @@ function main() {
     process.exit(1);
   }
 
-  const index = loadCatalog(catalogPath);
+  const index = mode === 'catalog' ? loadCatalog(catalogPath) : null;
   const files = walk(srcDir, []);
   const scan = {
     files: files.length,
@@ -1683,7 +1842,16 @@ function main() {
   // byName: sourceName -> { normalized, match, sites: [{file,line,original,replacement,offset,tag}] }
   const byName = {};
   const topk = opts.topk;
-  const match1 = (norm) => matchOne(norm, index, topk);
+  // 名解析闭包：catalog 模式走 matchOne；plan 模式走 stub（不取名、不改文件）；applyDecisions 走决策日志。
+  // applyDecisions 下 match1 命中返回 confirmed+真名，未命中返回 missing 并记入 missingSet（apply 前拦截）。
+  const missingSet = new Set();
+  const decisions = mode === 'applyDecisions' ? loadDecisions(opts.decisionsPath) : null;
+  const match1 =
+    mode === 'plan'
+      ? (norm) => ({ status: 'planned', level: 'PLAN', componentName: null, candidates: [] })
+      : mode === 'applyDecisions'
+        ? (norm) => resolveFromDecisions(norm, decisions, missingSet)
+        : (norm) => matchOne(norm, index, topk);
 
   // 文件文本缓存（Phase B 跨文件数组解析需要）
   const textCache = new Map();
@@ -2095,7 +2263,7 @@ function main() {
           const mres = byName[c.value] ? byName[c.value].match : match1(norm);
           const comp = mres.status === 'confirmed' ? mres.componentName : PLACEHOLDER.componentName;
           const el = buildDataIconElement(comp, wrapperProps, wrapperContext);
-          callerEdits.push({ file: c.file, offset: c.propOffset, raw: c.raw, repl: `icon={${el}}`, imports: [comp], isPlaceholder: mres.status !== 'confirmed' });
+          callerEdits.push({ file: c.file, offset: c.propOffset, raw: c.raw, repl: `icon={${el}}`, imports: [comp], isPlaceholder: mres.status !== 'confirmed', leaves: [{ sourceKeyword: c.value, closedForm: 'wrapper-literal' }] });
           importSet.add(comp);
           hasConvertCaller = true;
         } else if (c.kind === 'ternary') {
@@ -2106,7 +2274,7 @@ function main() {
           const bc = bm.status === 'confirmed' ? bm.componentName : PLACEHOLDER.componentName;
           const aEl = buildDataIconElement(ac, wrapperProps, wrapperContext);
           const bEl = buildDataIconElement(bc, wrapperProps, wrapperContext);
-          callerEdits.push({ file: c.file, offset: c.propOffset, raw: c.raw, repl: `icon={${c.cond} ? ${aEl} : ${bEl}}`, imports: [ac, bc], isPlaceholder: am.status !== 'confirmed' || bm.status !== 'confirmed' });
+          callerEdits.push({ file: c.file, offset: c.propOffset, raw: c.raw, repl: `icon={${c.cond} ? ${aEl} : ${bEl}}`, imports: [ac, bc], isPlaceholder: am.status !== 'confirmed' || bm.status !== 'confirmed', leaves: [{ sourceKeyword: aSrc, closedForm: 'wrapper-ternary' }, { sourceKeyword: bSrc, closedForm: 'wrapper-ternary' }] });
           importSet.add(ac); importSet.add(bc);
           hasConvertCaller = true;
         } else if (c.kind === 'member') {
@@ -2138,6 +2306,44 @@ function main() {
     }
   }
 
+  // 行号解析闭包：collectLeaves 用（data 数组叶子在 arrayFile 的 offset → 行号）。
+  const lineOf = (file, offset) => {
+    const t = textCache.get(file);
+    return t ? lineOfOffset(t, offset) : null;
+  };
+
+  // ── 方案 B pass 1：结构规划（不改文件、不读 catalog、不取名）──────────────
+  if (mode === 'plan') {
+    const leavesData = collectLeaves(scan, byName, lineOf);
+    const outPath = path.join(os.tmpdir(), `icon-leaves-${path.basename(targetRoot)}.json`);
+    const stats = writeLeavesJson(leavesData, outPath);
+    console.log('\n[match-icons] --plan 完成：结构规划，未改任何产物文件（原 <Icon> shim 保留，中间态可编译）；未读 catalog。');
+    console.log(`  闭集叶子 ${stats.totalLeafSites} 处 / 唯一 sourceKeyword ${stats.uniqueKeywordCount} 个 / untraced ${stats.untracedCount} 处。`);
+    console.log(`  叶子清单写入临时目录 ${outPath}（不进产物）。`);
+    console.log('  下一步：按 Icon.md「方案 B 在线匹配执行 recipe」去重唯一名 + 同 turn 并行调 getIconInfo + 写 icon-b-decisions.json，再跑 --apply-decisions。');
+    return;
+  }
+
+  // ── 方案 B pass 2：用决策日志真名做结构改写（catalog-free、无占位）────────
+  if (mode === 'applyDecisions') {
+    // 缺名闸：决策日志未覆盖某 keyword → 列出缺失项 + 站点，中止、零改写、零占位（强制 LLM 补齐再重跑）。
+    if (missingSet.size) {
+      const leavesData = collectLeaves(scan, byName, lineOf);
+      const missingLeaves = leavesData.leaves.filter((l) => missingSet.has(l.sourceKeyword));
+      console.error(`\n[match-icons] --apply-decisions 中止：决策日志缺 ${missingSet.size} 个唯一 sourceKeyword（产物零改写、零占位）。`);
+      console.error('  缺失名（补齐 icon-b-decisions.json 后重跑）:');
+      for (const l of missingLeaves) {
+        console.error(`    ${l.sourceKeyword}  @ ${rel(l.site.file)}:${l.site.line}  [${l.closedForm}]`);
+      }
+      process.exit(1);
+    }
+    applyRewrites(scan, byName, srcDir);
+    console.log('\n[match-icons] --apply-decisions 完成：所有名取自决策日志（getIconInfo 在线返回），产物零 catalog 名、零占位。');
+    console.log('  untraced/跨边界站点保留 <Icon> shim + 修 import，交 LLM 按 Icon.md recipe 手工；跑 check-icon-shim --strict 复核。');
+    return;
+  }
+
+  // ── 方案 C（catalog 名匹配）：原报告 + 可选 --apply ──────────────────────
   reportConsole(scan, byName);
 
   // 报告写 OS 临时目录（不进产物根），供 LLM 在会话内复核 residual；控制台报告已是 in-context 真相源。
