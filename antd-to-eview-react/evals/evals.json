@@ -24,7 +24,7 @@
     {
       "id": 2,
       "name": "布局迁移",
-      "description": "将 antd Layout/Menu/Breadcrumb/Avatar 迁移为 eview-react + 手写补位",
+      "description": "将 antd Layout/Menu/Breadcrumb/Avatar 迁移：Layout/Avatar 手写补位，Menu→Accordion（不手写），Breadcrumb→Crumbs",
       "input": "antd Layout with Header/Sider/Content, Menu, Breadcrumb, Avatar",
       "assertions": [
         "NOT import Layout from antd",
@@ -34,7 +34,7 @@
         "Crumbs seprator 拼写（不是 separator）",
         "Crumbs 最后一项无 url",
         "Layout 手写（有 TODO 注释）",
-        "Menu 手写（有 TODO 注释）",
+        "Menu 用 Accordion（不手写，单层平铺用单层 data 无 children）",
         "Avatar 手写（有 TODO 注释）",
         "手写元素只用 CSS 变量不写死色值",
         "类名用业务前缀不用 ev_"

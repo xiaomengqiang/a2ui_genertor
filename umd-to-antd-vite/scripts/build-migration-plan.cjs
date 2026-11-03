@@ -273,7 +273,7 @@ const globalRef = {
   spellingAnomalies: [
     { eview: 'seprator', correct: 'separator', component: 'Crumbs' },
     { eview: 'taggledChildren', correct: 'toggledChildren', component: 'Toggle' },
-    { eview: 'disable', correct: 'disabled', component: 'SelectCard/FileUpload' },
+    { eview: 'disable', correct: 'disabled', component: 'SelectCard/FileUpload/PopUpMenu', note: '仅这三组件用 disable；Toggle/Button/Checkbox/Radio 等仍用 disabled，勿误改' },
     { eview: 'status', antd: 'type', component: 'Button' },
     { eview: 'defaultLabel', antd: 'placeholder', component: 'Select' },
     { eview: 'toggled', antd: 'checked', component: 'Toggle' },

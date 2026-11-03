@@ -41,7 +41,7 @@
 | `Radio` / `.Group` | `Radio` / `RadioGroup` | Group 用 `data=[{text,value}]`；需 `isControlled` 才受控；`onChange` 参数顺序有冲突，用兼容写法 |
 | `Radio.Button` | `SelectCard` | 导出名 SelectCard（不是 Segmented）；`data=[{text,value}]`；`onChange(value,event)`；禁用是 `disable`（不是 disabled） |
 | `Segmented` | `SelectCard` | 映射同 `Radio.Button`：`options` 字符串数组或 `{label,value}` 对象数组 → `data=[{text,value}]`；`defaultValue` 转为初始 `value` state；`block`→无对应（宽度走 `style`/`itemStyle`）；`disabled`→`disable`；`onChange(value)` 首参即为选中值 |
-| `Switch` | `Toggle` | `checked`→`toggled`；`onChange`→`onToggle(value)`；`data=[关,开]`；`taggledChildren`（拼错）；`Switch isControlToggled` 二次确认 |
+| `Switch` | `Toggle` | `checked`→`toggled`；`onChange`→`onToggle(value)`；`data=[关,开]`；`taggledChildren`（拼错）；`Switch isControlToggled` 二次确认；**`disabled` 保留不变**（Toggle 用 `disabled` 正确拼写，**不是 `disable`**——`disable` 只属于 SelectCard/FileUpload/PopUpMenu） |
 | `Slider` | `DragInput` | `value` **永远是数组**；`type="range"` 开双滑块；`markIndexes` 数组；导出名是 DragInput 不是 Slider |
 | `Rate` | `Rating` | 取值是 `onClick(value)` 不是 onChange；`onMouseOver/Leave` 悬浮预览；`half`；`disabled` 只读 |
 | `DatePicker` | `DatePicker` | **不要无条件回写** `onChange` 的字符串到 `value`（官方反例）；用 `defaultValue`+`ref.getValue()` 或有效 Date 才回写；⚠️ 导入 `@/shared/DatePicker`（包壳，非 `@nce/eview-react/DatePicker`） |
@@ -54,12 +54,12 @@
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
 | `Table` | `Table` | `dataSource`→`dataset`；`rowKey`→（`keyIndex` 已废弃，勾选回调 `onRowCheck` 改用行序号）；`columns[].dataIndex`→`key`；**`columns[].fixed` 默认不迁移 freezeCol——eview `freezeCol` 无条件冻结（sticky+阴影），antd `fixed` 仅横向溢出时才有视觉效果，源列写了 `fixed` ≠ 源页面视觉冻结；仅当源列有 `fixed` 且源表 `scroll.x`/列宽合计明显超出容器宽（真的会横向滚动）时才加列 `freezeCol: true` + 表 `freezeColPosition`，其余情况列与表上都不写**（见 [Table.md](components/Table.md) §5 冻结列行）；`pagination`→`enablePagination`+`pagingProps`+`onPageChange`；`rowSelection`→`enableCheckBox`+`onRowCheck`（行序号数组，需选中数据时用 `checkedIndexes` 配合 `dataset` 按索引取值，**不要用 `ref.getCheckedRowsData()`——实测返回数据不对**）；`emptyText`→`emptyTableMsg`；**render 函数保留——行数据取第 4 参 `row.rawData`（不是第 2 参 `rowData`，且 `row.rawData` 可能为 undefined，访问字段写 `row.rawData?.xxx`，见 [Table.md](components/Table.md) 顶部）；并需检查 i18n key 对齐**（见 [migration-workflow.md](migration-workflow.md) §3.5）；**操作列按钮用 flex div + gap 代替 Fragment，避免间距缺失**（见 [Table.md](components/Table.md) §2 列定义示例）；**排序：eview-react 的 `allowSort` 默认 true，源 antd 列未设 `sorter` 的需显式加 `allowSort: false`，否则所有列表头都带排序箭头**（见 [Table.md](components/Table.md) 列定义形状）；**斑马纹：eview-react 的 `enableZebraCrossing` 默认 `true`（开斑马纹），antd Table 默认无斑马纹——源 antd 未开斑马纹（未用 `rowClassName` 注入偶数行类 / 未在 CSS 写 `.ant-table-row-even` 背景 / 未在 ConfigProvider theme 配 stripe）的迁移时显式加 `enableZebraCrossing={false}`，否则迁移后表格凭空多出斑马纹**（见 [Table.md](components/Table.md) §5 API 速查 + [migration-workflow.md](migration-workflow.md) Table 斑马纹 warning）；**外层宽度：eview-react 的 Table 默认给最外层 dom 加行内样式 `width:100%;height:100%;`，在 flex/grid/卡片内嵌等场景会撑破父容器或挤压兄弟元素——源 antd Table 有显式容器宽度（`style.width` / className CSS 设宽）的映射到 eview-react `width` prop，`scroll.x` 直接抛弃不转（eview `width` 是最外层 dom 宽度不是列宽计算/横向滚动阈值概念，实测映射会导致宽度错误），无显式容器宽度的迁移时显式加 `width="unset"` 重置组件库默认行内宽度**（见 [Table.md](components/Table.md) §5 API 速查 + [migration-workflow.md](migration-workflow.md) Table 外层宽度 warning）；**columns 动态更新：eview-react 的 `enableColumnCompareUpdate` 默认 `false`，更新 `columns` prop 不重新渲染列定义——源 antd 的 `columns` 经常动态变化（条件列/权限列/筛选后列集），迁移时默认显式加 `enableColumnCompareUpdate={true}`**（见 [Table.md](components/Table.md) §5 API 速查 + [migration-workflow.md](migration-workflow.md) Table columns 更新 warning） |
-| `Tabs` / `TabPane` | `Tab` / `TabItem` | children 驱动（`<TabItem title>`）；切换回调是 `onClick(index,title,event)`（不是 `onChange`）；`draggable` 默认 true 需关；`items` 不存在 |
+| `Tabs` / `TabPane` | `Tab` / `TabItem` | **必须 TabItem children 驱动**（`<Tab><TabItem title>内容</TabItem></Tab>`），**禁止 `data`/`items` 属性**（Tab 不接收数组，由业务 `map` 成 TabItem；eview 的 Select/SelectCard/RadioGroup/Steps 等用 `data`，但 **Tab 不用**）；切换回调 `onClick(index,title,event)`（不是 `onChange`）；`draggable` 默认 true 需关；**遍历生成 TabItem 时数据源必须判空兜底**（`tabs?.map(...)` 或 `(tabs || []).map(...)`）——Tab 内部默认接受 TabItem 数组，children 为 `null`/`undefined`/`false`/空会崩溃报错（页面白屏）；见 [Tab.md](components/Tab.md) |
 | `Collapse` / `Panel` | `Panel` / `PanelItem` | `defaultActiveKey`/`activeKey`（key 字符串/数组）→ `selectedIndex`（**索引数组**，按 `items` 顺序做 key→index 映射，如 `items=[{key:'1'},{key:'2'}]` + `defaultActiveKey=['1']` → `selectedIndex=[0]`；无 `defaultActiveKey` 时 `selectedIndex=[]`）；`accordion`→`enableMultiExpand={false}`（**语义取反**：antd `accordion=true` 即手风琴，eview `enableMultiExpand=false` 即手风琴）；`onChange(key)`→`onExpand(index,event)`/`onClose(index,event,collapsed)`（key→index 同映射）；`items=[{key,label,children}]`→children `<PanelItem title>`；**禁止用 `PanelItem.expanded` 实现 `defaultActiveKey`/`activeKey`**——`expanded` 是单项非受控初始态、不响应后续切换/联动，受控展开一律走 Panel 的 `selectedIndex`；`closable` 默认 true 要显式 `closable={false}`；见 [Panel.md](components/Panel.md) |
 | `List` | 手写或 `Table` | 无导出 |
 | `Descriptions` | 手写 KeyValueList | 无导出；见 [handwrite-templates.md](handwrite-templates.md) §3 |
 | `Empty` | `Empty` | `type="success"`（成功无数据）/ `"fail"`（失败）；`description` 可放按钮 |
-| `Statistic` | 手写 | 无导出；见 [handwrite-templates.md](handwrite-templates.md) §7 |
+| `Statistic` | 手写 | 无导出；见 [handwrite-templates.md](handwrite-templates.md) §6 |
 | `Skeleton` | 手写 | 无导出 |
 | `Avatar` | 手写 | 无导出；见 [handwrite-templates.md](handwrite-templates.md) §2 |
 | `Badge` | `Badge` | `count`→`content`；`dot`；`status` 五态+`text`；`max`/`showZero` |
@@ -86,14 +86,14 @@
 | `notification` | `DivMessage` | 同上 |
 | `Spin` | `Loading` | `isOpen`；`type="global"/"local"/"micro"`；local 需父容器 `position:relative`；`Loader` 是同一组件 |
 | `Result` | `Empty type="success"` + 手写 | `description` 放标题+副标题+按钮 |
-| `Progress` | 手写 | 无导出；见 [handwrite-templates.md](handwrite-templates.md) §9 |
+| `Progress` | 手写 | 无导出；见 [handwrite-templates.md](handwrite-templates.md) §8 |
 
 ## 布局与导航
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
 | `Layout` / `Header` / `Sider` / `Content` | 手写 CSS 布局 | 见 [handwrite-templates.md](handwrite-templates.md) §4 |
-| `Menu` | `Accordion` | `items`→`data`（`key`/`label`→`value`/`title`）；`selectedKeys` 数组→`selectedValue` 单 string；`onClick({key})`→`onClick(node)`；`inlineCollapsed`→`expanded`/`onExpand`（⚠️ `expanded={true}`=收起，语义反转）；多级导航用 Accordion，简单平铺列表仍可手写；见 [Accordion.md](components/Accordion.md) |
+| `Menu` | `Accordion` | `items`→`data`（`key`/`label`→`value`/`title`）；`selectedKeys` 数组→`selectedValue` 单 string；`onClick({key})`→`onClick(node)`；`inlineCollapsed`→`expanded`/`onExpand`（⚠️ `expanded={true}`=收起，语义反转）；**统一用 Accordion，不手写**（单层平铺菜单用单层 `data` 无 `children` + `enableExpand={false}` + `hideIcons` + `hideTitleBar`，见 [Accordion.md](components/Accordion.md) §2/§10）；见 [Accordion.md](components/Accordion.md) |
 | `Breadcrumb` | `Crumbs` | `data=[{title,url?}]`；最后一项无 url；`seprator`（拼错）；`onClick(data,event)` 组件级；⚠️ 导入 `@/shared/Crumbs`（包壳，非 `@nce/eview-react/Crumbs`） |
 | `Affix` | 手写 `position:sticky` | 无对应 |
 | `BackTop` | 手写 | 无对应 |
