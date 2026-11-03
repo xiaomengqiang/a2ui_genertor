@@ -1,7 +1,7 @@
 # Tab 组件功能逻辑规格（含 TabItem）
 
 > 资料来源：TypeDoc `Tab/Tab`、`Tab/TabItem` + 官网 Tab 页示例。
-> ⚠️ 与 Group 类组件相反，**Tab 是 children 驱动**：`<Tab><TabItem title="…">内容</TabItem></Tab>`，没有 `items` / `data` 属性。
+> ⚠️ 与 Group 类组件相反，**Tab 是 children 驱动**：`<Tab><TabItem title="…">内容</TabItem></Tab>`，**禁止 `data`/`items` 属性**（Tab 不接收数组；eview 的 Select/SelectCard/RadioGroup/Steps 等用 `data`，但 Tab 不用，给 Tab 挂 `data` 不生效且会误导）。
 > ⚠️ 切换回调叫 **`onClick`**（不是 `onChange`）；`draggable` 默认 **true**，业务页签通常要显式关掉。
 > ⚠️ `isAutoClose` 默认 true（"set tab items AutoClose or not"），与业务自己维护页签数组是否冲突，资料未说明 → 已登记待实测。
 
@@ -51,7 +51,7 @@ Tab 是页面内平级版块切换容器：一级页签 `type="main"`（默认�
     setActiveIndex((cur) => (cur >= index && cur > 0 ? cur - 1 : cur));   // 关掉当前或前面的页签，下标前移
   }}
 >
-  {tabs.map((t) => (
+  {(tabs || []).map((t) => (
     <TabItem key={t.id} title={t.title} closable>
       {t.title} 的内容
     </TabItem>
@@ -89,13 +89,15 @@ const [activeKey, setActiveKey] = useState('overview');
     setActiveKey(tabs[index].key);
   }}
 >
-  {tabs.map((t) => (
+  {(tabs || []).map((t) => (
     <TabItem key={t.key} title={t.label}>{t.children}</TabItem>
   ))}
 </Tab>
 ```
 
 > 原则：eview Tab 是 **index 驱动**；antd 的 `key` 是字符串标识符、`label` 是文案，二者不可互相替代——桥接只能通过 `tabs[index].key`，不能用 `title`。
+
+> **遍历判空兜底（CRITICAL）**：Tab 内部默认接受 **TabItem 数组**，children 为 `null`/`undefined`/`false`/空会**崩溃报错**（页面白屏）。遍历生成 TabItem 时数据源必须判空：`(tabs || []).map(...)` 或 `tabs?.map(...) ?? []`。`tabs` 为 null/undefined 时 `.map` 直接报错；条件渲染 `{cond && <TabItem/>}` 且 cond=false 时 Tab 收到 `false` 也会崩溃——用数组兜底而非条件渲染。
 
 ### 竖排 / 禁用 / 图标 / 自定义标题
 
@@ -120,6 +122,13 @@ import { IconPlusIcPublicHome } from '@hui/icon-plus';
 ```tsx
 // ❌ antd items 数组受控写法（eview 无 items/activeKey/onChange）→ ✅ 正确改写见 §2「受控数组页签」
 <Tabs activeKey={key} items={[{ key: '1', label: '概览' }]} onChange={setKey} />
+
+// ❌ 给 Tab 挂 data 属性（Tab 是 children 驱动，不接收数组；data 是 Select/SelectCard/Steps 等的 prop）
+<Tab data={[{ text: '概览', value: 1 }]} />
+
+// ❌ 遍历不判空，tabs 为 null/undefined 时 .map 报错；为空时 Tab 收到 undefined children 崩溃白屏
+{tabs.map((t) => <TabItem key={t.key} title={t.label} />)}
+// ✅ (tabs || []).map(...) 兜底
 
 // ❌ 把 title 当 key 对比（title 是文案、可重复；eview 是 index 驱动，应 tabs[index].key）
 <Tab onClick={(index, title) => setActiveKey(title)} />

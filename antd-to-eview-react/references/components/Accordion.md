@@ -20,6 +20,7 @@ Accordion 是侧边多级导航菜单：一级菜单可带图标，支持多层�
 ## 2. 典型场景
 
 - 配置中心 / 管理后台左侧菜单：一级为功能域（带图标），下级为具体页面，点叶子切换右侧内容
+- **单层平铺菜单**（antd Menu 无嵌套）：`data=[{title,value}]` 无 `children` + `enableExpand={false}` + `hideIcons` + `hideTitleBar`（见 §10）——**不要因此手写**，Accordion 单层 `data` 即可覆盖
 - 需要更大工作区时收起导航，收起后点节点图标可重新展开（`enableIconExpand` 默认 true）
 - 菜单按权限下发、角标数量会变：无权限项过滤或置 `disabled`，数据变化时用 `keepExpandState` 保留展开层级
 

@@ -13,6 +13,10 @@
  *      （RadioGroup 必须默认导入：import RadioGroup from '@nce/eview-react/RadioGroup'，
  *       @nce/eview-react/Radio 只导出 Radio 本身，不导出 RadioGroup）
  *   5. SHELL_WRONG_PATH 包壳组件从 @nce/eview-react/<X> 导入（须从 @/shared/<X> 导入）
+ *   6. TOGGLE_DISABLE_PROP  `<Toggle>` 上用了 disable（应为 disabled）—— Toggle 用 disabled 正确拼写，
+ *      disable 只属于 SelectCard/FileUpload/PopUpMenu
+ *   7. TAB_DATA_PROP  `<Tab>` 上挂了 data（禁止）—— Tab 是 children 驱动（TabItem），
+ *      data 是 Select/SelectCard/RadioGroup/Steps 等的 prop
  *
  * 用法：
  *   node check-imports.cjs <目标工程根>
@@ -51,6 +55,28 @@ function walk(dir, out, skipDirs) {
     else if (EXTS.has(path.extname(ent.name))) out.push(full);
   }
   return out;
+}
+
+// 从 `<Tag` 的 `<` 开始，跳过 {...} 内的 > 和字符串内的 >，找标签结束的 >（含 />）
+// 避免开标签（<Tab>...</Tab>）用 indexOf('/>') 跨界到下一个自闭合标签
+function findTagEnd(text, start) {
+  let i = start + 1;
+  let depth = 0;
+  let inStr = null;
+  while (i < text.length) {
+    const ch = text[i];
+    if (inStr) {
+      if (ch === '\\') { i += 2; continue; }
+      if (ch === inStr) inStr = null;
+    } else {
+      if (ch === '"' || ch === "'" || ch === '`') inStr = ch;
+      else if (ch === '{') depth++;
+      else if (ch === '}') depth--;
+      else if (depth === 0 && ch === '>') return i;
+    }
+    i++;
+  }
+  return -1;
 }
 
 function main() {
@@ -106,6 +132,44 @@ function main() {
         }
       }
     }
+
+    // 6. Toggle 上的 disable prop（应为 disabled）—— eview Toggle 用 disabled 正确拼写，
+    //    disable 只属于 SelectCard/FileUpload/PopUpMenu，Toggle 上写 disable 是错误。
+    //    文件级扫描 <Toggle 标签范围（到 />），避免跨行 props 漏检。
+    const toggleRe = /<Toggle\b/g;
+    let tm;
+    while ((tm = toggleRe.exec(text)) !== null) {
+      const start = tm.index;
+      const tagEnd = findTagEnd(text, start);
+      const tagWindow = tagEnd > 0 ? text.slice(start, tagEnd) : text.slice(start, start + 300);
+      // disable prop：disable 后不跟字母/数字/下划线（排除 disabled / disableToolTip 等）
+      if (/\bdisable\b(?![\w])/.test(tagWindow)) {
+        const lineNum = text.slice(0, start).split('\n').length;
+        violations.push({
+          file: rel, line: lineNum, code: 'TOGGLE_DISABLE_PROP',
+          detail: 'Toggle 用 disabled（正确拼写），不是 disable。disable 只属于 SelectCard/FileUpload/PopUpMenu',
+        });
+      }
+    }
+
+    // 7. Tab 上的 data prop（禁止）—— Tab 是 children 驱动（TabItem），不接收数组；
+    //    data 是 Select/SelectCard/RadioGroup/Steps 等的 prop，给 Tab 挂 data 是错误。
+    //    <Tab\b 不匹配 <TabItem（Tab 后跟 I 无词边界），不会误报 TabItem。
+    const tabRe = /<Tab\b/g;
+    let tam;
+    while ((tam = tabRe.exec(text)) !== null) {
+      const start = tam.index;
+      const tagEnd = findTagEnd(text, start);
+      const tagWindow = tagEnd > 0 ? text.slice(start, tagEnd) : text.slice(start, start + 300);
+      // data prop：data 后不跟字母（排除 dataIndex/dataset 等），后跟 =
+      if (/\bdata\b\s*=/.test(tagWindow)) {
+        const lineNum = text.slice(0, start).split('\n').length;
+        violations.push({
+          file: rel, line: lineNum, code: 'TAB_DATA_PROP',
+          detail: 'Tab 是 children 驱动（<TabItem>），禁止 data 属性。data 是 Select/SelectCard/Steps 等的 prop',
+        });
+      }
+    }
   }
 
   // ---- 报告 ----
@@ -126,6 +190,8 @@ function main() {
     ICONS_RESIDUAL: '残留 @ant-design/icons（应由 match-icons.cjs 转 @hui/icon-plus）',
     RADIOGROUP_WRONG_IMPORT: 'RadioGroup 错误地从 Radio 包具名导入',
     SHELL_WRONG_PATH: '包壳组件未从 @/shared 导入',
+    TOGGLE_DISABLE_PROP: 'Toggle 用 disable（应为 disabled）',
+    TAB_DATA_PROP: 'Tab 挂 data（应 TabItem children 驱动）',
   };
 
   console.log(`\n发现 ${violations.length} 处违规：\n`);

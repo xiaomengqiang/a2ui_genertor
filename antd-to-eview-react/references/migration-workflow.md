@@ -220,7 +220,7 @@ node scripts/check-i18n-keys.cjs .
 
 > 对应 SKILL.md 硬约束① 导入路径。导入路径 100% 静态可判、无歧义，故本检查全量硬 FAIL——任何违规必须修复后重跑，不能跳过。改 import 路径是迁移的核心动作，本脚本是防止「包壳组件从错路径导入 / RadioGroup 套错包 / 残留 antd」的机器兜底。
 
-脚本 `scripts/check-imports.cjs`，纯静态正则，自动跳过 `src/shared/`（包壳实现文件内部转发 `@nce/eview-react/<X>` 是正确的，只有业务代码从该路径导入才算违规）。检查五类违规：残留 `from 'antd'`/`from 'antd/...'`、残留 `@ant-design/icons`、`import { RadioGroup } from '@nce/eview-react/Radio'`（须默认导入自 `@nce/eview-react/RadioGroup`）、包壳组件从 `@nce/eview-react/<X>` 导入（须从 `@/shared/<X>`）。
+脚本 `scripts/check-imports.cjs`，纯静态正则，自动跳过 `src/shared/`（包壳实现文件内部转发 `@nce/eview-react/<X>` 是正确的，只有业务代码从该路径导入才算违规）。检查七类违规：残留 `from 'antd'`/`from 'antd/...'`、残留 `@ant-design/icons`、`import { RadioGroup } from '@nce/eview-react/Radio'`（须默认导入自 `@nce/eview-react/RadioGroup`）、包壳组件从 `@nce/eview-react/<X>` 导入（须从 `@/shared/<X>`）、`<Toggle>` 上用 `disable`（应为 `disabled`——Toggle 用 `disabled` 正确拼写，`disable` 只属于 SelectCard/FileUpload/PopUpMenu）、`<Tab>` 上挂 `data`（禁止——Tab 是 children 驱动 `<TabItem>`，`data` 是 Select/SelectCard/Steps 等的 prop）。
 
 ```bash
 node <skill目录>/scripts/check-imports.cjs <目标工程根>

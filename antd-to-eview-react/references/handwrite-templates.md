@@ -129,50 +129,7 @@ function AppLayout({ header, sider, children }) {
 .app-layout-content { flex: 1; padding: 12px 32px 32px; }
 ```
 
-## 5. 侧导航菜单（antd Menu）
-
-> 多级导航优先用 `Accordion`（见 [Accordion.md](components/Accordion.md)）。以下手写模板仅用于简单平铺列表（单层、无图标、无收起）。
-
-```tsx
-// TODO(eview-react): 简单平铺菜单，多级导航用 Accordion
-function AppMenu({ items, activeKey, onSelect }) {
-    return (
-        <nav className="app-menu">
-            {items.map((m) => (
-                <button
-                    key={m.key}
-                    type="button"
-                    className={`app-menu-item ${activeKey === m.key ? 'active' : ''}`}
-                    onClick={() => onSelect(m.key)}
-                >
-                    {m.label}
-                </button>
-            ))}
-        </nav>
-    );
-}
-```
-
-```css
-.app-menu { padding: 8px 0; }
-.app-menu-item {
-    display: block; width: 100%;
-    padding: 8px 16px;
-    border: none; background: transparent;
-    text-align: left;
-    color: var(--on-surface, #191919);
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.app-menu-item:hover { background: var(--hover, rgba(0,0,0,0.05)); }
-.app-menu-item.active {
-    background: var(--select, #E6F2FD);
-    color: var(--color-text-on, #0067D1);
-    border-left: 2px solid var(--primary, #0067D1);
-}
-```
-
-## 6. 结果页（antd Result）
+## 5. 结果页（antd Result）
 
 ```tsx
 // TODO(eview-react): Result 未覆盖，用 Empty type="success" + 手写内容替代
@@ -208,7 +165,7 @@ function AppResult({ title, subtitle, actionText, onAction }) {
 }
 ```
 
-## 7. 统计数字（antd Statistic）
+## 6. 统计数字（antd Statistic）
 
 ```tsx
 // TODO(eview-react): Statistic 未覆盖，当前手写
@@ -232,7 +189,7 @@ function AppStatistic({ title, value, suffix }) {
 }
 ```
 
-## 8. 间距（antd Space）
+## 7. 间距（antd Space）
 
 ```tsx
 // antd <Space> → flex div + gap
@@ -252,7 +209,7 @@ function AppStatistic({ title, value, suffix }) {
 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
 ```
 
-## 9. 简单进度条（antd Progress）
+## 8. 简单进度条（antd Progress）
 
 ```tsx
 // TODO(eview-react): ProgressBar 未覆盖，当前手写最小可用版

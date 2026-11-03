@@ -3,7 +3,7 @@ name: antd-to-eview-react
 description: >-
   将 umd-to-antd-vite 产物（eview-react Vite 工程 + .umd-conversion.json 交接文件）的 antd 组件替换为 @nce/eview-react（HUI Eview React，ICT 3.1）。
   仅处理 umd-to-antd-vite 产物，不直接处理 UMD 单 HTML 或其他来源的 antd 工程。
-  覆盖：antd→eview-react 组件库替换、Steps/Modal 模式转换、Layout/Menu 等无对应组件手写。源项目表单用 div+输入组件拼合（无 Form/Form.Item）。
+  覆盖：antd→eview-react 组件库替换、Steps/Modal 模式转换、Layout/Avatar 等无对应组件手写（Menu→Accordion、Breadcrumb→Crumbs 有对应）。源项目表单用 div+输入组件拼合（无 Form/Form.Item）。
 ---
 
 # antd → eview-react 迁移 Skill
@@ -46,7 +46,7 @@ description: >-
 
 ## 命名异常速查
 
-> eview-react 部分 API 命名与"正确英文"或 antd 习惯不同（如 `seprator`/`taggledChildren`/`disable`/`status`/`defaultLabel`/`toggled` 等），迁移前必查 [references/component-mapping.md](references/component-mapping.md) 文末「属性拼写异常」+「回调签名差异」两张速查表
+> eview-react 部分 API 命名与"正确英文"或 antd 习惯不同（如 `seprator`/`taggledChildren`/`disable`（**仅 SelectCard/FileUpload/PopUpMenu**）/`status`/`defaultLabel`/`toggled` 等；**Toggle/Button/Checkbox/Radio 等多数组件仍用 `disabled` 正确拼写，不要改成 `disable`**），迁移前必查 [references/component-mapping.md](references/component-mapping.md) 文末「属性拼写异常」+「回调签名差异」两张速查表
 
 ## 页面模式迁移
 
@@ -72,7 +72,7 @@ description: >-
 - **组件无对应**：Layout/Avatar/Descriptions/Result/Space 无直接对应，需手写补位；见 [handwrite-templates.md](references/handwrite-templates.md)
 - **IntlProvider 放错位置**：必须在 `main.jsx` 最外层直接包 `<App/>`，locale 用 `"zh"` 不是 `"zh-CN"`；见 [i18n-migration.md](references/i18n-migration.md) §4
 - **Table render i18n key 不对齐**：`t(cellValue, cellValue)` 取不到带前缀的 key，需 `t("deviceType." + value, value)`；脚本 `scripts/check-i18n-keys.cjs` 自动排查；见 [migration-workflow.md](references/migration-workflow.md) §3.5
-- **命名拼写异常**：`seprator`/`taggledChildren`/`disable` 等官方拼错；见 [component-mapping.md](references/component-mapping.md) 文末「属性拼写异常」表
+- **命名拼写异常**：`seprator`/`taggledChildren`/`disable`（**仅 SelectCard/FileUpload/PopUpMenu**，Toggle 等多数组件用 `disabled`）等官方拼错；见 [component-mapping.md](references/component-mapping.md) 文末「属性拼写异常」表
 - **import 路径失效**：scaffold 后 `app.jsx` 在 `src/`，`./src/context.jsx` 须改 `./context.jsx`；脚本 `scripts/check-relative-imports.cjs` 按需排查（见 [§4.1](references/migration-workflow.md)）；步骤 4 默认跳过（路径已由前置 skill 修正）
 - **`antdIcons:[]` 误判无图标 → 跳过 `match-icons.cjs` → 全落方案A**：`antdIcons` 只统计 `@ant-design/icons` 命名导入，ict-coder 产物用自定义 `<Icon name>` 运行时 shim、`antdIcons` 恒 `[]` 但有大量 `<Icon name>` 调用点；**触发条件看 `<Icon name` 站点（`grep -rl "<Icon\b" src/`）不看 `antdIcons`**，`antdIcons: []` 禁止跳过 `match-icons.cjs`；见 [migration-workflow.md](references/migration-workflow.md) §0.1 警告 + §3.0
 - **`columns[].fixed` 误加 `freezeCol`（冻结列视觉回归）**：eview 的 `freezeCol` **无条件冻结**（sticky+阴影），antd 的 `fixed` 仅在表格横向滚动（`scroll.x` 溢出）时才有视觉效果——源列写了 `fixed` ≠ 源页面视觉冻结。迁移**默认不写** `freezeCol`/`freezeColPosition`；仅当源列有 `fixed` **且**源表 `scroll.x`/列宽合计明显超出容器宽（迁移后真的会横向滚动）时才加列 `freezeCol: true` + 表 `freezeColPosition`；见 [component-mapping.md](references/component-mapping.md) Table 行
