@@ -94,6 +94,7 @@
 |------|-----------|-------------|
 | `Layout` / `Header` / `Sider` / `Content` | 手写 CSS 布局 | 见 [handwrite-templates.md](handwrite-templates.md) §4 |
 | `Menu` | `Accordion` | `items`→`data`（`key`/`label`→`value`/`title`）；`selectedKeys` 数组→`selectedValue` 单 string；`onClick({key})`→`onClick(node)`；`inlineCollapsed`→`expanded`/`onExpand`（⚠️ `expanded={true}`=收起，语义反转）；多级导航用 Accordion，简单平铺列表仍可手写；见 [Accordion.md](components/Accordion.md) |
+| `Dropdown` | `PopUpMenu` | `menu.items`→`options`（`key`→`id`/`serialno`，`label`→`text`）；子菜单 `children`→`submenus`；`disabled`→`disable`；`onClick({key})`→`onClick(evt)`（`evt.value`=serialno，`evt.text`）；默认 children 模式包裹触发器（`<PopUpMenu options><Button/></PopUpMenu>`）；`trigger` 不存在，弹出由 children 点击驱动；`size` 枚举一致可透传；见 [PopUpMenu.md](components/PopUpMenu.md) |
 | `Breadcrumb` | `Crumbs` | `data=[{title,url?}]`；最后一项无 url；`seprator`（拼错）；`onClick(data,event)` 组件级；⚠️ 导入 `@/shared/Crumbs`（包壳，非 `@nce/eview-react/Crumbs`） |
 | `Affix` | 手写 `position:sticky` | 无对应 |
 | `BackTop` | 手写 | 无对应 |

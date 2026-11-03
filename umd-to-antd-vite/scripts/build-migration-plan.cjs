@@ -180,7 +180,12 @@ const antdComponents = handoff.antdComponents || {};
 const migrationPlan = [];
 const unmatched = [];
 
+// 步骤 3 已删除的 Provider 体系组件（硬约束 #2：antd ConfigProvider 在 app.jsx 删除，
+// eview-react ConfigProvider 由 scaffold main.jsx 预设），不纳入迁移清单
+const SKIP_COMPONENTS = new Set(['ConfigProvider']);
+
 for (const [antdName, files] of Object.entries(antdComponents)) {
+  if (SKIP_COMPONENTS.has(antdName)) continue;
   let rows = lookup[antdName] || [];
 
   if (rows.length === 0) {
