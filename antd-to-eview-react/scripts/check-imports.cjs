@@ -37,10 +37,11 @@ const SHELL_COMPONENTS = [
   'IPInput', 'TimePicker', 'Crumbs',
 ];
 
-// skipDirs：遇到这些目录名不递归进去。src/shared/ 是包壳组件的**实现文件**所在
-// （scaffold 预置，内部 import X from '@nce/eview-react/X' 转发是正确的），
-// 只有业务代码（views/ 等）从 @nce/eview-react/<包壳> 导入才算违规，故跳过 shared 子树。
-function walk(dir, out, skipDirs) {
+// 扫描整个工程根（含根目录配置文件 + src/ 子树）。跳过 node_modules / .开头目录 /
+// dist / build 等产物目录；并精确跳过 src/shared（包壳组件的实现文件，scaffold 预置，
+// 内部 import X from '@nce/eview-react/X' 转发是正确的）——只有业务代码（views/ 等）
+// 从 @nce/eview-react/<包壳> 导入才算违规，故按相对路径 'src/shared' 跳过该子树。
+function walk(dir, root, out) {
   let entries;
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -49,10 +50,13 @@ function walk(dir, out, skipDirs) {
   }
   for (const ent of entries) {
     if (ent.name === 'node_modules' || ent.name.startsWith('.')) continue;
-    if (skipDirs && skipDirs.has(ent.name) && ent.isDirectory()) continue;
+    if (ent.name === 'dist' || ent.name === 'build') continue;
     const full = path.join(dir, ent.name);
-    if (ent.isDirectory()) walk(full, out, skipDirs);
-    else if (EXTS.has(path.extname(ent.name))) out.push(full);
+    if (ent.isDirectory()) {
+      const rel = path.relative(root, full).replace(/\\/g, '/');
+      if (rel === 'src/shared') continue;
+      walk(full, root, out);
+    } else if (EXTS.has(path.extname(ent.name))) out.push(full);
   }
   return out;
 }
@@ -83,14 +87,13 @@ function main() {
   const args = process.argv.slice(2);
   const rootIdx = args.findIndex((a) => !a.startsWith('--'));
   const root = rootIdx >= 0 ? path.resolve(args[rootIdx]) : process.cwd();
-  const srcDir = path.join(root, 'src');
-  if (!fs.existsSync(srcDir)) {
-    console.error(`[check-imports] 找不到 ${srcDir}，用法: node check-imports.cjs <目标工程根>`);
+  if (!fs.existsSync(root)) {
+    console.error(`[check-imports] 找不到 ${root}，用法: node check-imports.cjs <目标工程根>`);
     process.exit(2);
   }
 
-  // 跳过 src/shared/（包壳实现文件，内部转发 @nce/eview-react/<X> 是正确的）
-  const files = walk(srcDir, [], new Set(['shared']));
+  // 扫描整个工程根（含根目录配置文件 + src/），跳过 src/shared（包壳实现文件，内部转发 @nce/eview-react/<X> 是正确的）
+  const files = walk(root, root, []);
   const violations = []; // { file, line, code, detail }
 
   for (const file of files) {
@@ -174,7 +177,7 @@ function main() {
 
   // ---- 报告 ----
   console.log('[check-imports] 导入路径硬约束检查报告');
-  console.log(`  扫描范围: ${srcDir}（${files.length} 个文件）`);
+  console.log(`  扫描范围: ${root}（${files.length} 个文件，已跳过 node_modules/dist/build/.开 + src/shared）`);
 
   if (violations.length === 0) {
     console.log('\n结论: PASS — 未发现导入路径违规。');
