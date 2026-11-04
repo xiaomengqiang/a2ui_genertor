@@ -135,8 +135,6 @@ function extractEviewName(eviewRaw) {
 }
 
 function determineCategory(baseName, eviewName, eviewRaw) {
-  if (baseName === 'Steps') return 'C';
-  if (baseName === 'Modal') return 'C';
   if (eviewName === '手写' || !eviewName) return 'B';
   return 'A';
 }
@@ -163,11 +161,6 @@ function determineRef(category, eviewName, keyDiffs) {
     const sectionMatch = keyDiffs.match(/§(\d+)/);
     if (sectionMatch) return `handwrite-templates.md §${sectionMatch[1]}`;
     return 'handwrite-templates.md';
-  }
-  if (category === 'C') {
-    if (eviewName === 'Dialog') return 'components/Dialog.md';
-    if (eviewName === 'MessageDialog') return 'components/MessageDialog.md';
-    return `components/${eviewName}.md`;
   }
   return null;
 }
@@ -318,7 +311,7 @@ for (const e of migrationPlan) {
 console.log('');
 console.log('=== build-migration-plan 报告 ===');
 console.log(`  组件总数: ${migrationPlan.length}`);
-console.log(`  分类: A(有对应)=${catCounts.A || 0}, B(手写)=${catCounts.B || 0}, C(模式转换)=${catCounts.C || 0}, unknown=${catCounts.unknown || 0}`);
+console.log(`  分类: A(有对应)=${catCounts.A || 0}, B(无对应)=${catCounts.B || 0}, unknown=${catCounts.unknown || 0}`);
 const shellCount = migrationPlan.filter(e => e.shellComponent).length;
 if (shellCount) console.log(`  包壳组件: ${shellCount} 个`);
 if (unmatched.length) {

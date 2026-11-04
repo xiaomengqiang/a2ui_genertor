@@ -30,7 +30,7 @@ description: >-
 | **2. 提取 UMD 内容** | 跑 `extract-umd.cjs` 从源产物 `assets/style/` 拷贝 ict-coder 已分好的 4 层 CSS：`base.css`（基础色阶+尺寸+排版+间距+@font-face+reset+scrollbar，`@font-face` 路径改写 `/font/`、uploads 路径改写 `/uploads/`，append 到 scaffold 预制 base.css 的 eview 专用样式后）/ `light.css`（语义层 :root）/ `theme.css`（角色层 :root）/ `dark.css`（.dark 覆盖）三个 write 覆盖空壳；`ant.css` 跳过（eview 用 `aui3_1.css`）；扫描 antd 组件导入（组件→文件映射 + 图标列表）；**扫描 `<Icon name>` 调用点**（字面量/动态/无 name，供下游图标步骤预定位）；**扫描 `<IpInput>` 调用点 + 手写共享件**（§4.7，ict-coder 内置 IPInput 非 antd 导入，extract-umd 默认扫不到）；**扫描 `<Chart>` 调用点 + 内置共享件**（§4.9，ict-coder 内置 Chart 非 antd 导入，extract-umd 默认扫不到）；**拷贝 `assets/uploads/` 图片资源到 `public/uploads/`**（§4.8）；扫描 i18n 用法判定 scenario A/B/C + 业务包/antd-locale 文件路径；生成 `.umd-conversion.json` 交接文件供 antd-to-eview-react 读取；无 `src/` 时加 `--scripts` 提取 script 块 | base/light/theme/dark 四层 CSS + antd 清单 + icon 调用点 + IPInput 调用点 + Chart 调用点 + uploads 图片资源 + i18n scenario + 交接文件 | 主 agent 跑脚本 |
 | **3. 搬代码 + 修路径 + 转暗色 + i18n 接线** | 把源项目 `src/` 独立文件搬进 scaffold `src/`；修正 `./src/...` → `./...` 相对导入；`app.jsx` 搬入时删除 antd `ConfigProvider` + `theme.darkAlgorithm`，换成 eview 类名切换 `useEffect`；按 `i18nScenario` 做 i18n 静态接线（删 antd locale 文件；scenario B 合并业务包到 `main.jsx`；scenario C 留下游） | 代码就位，import 正确，暗色已转，i18n A/B 接线完成 | 派发 general 子 agent |
 | **4. 验证** | 跑 `check-relative-imports.cjs` 静态检查；验证通过后更新 `.umd-conversion.json` 的 `verification` 字段 | import 通过 + 交接文件就绪 | 子 agent（步骤 3 续做） |
-| **5. 下游评估** | 跑 `build-migration-plan.cjs`：读 `.umd-conversion.json` 的 `antdComponents` + antd-to-eview-react 的 `component-mapping.md`，自动给每组件分类（A/B/C）+ eview-react 替换名 + importPath + shellComponent 标志 + 完整 keyDiffs（映射表原文）+ ref 指引 + 涉及文件，写入 `migrationPlan` 字段；同时写入 `globalRef`（静态拼写异常 + 回调签名速查表）。**始终执行**——不依赖步骤 4 PASS，`antdComponents` 在步骤 2 已就绪 | 下游步骤 0 enriched 评估清单就绪 | 脚本（主 agent 跑 `node scripts/build-migration-plan.cjs <目标工程根>`） |
+| **5. 下游评估** | 跑 `build-migration-plan.cjs`：读 `.umd-conversion.json` 的 `antdComponents` + antd-to-eview-react 的 `component-mapping.md`，自动给每组件分类（A/B）+ eview-react 替换名 + importPath + shellComponent 标志 + 完整 keyDiffs（映射表原文）+ ref 指引 + 涉及文件，写入 `migrationPlan` 字段；同时写入 `globalRef`（静态拼写异常 + 回调签名速查表）。**始终执行**——不依赖步骤 4 PASS，`antdComponents` 在步骤 2 已就绪 | 下游步骤 0 enriched 评估清单就绪 | 脚本（主 agent 跑 `node scripts/build-migration-plan.cjs <目标工程根>`） |
 
 ## scaffold 预制骨架
 
@@ -99,7 +99,7 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 }
 ```
 
-`antd-to-eview-react` 步骤 0 检查此文件：有则直接读 `antdComponents` 的 keys 作为迁移清单（跳过 explore 子 agent 扫描），读 `migrationPlan`（步骤 5 `build-migration-plan.cjs` 生成的 enriched 版，含 importPath/shellComponent/full keyDiffs）作为分类评估清单，**A 类组件无需再读 `component-mapping.md` 或 `components/<Name>.md`**，仅 B/C 类按 `ref` 指引读对应 reference；读 `globalRef` 获取静态拼写异常 + 回调签名速查表（跳过读 `component-mapping.md` 文末速查表）；读 `iconCallSites` 获取 `<Icon name>` 调用点预扫描结果（跳过 grep，直接跑 `match-icons.cjs`）；读 `chartCallSites` 获取 `<Chart>` 调用点预扫描结果（Chart 已由 `build-migration-plan.cjs` 注入 migrationPlan，下游步骤 0/2 直接见迁移行 + `a2ui: true`/`theme` 补全提醒）；读 `tokens` 确认 token 已外置（跳过步骤 4）；读 `verification` 确认路径已修正（跳过 `check-relative-imports.cjs`）；读 `i18nScenario.wired` 确认 i18n 静态接线状态（`true` 即 A/B 已由步骤 3 接线完成，下游步骤 1 跳过接线只做运行时验证；`false` 即 scenario C，下游步骤 1 做 keep i18next vs 迁 react-intl 决策）。**`migrationPlan` + `globalRef` 由步骤 5 `build-migration-plan.cjs` 脚本生成，下游步骤 0 直接读，跳过手动对照大表 + 组件文档，显著降低下游上下文压力。**
+`antd-to-eview-react` 步骤 0 检查此文件：有则直接读 `antdComponents` 的 keys 作为迁移清单（跳过 explore 子 agent 扫描），读 `migrationPlan`（步骤 5 `build-migration-plan.cjs` 生成的 enriched 版，含 importPath/shellComponent/full keyDiffs）作为分类评估清单，**A 类组件按 `ref` 读 `components/<Name>.md` 查完整 API（`component-mapping.md` 无需再读，`keyDiffs` 已含其差异摘要）**，仅 B 类按 `ref` 指引读对应 reference；读 `globalRef` 获取静态拼写异常 + 回调签名速查表（跳过读 `component-mapping.md` 文末速查表）；读 `iconCallSites` 获取 `<Icon name>` 调用点预扫描结果（跳过 grep，直接跑 `match-icons.cjs`）；读 `chartCallSites` 获取 `<Chart>` 调用点预扫描结果（Chart 已由 `build-migration-plan.cjs` 注入 migrationPlan，下游步骤 0/2 直接见迁移行 + `a2ui: true`/`theme` 补全提醒）；读 `tokens` 确认 token 已外置（跳过步骤 4）；读 `verification` 确认路径已修正（跳过 `check-relative-imports.cjs`）；读 `i18nScenario.wired` 确认 i18n 静态接线状态（`true` 即 A/B 已由步骤 3 接线完成，下游步骤 1 跳过接线只做运行时验证；`false` 即 scenario C，下游步骤 1 做 keep i18next vs 迁 react-intl 决策）。**`migrationPlan` + `globalRef` 由步骤 5 `build-migration-plan.cjs` 脚本生成，下游步骤 0 直接读，跳过手动对照大表 + 组件文档，显著降低下游上下文压力。**
 
 步骤 4 验证通过后，更新 `verification` 字段：
 
@@ -207,7 +207,7 @@ node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 脚本自动完成：
 1. 读 `.umd-conversion.json` 的 `antdComponents`
 2. 读 antd-to-eview-react 的 `references/component-mapping.md`，解析映射总表
-3. 对每个 antd 组件匹配映射行，分类 A/B/C + eview 替换名 + importPath（含 @/shared/ 包壳检测 + `SHELL_COMPONENTS` 硬编码列表兜底无 `@/shared/` keyDiffs 的包壳）+ shellComponent 标志 + 完整 keyDiffs（映射表原文，非摘要）+ ref 指引
+3. 对每个 antd 组件匹配映射行，分类 A/B + eview 替换名 + importPath（含 @/shared/ 包壳检测 + `SHELL_COMPONENTS` 硬编码列表兜底无 `@/shared/` keyDiffs 的包壳）+ shellComponent 标志 + 完整 keyDiffs（映射表原文，非摘要）+ ref 指引
 4. 写入 `globalRef`：静态拼写异常速查表（seprator/taggledChildren/disable/status/defaultLabel/toggled/iconSize）+ 回调签名速查表（TextField/Select/TextArea/Button/Tab/Toggle/Spinner/Checkbox/Radio/DragInput/TreeSelector 等 13 条）
 5. 写回 `.umd-conversion.json` 的 `migrationPlan` + `globalRef` 字段
 
@@ -219,8 +219,8 @@ node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 "migrationPlan": [
   { "antd": "Button", "category": "A", "eview": "Button", "importPath": "@nce/eview-react/Button", "shellComponent": false, "keyDiffs": "type→status（default/primary/risk/text）；无 loading/htmlType/danger...", "ref": "components/Button.md", "files": ["src/views/AppShell.jsx"] },
   { "antd": "Select", "category": "A", "eview": "Select", "importPath": "@/shared/Select", "shellComponent": true, "keyDiffs": "options 字段 label→text；placeholder→defaultLabel；onChange(value,oldValue,text,oldText,event) 五参...", "ref": "components/Select.md", "files": ["src/views/DeviceForm.jsx"] },
-  { "antd": "Steps", "category": "C", "eview": "Steps", "importPath": "@nce/eview-react/Steps", "shellComponent": false, "keyDiffs": "current→currentStep（对应 data[].value 不是下标）；items→data=[{text,value}]；size 原生 mini/small/middle/large，dot→size=mini...", "ref": "components/Steps.md", "files": ["src/views/Wizard.jsx"] },
-  { "antd": "Modal", "category": "C", "eview": "Dialog", "importPath": "@nce/eview-react/Dialog", "shellComponent": false, "keyDiffs": "open→isOpen；footer→buttons=[{text,status,onClick}]；onClose 不自动关闭...", "ref": "components/Dialog.md", "files": ["src/views/DeviceForm.jsx"] },
+  { "antd": "Steps", "category": "A", "eview": "Steps", "importPath": "@nce/eview-react/Steps", "shellComponent": false, "keyDiffs": "current→currentStep（对应 data[].value 不是下标）；items→data=[{text,value}]；size 原生 mini/small/middle/large，dot→size=mini...", "ref": "components/Steps.md", "files": ["src/views/Wizard.jsx"] },
+  { "antd": "Modal", "category": "A", "eview": "Dialog", "importPath": "@nce/eview-react/Dialog", "shellComponent": false, "keyDiffs": "open→isOpen；footer→buttons=[{text,status,onClick}]；onClose 不自动关闭...", "ref": "components/Dialog.md", "files": ["src/views/DeviceForm.jsx"] },
   { "antd": "Layout", "category": "B", "eview": "手写", "importPath": null, "shellComponent": false, "keyDiffs": "无对应，CSS 布局", "ref": "handwrite-templates.md §4", "files": ["src/views/AppShell.jsx"] }
 ],
 "globalRef": {
@@ -229,7 +229,7 @@ node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 }
 ```
 
-> 下游 antd-to-eview-react 步骤 0 直接读 `migrationPlan`（含 importPath/shellComponent/full keyDiffs）+ `globalRef`（拼写/回调速查），A 类组件无需再读 `component-mapping.md` 或 `components/<Name>.md`，仅 B/C 类按需读 ref 指向的 reference。
+> 下游 antd-to-eview-react 步骤 0 直接读 `migrationPlan`（含 importPath/shellComponent/full keyDiffs）+ `globalRef`（拼写/回调速查），A 类组件按 `ref` 读 `components/<Name>.md` 查完整 API（`component-mapping.md` 无需再读，`keyDiffs` 已含其差异摘要），仅 B 类按需读 ref 指向的 reference。
 
 ## 与 antd-to-eview-react 的衔接
 
@@ -242,7 +242,7 @@ node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 3. **CSS 已外置、无需重提**：`base/light/theme/dark` 四层已在步骤 2 从产物 `assets/style/` 拷贝好，骨架的 `src/styles/` 原样保留
 4. **相对导入已修正**：`check-relative-imports.cjs` 已跑过，路径正确——下游验证里此子项跳过（`check-i18n-keys.cjs` 仍照跑）
 5. **代码只有一份**：双份代码已在步骤 3 归一
-6. **评估清单已前置（脚本自动化 + enriched）**：`migrationPlan` 由步骤 5 `build-migration-plan.cjs` 脚本生成（非主 agent 手动），下游步骤 0 直接读它作为组件分类评估清单——含 A/B/C 分类 + 替换名 + **importPath**（含 @/shared/ 包壳检测 + `SHELL_COMPONENTS` 硬编码兜底）+ **shellComponent** 标志 + **完整 keyDiffs**（映射表原文，非一行摘要）+ ref 指引 + 涉及文件。A 类组件无需再读 `component-mapping.md` 或 `components/<Name>.md`，仅 B/C 类按 `ref` 指引读对应 reference。`globalRef`（拼写异常 + 回调签名速查表）由同一脚本写入，下游跳过读 `component-mapping.md` 文末速查表
+6. **评估清单已前置（脚本自动化 + enriched）**：`migrationPlan` 由步骤 5 `build-migration-plan.cjs` 脚本生成（非主 agent 手动），下游步骤 0 直接读它作为组件分类评估清单——含 A/B 分类 + 替换名 + **importPath**（含 @/shared/ 包壳检测 + `SHELL_COMPONENTS` 硬编码兜底）+ **shellComponent** 标志 + **完整 keyDiffs**（映射表原文，非一行摘要）+ ref 指引 + 涉及文件。A 类组件按 `ref` 读 `components/<Name>.md` 查完整 API（`component-mapping.md` 无需再读，`keyDiffs` 已含其差异摘要），仅 B 类按 `ref` 指引读对应 reference。`globalRef`（拼写异常 + 回调签名速查表）由同一脚本写入，下游跳过读 `component-mapping.md` 文末速查表
 7. **图标调用点已预扫**：`iconCallSites` 由步骤 2 `extract-umd.cjs` 预扫写入 `.umd-conversion.json`（字面量/动态/无 name 分类 + 文件 + 行号），下游图标步骤跳过 grep，直接用预扫结果跑 `match-icons.cjs`
 8. **图表调用点已预扫 + 迁移行已注入**：`chartCallSites` 由步骤 2 `extract-umd.cjs` §4.9 预扫写入 `.umd-conversion.json`（chartType 字面量/动态/无 name 分类 + 文件 + 行号 + 共享件路径），步骤 5 `build-migration-plan.cjs` 读 `chartCallSites.callSites` 非空时注入 Chart 迁移行到 `migrationPlan`（category A、importPath `@nce/eview-react/Chart`、keyDiffs 含 `a2ui: true`/`theme` 补全提醒）——下游步骤 0 直接见迁移行，步骤 2 按 keyDiffs 改 import 路径 + 补 `a2ui`/`theme`，无需手动发现 `<Chart>` 调用点
 

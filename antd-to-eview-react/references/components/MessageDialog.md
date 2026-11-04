@@ -17,7 +17,7 @@ MessageDialog 是带类型图标的信息提示框：`content` 一句话结论 +
 | 页面内非阻断提示条 | `DivMessage`（[DivMessage.md](DivMessage.md)） | MessageDialog |
 | 带表单的弹窗 | `Dialog`（[Dialog.md](Dialog.md)） | MessageDialog 塞表单 |
 
-### 用法：antd 命令式 → eview 声明式（C 类模式转换）
+### 用法：antd 命令式 → eview 声明式（模式转换）
 
 > antd `Modal.confirm/info/success/warning/error` 是**命令式**调用（返回 instance，有 `.update()`/`.destroy()`）；eview `MessageDialog` 是**声明式** JSX（`isOpen` 受控）。不是改 prop，必须把"一个函数调用"重构成 `pending`/`result` state + 常驻 `<MessageDialog>` 渲染。
 

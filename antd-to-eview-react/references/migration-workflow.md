@@ -8,7 +8,7 @@
 
 源项目是 `umd-to-antd-vite` 产物，目标工程根必有 `.umd-conversion.json` 交接文件。
 
-**优先路径（`migrationPlan` 非 `null`，上游 `umd-to-antd-vite` 步骤 5 `build-migration-plan.cjs` 已生成 enriched 版）**：直接读 `migrationPlan` 数组作为分类评估清单——每项已含 `antd` / `category`（A/B/C）/ `eview` / **`importPath`**（含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底）/ **`shellComponent`** / **`keyDiffs`**（映射表完整原文，非一行摘要）/ `ref` / `files`。**A 类组件直接用 `keyDiffs` + `importPath` 替换，无需读 `component-mapping.md` 或 `components/<Name>.md`**；仅 B/C 类按 `ref` 指引读对应 reference。**Chart 迁移行已由 `build-migration-plan.cjs` §2c 自动注入**（读 `chartCallSites.callSites` 非空时 push，category A、importPath `@nce/eview-react/Chart`、keyDiffs 含 `a2ui: true`/`theme` 补全提醒）——步骤 2 按 keyDiffs 改 import 路径 + 补 `a2ui`/`theme` 即可，无需手动发现 `<Chart>` 调用点。同时读 `globalRef`（`.umd-conversion.json` 顶层）获取静态拼写异常 + 回调签名速查表，跳过读 `component-mapping.md` 文末速查表。直接跳到 §0.4 用 `migrationPlan` 的 `category` 统计规划步骤 3 替换顺序（§0.2/§0.3 跳过）。
+**优先路径（`migrationPlan` 非 `null`，上游 `umd-to-antd-vite` 步骤 5 `build-migration-plan.cjs` 已生成 enriched 版）**：直接读 `migrationPlan` 数组作为分类评估清单——每项已含 `antd` / `category`（A/B）/ `eview` / **`importPath`**（含 @/shared/ 包壳检测 + SHELL_COMPONENTS 硬编码兜底）/ **`shellComponent`** / **`keyDiffs`**（映射表完整原文，非一行摘要）/ `ref` / `files`。**A 类组件按 `ref` 读 `components/<Name>.md` 查完整 API，结合 `keyDiffs` + `importPath` 替换（`component-mapping.md` 无需读，`keyDiffs` 已含其差异摘要）**；仅 B 类按 `ref` 指引读对应 reference。**Chart 迁移行已由 `build-migration-plan.cjs` §2c 自动注入**（读 `chartCallSites.callSites` 非空时 push，category A、importPath `@nce/eview-react/Chart`、keyDiffs 含 `a2ui: true`/`theme` 补全提醒）——步骤 2 按 keyDiffs 改 import 路径 + 补 `a2ui`/`theme` 即可，无需手动发现 `<Chart>` 调用点。同时读 `globalRef`（`.umd-conversion.json` 顶层）获取静态拼写异常 + 回调签名速查表，跳过读 `component-mapping.md` 文末速查表。直接跳到 §0.4 用 `migrationPlan` 的 `category` 统计规划步骤 3 替换顺序（§0.2/§0.3 跳过）。
 
 **回退路径（`migrationPlan` 为 `null`，上游未跑步骤 5）**：读 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，同时读 `antdIcons` 获取图标清单，进入 §0.2 手动对照 `component-mapping.md` 分类。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。
 
@@ -27,13 +27,12 @@
 
 > 若 §0.1 走优先路径（`migrationPlan` 已含 `category` 字段），本节跳过。仅回退路径（`migrationPlan` 为 `null`）需手动对照下表。
 
-将交接文件中读取到的组件分为三类：
+将交接文件中读取到的组件分为两类：
 
 | 分类 | 含义 | 处理 |
 |------|------|------|
-| **A. 有对应** | eview-react 有同名或功能等价组件 | 直接替换，改 props |
+| **A. 有对应** | eview-react 有同名或功能等价组件（含 Steps/Modal 等需模式转换的） | 直接替换，改 props；Steps/Modal 等模式转换组件见 §3.3 |
 | **B. 无对应需手写** | eview-react 无对应组件 | 用 [handwrite-templates.md](handwrite-templates.md) 模板 |
-| **C. 需模式转换** | 组件有对应但 API 模式不同（Steps / Modal） | 读 §3.3 |
 
 据此规划步骤 2 替换顺序（叶子先、容器后、布局最后），按需读 `ref` 指向的 reference，进入步骤 1。
 
@@ -91,7 +90,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 2. 改属性名：用 `migrationPlan` 的 `keyDiffs`（映射表完整原文）逐项替换；拼写异常查 `globalRef.spellingAnomalies`，回调签名查 `globalRef.callbackSignatures`——**无需读 `component-mapping.md`**
 3. 改回调签名：首参从 event 改为 value（`globalRef.callbackSignatures` 有每组件签名）
 4. 改数据格式：`options` 的 `label`→`text`，`items`→`data` 等（`keyDiffs` 已列）
-5. **仅当 `keyDiffs` 不够详细时**（复杂组件如 Table/DatePicker），按 `ref` 读 `components/<Name>.md` 查完整 API
+5. 按 `ref` 读 `components/<Name>.md` 查完整 API（`keyDiffs` 是差异摘要，非完整 API；`component-mapping.md` 无需读，其内容已并入 `keyDiffs`）
 
 ### 3.2 B 类（无对应）：手写补位
 
@@ -102,7 +101,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 
 > **先查 `antdComponents`**：若 Layout/Space/Card/Skeleton 等不在 `antdComponents` 中（上游已改写为 H5：`<div>` + CSS 变量），保留已有结构、不套 handwrite 模板；仅 `antdComponents` 中仍有的组件才手写补位。
 
-### 3.3 C 类（模式转换）
+### 3.3 模式转换组件（Steps/Modal，A 类）
 
 **Steps**：`current`→`currentStep`（对应 `data[].value` 不是下标）；`items`→`data=[{text,value}]`；`onClick(index)` 只允许回跳；**antd dot（圆点）形态迁移用 `size="mini"`**（eview-react Steps 无 `type="dot"` prop）；导入 `@nce/eview-react/Steps`（非包壳）。见 [components/Steps.md](components/Steps.md)。
 
@@ -117,9 +116,8 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 3. **布局组件**（Layout / Menu / Breadcrumb）—— 影响全局
 
 **每个组件替换时读**：
-- A 类：`migrationPlan.keyDiffs` + `importPath` + `globalRef`（拼写/回调速查）——**通常无需额外读文件**；仅 Table/DatePicker 等复杂组件按 `ref` 读 `components/<Name>.md`
+- A 类：`migrationPlan.keyDiffs` + `importPath` + `globalRef`（拼写/回调速查）+ 按 `ref` 读 `components/<Name>.md` 查完整 API（`keyDiffs` 是差异摘要，非完整 API）；Steps/Modal 等模式转换组件另按 §3.3 处理
 - B 类：按 `ref` 读 [handwrite-templates.md](handwrite-templates.md) 对应 §章节
-- C 类：按 `ref` 读 [components/Steps.md](components/Steps.md) / [components/Dialog.md](components/Dialog.md) / [components/MessageDialog.md](components/MessageDialog.md)
 
 > **Table 操作列间距**：操作列 `render` 中多个按钮不要用 `<>...</>` Fragment 包裹（无间距），改用 `<div style={{ display: 'flex', gap: '12px' }}>`。源项目用 antd `<Space>` 的，迁移后统一按此模式处理。
 >
