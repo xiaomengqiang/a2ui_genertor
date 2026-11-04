@@ -94,9 +94,9 @@
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
 | `Layout` / `Header` / `Sider` / `Content` | 手写 CSS 布局 | 见 [handwrite-templates.md](handwrite-templates.md) §4 |
-| `Menu` | `Accordion` | `items`→`data`（`key`/`label`→`value`/`title`）；`selectedKeys` 数组→`selectedValue` 单 string；`onClick({key})`→`onClick(node)`；`inlineCollapsed`→`expanded`/`onExpand`（⚠️ `expanded={true}`=收起，语义反转）；**统一用 Accordion，不手写**（单层平铺菜单用单层 `data` 无 `children` + `enableExpand={false}` + `hideIcons` + `hideTitleBar`，见 [Accordion.md](components/Accordion.md) §2/§10）；见 [Accordion.md](components/Accordion.md) |
+| `Menu` | `Accordion` | `items`→`data`（`key`/`label`→`value`/`title`，**嵌套 `children` 里的子项也要逐层映射，勿保留 antd 字段名**）；`selectedKeys` 数组→`selectedValue` 单 string；`onClick({key})`→`onClick(node)`（取 `node.value`，只叶子才选中）；`inlineCollapsed`→`expanded`/`onExpand`（⚠️ `expanded={true}`=收起，语义反转）；**迁移默认必加 `hideIcons` + `hideTitleBar`（两种形态都要，漏加样式错乱，见 Accordion.md §10）**；**统一用 Accordion，不手写**（单层平铺菜单用单层 `data` 无 `children` + `enableExpand={false}` + `hideIcons` + `hideTitleBar`，见 [Accordion.md](components/Accordion.md) §2/§10）；见 [Accordion.md](components/Accordion.md) |
 | `Dropdown` | `PopUpMenu` | `menu.items`→`options`（`key`→`id`/`serialno`，`label`→`text`）；子菜单 `children`→`submenus`；`disabled`→`disable`；`onClick({key})`→`onClick(evt)`（`evt.value`=serialno，`evt.text`）；默认 children 模式包裹触发器（`<PopUpMenu options><Button/></PopUpMenu>`）；`trigger` 不存在，弹出由 children 点击驱动；`size` 枚举一致可透传；见 [PopUpMenu.md](components/PopUpMenu.md) |
-| `Breadcrumb` | `Crumbs` | `data=[{title,url?}]`；最后一项无 url；`seprator`（拼错）；`onClick(data,event)` 组件级；⚠️ 导入 `@/shared/Crumbs`（包壳，非 `@nce/eview-react/Crumbs`） |
+| `Breadcrumb` | `Crumbs` | **`items`→`data`**（prop 重命名，勿保留 `items=`/`item=`）；**项字段 `href`/`path`→`url`**（`title` 两边同名不用改，但别因此漏改 `href`/`path`）；**`separator`→`seprator`**（eview 官方 API 即拼错的 seprator，将错就错，正确英文 separator 残留即未转）；最后一项不传 `url` 即当前页；`onClick(data,event)` 组件级（非每项 onClick）；**`<Breadcrumb.Item>xxx</Breadcrumb.Item>` JSX 子元素形态→拍平 `data=[{title:'xxx'}]` 数组**；⚠️ 导入 `@/shared/Crumbs`（包壳，非 `@nce/eview-react/Crumbs`）；见 [Crumbs.md](components/Crumbs.md) |
 | `Affix` | 手写 `position:sticky` | 无对应 |
 | `BackTop` | 手写 | 无对应 |
 | `Row` / `Col` | 手写 flex/grid | eview-react 有 `Row`/`Col` 导出名但无 Reference |

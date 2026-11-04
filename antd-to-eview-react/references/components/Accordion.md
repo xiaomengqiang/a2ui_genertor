@@ -62,6 +62,18 @@ const handleMenuClick = (node: object) => {
 
 ## 5. 数据结构
 
+> **antd Menu `items` 子项 → Accordion `data` 子项字段映射（必须逐字段改，嵌套 `children` 里的子项也要逐层映射，勿保留 antd 字段名）**：
+>
+> | antd Menu item 字段 | AccordionItem 字段 | 说明 |
+> |---------------------|--------------------|------|
+> | `key` | `value` | 要被选中的节点必须有唯一 `value`（string） |
+> | `label` | `title` | 显示文字（ReactNode） |
+> | `children` | `children` | 子菜单，支持多层；**字段名相同但内部子项也要按本表逐层映射** |
+> | `icon` | `icon` | icon+ 组件元素或图片 url；可收起导航一级菜单必配 |
+> | `disabled` | `disabled` | 直接保留（布尔值，拼写正确勿改 `disable`） |
+> | — | `content` | 自定义显示内容（角标数量等），antd 无对应 |
+> | `danger` | — | 无对应，删除（如需高亮用 `content` 自定义） |
+
 ```tsx
 // 字段来自 TypeDoc 表 data 描述与官方 demo
 interface AccordionItem {
@@ -184,8 +196,11 @@ export default function ConfigCenterNav() {
 // ❌ antd Menu 写法：没有 items / key / label / selectedKeys / openKeys / inlineCollapsed
 <Menu mode="inline" items={[{ key: 'acl', label: '访问控制' }]} selectedKeys={[key]} onClick={({ key }) => setKey(key)} />
 
-// ❌ 字段名按 antd 写成 key / label（应为 value / title）
-<Accordion data={[{ key: 'acl', label: '访问控制' }]} />
+// ❌ 字段名按 antd 写成 key / label（应为 value / title）——嵌套 children 里的子项也要逐层映射，不能只改外层
+<Accordion data={[{ key: 'net', label: '网络', children: [{ key: 'acl', label: '访问控制' }] }]} />
+
+// ❌ 迁移 antd Menu 漏加 hideIcons / hideTitleBar：样式与官网不一致，默认必须带（见 §10）
+<Accordion data={menuData} selectedValue={v} onClick={onClick} />
 
 // ❌ selectedValue 传数组（它是单个 string，不是 selectedKeys）
 <Accordion data={menuData} selectedValue={['security-acl']} />
@@ -209,18 +224,28 @@ export default function ConfigCenterNav() {
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
-| `data` | `dataItem[]`，**必填** | 菜单数据，字段见 §5 |
+| `data` | `AccordionItem[]`，**必填** | 菜单数据，字段见 §5（**子项用 `title`/`value`，勿用 antd 的 `label`/`key`；嵌套 `children` 逐层映射**） |
 | `selectedValue` | `string` | 选中项的 value；不设置则为第一项的 value |
 | `onClick` | `(node: object) => void` | 节点点击，`node` 为 data 中的原始数据 |
 | `expanded` | `boolean`，默认 `false` | 面板展开状态（遗留问题：**`false` 为展开，`true` 为收起**） |
 | `onExpand` | `(flag: boolean) => void` | 展开→收起 `flag=false`，收起→展开 `flag=true` |
 | `enableExpand` | `boolean`，默认 `true` | 是否允许展开 / 折叠面板 |
 | `enableIconExpand` | `boolean`，默认 `true` | 面板折叠时点击节点图标能否展开面板 |
-| `hideIcons` | `boolean`，默认 `false` | 隐藏底部展开收起图标，显示右侧展开收起 dom |
-| `hideTitleBar` | `boolean`，默认 `false` | 隐藏标题栏 |
+| `hideIcons` | `boolean`，默认 `false` | 隐藏底部展开收起图标，显示右侧展开收起 dom。**迁移 antd Menu 时默认设 `true`**（见 §10） |
+| `hideTitleBar` | `boolean`，默认 `false` | 隐藏标题栏。**迁移 antd Menu 时默认设 `true`**（见 §10） |
 | `enableMultiOpen` | `boolean`，默认 `false` | 允许同时展开多个一级菜单 |
 | `keepExpandState` | `boolean`，默认 `false` | data 变更后保留上一次的展开收起状态 |
 | 其余 | — | `isControlSelectedValue` 外部控制选中、组件不维护（⚠️ 无 demo）/ `onItemRightClick(event, node)` 右键 / `headerText` · `headerIcon` · `headerIconPosition`（`'top' \| 'left'`）标题栏文字、图标及位置 / `hideHeaderIcon` / `hideTitleTips` / `id` / `className` / `style` |
 
-## 10. 其他
-- 由于样式区别，`enableExpand`应设置为`false`，`hideIcons`应该设置为`true`，`hideTitleBar`也应设置为`true`
+## 10. 迁移 antd Menu 的默认配置（强约束）
+
+> 实测：迁移 antd Menu 时漏加 `hideIcons` / `hideTitleBar` 会导致样式与官网不一致（弱模型最常遗漏）。**以下为迁移默认配置，无特殊需求必须带上**：
+
+| 配置项 | 默认值 | 适用形态 | 说明 |
+|--------|--------|---------|------|
+| `hideTitleBar` | `true` | 单层平铺 + 可收起导航 | 隐藏标题栏，页面标题放在导航之外（官方 demo 均设） |
+| `hideIcons` | `true` | 单层平铺 + 可收起导航 | 隐藏底部展开收起图标、改为右侧 dom；不影响收起功能 |
+| `enableExpand` | `false`（单层平铺）/ 默认 `true`（可收起导航） | 视形态 | 单层平铺菜单固定 `false`；可收起侧边导航用默认 `true` + `expanded`/`onExpand` |
+
+- **单层平铺菜单**（antd Menu 无嵌套）：`enableExpand={false}` + `hideIcons` + `hideTitleBar` + 单层 `data`（无 `children`），见 §2
+- **可收起侧边导航**（antd `inlineCollapsed`）：`enableExpand`（默认 `true`）+ `expanded={collapsed}` + `onExpand={(flag) => setCollapsed(!flag)}` + `hideIcons` + `hideTitleBar`，见 §4

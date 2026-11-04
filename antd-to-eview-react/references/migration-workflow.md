@@ -355,7 +355,44 @@ node <skill目录>/scripts/check-icon-names.cjs <目标工程根>   # 仅方案 
 
 硬 FAIL：任一 `IconPlusIc*` 名非 catalog 实有条目 → exit 1（报 `INVALID-ICON-NAME` + file:line:名）。修复：residual 名只能取候选[0] / 占位 / catalog 实有名，禁止拼接 `IconPlusIc{Domain}{Name}`；孤儿名交 `match-icons.cjs --apply` 自动落占位。详见 [components/Icon.md](components/Icon.md) residual 铁律③。
 
-### 4.14 常见报错对照
+### 4.14 Menu→Accordion 迁移正确性检查（硬 FAIL + advisory 必跑）
+
+> 对应 component-mapping.md Menu 行 + components/Accordion.md §4/§5/§8/§9/§10。antd Menu→eview Accordion 是「带 `expanded` 语义反转 + 字段重命名（`key/label`→`value/title`）+ 默认值反向坑（`hideIcons`/`hideTitleBar` 默认必加）」的高错迁移，文档已强约束，本脚本做机器兜底——Menu/Accordion 此前无专属校验脚本，`expanded` 语义反转这类易错点全靠 LLM 自觉，弱模型最常漏。
+
+脚本 `scripts/check-accordion.cjs`，对每个 `<Accordion>` 检查：
+
+**硬 FAIL（exit≠0 即 FAIL）**：
+1. `SELECTED_VALUE_ARRAY` — `selectedValue` 传数组（应为单 string，非 antd `selectedKeys` 数组）
+2. `DATA_FIELD_RESIDUE` — `data` 子项残留 antd 字段名 `key:`/`label:`（应为 `value:`/`title:`，**含嵌套 `children` 里的子项，扫整个 data 数组体**；data 引用标识符时追同文件 `const X=[` 定义）
+3. `EXPAND_INVERTED` — `expanded` 传入值与状态变量语义相反：collapsed 语义（变量名含 `collapse`，true=收起）多加了 `!`（`expanded={!collapsed}`）/ expanded 语义（变量名含 `open/expand/show/visible`，true=展开）漏了 `!`（`expanded={isOpen}`）
+4. `ON_EXPAND_NOT_NEGATED` / `ON_EXPAND_OVER_NEGATED` — collapsed 语义下 `onExpand setV(flag)` 未取反（应 `setV(!flag)`）/ expanded 语义下 `setV(!flag)` 多取反（应 `setV(flag)`）
+
+**advisory（exit 0，逐条回应写入 `accordionReviews`）**：
+5. `HIDE_PROPS_MISSING` — `<Accordion>` 缺 `hideIcons` 或 `hideTitleBar`（迁移默认必加，两种形态都要，见 Accordion.md §10）
+6. `EXPAND_GENERIC_NAMING` — `expanded`/`onExpand` 用泛化命名（非 `collapse`/`open`/`expand`/`show`/`visible` 语义），静态无法确认配对一致性，需核对两种正确形态之一
+
+```bash
+node <skill目录>/scripts/check-accordion.cjs <目标工程根>
+```
+
+硬 FAIL 项 exit≠0 即 FAIL；advisory 项 exit=0 但每个待核 `<Accordion>` 必须在 `.migration-result.json` 的 `accordionReviews` 写明决策，未逐条回应视同 FAIL。工程无 `<Accordion>` → PASS 不报。
+
+### 4.15 Breadcrumb→Crumbs 迁移正确性检查（硬 FAIL 必跑）
+
+> 对应 component-mapping.md Breadcrumb 行 + components/Crumbs.md §2/§4/§5。antd Breadcrumb→eview Crumbs 是「prop 重命名（`items`→`data`）+ 字段重命名（`href`/`path`→`url`）+ 拼写反转（`separator`→`seprator`）」的高错迁移。`title` 两边同名会掩护 `href`/`path` 漏改（最常见失败），且 `<Breadcrumb.Item>` JSX 子元素形态要拍平成 `data` 数组——文档已强约束，本脚本做机器兜底。
+
+脚本 `scripts/check-crumbs.cjs`，对每个 `<Crumbs>` 检查（全硬 FAIL）：
+1. `ITEMS_RESIDUE` — `items=`/`item=` 残留（应为 `data=`，antd items prop 没改成 data）
+2. `FIELD_RESIDUE` — `data` 项里 `href:`/`path:` 残留（应为 `url:`；扫整个数组体，含 `items=`/`item=` 残留 prop 持有的数组，第一轮即抓字段残留；引用标识符时追同文件 `const X=[` 定义，按 file:line:field 去重）
+3. `SEPARATOR_RESIDUE` — `separator=`（正确英文）残留（应为 `seprator=`，eview-react 官方 API 即拼错的 seprator，将错就错）
+
+```bash
+node <skill目录>/scripts/check-crumbs.cjs <目标工程根>
+```
+
+硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（纯残留检查，非 advisory）。工程无 `<Crumbs>` → PASS 不报。
+
+### 4.16 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -366,11 +403,11 @@ node <skill目录>/scripts/check-icon-names.cjs <目标工程根>   # 仅方案 
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 但 `data.js` 里 value 是短代码、i18n key 带前缀 | 在 render 里补命名空间前缀：`t("deviceType." + value, value)`；详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 4.15 验证
+### 4.17 验证
 
 跑验证脚本，把结果写入 `<目标工程根>/.migration-result.json`。
 
-> **十二个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
+> **十四个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨/Accordion expand 语义反转+字段残留/Crumbs items+separator+字段残留是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/accordion/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
 
 **验证步骤**（全部必跑，按序）：
 1. 相对导入检查**跳过**（见 §4.1）
@@ -385,7 +422,9 @@ node <skill目录>/scripts/check-icon-names.cjs <目标工程根>   # 仅方案 
 10. 跑 `node <skill目录>/scripts/check-steps-defaults.cjs <目标工程根>`（§4.10，advisory，逐条回应写入 `stepsReviews`）
 11. 跑 `node <skill目录>/scripts/check-dark-mode.cjs <目标工程根>`（§4.11，**硬 FAIL**，exit≠0 即 FAIL）
 12. 跑 `node <skill目录>/scripts/check-messagedialog-defaults.cjs <目标工程根>`（§4.12，advisory，逐条回应写入 `messageDialogReviews`）
-13. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
+13. 跑 `node <skill目录>/scripts/check-accordion.cjs <目标工程根>`（§4.14，硬 FAIL + advisory，advisory 项逐条回应写入 `accordionReviews`）
+14. 跑 `node <skill目录>/scripts/check-crumbs.cjs <目标工程根>`（§4.15，**硬 FAIL**，exit≠0 即 FAIL）
+15. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
 
 **方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 12 之后、npm install 之前**加跑）：
 - 跑 `node <skill目录>/scripts/check-icon-names.cjs <目标工程根>`（§4.13，**硬 FAIL**，exit≠0 即 FAIL——拦 LLM residual 臆造的非 catalog 实有 IconPlusIc* 名）。
@@ -411,6 +450,8 @@ node <skill目录>/scripts/check-icon-names.cjs <目标工程根>   # 仅方案 
     "steps-defaults": "PASS/FAIL",
     "dark-mode": "PASS/FAIL",
     "messagedialog-defaults": "PASS/FAIL",
+    "accordion": "PASS/FAIL",
+    "crumbs": "PASS/FAIL",
     "npm-install": "PASS/SKIP"
   },
   "tableDefaultReviews": [
@@ -435,6 +476,10 @@ node <skill目录>/scripts/check-icon-names.cjs <目标工程根>   # 仅方案 
   "messageDialogReviews": [
     { "file": "src/views/.../list.jsx", "line": 45, "code": "ICON_LOCATION_MISSING", "decision": "源 antd Modal.confirm 图标在标题区，已补 iconLocation='title'" }
   ],
+  "accordionReviews": [
+    { "file": "src/views/.../nav.jsx", "line": 20, "code": "HIDE_PROPS_MISSING", "decision": "已补 hideIcons + hideTitleBar（见 Accordion.md §10）" },
+    { "file": "src/views/.../nav.jsx", "line": 58, "code": "EXPAND_GENERIC_NAMING", "decision": "变量 val 实为 collapsed 语义，已改为 expanded={val}+setVal(!flag)" }
+  ],
   "notes": "可选说明"
 }
 ```
@@ -445,6 +490,7 @@ node <skill目录>/scripts/check-icon-names.cjs <目标工程根>   # 仅方案 
 - `table-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<Table>` 必须在 `tableDefaultReviews` 写明决策**；未逐条回应 → FAIL
 - `steps-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<Steps>` 必须在 `stepsReviews` 写明决策**；未逐条回应 → FAIL
 - `messagedialog-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<MessageDialog>` 必须在 `messageDialogReviews` 写明决策**；未逐条回应 → FAIL
+- `accordion` advisory（HIDE_PROPS_MISSING/EXPAND_GENERIC_NAMING）：脚本 exit=0 但有待核项时，**每个待核 `<Accordion>` 必须在 `accordionReviews` 写明决策**（如已补 hideIcons/hideTitleBar、泛化命名变量实为哪种语义并已校正配对）；未逐条回应 → FAIL；硬 FAIL 项（SELECTED_VALUE_ARRAY/DATA_FIELD_RESIDUE/EXPAND_INVERTED/ON_EXPAND_*）exit≠0 直接 FAIL
 - `css` advisory：脚本 exit=0 但有待核项时，**每个待核项必须在 `cssReviews` 写明决策**；未逐条回应 → FAIL
 - `token-drift` advisory（TOKEN_MISSING/TOKEN_ADDED/UNDEFINED_REF）：脚本 exit=0 但有待核项时，**每个待核项必须在 `tokenDriftReviews` 写明决策**；未逐条回应 → FAIL
 - `props-preserved` advisory（STYLE_DROPPED/CLASSNAME_DROPPED/COUNT_MISMATCH）：脚本 exit=0 但有待核项时，**每个待核项必须在 `propsPreservedReviews` 写明决策**（合理丢弃如 DatePicker 包壳已处理宽度，否则应补回）；未逐条回应 → FAIL
