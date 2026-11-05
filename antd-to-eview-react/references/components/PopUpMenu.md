@@ -197,7 +197,7 @@ import { OptionType } from '@nce/eview-react/PopUpMenu';
 | API | 类型 / 默认值 | 说明 |
 |-----|---------------|------|
 | `options` | `OptionType[]` | 多级数据，7 个已声明字段见 §5；各层设置唯一 id，业务执行项设置唯一 serialno |
-| `children` | `any` | 推荐包裹 Button / IconButton 作为触发器 |
+| `children` | `any` | 推荐包裹 `Button`（文字触发）或直接用 `<IconPlusIc* onClick={fn} title="…"/>`（图标触发，[Icon.md](Icon.md) §2；`IconButton` 已弃用） |
 | `onClick` | `(evt: { text?: string; value?: any; clickItem?: OptionType }) => void` | 显式 serialno 的 children 组件级回调 value 为 serialno，0 有效；缺失时回退依路径而异，键盘可能为字符串 "undefined"，须匹配显式序列号 |
 | `width` | `number \| string`，默认 `'120px'` | 菜单宽度 |
 | `direction` | children：`'top' \| 'bottom' \| 'auto'`，默认 auto | 坐标模式源码仅识别 up，按模式区分 |

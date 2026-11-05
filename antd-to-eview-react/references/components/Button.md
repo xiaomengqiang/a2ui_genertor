@@ -12,7 +12,7 @@ Button 是发起命令的按钮。**单页面内只能有一个 `status="primary
 |-----------|--------|--------|
 | 文字按钮（主/次/危险/纯文字） | `Button` + `status` | antd `type="primary"`/`danger` |
 | 一排等宽按钮 | `ButtonGroup` + `data` | 手写多个 Button 调 margin |
-| 只有图标的按钮 | `<IconPlusIc* onClick={fn} title="…" />` 直接挂 icon+（[Icon.md](Icon.md) §3） | Button 只塞 icon 不给文字 |
+| 只有图标的按钮 | `<IconPlusIc* onClick={fn} title="…" />` 直接挂 icon+（[Icon.md](Icon.md) §2） | Button 只塞 icon 不给文字 |
 | 文字链接样式 | `status="text"` | `<a>` |
 
 `status`: `'default' | 'primary' | 'risk' | 'text'`（默认 `default`）。

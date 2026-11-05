@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * check-icon-shim.cjs — 方案A（<Icon> 运行时 fetch shim）保留硬闸（advisory）
+ * check-icon-shim.cjs — 方案A（<Icon> 运行时 fetch shim）保留硬闸（默认 advisory；`--strict` → 任一违规 exit 1，§3.0 图标步骤用 --strict）
  *
  * 防 match-icons.cjs --apply（C）/ LLM 在线匹配改写（B）跑完 + residual 处理后，converted src/ 里
  * 残留的 <Icon name={...}/> 兜底站点被默默保留方案 A——典型回归：① LLM 编造不存在的 Icon.md
@@ -24,15 +24,21 @@
  *   shim → 须在该字面量条目补 closedSet:false + OPEN 证据 + linksShim 指向该 shim 站点（闸门校验）。
  *
  * 改写后图标交互 props 丢失扫描（PROP_DROPPED_ON_ICON_REWRITE）：对应 Icon.md「⚠️ 硬约束：改写
- *   <Icon> 调用点必须保留原 DOM/交互 props」。match-icons.cjs --apply 把 <Icon name=.../> 改写成
- *   <IconPlusIcXxx/>（含三元条件渲染）时只处理 name→icon+ 名 + iconSize 吸附，不搬运原 <Icon> 上的
- *   onClick/title/aria 等/style/className 等。
+ *   <Icon> 调用点必须保留原 DOM/交互 props」。闭集自动改写站点（match-icons.cjs --apply / --apply-decisions）
+ *   经 collectPassthroughProps + buildReplacement/buildDataIconElement 已原样透传 <Icon> 上的非 icon props
+ *   （onClick、onMouse*、onKey*、title、aria-*、role、tabIndex、style、className、id、data-* 等；仅 name/size/color/variant/className/style 被显式映射）。
+ *   故闭集站点不会丢 props；本扫描兜底拦的是 **residual 跨边界手改站点 / 剥 Button-IconButton 外壳**
+ *   （props 在父 <Button> 上、--apply 不碰 Button）时 LLM 漏搬 props（实测回归主因：主题切换 <Icon onClick={toggleDark}/>
+ *   手改漏 onClick → toggleDark 成死变量 → 暗色三轨永不翻转）。
  *   数据来源：读 .umd-conversion.json 的 iconCallSites.interactiveProps（由 umd-to-antd-vite 的
  *   extract-umd.cjs 扫源 <Icon> 调用点记录，含 index.page.html 内联源码）。提取源调用点携带的关键
  *   事件 handler 值签名（如 onClick={toggleDark} 的值 "toggleDark"），在产物 src/ 扫所有 <IconPlusIc*>
  *   站点核对该值签名是否保留。源有 handler 值但产物所有 IconPlusIc 站点都无 → 报 PROP_DROPPED。
- *   精确配对（非启发式）、误报极低。check-dark-mode.cjs 静态三轨 PASS 拦不住此运行时入口断裂，本检查
- *   补盲区（实测回归：case4/case5/码趣 3 工程暗色失效即此缺陷，check-dark-mode 全 PASS 但 onClick 丢失）。
+ *   **覆盖范围**：仅核 HANDLER_PROPS（onClick、onMouse*、onKey*、onFocus、onBlur、onTouch*、onPress）的
+ *   标识符/成员表达式值签名；非 handler props（title、aria-*、role、tabIndex、style、className）与箭头函数
+ *   handler（onClick={()=>fn()}）为**已知盲区不报**，须人工复核。精确配对（非启发式）、误报极低。
+ *   check-dark-mode.cjs 静态三轨 PASS 拦不住此运行时入口断裂，本检查补盲区（实测回归：case4/case5/
+ *   码趣 3 工程暗色失效即此缺陷，check-dark-mode 全 PASS 但 onClick 丢失）。
  *
  * 用法：
  *   node check-icon-shim.cjs <目标工程根>              # 输出报告，退出码 0
@@ -389,8 +395,13 @@ function main() {
   // ── 改写后 <IconPlusIc*> 交互 props 丢失扫描（PROP_DROPPED_ON_ICON_REWRITE）
   // 对应 Icon.md「⚠️ 硬约束：改写 <Icon> 调用点必须保留原 DOM/交互 props」
   // 数据来源：.umd-conversion.json 的 iconCallSites.interactiveProps（由 extract-umd.cjs 扫源 <Icon> 记录）。
-  //   match-icons.cjs --apply 把 <Icon name=.../> 改写成 <IconPlusIc*/>（含三元条件渲染）时只处理
-  //   name→icon+ 名 + iconSize 吸附，不搬运原 <Icon> 上的 onClick/title/aria-*/style/className 等。
+  //   match-icons.cjs --apply / --apply-decisions 把 <Icon name=.../> 改写成 <IconPlusIc*/>（含三元条件渲染）
+  //   时，闭集站点已由 collectPassthroughProps + buildReplacement/buildDataIconElement 的 passthrough 机制
+  //   原样透传 onClick/title/aria-*/style/className 等 props。故闭集自动改写站点不会丢 props，
+  //   本检查兜底拦的是 **residual 跨边界手改站点**——LLM 按 Icon.md 步 7 手工转 <Icon> 时漏搬 props
+  //   （实测回归主因：主题切换 <Icon onClick={toggleDark}/> 手改漏 onClick → toggleDark 成死变量）。
+  //   已知盲区（用户暂未要求补）：① 箭头函数 handler 值（onClick={()=>fn()}，行 ~427 排除，丢了不报）；
+  //   ② 非 handler props（title/aria-*/role/tabIndex/style/className，本检查只查 HANDLER_PROPS，丢了静默）。
   // 检测策略（精确配对，非启发式）：读交接文档里带 interactiveProps 的源 <Icon> 调用点，提取关键事件
   //   handler 的值签名（如 onClick={toggleDark} 的值 "toggleDark"），在产物 src/ 扫所有 <IconPlusIc*>
   //   站点，逐一核对该值签名是否出现在某 IconPlusIc 站点的同名 prop 上。源有该 handler 值但产物无任何
