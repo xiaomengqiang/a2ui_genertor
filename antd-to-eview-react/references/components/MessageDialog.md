@@ -5,6 +5,7 @@
 > ⚠️ 七种 `type`：`info`（默认）/ `success` / `error` / `warn` / `confirm` / `risk` / `highRisk`；`risk` / `highRisk` 可配 `hasChecked` 要求用户勾选后才能确认。
 > ⚠️ 显隐同 Dialog：`isOpen` 受控，`onClose` / `ok.onClick` / `cancel.onClick` 都要自己 `setIsOpen(false)`。
 > ⚠️ demo 用到的 `closeOnEscape` 不在 API 表里，不要依赖。
+> ⚠️ **每个 `<MessageDialog>` 必须显式写 `iconLocation="title"`**（硬性，不是可选美化）。eview 默认 `iconLocation="content"`（图标在内容区），与 antd `Modal.confirm/info/...` 的形态（类型图标出现在标题旁）相反。源 antd 命令式调用没有 `icon` prop，不要因此把 `iconLocation` 一起省掉——迁移时无论源码有无图标配置都要补 `iconLocation="title"`，否则页面图标位置与 antd 习惯不一致。这是本组件迁移最常见的遗漏，见 §1 转换块。
 
 ## 1. 功能定位
 
@@ -47,6 +48,9 @@ const handleDelete = (id) => setPending({ id });
   }}
 />;
 // 危险操作（antd okType:"danger"）→ 升级 type="risk"/"highRisk" + hasChecked，见 §3 高危示例
+
+// ⚠️ iconLocation="title" 是硬性要求，不是可选：antd 命令式调用没有 icon prop，
+//    迁移时不要"源码没传就不补"——每个 <MessageDialog> 都要显式带 iconLocation="title"。
 ```
 
 ## 2. antd Modal 状态组件 → MessageDialog 映射速查
@@ -73,7 +77,7 @@ const handleDelete = (id) => setPending({ id });
 | `onOk` / `onCancel` | `buttons.ok.onClick` / `buttons.cancel.onClick` + `onClose` | 不自动关，成功后 `setIsOpen(false)` |
 | `okCancel: false`（info/success/error/warning 默认） | 只传 `ok`，不传 `cancel` | |
 | `okType: "danger"` | 升级 `type="risk"` / `"highRisk"`（+ `hasChecked`） | 按钮无 per-button type，风险靠 `type`；`highRisk` 的 ok 不自动禁用，需 `onClick` 内 `if (!agreed) return` |
-| `icon` | 由 `type` 决定，不传 | 位置用 `iconLocation="title"` |
+| `icon` | 由 `type` 决定，不传 `icon` prop | 不传 `icon`，但**必须**另加 `iconLocation="title"`（见上方 ⚠️；eview 默认 content 与 antd 形态相反，每个 MessageDialog 都要补） |
 | `width` / `centered` | `size={[w,h]}` / `position` | |
 | `maskClosable` | `closable` / `modal` | |
 | `zIndex` | `zindex`（默认 9993） | |

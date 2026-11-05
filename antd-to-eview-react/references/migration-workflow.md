@@ -105,7 +105,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 
 **Steps**：`current`→`currentStep`（对应 `data[].value` 不是下标）；`items`→`data=[{text,value}]`；`onClick(index)` 只允许回跳；**antd dot（圆点）形态迁移用 `size="mini"`**（eview-react Steps 无 `type="dot"` prop）；导入 `@nce/eview-react/Steps`（非包壳）。见 [components/Steps.md](components/Steps.md)。
 
-**Modal / Modal.confirm**：`open`→`isOpen`；`footer`→`buttons=[{text,status,onClick}]`；`onClose` 不自动关闭（需 `setIsOpen(false)`）；`Modal.confirm()`→`MessageDialog type="confirm"`。见 [components/Dialog.md](components/Dialog.md) / [components/MessageDialog.md](components/MessageDialog.md)。
+**Modal / Modal.confirm**：`open`→`isOpen`；`footer`→`buttons=[{text,status,onClick}]`；`onClose` 不自动关闭（需 `setIsOpen(false)`）；`Modal.confirm()`→`MessageDialog type="confirm"`，且**每个 `<MessageDialog>` 必须显式写 `iconLocation="title"`**（eview 默认 content 与 antd 形态相反；源 antd 无 icon prop 也要补，见 SKILL.md 硬约束 14）。见 [components/Dialog.md](components/Dialog.md) / [components/MessageDialog.md](components/MessageDialog.md)。
 
 ### 3.4 替换顺序与执行
 

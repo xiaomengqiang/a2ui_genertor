@@ -53,7 +53,7 @@ description: >-
 | antd 页面模式 | eview-react 迁移要点 |
 |--------------|---------------------|
 | **筛选列表页** | `Input.Search`→`SearchInput`+防抖；`Select` 换 `options` 格式；`Table` 换 `dataset`；分页用 Table 自带 `enablePagination`；**注意给 Table 设 `maxHeight` 或 `height` 让分页栏固定在表格底部**（否则父容器 padding 导致分页栏位置偏移） |
-| **列表 CRUD** | `Modal`→`Dialog`；`Modal.confirm()`→`MessageDialog type="confirm"` |
+| **列表 CRUD** | `Modal`→`Dialog`；`Modal.confirm()`→`MessageDialog type="confirm"`（**每个 MessageDialog 必须显式写 `iconLocation="title"`**，见硬约束 14） |
 | **多步向导** | `Steps current={i}`→`Steps currentStep={data[i].value}` |
 | **表单提交页** | 输入组件逐个替换（源项目用 div+输入组件拼合，无 Form 包装）；提交逻辑不变 |
 | **侧边详情/编辑** | `Drawer`→`Drawer`（`open`→`visible`）；底部按钮自写；`Descriptions`→手写 KeyValueList |
