@@ -14,7 +14,7 @@
  *       @nce/eview-react/Radio 只导出 Radio 本身，不导出 RadioGroup）
  *   5. SHELL_WRONG_PATH 包壳组件从 @nce/eview-react/<X> 导入（须从 @/shared/<X> 导入）
  *   6. TOGGLE_DISABLE_PROP  `<Toggle>` 上用了 disable（应为 disabled）—— Toggle 用 disabled 正确拼写，
- *      disable 只属于 SelectCard/FileUpload/PopUpMenu
+ *      disable 只属于 SelectCard/FileUpload
  *   7. TAB_DATA_PROP  `<Tab>` 上挂了 data（禁止）—— Tab 是 children 驱动（TabItem），
  *      data 是 Select/SelectCard/RadioGroup/Steps 等的 prop
  *
@@ -137,7 +137,7 @@ function main() {
     }
 
     // 6. Toggle 上的 disable prop（应为 disabled）—— eview Toggle 用 disabled 正确拼写，
-    //    disable 只属于 SelectCard/FileUpload/PopUpMenu，Toggle 上写 disable 是错误。
+    //    disable 只属于 SelectCard/FileUpload，Toggle 上写 disable 是错误。
     //    文件级扫描 <Toggle 标签范围（到 />），避免跨行 props 漏检。
     const toggleRe = /<Toggle\b/g;
     let tm;
@@ -150,7 +150,7 @@ function main() {
         const lineNum = text.slice(0, start).split('\n').length;
         violations.push({
           file: rel, line: lineNum, code: 'TOGGLE_DISABLE_PROP',
-          detail: 'Toggle 用 disabled（正确拼写），不是 disable。disable 只属于 SelectCard/FileUpload/PopUpMenu',
+          detail: 'Toggle 用 disabled（正确拼写），不是 disable。disable 只属于 SelectCard/FileUpload',
         });
       }
     }

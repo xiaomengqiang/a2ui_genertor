@@ -20,7 +20,7 @@
 
 ## 表单与输入
 
-> **`size` 现支持**：`TextField` / `SearchInput` / `Select` / `MultipleSelect` / `InputSelect` / `TreeSelector` / `DatePicker` / `TimePicker` 现支持 `size: 'small' \| 'middle' \| 'large'`（默认 `middle`），枚举与 antd 一致、可直接透传；迁移时无需丢弃源 antd `size`（`IPInput`、`PopUpMenu` 同步支持，见各自文档）。**`Steps` 原生支持 `size: 'mini' \| 'small' \| 'middle' \| 'large'`**（比通用三档多一个 `mini`，直接传 `size` prop；**antd dot（圆点）形态迁移用 `size="mini"`**，见 [Steps.md](components/Steps.md) §6）。
+> **`size` 现支持**：`TextField` / `SearchInput` / `Select` / `MultipleSelect` / `InputSelect` / `TreeSelector` / `DatePicker` / `TimePicker` 现支持 `size: 'small' \| 'middle' \| 'large'`（默认 `middle`），枚举与 antd 一致、可直接透传；迁移时无需丢弃源 antd `size`（`IPInput`、`DropDown` 同步支持，见各自文档）。**`Steps` 原生支持 `size: 'mini' \| 'small' \| 'middle' \| 'large'`**（比通用三档多一个 `mini`，直接传 `size` prop；**antd dot（圆点）形态迁移用 `size="mini"`**，见 [Steps.md](components/Steps.md) §6）。
 
 | antd | eview-react | 关键 API 差异 |
 |------|-----------|-------------|
@@ -41,7 +41,7 @@
 | `Radio` / `.Group` | `Radio` / `RadioGroup` | Group 用 `data=[{text,value}]`；需 `isControlled` 才受控；`onChange` 参数顺序有冲突，用兼容写法 |
 | `Radio.Button` | `SelectCard` | 导出名 SelectCard（不是 Segmented）；`data=[{text,value}]`；`onChange(value,event)`；禁用是 `disable`（不是 disabled） |
 | `Segmented` | `SelectCard` | 映射同 `Radio.Button`：`options` 字符串数组或 `{label,value}` 对象数组 → `data=[{text,value}]`；`defaultValue` 转为初始 `value` state；`block`→无对应（宽度走 `style`/`itemStyle`）；`disabled`→`disable`；`onChange(value)` 首参即为选中值 |
-| `Switch` | `Toggle` | `checked`→`toggled`；`onChange`→`onToggle(value)`；`data=[关,开]`；`taggledChildren`（拼错）；`Switch isControlToggled` 二次确认；**`disabled` 保留不变**（Toggle 用 `disabled` 正确拼写，**不是 `disable`**——`disable` 只属于 SelectCard/FileUpload/PopUpMenu） |
+| `Switch` | `Toggle` | `checked`→`toggled`；`onChange`→`onToggle(value)`；`data=[关,开]`；`taggledChildren`（拼错）；`Switch isControlToggled` 二次确认；**`disabled` 保留不变**（Toggle 用 `disabled` 正确拼写，**不是 `disable`**——`disable` 只属于 SelectCard/FileUpload） |
 | `Slider` | `DragInput` | `value` **永远是数组**；`type="range"` 开双滑块；`markIndexes` 数组；导出名是 DragInput 不是 Slider |
 | `Rate` | `Rating` | 取值是 `onClick(value)` 不是 onChange；`onMouseOver/Leave` 悬浮预览；`half`；`disabled` 只读 |
 | `DatePicker` | `DatePicker` | **不要无条件回写** `onChange` 的字符串到 `value`（官方反例）；用 `defaultValue`+`ref.getValue()` 或有效 Date 才回写；⚠️ 导入 `@/shared/DatePicker`（包壳，非 `@nce/eview-react/DatePicker`） |
@@ -95,7 +95,7 @@
 |------|-----------|-------------|
 | `Layout` / `Header` / `Sider` / `Content` | 手写 CSS 布局 | 见 [handwrite-templates.md](handwrite-templates.md) §4 |
 | `Menu` | `Accordion` | `items`→`data`（`key`/`label`→`value`/`title`，**嵌套 `children` 里的子项也要逐层映射，勿保留 antd 字段名**）；`selectedKeys` 数组→`selectedValue` 单 string；`onClick({key})`→`onClick(node)`（取 `node.value`，只叶子才选中）；`inlineCollapsed`→`expanded`/`onExpand`（⚠️ `expanded={true}`=收起，语义反转）；**迁移默认必加 `hideIcons` + `hideTitleBar`（两种形态都要，漏加样式错乱，见 Accordion.md §10）**；**统一用 Accordion，不手写**（单层平铺菜单用单层 `data` 无 `children` + `enableExpand={false}` + `hideIcons` + `hideTitleBar`，见 [Accordion.md](components/Accordion.md) §2/§10）；见 [Accordion.md](components/Accordion.md) |
-| `Dropdown` | `PopUpMenu` | `menu.items`→`options`（`key`→`id`/`serialno`，`label`→`text`）；子菜单 `children`→`submenus`；`disabled`→`disable`；`onClick({key})`→`onClick(evt)`（`evt.value`=serialno，`evt.text`）；默认 children 模式包裹触发器（`<PopUpMenu options><Button/></PopUpMenu>`）；`trigger` 不存在，弹出由 children 点击驱动；`size` 枚举一致可透传；见 [PopUpMenu.md](components/PopUpMenu.md) |
+| `Dropdown` | `DropDown` | `menu.items`→`data`（`key`→`value`，`label`→`text`）；`disabled` 保留不变（DropDown 用正确拼写 `disabled`，非 `disable`）；`onClick({key})`/`menu.onClick`→`onItemClick(item, event)`（首参是菜单项不是 event，`item.value`/`item.text`，**`value=0` 有效不能用 `if(item.value)` 判缺失**）；**不支持 `children`/`submenus` 多级子菜单——DropDown 仅一级**，源 antd 多级菜单（项 `children`）需拍平为一级（`label:true` 做分组标题/分割线）或拆成多个菜单；`trigger` 数组（`['click']`）→ 单个字符串 `'click'`/`'hover'`；`placement`（`bottomRight` 等）→ `position`（`left`/`right`/`auto`）+ `popupDirection`（`top`/`bottom`/`auto`）；`open`/`onOpenChange` 不存在（展开由组件内部管理，`onDropDown(display)`/`onClosePopup()` 仅作通知不能驱动显隐）；默认 children 模式包裹触发器（`<DropDown data><Button/></DropDown>`，不用 `text` prop）；`size` 枚举一致可透传；见 [DropDown.md](components/DropDown.md) |
 | `Breadcrumb` | `Crumbs` | **`items`→`data`**（prop 重命名，勿保留 `items=`/`item=`）；**项字段 `href`/`path`→`url`**（`title` 两边同名不用改，但别因此漏改 `href`/`path`）；**`separator`→`seprator`**（eview 官方 API 即拼错的 seprator，将错就错，正确英文 separator 残留即未转）；最后一项不传 `url` 即当前页；`onClick(data,event)` 组件级（非每项 onClick）；**`<Breadcrumb.Item>xxx</Breadcrumb.Item>` JSX 子元素形态→拍平 `data=[{title:'xxx'}]` 数组**；⚠️ 导入 `@/shared/Crumbs`（包壳，非 `@nce/eview-react/Crumbs`）；见 [Crumbs.md](components/Crumbs.md) |
 | `Affix` | 手写 `position:sticky` | 无对应 |
 | `BackTop` | 手写 | 无对应 |

@@ -218,7 +218,7 @@ node scripts/check-i18n-keys.cjs .
 
 > 对应 SKILL.md 硬约束① 导入路径。导入路径 100% 静态可判、无歧义，故本检查全量硬 FAIL——任何违规必须修复后重跑，不能跳过。改 import 路径是迁移的核心动作，本脚本是防止「包壳组件从错路径导入 / RadioGroup 套错包 / 残留 antd」的机器兜底。
 
-脚本 `scripts/check-imports.cjs`，纯静态正则，自动跳过 `src/shared/`（包壳实现文件内部转发 `@nce/eview-react/<X>` 是正确的，只有业务代码从该路径导入才算违规）。检查七类违规：残留 `from 'antd'`/`from 'antd/...'`、残留 `@ant-design/icons`、`import { RadioGroup } from '@nce/eview-react/Radio'`（须默认导入自 `@nce/eview-react/RadioGroup`）、包壳组件从 `@nce/eview-react/<X>` 导入（须从 `@/shared/<X>`）、`<Toggle>` 上用 `disable`（应为 `disabled`——Toggle 用 `disabled` 正确拼写，`disable` 只属于 SelectCard/FileUpload/PopUpMenu）、`<Tab>` 上挂 `data`（禁止——Tab 是 children 驱动 `<TabItem>`，`data` 是 Select/SelectCard/Steps 等的 prop）。
+脚本 `scripts/check-imports.cjs`，纯静态正则，自动跳过 `src/shared/`（包壳实现文件内部转发 `@nce/eview-react/<X>` 是正确的，只有业务代码从该路径导入才算违规）。检查七类违规：残留 `from 'antd'`/`from 'antd/...'`、残留 `@ant-design/icons`、`import { RadioGroup } from '@nce/eview-react/Radio'`（须默认导入自 `@nce/eview-react/RadioGroup`）、包壳组件从 `@nce/eview-react/<X>` 导入（须从 `@/shared/<X>`）、`<Toggle>` 上用 `disable`（应为 `disabled`——Toggle 用 `disabled` 正确拼写，`disable` 只属于 SelectCard/FileUpload）、`<Tab>` 上挂 `data`（禁止——Tab 是 children 驱动 `<TabItem>`，`data` 是 Select/SelectCard/Steps 等的 prop）。
 
 ```bash
 node <skill目录>/scripts/check-imports.cjs <目标工程根>
@@ -392,7 +392,36 @@ node <skill目录>/scripts/check-crumbs.cjs <目标工程根>
 
 硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（纯残留检查，非 advisory）。工程无 `<Crumbs>` → PASS 不报。
 
-### 4.16 常见报错对照
+### 4.16 Dropdown→DropDown 迁移正确性检查（硬 FAIL + advisory 必跑）
+
+> 对应 component-mapping.md Dropdown 行 + components/DropDown.md §4/§5/§8/§9。antd Dropdown→eview DropDown 是「prop 重命名（menu/items→data）+ 字段重命名（key→value，label→text）+ 回调签名改（onClick({key})→onItemClick(item,event)）+ 不支持多级子菜单 + disabled 正确拼写（非 disable）」的高错迁移。**原 PopUpMenu 方案已废弃**（多级 children 下钻改用 DropDown 一级 + `label:true` 分组），本脚本做机器兜底——拦弱模型最常漏的 prop/字段残留、误当 Select、误用受控显隐、disable 拼错、trigger 数组等硬错误，外加 onClick 用法与 value=0 真假值判断两类待核项。
+
+脚本 `scripts/check-dropdown.cjs`，对每个 `<DropDown>` 检查：
+
+**硬 FAIL（exit≠0 即 FAIL）**：
+1. `MENU_PROP_RESIDUE` — `menu=` 残留（antd `menu={{items}}`，应为 `data=`）
+2. `ITEMS_PROP_RESIDUE` — `items=` 残留（应为 `data=`）
+3. `OPTIONS_PROP_RESIDUE` — `options=` 残留（误当 Select，应为 `data=`）
+4. `KEY_FIELD_RESIDUE` — data 项 `key:` 残留（应为 `value:`，含 menu/items/options 持有的数组与同文件 `const` 定义追源）
+5. `LABEL_TEXT_RESIDUE` — data 项 `label:` 带字符串值（antd 文字 label，应为 `text:`；**`label: true` 是 DropDown 合法分组标记，不报**）
+6. `CHILDREN_SUBMENU_RESIDUE` — data 项 `children:` 残留（antd 多级子菜单，DropDown 仅一级不支持，需拍平为 `label:true` 分组或拆成多个菜单）
+7. `DISABLE_PROP_RESIDUE` — `disable` 残留（prop 级或 data 项字段，应为 `disabled`，DropDown 用正确拼写）
+8. `TRIGGER_ARRAY` — `trigger={['click']}` 数组（应为单字符串 `'click'`/`'hover'`）
+9. `PLACEMENT_RESIDUE` — `placement=` 残留（应为 `position`+`popupDirection`）
+10. `OPEN_CONTROL_RESIDUE` — `open=`/`onOpenChange=` 残留（DropDown 展开由组件内部管理，无受控显隐 API；用 `onDropDown`/`onClosePopup` 仅作通知）
+11. `SELECT_API_RESIDUE` — `value=`/`onChange=` 残留（误当 Select，DropDown 无选值契约）
+
+**advisory（exit 0，逐条回应写入 `dropdownReviews`）**：
+12. `ONCLICK_USED` — `<DropDown>` 用 `onClick=`（应用 `onItemClick(item, event)` 处理菜单项点击；`onClick` 是未记录的无参事件，不能取点击项）
+13. `VALUE_BOOLEAN_CHECK` — `onItemClick` 回调用 `if (item.value)`/`if (!item.value)` 真假值判断（`value=0` 有效会误拦，应 `item.value === undefined` 判缺失）
+
+```bash
+node <skill目录>/scripts/check-dropdown.cjs <目标工程根>
+```
+
+硬 FAIL 项 exit≠0 即 FAIL；advisory 项 exit=0 但每个待核 `<DropDown>` 必须在 `.migration-result.json` 的 `dropdownReviews` 写明决策（如 `"已改 onClick→onItemClick"` 或 `"已改 if(!item.value)→item.value===undefined"`）。未逐条回应视同 FAIL。工程无 `<DropDown>` → PASS 不报。
+
+### 4.17 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -403,11 +432,11 @@ node <skill目录>/scripts/check-crumbs.cjs <目标工程根>
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 但 `data.js` 里 value 是短代码、i18n key 带前缀 | 在 render 里补命名空间前缀：`t("deviceType." + value, value)`；详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 4.17 验证
+### 4.18 验证
 
 跑验证脚本，把结果写入 `<目标工程根>/.migration-result.json`。
 
-> **十四个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨/Accordion expand 语义反转+字段残留/Crumbs items+separator+字段残留是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/accordion/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
+> **十五个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨/Accordion expand 语义反转+字段残留/Crumbs items+separator+字段残留/Dropdown menu-items-options 残留+字段 key-label-children 残留+disable 拼错+trigger 数组/placement/open/value/onChange 残留是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/accordion/dropdown/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
 
 **验证步骤**（全部必跑，按序）：
 1. 相对导入检查**跳过**（见 §4.1）
@@ -424,9 +453,10 @@ node <skill目录>/scripts/check-crumbs.cjs <目标工程根>
 12. 跑 `node <skill目录>/scripts/check-messagedialog-defaults.cjs <目标工程根>`（§4.12，advisory，逐条回应写入 `messageDialogReviews`）
 13. 跑 `node <skill目录>/scripts/check-accordion.cjs <目标工程根>`（§4.14，硬 FAIL + advisory，advisory 项逐条回应写入 `accordionReviews`）
 14. 跑 `node <skill目录>/scripts/check-crumbs.cjs <目标工程根>`（§4.15，**硬 FAIL**，exit≠0 即 FAIL）
-15. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
+15. 跑 `node <skill目录>/scripts/check-dropdown.cjs <目标工程根>`（§4.16，硬 FAIL + advisory，advisory 项逐条回应写入 `dropdownReviews`）
+16. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
 
-**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 12 之后、npm install 之前**加跑）：
+**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 15 之后、npm install 之前**加跑）：
 - 跑 `node <skill目录>/scripts/check-icon-names.cjs <目标工程根>`（§4.13，**硬 FAIL**，exit≠0 即 FAIL——拦 LLM residual 臆造的非 catalog 实有 IconPlusIc* 名）。
 - **方案 B（内网）项目不跑此闸门**：其图标名真值是在线 `getIconInfo` 接口（实包），非离线 catalog 快照，跑会误报实包有而快照无的名。方案 A 产物无 `IconPlusIc*` 名，跑了亦 no-op。
 
@@ -452,6 +482,7 @@ node <skill目录>/scripts/check-crumbs.cjs <目标工程根>
     "messagedialog-defaults": "PASS/FAIL",
     "accordion": "PASS/FAIL",
     "crumbs": "PASS/FAIL",
+    "dropdown": "PASS/FAIL",
     "npm-install": "PASS/SKIP"
   },
   "tableDefaultReviews": [
@@ -480,6 +511,10 @@ node <skill目录>/scripts/check-crumbs.cjs <目标工程根>
     { "file": "src/views/.../nav.jsx", "line": 20, "code": "HIDE_PROPS_MISSING", "decision": "已补 hideIcons + hideTitleBar（见 Accordion.md §10）" },
     { "file": "src/views/.../nav.jsx", "line": 58, "code": "EXPAND_GENERIC_NAMING", "decision": "变量 val 实为 collapsed 语义，已改为 expanded={val}+setVal(!flag)" }
   ],
+  "dropdownReviews": [
+    { "file": "src/views/.../list.jsx", "line": 45, "code": "ONCLICK_USED", "decision": "已改 onClick→onItemClick(item, event)，按 item.value 派发" },
+    { "file": "src/views/.../list.jsx", "line": 52, "code": "VALUE_BOOLEAN_CHECK", "decision": "已改 if(!item.value)→item.value===undefined，放行 value=0" }
+  ],
   "notes": "可选说明"
 }
 ```
@@ -491,6 +526,7 @@ node <skill目录>/scripts/check-crumbs.cjs <目标工程根>
 - `steps-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<Steps>` 必须在 `stepsReviews` 写明决策**；未逐条回应 → FAIL
 - `messagedialog-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<MessageDialog>` 必须在 `messageDialogReviews` 写明决策**；未逐条回应 → FAIL
 - `accordion` advisory（HIDE_PROPS_MISSING/EXPAND_GENERIC_NAMING）：脚本 exit=0 但有待核项时，**每个待核 `<Accordion>` 必须在 `accordionReviews` 写明决策**（如已补 hideIcons/hideTitleBar、泛化命名变量实为哪种语义并已校正配对）；未逐条回应 → FAIL；硬 FAIL 项（SELECTED_VALUE_ARRAY/DATA_FIELD_RESIDUE/EXPAND_INVERTED/ON_EXPAND_*）exit≠0 直接 FAIL
+- `dropdown` advisory（ONCLICK_USED/VALUE_BOOLEAN_CHECK）：脚本 exit=0 但有待核项时，**每个待核 `<DropDown>` 必须在 `dropdownReviews` 写明决策**（如已改 onClick→onItemClick、已改 `if(!item.value)`→`item.value===undefined` 放行 value=0）；未逐条回应 → FAIL；硬 FAIL 项（MENU_PROP_RESIDUE/ITEMS_PROP_RESIDUE/OPTIONS_PROP_RESIDUE/KEY_FIELD_RESIDUE/LABEL_TEXT_RESIDUE/CHILDREN_SUBMENU_RESIDUE/DISABLE_PROP_RESIDUE/TRIGGER_ARRAY/PLACEMENT_RESIDUE/OPEN_CONTROL_RESIDUE/SELECT_API_RESIDUE）exit≠0 直接 FAIL
 - `css` advisory：脚本 exit=0 但有待核项时，**每个待核项必须在 `cssReviews` 写明决策**；未逐条回应 → FAIL
 - `token-drift` advisory（TOKEN_MISSING/TOKEN_ADDED/UNDEFINED_REF）：脚本 exit=0 但有待核项时，**每个待核项必须在 `tokenDriftReviews` 写明决策**；未逐条回应 → FAIL
 - `props-preserved` advisory（STYLE_DROPPED/CLASSNAME_DROPPED/COUNT_MISMATCH）：脚本 exit=0 但有待核项时，**每个待核项必须在 `propsPreservedReviews` 写明决策**（合理丢弃如 DatePicker 包壳已处理宽度，否则应补回）；未逐条回应 → FAIL
