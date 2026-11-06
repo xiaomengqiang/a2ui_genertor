@@ -210,14 +210,14 @@ export default function Icon({
 
   // user-provided asset (svg/png/jpg) via relative path — overrides name when both are set
   if (src) {
+    // width/height 走 CSS style 而非 img 属性:HTML img 的 width/height 属性只认纯数字 px,
+    // 会丢弃 rem 单位(width="2rem" → 2px);放到 style 里 rem/px/数字都能正确渲染
     return React.createElement("img", {
       src: src,
-      width: size,
-      height: size,
       className: className,
       alt: "",
       "aria-hidden": true,
-      style: { ...style, display: "inline-block", verticalAlign: "middle" },
+      style: { ...style, display: "inline-block", verticalAlign: "middle", width: size, height: size },
     });
   }
 
