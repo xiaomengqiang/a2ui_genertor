@@ -1677,7 +1677,7 @@ function safeRenderSite(tag) {
   }
 }
 
-// 加载 LLM 维护的决策日志（--apply-decisions 用）。格式：[{ keyword, iconPlusName, candidates[], selectedBecause }]。
+// 加载 LLM 维护的决策日志（--apply-decisions 用）。格式：[{ keyword, requestUrl, iconPlusName, candidates[], selectedBecause }]（iconPlusName = response.icons[0].name；requestUrl/candidates/selectedBecause 供审计，loader 仅消费 keyword/iconPlusName）。
 // 返回 { byRaw, byLower, count }：名真值来自 getIconInfo 在线返回，catalog 零参与。
 function loadDecisions(decisionsPath) {
   if (!decisionsPath) {
@@ -1796,7 +1796,7 @@ function writeLeavesJson(leavesData, outPath) {
     totalLeafSites: leavesData.leaves.length,
     leaves: uniq,
     untraced: leavesData.untraced,
-    note: '每个唯一 sourceKeyword 调一次 getIconInfo?keyword=<名>&topK=2&source_id=6，结果写入 icon-b-decisions.json；untraced 段按 Icon.md 跨边界 recipe 手工。',
+    note: '每个唯一 sourceKeyword 调一次 getIconInfo——请求参数固定 keyword=<源名>&topK=2&source_id=6（禁止改 topK/source_id、禁止加额外参数）；结果写入 icon-b-decisions.json（每条 {keyword,requestUrl,iconPlusName,candidates[],selectedBecause}，iconPlusName=response.icons[0].name）；untraced 段按 Icon.md 跨边界 recipe 手工。',
   };
   fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
   return { uniqueKeywordCount: uniq.length, totalLeafSites: leavesData.leaves.length, untracedCount: leavesData.untraced.length };

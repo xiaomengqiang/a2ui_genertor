@@ -126,7 +126,7 @@
     {
       "id": 8,
       "name": "图标迁移（字面量 + 数据数组动态名）",
-      "description": "将源项目 <Icon name=\"字面量\"/> 与 name={t.icon} 数据数组动态名迁移为 @hui/icon-plus 静态 import（方案 C 外网离线匹配；方案 B 为 LLM 在线 getIconInfo 手工匹配、不跑 match-icons.cjs，本 case 验 C 的 --apply 机制；闭合集不落方案A）",
+      "description": "将源项目 <Icon name=\"字面量\"/> 与 name={t.icon} 数据数组动态名迁移为 @hui/icon-plus 静态 import（方案 C 外网离线匹配；方案 B 两段式跑 match-icons.cjs --plan + --apply-decisions，名来自在线 getIconInfo 决策日志；本 case 验 C 的 --apply 机制；闭合集不落方案A）",
       "input": "<Icon name=\"search\" size={14}/> + const menu=[{icon:\"server\"},{icon:\"user\"}]; menu.map(t=> <Icon name={t.icon} size={16}/>)",
       "assertions": [
         "字面量 <Icon name=\"search\"/> 替换为 <IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />",
