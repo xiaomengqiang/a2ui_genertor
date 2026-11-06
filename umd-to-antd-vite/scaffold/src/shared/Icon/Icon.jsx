@@ -115,7 +115,7 @@ async function resolveIconInfo(name) {
   const p = (async () => {
     try {
       const resp = await fetch(
-        `${GET_ICON_INFO}?keyword=${encodeURIComponent(name)}&topK=2&&type=icon&tags=基础图标`
+        `${GET_ICON_INFO}?keyword=${encodeURIComponent(name)}&topK=2&source_id=6`
       );
       const data = await resp.json(); // [{ keyword, icons: [{ icon_id, name, category, group[], url }] }]
       const entry = (Array.isArray(data) ? data : [data]).find(

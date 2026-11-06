@@ -1796,7 +1796,7 @@ function writeLeavesJson(leavesData, outPath) {
     totalLeafSites: leavesData.leaves.length,
     leaves: uniq,
     untraced: leavesData.untraced,
-    note: '每个唯一 sourceKeyword 调一次 getIconInfo?keyword=<名>&topK=2&source_id=6&type=icon，结果写入 icon-b-decisions.json；untraced 段按 Icon.md 跨边界 recipe 手工。',
+    note: '每个唯一 sourceKeyword 调一次 getIconInfo?keyword=<名>&topK=2&source_id=6，结果写入 icon-b-decisions.json；untraced 段按 Icon.md 跨边界 recipe 手工。',
   };
   fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
   return { uniqueKeywordCount: uniq.length, totalLeafSites: leavesData.leaves.length, untracedCount: leavesData.untraced.length };
