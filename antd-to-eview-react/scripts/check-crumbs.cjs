@@ -9,17 +9,25 @@
  *   2. data 项里 href:/path: 残留（应为 url:）—— 字段没转，title 共享字段名掩护了 href 漏改
  *   3. separator= 残留（应为 seprator=）—— eview-react 官方 API 即拼错的 seprator（将错就错），正确英文 separator 残留即未转
  *
+ * 字段残留扫描（href:/path:→url:）采用 AST（@babel/parser）：
+ *   纯正则的 extractArrayProp 只扫第一个 [...] 数组体，对 .map(item=>({href,url}))、
+ *   Array.from、spread、function 回调 return、shorthand、计算键等动态形态全漏。
+ *   AST 从 data/items/item 表达式递归收集所有 ObjectExpression，逐个查属性键，
+ *   覆盖上述全部 JS 书写习惯（与 check-select-options / check-dropdown / check-accordion 共用
+ *   scripts/lib/ast-helpers.cjs）。tag 级检查（items=/item=/separator=）仍走正则。
+ *
  * 全硬 FAIL（Crumbs 的转换正确性无「可能有意为之」的灰区，残留即未转）。
  *
  * 用法：
  *   node check-crumbs.cjs <目标工程根>
  *
- * 纯静态正则（扫描前移除注释），不执行代码。退出码：0=通过，1=硬 FAIL，2=用法错误。
+ * 退出码：0=通过，1=硬 FAIL，2=用法错误/无解析器。
  */
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
+const H = require('./lib/ast-helpers.cjs');
 
 const EXTS = new Set(['.js', '.jsx', '.ts', '.tsx']);
 
@@ -69,62 +77,6 @@ function tagWindow(code, start) {
   return code.slice(start, start + 800);
 }
 
-// 从 startIdx（指向 openCh）平衡匹配到 closeCh，返回 { body, bodyStart }
-function extractBalanced(text, openCh, closeCh, startIdx) {
-  let depth = 0, i = startIdx, inStr = null;
-  while (i < text.length) {
-    const ch = text[i];
-    if (inStr) {
-      if (ch === '\\') { i += 2; continue; }
-      if (ch === inStr) inStr = null;
-    } else {
-      if (ch === '"' || ch === "'" || ch === '`') inStr = ch;
-      else if (ch === openCh) depth++;
-      else if (ch === closeCh) { depth--; if (depth === 0) return { body: text.slice(startIdx + 1, i), bodyStart: startIdx + 1 }; }
-    }
-    i++;
-  }
-  return null;
-}
-
-// 提取 prop={...} 的值内容（不含外层 {}）。返回 { body, bodyStartOffsetInText } 或 null
-function extractPropExpr(text, frag, propName, fragOffsetInText) {
-  const re = new RegExp(`\\b${propName}\\b\\s*=\\s*\\{`);
-  const m = re.exec(frag);
-  if (!m) return null;
-  const braceIdxInFrag = m.index + m[0].length - 1; // 指向 {
-  const braceIdxInText = fragOffsetInText + braceIdxInFrag;
-  const res = extractBalanced(text, '{', '}', braceIdxInText);
-  if (!res) return null;
-  return { body: res.body, bodyStartOffsetInText: res.bodyStart };
-}
-
-// 提取 Crumbs 某 prop 引用的数组体（内联 [ 或标识符追 const），返回 { body, bodyStartOffsetInText }
-// propName 支持 data/items/item——items/item 残留时仍能扫到里面的字段，第一轮即抓 FIELD_RESIDUE
-function extractArrayProp(text, frag, fragOffsetInText, propName) {
-  const expr = extractPropExpr(text, frag, propName, fragOffsetInText);
-  if (!expr) return null;
-  const body = expr.body;
-  const bodyStart = expr.bodyStartOffsetInText;
-  const arrOffInBody = body.indexOf('[');
-  if (arrOffInBody >= 0) {
-    const arrIdxInText = bodyStart + arrOffInBody;
-    const res = extractBalanced(text, '[', ']', arrIdxInText);
-    if (res) return { body: res.body, bodyStartOffsetInText: res.bodyStart };
-  }
-  const nameM = body.trim().match(/^([A-Za-z_$][\w$]*)/);
-  if (nameM) {
-    const re = new RegExp(`\\b(?:const|let|var)\\s+${nameM[1]}\\s*=\\s*\\[`);
-    const defM = re.exec(text);
-    if (defM) {
-      const arrIdxInText = defM.index + defM[0].lastIndexOf('[');
-      const res = extractBalanced(text, '[', ']', arrIdxInText);
-      if (res) return { body: res.body, bodyStartOffsetInText: res.bodyStart };
-    }
-  }
-  return null;
-}
-
 function main() {
   const args = process.argv.slice(2);
   const rootIdx = args.findIndex((a) => !a.startsWith('--'));
@@ -135,10 +87,18 @@ function main() {
     process.exit(2);
   }
 
+  const parser = H.loadParser(root);
+  if (!parser) {
+    console.error('[check-crumbs] 未找到 @babel/parser。目标工程跑 npm install 后重试'
+      + '（@vitejs/plugin-react 已含其为传递依赖）。');
+    process.exit(2);
+  }
+
   const files = walk(srcDir, []);
   const fails = [];
   // FIELD_RESIDUE 去重键：同一 file:line:field 只报一次（data 常量被多个 <Crumbs> 引用时避免重复）
   const fieldSeen = new Set();
+  const parseWarnings = [];
 
   for (const file of files) {
     const raw = fs.readFileSync(file, 'utf8');
@@ -146,6 +106,12 @@ function main() {
     const text = stripComments(raw);
     const rel = path.relative(root, file);
 
+    // 解析 AST（字段残留扫描用）；解析失败仅告警跳过 AST 部分，tag 级正则检查照跑
+    const parsed = H.parse(parser, text);
+    if (parsed.error) parseWarnings.push(`${rel}: ${parsed.error.message}`);
+    const ast = parsed.ast;
+
+    // ---- tag 级正则检查（items=/item=/separator=）----
     const re = /<Crumbs\b/g;
     let m;
     while ((m = re.exec(text)) !== null) {
@@ -168,23 +134,30 @@ function main() {
         fails.push({ file: rel, line, code: 'SEPARATOR_RESIDUE',
           detail: 'separator= 残留——eview-react 官方 API 拼写是 seprator（将错就错），应改为 seprator=。见 Crumbs.md §2/§4' });
       }
+    }
 
-      // 3. FIELD_RESIDUE: data 项里 href:/path: 残留（应为 url:）
-      //    无论 prop 是 data= 还是残留的 items=/item=，都扫其数组体（第一轮即抓字段残留）
-      const dataArr = extractArrayProp(text, frag, start, 'data')
-        || extractArrayProp(text, frag, start, 'items')
-        || extractArrayProp(text, frag, start, 'item');
-      if (dataArr) {
-        const residueRe = /\b(href|path)\b\s*:/g;
-        let rm;
-        while ((rm = residueRe.exec(dataArr.body)) !== null) {
-          const off = dataArr.bodyStartOffsetInText + rm.index;
-          const resLine = lineOfOffset(text, off);
-          const dedupKey = `${rel}:${resLine}:${rm[1]}`;
-          if (fieldSeen.has(dedupKey)) continue;
-          fieldSeen.add(dedupKey);
-          fails.push({ file: rel, line: resLine, code: 'FIELD_RESIDUE',
-            detail: `data 项残留 antd 字段名 "${rm[1]}:"（应为 url:）——antd Breadcrumb item 的 ${rm[1]} 改为 Crumbs item 的 url；title 两边同名不用改。见 Crumbs.md 字段映射表` });
+    // ---- AST 字段残留扫描（3. FIELD_RESIDUE：data 项 href:/path:→url:）----
+    // 替代原 extractArrayProp 正则：覆盖 .map 回调 / Array.from / spread / function 回调 /
+    // 嵌套 / shorthand / 计算键等动态形态，含标识符追同文件 const 定义。
+    // 扫 data= / items= / item= 三个 prop（items/item 残留时仍能扫到里面的字段，第一轮即抓）
+    if (ast) {
+      const crumbEls = H.findJsxElements(ast, ['Crumbs']);
+      for (const { el } of crumbEls) {
+        const objs = new Set();
+        for (const prop of ['data', 'items', 'item']) {
+          const e = H.getAttrExpr(el, prop);
+          if (e) for (const o of H.collectOptionsObjects(ast, e)) objs.add(o);
+        }
+        for (const obj of objs) {
+          for (const field of ['href', 'path']) {
+            const hit = H.findProperty(obj, field);
+            if (!hit) continue;
+            const dk = `${rel}:${hit.line}:${field}`;
+            if (fieldSeen.has(dk)) continue;
+            fieldSeen.add(dk);
+            fails.push({ file: rel, line: hit.line, code: 'FIELD_RESIDUE',
+              detail: `data 项残留 antd 字段名 "${field}:"（应为 url:）——antd Breadcrumb item 的 ${field} 改为 Crumbs item 的 url；title 两边同名不用改。含 .map/Array.from/spread/嵌套/shorthand/计算键等动态形态。见 Crumbs.md 字段映射表` });
+          }
         }
       }
     }
@@ -194,6 +167,11 @@ function main() {
   const crumbsFiles = files.filter((f) => /<Crumbs\b/.test(fs.readFileSync(f, 'utf8'))).length;
   console.log('[check-crumbs] Breadcrumb→Crumbs 迁移正确性检查报告');
   console.log(`  扫描范围: ${srcDir}（${files.length} 个文件，含 <Crumbs> 的 ${crumbsFiles} 个）`);
+
+  if (parseWarnings.length) {
+    console.log(`\n【AST 解析告警 — ${parseWarnings.length} 个文件字段扫描被跳过，请人工复核】`);
+    for (const w of parseWarnings) console.log(`  - ${w}`);
+  }
 
   if (fails.length === 0) {
     console.log('\n结论: PASS — 无 Crumbs，或所有 <Crumbs> 通过检查。');

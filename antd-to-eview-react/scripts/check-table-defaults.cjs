@@ -14,16 +14,25 @@
  *   4. width                缺标记 → eview 默认行内 width:100%;height:100% 撑破布局 → 需对照源有无显式宽度
  *   5. freezeCol            含标记 → eview 无条件冻结，源 fixed 仅横向溢出才冻结 → 需确认源真会横向滚动
  *
+ * columnsAllWidth（第 6 项）扫描采用 AST（@babel/parser）：
+ *   纯正则的 extractColumnWidths 只扫第一个 [...] 数组体，对 columns={raw.map(c=>({width}))}、
+ *   Array.from、spread、function 回调 return 等动态形态全漏（advisory 不触发）。
+ *   AST 从 columns 表达式收集【顶层列对象】（数组直接元素 / .map 回调 return 的对象，不深入
+ *   嵌套——避免列 render 回调里返回的 {children,props} 被误计入列数），逐个查 width 属性。
+ *   其余 5 项是 tag 级 / 文件级文本搜索，不涉及列对象，保留正则。Table 元素定位也改 AST
+ *   （精准取开标签节点，frag = text.slice(start, end)）。与字段残留类 check 共用 lib/ast-helpers.cjs。
+ *
  * 用法：
  *   node check-table-defaults.cjs <目标工程根>          # advisory，列出待核项，退出码 0
  *   node check-table-defaults.cjs <目标工程根> --strict # 有待核项 exit 1（接入步骤 3 门禁）
  *
- * 纯静态正则，不执行代码。退出码：0=无待核项/通过，1=有待核项（--strict），2=用法错误。
+ * 退出码：0=无待核项/通过，1=有待核项（--strict）/无解析器（--strict），2=用法错误。
  */
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
+const H = require('./lib/ast-helpers.cjs');
 
 const EXTS = new Set(['.js', '.jsx', '.ts', '.tsx']);
 
@@ -49,107 +58,6 @@ function lineOfOffset(text, offset) {
     if (text.charCodeAt(i) === 10) line++;
   }
   return line;
-}
-
-// 提取每个 <Table ... /> 开标签的完整片段 + 标记是否自引用同文件 columns
-function findTables(text) {
-  const tables = [];
-  const re = /<Table\b/g;
-  let m;
-  while ((m = re.exec(text)) !== null) {
-    const start = m.index;
-    // 找该标签结束（/> 或 >），粗略用第一个 />；若无自闭合取到 >
-    let end = text.indexOf('/>', start);
-    if (end < 0) end = text.indexOf('>', start);
-    const frag = end > 0 ? text.slice(start, end) : text.slice(start);
-    tables.push({ start, line: lineOfOffset(text, start), frag });
-  }
-  return tables;
-}
-
-// 提取 <Table> 引用的 columns 数组，返回每列是否带 width 的判断结果
-// 策略：从 <Table> 标签里找 columns={X}，X 是标识符则追同文件 const X=[...]；X 是内联 [ 则直接用
-// 然后用平衡括号提取数组体，按顶层对象分割（{ ... }），每个对象里查 width:
-// 返回 { total, withWidth, allHaveWidth }
-function extractColumnWidths(frag, text) {
-  // 找 columns={X}
-  const colRefM = frag.match(/columns\s*=\s*\{([^}]+)\}/);
-  if (!colRefM) return null;
-  let colExpr = colRefM[1].trim();
-  let arrBody = null;
-  if (colExpr.startsWith('[')) {
-    // 内联数组，提取平衡括号
-    const braceStart = colRefM.index + colRefM[0].indexOf('[');
-    const arr = extractBalancedArray(frag, braceStart);
-    if (arr) arrBody = arr.body;
-  } else {
-    // 标识符引用，追同文件 const X = [ ... ]
-    const name = colExpr.match(/^([A-Za-z_$][\w$]*)/);
-    if (name) {
-      const re = new RegExp(`\\bconst\\s+${name[1]}\\s*=\\s*\\[`);
-      const defM = re.exec(text);
-      if (defM) {
-        const braceStart = defM.index + defM[0].lastIndexOf('[');
-        const arr = extractBalancedArray(text, braceStart);
-        if (arr) arrBody = arr.body;
-      }
-    }
-  }
-  if (!arrBody) return null;
-
-  // 按顶层 { } 对象分割（平衡括号）
-  const cols = [];
-  let i = 0;
-  while (i < arrBody.length) {
-    if (arrBody[i] === '{') {
-      const obj = extractBalancedObj(arrBody, i);
-      if (obj) {
-        cols.push(obj.body);
-        i = obj.end + 1;
-        continue;
-      }
-    }
-    i++;
-  }
-  if (cols.length === 0) return null;
-  const withWidth = cols.filter(c => /\bwidth\b\s*:/.test(c)).length;
-  return { total: cols.length, withWidth, allHaveWidth: withWidth === cols.length };
-}
-
-// 从 startIdx（指向 [）平衡匹配到 ]，返回 { body, end }
-function extractBalancedArray(text, startIdx) {
-  let depth = 0, i = startIdx, inStr = null;
-  while (i < text.length) {
-    const ch = text[i];
-    if (inStr) {
-      if (ch === '\\') { i += 2; continue; }
-      if (ch === inStr) inStr = null;
-    } else {
-      if (ch === '"' || ch === "'" || ch === '`') inStr = ch;
-      else if (ch === '[') depth++;
-      else if (ch === ']') { depth--; if (depth === 0) return { body: text.slice(startIdx + 1, i), end: i }; }
-    }
-    i++;
-  }
-  return null;
-}
-
-// 从 startIdx（指向 {）平衡匹配到 }，返回 { body, end }
-function extractBalancedObj(text, startIdx) {
-  let depth = 0, i = startIdx, inStr = null;
-  while (i < text.length) {
-    const ch = text[i];
-    if (inStr) {
-      if (ch === '\\') { i += 2; continue; }
-      if (ch === inStr) inStr = null;
-    } else {
-      if (ch === '"' || ch === "'" || ch === '`') inStr = ch;
-      else if (ch === '{') depth++;
-      else if (ch === '}') { depth--; if (depth === 0) return { body: text.slice(startIdx + 1, i), end: i }; }
-    }
-    i++;
-  }
-  return null;
 }
 
 const CHECKS = {
@@ -179,7 +87,7 @@ const CHECKS = {
     isWarning: true, // 含此项才提示（其余是缺才提示）
   },
   columnsAllWidth: {
-    present: () => false, // 由 extractColumnWidths 单独处理，不在此触发
+    present: () => false, // 由 AST 顶层列对象扫描单独处理，不在此触发
     advice: '所有列都带 width → eview-react Table 列全设 width 会导致表格显示异常。应至少有一列不设 width 让其自适应剩余空间（通常操作列或文本列可去 width）',
   },
 };
@@ -195,35 +103,72 @@ function main() {
     process.exit(2);
   }
 
+  const parser = H.loadParser(root);
+  if (!parser) {
+    console.error('[check-table-defaults] 未找到 @babel/parser。目标工程跑 npm install 后重试'
+      + '（@vitejs/plugin-react 已含其为传递依赖）。');
+    process.exit(strict ? 1 : 2);
+  }
+
   const files = walk(srcDir, []);
   const items = []; // { file, line, missing: [], warning: [] }
+  const parseWarnings = [];
 
   for (const file of files) {
     const text = fs.readFileSync(file, 'utf8');
     if (!/<Table\b/.test(text)) continue;
     const rel = path.relative(root, file);
-    for (const t of findTables(text)) {
+
+    // 解析 AST；解析失败仅告警跳过该文件（advisory 检查，不阻塞——但 --strict 下记为待核）
+    const parsed = H.parse(parser, text);
+    if (parsed.error) {
+      parseWarnings.push(`${rel}: ${parsed.error.message}`);
+      continue;
+    }
+    const ast = parsed.ast;
+
+    const tables = H.findJsxElements(ast, ['Table']);
+    for (const { el } of tables) {
+      const frag = text.slice(el.start, el.end);
+      const line = (el.loc && el.loc.start) ? el.loc.start.line : lineOfOffset(text, el.start);
       const missing = [];
       const warning = [];
       let detailMsg = null;
+
       for (const key of Object.keys(CHECKS)) {
+        if (key === 'columnsAllWidth') continue; // 由 AST 顶层列对象扫描单独处理
         const c = CHECKS[key];
-        if (key === 'columnsAllWidth') continue; // 由 extractColumnWidths 单独处理
-        const has = c.present(t.frag, text);
+        const has = c.present(frag, text);
         if (c.isWarning) {
           if (has) warning.push(key);
         } else {
           if (!has) missing.push(key);
         }
       }
-      // 额外检查：所有列都带 width 会导致 eview-react Table 显示异常
-      const cw = extractColumnWidths(t.frag, text);
-      if (cw && cw.allHaveWidth && cw.total >= 2) {
-        missing.push('columnsAllWidth');
-        detailMsg = `columns 共 ${cw.total} 列全部带 width（eview-react Table 列全设 width 会导致表格显示异常——应至少有一列不设 width 让其自适应剩余空间）`;
+
+      // columnsAllWidth：AST 收集【顶层列对象】（数组元素 / .map 回调 return，不深入嵌套——
+      // 列 render 回调里返回的 {children,props} 不算列），逐个查 width 属性。
+      // 覆盖 .map/Array.from/spread/function 回调/标识符追源 等动态形态。
+      // 规则：全列有 width 且（列数≥2 或 mapSourced）才报——.map 回调静态只产 1 个形状对象
+      // 但运行时可能 N 列，故 mapSourced 时不看列数阈值，形状带 width 即报（advisory，运行时核列数）。
+      const colExpr = H.getAttrExpr(el, 'columns');
+      if (colExpr) {
+        const { objects: cols, mapSourced } = H.collectTopLevelObjects(ast, colExpr);
+        if (cols.length >= 1) {
+          const withWidth = cols.filter((o) => H.findProperty(o, 'width')).length;
+          const allWidth = withWidth === cols.length;
+          if (allWidth && (cols.length >= 2 || mapSourced)) {
+            missing.push('columnsAllWidth');
+            const cntDesc = mapSourced
+              ? `${cols.length} 个列形状（.map/Array.from 动态生成，运行时列数可能更多）`
+              : `${cols.length} 列`;
+            detailMsg = `columns 共 ${cntDesc}全部带 width（eview-react Table 列全设 width 会导致表格显示异常——应至少有一列不设 width 让其自适应剩余空间）`;
+          }
+        }
       }
+
       if (missing.length || warning.length) {
-        items.push({ file: rel, line: t.line, missing, warning, detail: detailMsg });
+        items.push({ file: rel, line, missing, warning, detail: detailMsg });
       }
     }
   }
@@ -232,6 +177,11 @@ function main() {
   const tableFiles = files.filter((f) => /<Table\b/.test(fs.readFileSync(f, 'utf8'))).length;
   console.log('[check-table-defaults] Table 默认值反向坑检查报告');
   console.log(`  扫描范围: ${srcDir}（${files.length} 个文件，含 <Table> 的 ${tableFiles} 个）`);
+
+  if (parseWarnings.length) {
+    console.log(`\n【AST 解析告警 — ${parseWarnings.length} 个文件被跳过，请人工复核 Table 默认值 props】`);
+    for (const w of parseWarnings) console.log(`  - ${w}`);
+  }
 
   if (items.length === 0) {
     console.log('\n结论: PASS — 所有 <Table> 均已标记默认值相关 props，无需核对。');

@@ -6,10 +6,17 @@
  * antd Menu→eview Accordion 是「带语义反转 + 字段重命名 + 默认值反向坑」的高错迁移，
  * 文档已强约束，本脚本做机器兜底，拦弱模型最常漏的三类硬错误 + 两类待核项。
  *
+ * 字段残留扫描（data 子项 key:/label:→value:/title:，含嵌套 children）采用 AST（@babel/parser）：
+ *   纯正则的 extractDataArray 只扫第一个 [...] 数组体，对 .map(item=>({key,label}))、
+ *   Array.from、spread、function 回调 return、shorthand、计算键等动态形态全漏。
+ *   AST 从 data 表达式递归收集所有 ObjectExpression（含嵌套 children 里的子项），逐个查属性键，
+ *   覆盖上述全部 JS 书写习惯（与 check-select-options / check-dropdown 共用 lib/ast-helpers.cjs）。
+ *   其余检查（selectedValue 数组 / expanded·onExpand 配对 / hideIcons 缺失）仍走正则。
+ *
  * 检查项：
  *   硬 FAIL（exit 1）：
  *     1. SELECTED_VALUE_ARRAY   selectedValue 传数组（应为单 string，非 antd selectedKeys 数组）
- *     2. DATA_FIELD_RESIDUE     data 子项残留 antd 字段名 key:/label:（应为 value:/title:，含嵌套 children）
+ *     2. DATA_FIELD_RESIDUE     data 子项残留 antd 字段名 key:/label:（应为 value:/title:，含嵌套 children）—— AST
  *     3. EXPAND_INVERTED        expanded 传入值与状态变量语义相反（collapsed 语义多加了 ! / expanded 语义漏了 !）
  *     4. ON_EXPAND_NOT_NEGATED  collapsed 语义下 onExpand setV(flag) 未取反（应 setV(!flag)）
  *        ON_EXPAND_OVER_NEGATED expanded 语义下 onExpand setV(!flag) 多取反（应 setV(flag)）
@@ -20,12 +27,13 @@
  * 用法：
  *   node check-accordion.cjs <目标工程根>          # 硬 FAIL exit 1，advisory exit 0
  *
- * 纯静态正则（扫描前移除注释），不执行代码。退出码：0=通过/仅 advisory，1=硬 FAIL，2=用法错误。
+ * 退出码：0=通过/仅 advisory，1=硬 FAIL，2=用法错误/无解析器。
  */
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
+const H = require('./lib/ast-helpers.cjs');
 
 const EXTS = new Set(['.js', '.jsx', '.ts', '.tsx']);
 
@@ -105,33 +113,6 @@ function extractPropExpr(text, frag, propName, fragOffsetInText) {
   return { body: res.body, bodyStartOffsetInText: res.bodyStart };
 }
 
-// 提取 Accordion data 引用的数组体（内联 [ 或标识符追 const），返回 { body, bodyStartOffsetInText }
-function extractDataArray(text, frag, fragOffsetInText) {
-  const expr = extractPropExpr(text, frag, 'data', fragOffsetInText);
-  if (!expr) return null;
-  const body = expr.body;
-  const bodyStart = expr.bodyStartOffsetInText;
-  // 内联数组：取 body 里第一个 [
-  const arrOffInBody = body.indexOf('[');
-  if (arrOffInBody >= 0) {
-    const arrIdxInText = bodyStart + arrOffInBody;
-    const res = extractBalanced(text, '[', ']', arrIdxInText);
-    if (res) return { body: res.body, bodyStartOffsetInText: res.bodyStart };
-  }
-  // 标识符引用：追同文件 const/let/var X = [
-  const nameM = body.trim().match(/^([A-Za-z_$][\w$]*)/);
-  if (nameM) {
-    const re = new RegExp(`\\b(?:const|let|var)\\s+${nameM[1]}\\s*=\\s*\\[`);
-    const defM = re.exec(text);
-    if (defM) {
-      const arrIdxInText = defM.index + defM[0].lastIndexOf('[');
-      const res = extractBalanced(text, '[', ']', arrIdxInText);
-      if (res) return { body: res.body, bodyStartOffsetInText: res.bodyStart };
-    }
-  }
-  return null;
-}
-
 function main() {
   const args = process.argv.slice(2);
   const rootIdx = args.findIndex((a) => !a.startsWith('--'));
@@ -142,11 +123,19 @@ function main() {
     process.exit(2);
   }
 
+  const parser = H.loadParser(root);
+  if (!parser) {
+    console.error('[check-accordion] 未找到 @babel/parser。目标工程跑 npm install 后重试'
+      + '（@vitejs/plugin-react 已含其为传递依赖）。');
+    process.exit(2);
+  }
+
   const files = walk(srcDir, []);
   const fails = [];      // 硬 FAIL
   const advisories = []; // advisory
   // DATA_FIELD_RESIDUE 去重键：同一 file:line:field 只报一次（data 常量被多个 <Accordion> 引用时避免重复）
   const residueSeen = new Set();
+  const parseWarnings = [];
 
   for (const file of files) {
     const raw = fs.readFileSync(file, 'utf8');
@@ -154,6 +143,12 @@ function main() {
     const text = stripComments(raw);
     const rel = path.relative(root, file);
 
+    // 解析 AST（字段残留扫描用）；解析失败仅告警跳过 AST 部分，其余正则检查照跑
+    const parsed = H.parse(parser, text);
+    if (parsed.error) parseWarnings.push(`${rel}: ${parsed.error.message}`);
+    const ast = parsed.ast;
+
+    // ---- tag 级正则检查（selectedValue / expanded·onExpand / hideIcons）----
     const re = /<Accordion\b/g;
     let m;
     while ((m = re.exec(text)) !== null) {
@@ -165,22 +160,6 @@ function main() {
       if (/selectedValue\s*=\s*\{\s*\[/.test(frag)) {
         fails.push({ file: rel, line, code: 'SELECTED_VALUE_ARRAY',
           detail: 'selectedValue 传了数组——Accordion 的 selectedValue 是单个 string，不是 antd 的 selectedKeys 数组。改为 selectedValue={key}（单值）' });
-      }
-
-      // 2. DATA_FIELD_RESIDUE（含嵌套 children，扫整个 data 数组体）
-      const dataArr = extractDataArray(text, frag, start);
-      if (dataArr) {
-        const residueRe = /\b(key|label)\b\s*:/g;
-        let rm;
-        while ((rm = residueRe.exec(dataArr.body)) !== null) {
-          const off = dataArr.bodyStartOffsetInText + rm.index;
-          const resLine = lineOfOffset(text, off);
-          const dedupKey = `${rel}:${resLine}:${rm[1]}`;
-          if (residueSeen.has(dedupKey)) continue;
-          residueSeen.add(dedupKey);
-          fails.push({ file: rel, line: resLine, code: 'DATA_FIELD_RESIDUE',
-            detail: `data 子项残留 antd 字段名 "${rm[1]}:"（应为 ${rm[1] === 'key' ? 'value' : 'title'}:）——AccordionItem 用 value/title，嵌套 children 里的子项也要逐层改。见 Accordion.md §5 字段映射表` });
-        }
       }
 
       // 3/4/6. expanded / onExpand 配对
@@ -244,12 +223,40 @@ function main() {
           detail: `缺 ${missing.join(' / ')}——迁移 antd Menu 默认必加 hideIcons + hideTitleBar（两种形态都要，漏加样式与官网不一致）。若确有特殊需求不加，在 accordionReviews 注明理由。见 Accordion.md §10` });
       }
     }
+
+    // ---- AST 字段残留扫描（2. DATA_FIELD_RESIDUE：data 子项 key:/label:→value:/title:，含嵌套 children）----
+    // 替代原 extractDataArray 正则：覆盖 .map 回调 / Array.from / spread / function 回调 /
+    // 嵌套 children 子项 / shorthand / 计算键等动态形态，含标识符追同文件 const 定义
+    if (ast) {
+      const accEls = H.findJsxElements(ast, ['Accordion']);
+      for (const { el } of accEls) {
+        const dataExpr = H.getAttrExpr(el, 'data');
+        if (!dataExpr) continue;
+        const objs = H.collectOptionsObjects(ast, dataExpr);
+        for (const obj of objs) {
+          for (const field of ['key', 'label']) {
+            const hit = H.findProperty(obj, field);
+            if (!hit) continue;
+            const dk = `${rel}:${hit.line}:${field}`;
+            if (residueSeen.has(dk)) continue;
+            residueSeen.add(dk);
+            fails.push({ file: rel, line: hit.line, code: 'DATA_FIELD_RESIDUE',
+              detail: `data 子项残留 antd 字段名 "${field}:"（应为 ${field === 'key' ? 'value' : 'title'}:）——AccordionItem 用 value/title，嵌套 children 里的子项也要逐层改。含 .map/Array.from/spread/嵌套/shorthand/计算键等动态形态。见 Accordion.md §5 字段映射表` });
+          }
+        }
+      }
+    }
   }
 
   // ---- 报告 ----
   const accFiles = files.filter((f) => /<Accordion\b/.test(fs.readFileSync(f, 'utf8'))).length;
   console.log('[check-accordion] Menu→Accordion 迁移正确性检查报告');
   console.log(`  扫描范围: ${srcDir}（${files.length} 个文件，含 <Accordion> 的 ${accFiles} 个）`);
+
+  if (parseWarnings.length) {
+    console.log(`\n【AST 解析告警 — ${parseWarnings.length} 个文件字段扫描被跳过，请人工复核】`);
+    for (const w of parseWarnings) console.log(`  - ${w}`);
+  }
 
   if (fails.length === 0 && advisories.length === 0) {
     console.log('\n结论: PASS — 无 Accordion，或所有 <Accordion> 通过检查。');

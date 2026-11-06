@@ -9,16 +9,23 @@
  * 本脚本做机器兜底——拦弱模型最常漏的 prop/字段残留、误当 Select、误用受控显隐、
  * disable 拼错、trigger 数组等硬错误，外加 onClick/onItemClick 与 value=0 真假值判断两类待核项。
  *
+ * 字段残留扫描（key/label/children/disable）采用 AST（@babel/parser）：
+ *   纯正则的 resolveArrayBody 只扫第一个 [...] 数组体，对 .map(item=>({label,value}))、
+ *   Array.from、spread、function 回调 return、shorthand、计算键等动态形态全漏。
+ *   AST 从 data/items/options/menu.items 表达式递归收集所有 ObjectExpression，逐个查属性键，
+ *   覆盖上述全部 JS 书写习惯（与 check-select-options / check-accordion 共用 lib/ast-helpers.cjs）。
+ *   tag 级检查（prop 残留/disable=/trigger/placement/open/value/onClick 等）仍走正则（不涉及数组体）。
+ *
  * 检查项：
  *   硬 FAIL（exit 1）：
  *     1. MENU_PROP_RESIDUE        menu= 残留（antd Dropdown menu={{items}}，应为 data=）
  *     2. ITEMS_PROP_RESIDUE       items= 残留（应为 data=）
  *     3. OPTIONS_PROP_RESIDUE     options= 残留（误当 Select，应为 data=）
- *     4. KEY_FIELD_RESIDUE        data 项 key: 残留（应为 value:）
- *     5. LABEL_TEXT_RESIDUE       data 项 label: 带字符串值（antd 文字 label，应为 text:；
- *                                 label: true 是 DropDown 合法分组标记，不报）
- *     6. CHILDREN_SUBMENU_RESIDUE data 项 children: 残留（antd 多级子菜单，DropDown 仅一级不支持）
- *     7. DISABLE_PROP_RESIDUE     disable 残留（应为 disabled，DropDown 用正确拼写）
+ *     4. KEY_FIELD_RESIDUE        data 项 key: 残留（应为 value:）—— AST
+ *     5. LABEL_TEXT_RESIDUE       data 项 label: 带非布尔值（antd 文字 label，应为 text:；
+ *                                 label: true/false 是 DropDown 合法分组标记，不报）—— AST
+ *     6. CHILDREN_SUBMENU_RESIDUE data 项 children: 残留（antd 多级子菜单，DropDown 仅一级不支持）—— AST
+ *     7. DISABLE_PROP_RESIDUE     disable 残留（应为 disabled，DropDown 用正确拼写；含 prop 级与 data 项字段）—— AST + 正则
  *     8. TRIGGER_ARRAY            trigger={['click']} 数组（应为单字符串 'click'/'hover'）
  *     9. PLACEMENT_RESIDUE        placement= 残留（应为 position+popupDirection）
  *    10. OPEN_CONTROL_RESIDUE     open=/onOpenChange= 残留（DropDown 展开内部管理，无受控显隐 API）
@@ -32,12 +39,13 @@
  * 用法：
  *   node check-dropdown.cjs <目标工程根>          # 硬 FAIL exit 1，advisory exit 0
  *
- * 纯静态正则（扫描前移除注释），不执行代码。退出码：0=通过/仅 advisory，1=硬 FAIL，2=用法错误。
+ * 退出码：0=通过/仅 advisory，1=硬 FAIL，2=用法错误/无解析器。
  */
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
+const H = require('./lib/ast-helpers.cjs');
 
 const EXTS = new Set(['.js', '.jsx', '.ts', '.tsx']);
 
@@ -117,50 +125,23 @@ function extractPropExpr(text, frag, propName, fragOffsetInText) {
   return { body: res.body, bodyStartOffsetInText: res.bodyStart };
 }
 
-// 从 prop 表达式体（{} 内）解析数组体：内联 [ 或标识符追同文件 const/let/var X = [
-function resolveArrayBody(text, exprBody, exprStart) {
-  const arrOff = exprBody.indexOf('[');
-  if (arrOff >= 0) {
-    const arrIdxInText = exprStart + arrOff;
-    const res = extractBalanced(text, '[', ']', arrIdxInText);
-    if (res) return { body: res.body, bodyStart: res.bodyStart };
-  }
-  const nameM = exprBody.trim().match(/^([A-Za-z_$][\w$]*)/);
-  if (nameM) {
-    const re = new RegExp(`\\b(?:const|let|var)\\s+${nameM[1]}\\s*=\\s*\\[`);
-    const defM = re.exec(text);
-    if (defM) {
-      const arrIdxInText = defM.index + defM[0].lastIndexOf('[');
-      const res = extractBalanced(text, '[', ']', arrIdxInText);
-      if (res) return { body: res.body, bodyStart: res.bodyStart };
-    }
-  }
-  return null;
-}
-
-// 收集 DropDown 持有菜单项的数组体：data= / items= / options=（直取）+ menu=（钻 items:）
-// menu={{ items: [...] }} / menu={{ items: identifier }} 时 items 套在对象里，需进一层
-function collectItemArrays(text, frag, fragOffset) {
-  const out = [];
+// 收集一个 DropDown 元素持有的菜单项 ObjectExpression 列表（data/items/options + menu.items）。
+// 用 AST 递归收集，覆盖 .map/Array.from/spread/function 回调/嵌套/shorthand/计算键 + 标识符追源。
+function collectItemObjects(ast, el) {
+  const objs = new Set();
   for (const prop of ['data', 'items', 'options']) {
-    const expr = extractPropExpr(text, frag, prop, fragOffset);
-    if (expr) {
-      const arr = resolveArrayBody(text, expr.body, expr.bodyStartOffsetInText);
-      if (arr) out.push(arr);
+    const e = H.getAttrExpr(el, prop);
+    if (e) for (const o of H.collectOptionsObjects(ast, e)) objs.add(o);
+  }
+  const menuExpr = H.getAttrExpr(el, 'menu');
+  if (menuExpr && menuExpr.type === 'ObjectExpression') {
+    const itemsHit = H.findProperty(menuExpr, 'items');
+    if (itemsHit) {
+      const v = H.getPropertyValueNode(itemsHit.prop);
+      if (v) for (const o of H.collectOptionsObjects(ast, v)) objs.add(o);
     }
   }
-  const menuExpr = extractPropExpr(text, frag, 'menu', fragOffset);
-  if (menuExpr) {
-    const itemsM = /\bitems\b\s*:\s*/.exec(menuExpr.body);
-    if (itemsM) {
-      const valStartInBody = itemsM.index + itemsM[0].length;
-      const valBody = menuExpr.body.slice(valStartInBody);
-      const valStartInText = menuExpr.bodyStartOffsetInText + valStartInBody;
-      const arr = resolveArrayBody(text, valBody, valStartInText);
-      if (arr) out.push(arr);
-    }
-  }
-  return out;
+  return [...objs];
 }
 
 function main() {
@@ -173,6 +154,13 @@ function main() {
     process.exit(2);
   }
 
+  const parser = H.loadParser(root);
+  if (!parser) {
+    console.error('[check-dropdown] 未找到 @babel/parser。目标工程跑 npm install 后重试'
+      + '（@vitejs/plugin-react 已含其为传递依赖）。');
+    process.exit(2);
+  }
+
   const files = walk(srcDir, []);
   const fails = [];      // 硬 FAIL
   const advisories = []; // advisory
@@ -180,6 +168,7 @@ function main() {
   const fieldSeen = new Set();
   // disable 去重键：同一 file:line 只报一次（tag 级 disable= 与 data 项 disable: 可能同文件多处）
   const disableSeen = new Set();
+  const parseWarnings = [];
 
   for (const file of files) {
     const raw = fs.readFileSync(file, 'utf8');
@@ -187,6 +176,12 @@ function main() {
     const text = stripComments(raw);
     const rel = path.relative(root, file);
 
+    // 解析 AST（字段残留扫描用）；解析失败仅告警跳过 AST 部分，tag 级正则检查照跑
+    const parsed = H.parse(parser, text);
+    if (parsed.error) parseWarnings.push(`${rel}: ${parsed.error.message}`);
+    const ast = parsed.ast;
+
+    // ---- tag 级正则检查（prop 残留 / disable= / trigger / placement / open / value / onClick / onItemClick）----
     const re = /<DropDown\b/g;
     let m;
     while ((m = re.exec(text)) !== null) {
@@ -208,59 +203,8 @@ function main() {
           detail: 'options= 残留——DropDown 用 data，无 options（options 是 Select 的 prop，勿把操作菜单当输入控件）' });
       }
 
-      // 4/5/6. 字段残留（扫 data/items/options/menu 持有的项数组体）
-      const arrays = collectItemArrays(text, frag, start);
-      for (const arr of arrays) {
-        // key: → value:
-        const keyRe = /\bkey\b\s*:/g;
-        let rm;
-        while ((rm = keyRe.exec(arr.body)) !== null) {
-          const off = arr.bodyStart + rm.index;
-          const resLine = lineOfOffset(text, off);
-          const dk = `${rel}:${resLine}:key`;
-          if (fieldSeen.has(dk)) continue;
-          fieldSeen.add(dk);
-          fails.push({ file: rel, line: resLine, code: 'KEY_FIELD_RESIDUE',
-            detail: 'data 项残留 antd 字段名 "key:"（应为 value:）——DropDownItem 用 value 做命令标识，key 是 antd menu item 字段。见 DropDown.md §5' });
-        }
-        // label: 带字符串值 → text:（label: true/false/<var> 是 DropDown 合法分组标记，不报）
-        const labelRe = /\blabel\b\s*:\s*(['"`])/g;
-        while ((rm = labelRe.exec(arr.body)) !== null) {
-          const off = arr.bodyStart + rm.index;
-          const resLine = lineOfOffset(text, off);
-          const dk = `${rel}:${resLine}:label`;
-          if (fieldSeen.has(dk)) continue;
-          fieldSeen.add(dk);
-          fails.push({ file: rel, line: resLine, code: 'LABEL_TEXT_RESIDUE',
-            detail: 'data 项残留 antd 字段名 "label:" 带文字值（应为 text:）——DropDown 的 label 是 boolean（true=分组标题/分割行），文字内容用 text。见 DropDown.md §5' });
-        }
-        // children: → 多级子菜单不支持
-        const childrenRe = /\bchildren\b\s*:/g;
-        while ((rm = childrenRe.exec(arr.body)) !== null) {
-          const off = arr.bodyStart + rm.index;
-          const resLine = lineOfOffset(text, off);
-          const dk = `${rel}:${resLine}:children`;
-          if (fieldSeen.has(dk)) continue;
-          fieldSeen.add(dk);
-          fails.push({ file: rel, line: resLine, code: 'CHILDREN_SUBMENU_RESIDUE',
-            detail: 'data 项残留 "children:" 子菜单字段——DropDown 仅一级操作菜单，不支持 children/submenus 多级下钻。源 antd 多级菜单需拍平为一级（label:true 做分组）或拆成多个菜单。见 DropDown.md §5/§8' });
-        }
-        // disable: 字段（应为 disabled:）—— 仅 chased const 数组需在此补扫；
-        //   内联数组里的 disable: 会被下方 tag 级扫描命中，靠 disableSeen 去重不重复报
-        const disFieldRe = /\bdisable\b\s*:/g;
-        while ((rm = disFieldRe.exec(arr.body)) !== null) {
-          const off = arr.bodyStart + rm.index;
-          const resLine = lineOfOffset(text, off);
-          const dk = `${rel}:${resLine}`;
-          if (disableSeen.has(dk)) continue;
-          disableSeen.add(dk);
-          fails.push({ file: rel, line: resLine, code: 'DISABLE_PROP_RESIDUE',
-            detail: 'data 项字段 "disable:" 残留——应为 disabled:（DropDown 用正确拼写 disabled，disable 静默丢禁用态）。见 DropDown.md §5' });
-        }
-      }
-
       // 7. disable（应为 disabled）—— disable 后不跟字母/数字/下划线（排除 disabled/disableXxx）
-      //     覆盖 prop 级 disable= / 裸 disable 与内联 data 项 disable:（chased const 的 disable: 由上方数组扫描补）
+      //     覆盖 prop 级 disable= / 裸 disable 与内联 data 项 disable:（data 项 disable: 的 AST 扫描靠 disableSeen 去重不重复报）
       const disRe = /\bdisable\b(?![\w])/g;
       let dm;
       while ((dm = disRe.exec(frag)) !== null) {
@@ -316,12 +260,72 @@ function main() {
         }
       }
     }
+
+    // ---- AST 字段残留扫描（4/5/6/7 的 data 项字段：key/label/children/disable）----
+    // 替代原 collectItemArrays 正则：覆盖 .map 回调 / Array.from / spread / function 回调 /
+    // 嵌套 children / shorthand / 计算键等动态形态，含标识符追同文件 const 定义
+    if (ast) {
+      const ddEls = H.findJsxElements(ast, ['DropDown']);
+      for (const { el } of ddEls) {
+        const objs = collectItemObjects(ast, el);
+        for (const obj of objs) {
+          // key: → value:
+          const kHit = H.findProperty(obj, 'key');
+          if (kHit) {
+            const dk = `${rel}:${kHit.line}:key`;
+            if (!fieldSeen.has(dk)) {
+              fieldSeen.add(dk);
+              fails.push({ file: rel, line: kHit.line, code: 'KEY_FIELD_RESIDUE',
+                detail: 'data 项残留 antd 字段名 "key:"（应为 value:）——DropDownItem 用 value 做命令标识，key 是 antd menu item 字段。见 DropDown.md §5' });
+            }
+          }
+          // label: 非布尔值 → text:（label: true/false 是 DropDown 合法分组标记，不报）
+          const lHit = H.findProperty(obj, 'label');
+          if (lHit) {
+            const lval = H.getPropertyValueNode(lHit.prop);
+            if (!H.isBooleanLiteral(lval)) {
+              const dk = `${rel}:${lHit.line}:label`;
+              if (!fieldSeen.has(dk)) {
+                fieldSeen.add(dk);
+                fails.push({ file: rel, line: lHit.line, code: 'LABEL_TEXT_RESIDUE',
+                  detail: 'data 项残留 antd 字段名 "label:" 带文字值（应为 text:）——DropDown 的 label 是 boolean（true=分组标题/分割行），文字内容用 text。见 DropDown.md §5' });
+              }
+            }
+          }
+          // children: → 多级子菜单不支持
+          const cHit = H.findProperty(obj, 'children');
+          if (cHit) {
+            const dk = `${rel}:${cHit.line}:children`;
+            if (!fieldSeen.has(dk)) {
+              fieldSeen.add(dk);
+              fails.push({ file: rel, line: cHit.line, code: 'CHILDREN_SUBMENU_RESIDUE',
+                detail: 'data 项残留 "children:" 子菜单字段——DropDown 仅一级操作菜单，不支持 children/submenus 多级下钻。源 antd 多级菜单需拍平为一级（label:true 做分组）或拆成多个菜单。见 DropDown.md §5/§8' });
+            }
+          }
+          // disable: 字段（应为 disabled:）
+          const disHit = H.findProperty(obj, 'disable');
+          if (disHit) {
+            const dk = `${rel}:${disHit.line}`;
+            if (!disableSeen.has(dk)) {
+              disableSeen.add(dk);
+              fails.push({ file: rel, line: disHit.line, code: 'DISABLE_PROP_RESIDUE',
+                detail: 'data 项字段 "disable:" 残留——应为 disabled:（DropDown 用正确拼写 disabled，disable 静默丢禁用态）。见 DropDown.md §5' });
+            }
+          }
+        }
+      }
+    }
   }
 
   // ---- 报告 ----
   const ddFiles = files.filter((f) => /<DropDown\b/.test(fs.readFileSync(f, 'utf8'))).length;
   console.log('[check-dropdown] Dropdown→DropDown 迁移正确性检查报告');
   console.log(`  扫描范围: ${srcDir}（${files.length} 个文件，含 <DropDown> 的 ${ddFiles} 个）`);
+
+  if (parseWarnings.length) {
+    console.log(`\n【AST 解析告警 — ${parseWarnings.length} 个文件字段扫描被跳过，请人工复核】`);
+    for (const w of parseWarnings) console.log(`  - ${w}`);
+  }
 
   if (fails.length === 0 && advisories.length === 0) {
     console.log('\n结论: PASS — 无 DropDown，或所有 <DropDown> 通过检查。');

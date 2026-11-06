@@ -242,7 +242,9 @@ node <skill目录>/scripts/check-chart-options.cjs <目标工程根>
 
 > 对应 [Table.md](components/Table.md) §4/§5「Table 排序项/斑马纹/外层宽度/columns 更新」四连——eview-react 的 Table 多个默认值与 antd **相反**，迁移时最易忘、最常错。脚本无法访问源 antd 项目，故全 advisory：列出每个 `<Table>` 缺哪几项标记，**强制迁移方逐条对照源 antd 回应**（决策写入 `.migration-result.json` 的 `tableDefaultReviews`）。这一步把「靠 AI 记住」的约束变成「AI 必须逐条回应」。
 
-脚本 `scripts/check-table-defaults.cjs`，对每个 `<Table>` 标六项：① `enableZebraCrossing`（eview 默认 true 开斑马纹 vs antd 默认无）、② `allowSort`（列级属性，eview 默认 true 全列带排序箭头 vs antd 默认无，检查 columns 数组每列是否标 allowSort）、③ `enableColumnCompareUpdate`（eview 默认 false，columns 动态失效）、④ `width`（eview 默认行内 100%/100% 撑破布局）、⑤ `freezeCol`（eview 无条件冻结，含则需确认源真会横向滚动）、⑥ **`columnsAllWidth`（列级，columns 所有列都带 width 会导致 eview-react Table 显示异常——应至少有一列不设 width 让其自适应剩余空间；脚本解析 columns 数组逐列检查 width，全列带 width 则报）**。
+脚本 `scripts/check-table-defaults.cjs`，对每个 `<Table>` 标六项：① `enableZebraCrossing`（eview 默认 true 开斑马纹 vs antd 默认无）、② `allowSort`（列级属性，eview 默认 true 全列带排序箭头 vs antd 默认无，检查 columns 数组每列是否标 allowSort）、③ `enableColumnCompareUpdate`（eview 默认 false，columns 动态失效）、④ `width`（eview 默认行内 100%/100% 撑破布局）、⑤ `freezeCol`（eview 无条件冻结，含则需确认源真会横向滚动）、⑥ **`columnsAllWidth`（列级，columns 所有列都带 width 会导致 eview-react Table 显示异常——应至少有一列不设 width 让其自适应剩余空间）**。
+
+> **`columnsAllWidth` 扫描基于 AST（@babel/parser）**：从 `columns` 表达式收集【顶层列对象】（数组直接元素 / `.map` 回调 return 的对象，**不深入嵌套**——避免列 `render` 回调里返回的 `{children,props}` 被误计入列数），逐个查 `width` 属性。覆盖 `columns={raw.map(c=>({width}))}`/`Array.from`/spread/function 回调 return/标识符追同文件 `const` 等动态形态（纯正则只扫第一个 `[...]` 数组体，`.map` 列全漏）。规则：全列有 `width` 且（列数≥2 或 `.map`/`Array.from` 动态生成）则报——`.map` 回调静态只产 1 个形状对象但运行时可能 N 列，故动态生成时不看列数阈值。①~⑤ 是 tag 级 / 文件级文本搜索，保留正则；Table 元素定位也走 AST（精准取开标签节点）。与字段残留类 check 共用 `scripts/lib/ast-helpers.cjs`。
 
 ```bash
 node <skill目录>/scripts/check-table-defaults.cjs <目标工程根>
@@ -361,9 +363,11 @@ node <skill目录>/scripts/check-icon-names.cjs <目标工程根>   # 仅方案 
 
 脚本 `scripts/check-accordion.cjs`，对每个 `<Accordion>` 检查：
 
+> **字段残留扫描（`DATA_FIELD_RESIDUE`）基于 AST（@babel/parser）**——从 `data` 表达式递归收集所有 ObjectExpression（含嵌套 `children` 子项），覆盖 `.map(item=>({key,label}))`/`Array.from`/spread/function 回调 return/shorthand/计算键等动态形态，标识符引用追同文件 `const` 定义（与 check-select-options/check-dropdown 共用 `scripts/lib/ast-helpers.cjs`）。其余检查（selectedValue/expanded·onExpand/hideIcons）仍走正则。
+
 **硬 FAIL（exit≠0 即 FAIL）**：
 1. `SELECTED_VALUE_ARRAY` — `selectedValue` 传数组（应为单 string，非 antd `selectedKeys` 数组）
-2. `DATA_FIELD_RESIDUE` — `data` 子项残留 antd 字段名 `key:`/`label:`（应为 `value:`/`title:`，**含嵌套 `children` 里的子项，扫整个 data 数组体**；data 引用标识符时追同文件 `const X=[` 定义）
+2. `DATA_FIELD_RESIDUE` — `data` 子项残留 antd 字段名 `key:`/`label:`（应为 `value:`/`title:`，**含嵌套 `children` 里的子项**）；AST 递归收集 ObjectExpression 覆盖 `.map`/`Array.from`/spread/shorthand/计算键等动态形态，标识符引用追同文件 `const` 定义
 3. `EXPAND_INVERTED` — `expanded` 传入值与状态变量语义相反：collapsed 语义（变量名含 `collapse`，true=收起）多加了 `!`（`expanded={!collapsed}`）/ expanded 语义（变量名含 `open/expand/show/visible`，true=展开）漏了 `!`（`expanded={isOpen}`）
 4. `ON_EXPAND_NOT_NEGATED` / `ON_EXPAND_OVER_NEGATED` — collapsed 语义下 `onExpand setV(flag)` 未取反（应 `setV(!flag)`）/ expanded 语义下 `setV(!flag)` 多取反（应 `setV(flag)`）
 
@@ -382,8 +386,11 @@ node <skill目录>/scripts/check-accordion.cjs <目标工程根>
 > 对应 component-mapping.md Breadcrumb 行 + components/Crumbs.md §2/§4/§5。antd Breadcrumb→eview Crumbs 是「prop 重命名（`items`→`data`）+ 字段重命名（`href`/`path`→`url`）+ 拼写反转（`separator`→`seprator`）」的高错迁移。`title` 两边同名会掩护 `href`/`path` 漏改（最常见失败），且 `<Breadcrumb.Item>` JSX 子元素形态要拍平成 `data` 数组——文档已强约束，本脚本做机器兜底。
 
 脚本 `scripts/check-crumbs.cjs`，对每个 `<Crumbs>` 检查（全硬 FAIL）：
+
+> **字段残留扫描（`FIELD_RESIDUE`）基于 AST（@babel/parser）**——从 `data`/`items`/`item` 表达式递归收集所有 ObjectExpression，覆盖 `.map(item=>({href,url}))`/`Array.from`/spread/function 回调 return/shorthand/计算键等动态形态，标识符引用追同文件 `const` 定义（与 check-select-options/check-dropdown/check-accordion 共用 `scripts/lib/ast-helpers.cjs`）。tag 级检查（items=/item=/separator=）仍走正则。
+
 1. `ITEMS_RESIDUE` — `items=`/`item=` 残留（应为 `data=`，antd items prop 没改成 data）
-2. `FIELD_RESIDUE` — `data` 项里 `href:`/`path:` 残留（应为 `url:`；扫整个数组体，含 `items=`/`item=` 残留 prop 持有的数组，第一轮即抓字段残留；引用标识符时追同文件 `const X=[` 定义，按 file:line:field 去重）
+2. `FIELD_RESIDUE` — `data` 项里 `href:`/`path:` 残留（应为 `url:`；AST 扫 `data`/`items`/`item` 持有的数组体——`items=`/`item=` 残留时第一轮即抓字段残留；覆盖 `.map`/`Array.from`/spread/shorthand/计算键等动态形态，标识符追同文件 `const` 定义，按 file:line:field 去重）
 3. `SEPARATOR_RESIDUE` — `separator=`（正确英文）残留（应为 `seprator=`，eview-react 官方 API 即拼错的 seprator，将错就错）
 
 ```bash
@@ -397,6 +404,8 @@ node <skill目录>/scripts/check-crumbs.cjs <目标工程根>
 > 对应 component-mapping.md Dropdown 行 + components/DropDown.md §4/§5/§8/§9。antd Dropdown→eview DropDown 是「prop 重命名（menu/items→data）+ 字段重命名（key→value，label→text）+ 回调签名改（onClick({key})→onItemClick(item,event)）+ 不支持多级子菜单 + disabled 正确拼写（非 disable）」的高错迁移。**原 PopUpMenu 方案已废弃**（多级 children 下钻改用 DropDown 一级 + `label:true` 分组），本脚本做机器兜底——拦弱模型最常漏的 prop/字段残留、误当 Select、误用受控显隐、disable 拼错、trigger 数组等硬错误，外加 onClick 用法与 value=0 真假值判断两类待核项。
 
 脚本 `scripts/check-dropdown.cjs`，对每个 `<DropDown>` 检查：
+
+> **字段残留扫描（项 4/5/6/7 的 data 项字段）基于 AST（@babel/parser）**——从 `data`/`items`/`options`/`menu.items` 表达式递归收集所有 ObjectExpression，覆盖 `.map(item=>({key,label}))`/`Array.from`/spread/function 回调 return/shorthand/计算键/嵌套等动态形态，标识符引用追同文件 `const` 定义（与 check-select-options/check-accordion 共用 `scripts/lib/ast-helpers.cjs`）。tag 级检查（menu/items/options prop 残留、disable=、trigger、placement、open、value、onClick）仍走正则。
 
 **硬 FAIL（exit≠0 即 FAIL）**：
 1. `MENU_PROP_RESIDUE` — `menu=` 残留（antd `menu={{items}}`，应为 `data=`）
@@ -421,7 +430,40 @@ node <skill目录>/scripts/check-dropdown.cjs <目标工程根>
 
 硬 FAIL 项 exit≠0 即 FAIL；advisory 项 exit=0 但每个待核 `<DropDown>` 必须在 `.migration-result.json` 的 `dropdownReviews` 写明决策（如 `"已改 onClick→onItemClick"` 或 `"已改 if(!item.value)→item.value===undefined"`）。未逐条回应视同 FAIL。工程无 `<DropDown>` → PASS 不报。
 
-### 4.17 常见报错对照
+### 4.17 Select 系 options/data label→text 残留检查（硬 FAIL 必跑）
+
+> 对应 component-mapping.md Select / MultipleSelect / InputSelect / SelectCard / CheckboxGroup / RadioGroup 行 + components/Select.md §2「选项结构」。eview-react 这些组件的选项项字段是 `{ text, value }`（不是 antd 的 `{ label, value }`），按 `text` 取显示文字——漏改 `label→text` 则下拉项文字空白。`label→text` 重命名发生在步骤 2（LLM 手工替换），本脚本做机器兜底。
+
+脚本 `scripts/check-select-options.cjs`，对每个 Select 系元素（`Select`/`MultipleSelect`/`InputSelect` 取 `options`；`SelectCard`/`CheckboxGroup`/`RadioGroup` 取 `data`）检查（全硬 FAIL）：
+
+1. `LABEL_TEXT_RESIDUE` — options/data 项残留 antd 字段名 `label`（应为 `text`）
+
+**扫描基于 AST（@babel/parser）**——从 options/data 表达式递归收集所有 ObjectExpression，覆盖 `.map(item=>({value,label}))`（最常见的产物形态）/`.map` 块体 return/`.map(function)`/`Array.from`/spread/嵌套/shorthand `{label}`/计算键 `{['label']:x}` 等全部 JS 书写形态，标识符引用追同文件 `const` 定义（含 `.map` 产生的）。之所以用 AST 而非正则：纯正则的 `resolveArrayBody` 只扫第一个 `[...]` 数组体（即 `.map` 的源数组 `[1,2,3]`），扫不到回调里的对象字面量；且 `label: item`（标识符值）非字符串字面量，旧正则 `label:\s*['"`]` 也匹配不到。AST 与 check-dropdown/check-accordion 共用 `scripts/lib/ast-helpers.cjs`。
+
+```bash
+node <skill目录>/scripts/check-select-options.cjs <目标工程根>
+```
+
+硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（纯残留检查，非 advisory）。工程无 Select 系组件 → PASS 不报。依赖 `@babel/parser`（`@vitejs/plugin-react` 传递依赖，目标工程 `npm install` 后可用；找不到 exit 2 提示装）。
+
+### 4.18 RangePicker JSX 残留检查（硬 FAIL 必跑）
+
+> 对应 component-mapping.md `DatePicker.RangePicker` / `RangePicker` 行 + components/DatePicker.md §范围选择 + components/TimePicker.md §反面示例。eview-react **没有 RangePicker 导出**——antd 的 `DatePicker.RangePicker` / `RangePicker` 必须转为 `<DatePicker range={...}>`（onChange 用 `target` 参数 `'from'`/`'to'` 收集起止，不要用 `onOkClick`），`TimePicker.RangePicker` 转为两个 `<TimePicker>` + 业务校验。步骤 2 LLM 常漏改（migrationPlan 里 RangePicker 信号埋在 DatePicker keyDiffs 子段，bare `import { RangePicker }` 甚至 unmatched 无信号），且步骤 3 此前无脚本拦——即使 import 已改成 `@/shared/DatePicker`，JSX 仍用 `.RangePicker` 成员或 `<RangePicker>` 标识符时 check-imports 不报。本脚本做机器兜底。
+
+脚本 `scripts/check-rangepicker.cjs`，用 AST（@babel/parser）精准定位（避免字符串/注释误报），检测三种形态的 RangePicker 残留（全硬 FAIL）：
+
+1. `RANGEPICKER_RESIDUE` — 任一形态：
+   - **JSX 元素** `<DatePicker.RangePicker>` / `<RangePicker>` / `<TimePicker.RangePicker>`（含源 `const { RangePicker } = DatePicker` + `<RangePicker>` 这种解构出标识符再当 JSX 用——用户产物实测形态）
+   - **解构** `const { RangePicker } = X`（含 rename `{ RangePicker: RP }`）——eview-react DatePicker（@/shared/DatePicker 包壳）无 RangePicker 成员，解构得 undefined；拦半修残留（JSX 已改 `<DatePicker range>` 但留下死解构）
+   - **成员访问** `X.RangePicker`（非 JSX，如 `const RP = DatePicker.RangePicker`）——eview-react 无 RangePicker 导出
+
+```bash
+node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>
+```
+
+硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（纯残留检查，非 advisory）。工程无 RangePicker JSX → PASS 不报。依赖 `@babel/parser`（同其他 AST check）。
+
+### 4.19 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -432,11 +474,11 @@ node <skill目录>/scripts/check-dropdown.cjs <目标工程根>
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 但 `data.js` 里 value 是短代码、i18n key 带前缀 | 在 render 里补命名空间前缀：`t("deviceType." + value, value)`；详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 4.18 验证
+### 4.20 验证
 
 跑验证脚本，把结果写入 `<目标工程根>/.migration-result.json`。
 
-> **十五个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨/Accordion expand 语义反转+字段残留/Crumbs items+separator+字段残留/Dropdown menu-items-options 残留+字段 key-label-children 残留+disable 拼错+trigger 数组/placement/open/value/onChange 残留是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/accordion/dropdown/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
+> **十七个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨/Accordion expand 语义反转+字段残留/Crumbs items+separator+字段残留/Dropdown menu-items-options 残留+字段 key-label-children 残留+disable 拼错+trigger 数组/placement/open/value/onChange 残留/**Select 系 options/data label→text 残留**/**RangePicker JSX 残留**是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/accordion/dropdown/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
 
 **验证步骤**（全部必跑，按序）：
 1. 相对导入检查**跳过**（见 §4.1）
@@ -454,9 +496,11 @@ node <skill目录>/scripts/check-dropdown.cjs <目标工程根>
 13. 跑 `node <skill目录>/scripts/check-accordion.cjs <目标工程根>`（§4.14，硬 FAIL + advisory，advisory 项逐条回应写入 `accordionReviews`）
 14. 跑 `node <skill目录>/scripts/check-crumbs.cjs <目标工程根>`（§4.15，**硬 FAIL**，exit≠0 即 FAIL）
 15. 跑 `node <skill目录>/scripts/check-dropdown.cjs <目标工程根>`（§4.16，硬 FAIL + advisory，advisory 项逐条回应写入 `dropdownReviews`）
-16. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
+16. 跑 `node <skill目录>/scripts/check-select-options.cjs <目标工程根>`（§4.17，**硬 FAIL**，exit≠0 即 FAIL——Select 系 options/data 项 label→text 残留，AST 扫描覆盖 `.map`/`Array.from`/spread/shorthand/计算键等动态形态）
+17. 跑 `node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>`（§4.18，**硬 FAIL**，exit≠0 即 FAIL——`<DatePicker.RangePicker>`/`<RangePicker>`/`<TimePicker.RangePicker>` JSX 残留，eview-react 无 RangePicker 导出）
+18. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
 
-**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 15 之后、npm install 之前**加跑）：
+**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 17（check-rangepicker）之后、npm install（步骤 18）之前**加跑）：
 - 跑 `node <skill目录>/scripts/check-icon-names.cjs <目标工程根>`（§4.13，**硬 FAIL**，exit≠0 即 FAIL——拦 LLM residual 臆造的非 catalog 实有 IconPlusIc* 名）。
 - **方案 B（内网）项目不跑此闸门**：其图标名真值是在线 `getIconInfo` 接口（实包），非离线 catalog 快照，跑会误报实包有而快照无的名。方案 A 产物无 `IconPlusIc*` 名，跑了亦 no-op。
 
@@ -483,6 +527,8 @@ node <skill目录>/scripts/check-dropdown.cjs <目标工程根>
     "accordion": "PASS/FAIL",
     "crumbs": "PASS/FAIL",
     "dropdown": "PASS/FAIL",
+    "select-options": "PASS/FAIL",
+    "rangepicker": "PASS/FAIL",
     "npm-install": "PASS/SKIP"
   },
   "tableDefaultReviews": [
