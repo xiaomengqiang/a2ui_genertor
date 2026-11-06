@@ -36,7 +36,7 @@
 
 | 方式 | 是什么 | 迁移成本 | 何时用 |
 |------|--------|---------|--------|
-| **B. 在线名匹配 + 静态 import**（内网） | `import { IconPlusIcXxx } from '@hui/icon-plus'`，名靠在线 `getIconInfo?keyword=&topK=2&source_id=6&type=icon` 接口匹配；与 C 共用静态 import 范式，仅名匹配方式不同 | **中**：**执行 recipe 见下方「方案 B 在线匹配执行 recipe」；两段式：`--plan` 结构规划 → 去重唯一名 + 并行 getIconInfo + 决策日志 → `--apply-decisions` 用真名做结构改写；无占位、不读 catalog** | `https://octo.hdesign.huawei.com/` 可达（内网）；接口必返回名，故无占位 `IconPlusIcPublicTransverseRectangleTemplate` |
+| **B. 在线名匹配 + 静态 import**（内网） | `import { IconPlusIcXxx } from '@hui/icon-plus'`，名靠在线 `getIconInfo?keyword=&topK=2&source_id=6` 接口匹配；与 C 共用静态 import 范式，仅名匹配方式不同 | **中**：**执行 recipe 见下方「方案 B 在线匹配执行 recipe」；两段式：`--plan` 结构规划 → 去重唯一名 + 并行 getIconInfo + 决策日志 → `--apply-decisions` 用真名做结构改写；无占位、不读 catalog** | `https://octo.hdesign.huawei.com/` 可达（内网）；接口必返回名，故无占位 `IconPlusIcPublicTransverseRectangleTemplate` |
 | **C. catalog 离线匹配 + 静态 import**（外网，默认） | 读 skill 自带 `../icons/icon-plus-names.json`（顶层 key 是按图标名前置词分的桶，**非语义领域**）离线匹配 → `import { IconPlusIcXxx } from '@hui/icon-plus'` 静态 import（scaffold 已预置依赖）；混合策略：**confirmed**（SEMANTIC/L1-L4，含多桶同名按最短完整名 tie-break）`--apply` 自动改写，**residual**（前缀/fuzzy/未命中/链式三元/未追源变量）带 top-K 候选交 LLM 选、不自动 apply，UNMATCHED 有候选(打分>0)→residual 交 LLM 不落占位；无候选孤儿名→`--apply` 自动落占位 `IconPlusIcPublicTransverseRectangleTemplate`；iconSize 原样透传（支持 rem/px/数字） | **低-中**：`node scripts/match-icons.cjs <工程根> [--apply]` | octo 接口不可达（外网）；无网络依赖、彻底离线；算法见 [match-icons.cjs](../../scripts/match-icons.cjs) |
 | **A. 自定义 `<Icon>` 组件**（B/C 兜底） | scaffold `src/shared/Icon`，保留源项目 `<Icon name="search" size={14} />` 契约；运行时 fetch icon-plus（getConfig → getIconInfo → getIcon 取 SVG 注入），probe 失败渲染 `null`。props：`name`/`src`/`size`（rem/px/数字，shim 内 `toApiSize` 吸附到 **12/14/16/20/24/32/36/40/48/60** 供 getIcon API）/`color`/`variant`/`className`/`style` | **最低**：调用点零改动，只改 import 路径 | B/C 实在识别不出 icon+ 名的调用点；转换后代码运行于内网，运行时 fetch 恒可达 |
 
@@ -63,13 +63,13 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 
 ### 方案 B 在线匹配执行 recipe（两段式 · 去重 · 并行 · 决策日志）
 
-> 内网 `getIconInfo?keyword=<名>&topK=2&source_id=6&type=icon` **必定返回图标名**——B 永远有真实名可用，**不需要占位 `IconPlusIcPublicTransverseRectangleTemplate`**；B **不与本地 catalog 校验**（catalog 不作为名的来源进入产物，名真值是内网在线接口）。故 B 跑 `match-icons.cjs` 的姿势是**结构改写与名匹配彻底解耦**：脚本只做结构（叶子枚举 + render 改写 + import 注入 + `.js→.jsx`），名全部来自 getIconInfo 决策日志。`--plan` / `--apply-decisions` 是 B 专用模式，**不读 `references/icons/icon-plus-names.json`**；`--apply`（catalog 名匹配）是 C 专用，B 不跑。
+> 内网 `getIconInfo?keyword=<名>&topK=2&source_id=6` **必定返回图标名**——B 永远有真实名可用，**不需要占位 `IconPlusIcPublicTransverseRectangleTemplate`**；B **不与本地 catalog 校验**（catalog 不作为名的来源进入产物，名真值是内网在线接口）。故 B 跑 `match-icons.cjs` 的姿势是**结构改写与名匹配彻底解耦**：脚本只做结构（叶子枚举 + render 改写 + import 注入 + `.js→.jsx`），名全部来自 getIconInfo 决策日志。`--plan` / `--apply-decisions` 是 B 专用模式，**不读 `references/icons/icon-plus-names.json`**；`--apply`（catalog 名匹配）是 C 专用，B 不跑。
 
 **步 1 结构规划（脚本 pass 1，不改文件）**：`node scripts/match-icons.cjs <工程根> --plan`——离线结构分析，跑 Phase A/B/C 的检测 + 闭集叶子枚举（字面量/扁平三元/链式三元/数据数组/对象地图/wrapper 调用方），**不调名匹配、不读 catalog、不改任何产物文件**（原 `<Icon>` shim 保留，中间态仍可编译）。产出 `icon-leaves.json`（写 OS 临时目录，不进产物根）：每条 `{ sourceKeyword, site:{file,line}, closedForm, renderSite?{size,color} }`；跨边界/未追源/动态变量/安全闸 wrapper 整组不可解析站点入 `untraced[]` 段（无 sourceKeyword，交 LLM 手工）。
 
 **步 2 提取唯一名集合（去重）**：读 `icon-leaves.json` 的 `sourceKeyword`（+ `.umd-conversion.json` 的 `iconCallSites[].name`，[extract-umd.cjs](../../umd-to-antd-vite/scripts/extract-umd.cjs) 不去重）→ `Set` 去重得唯一 keyword 集 U。**禁止逐站点现查现忘**——同名图标全工程只查一次。
 
-**步 3 决策日志（持久化缓存）**：维护 `icon-b-decisions.json`，每条 `{ keyword, iconPlusName, candidates[], selectedBecause }`。**每个唯一名只调一次** `getIconInfo?keyword=<名>&topK=2&source_id=6&type=icon`；查前先查表，命中即复用（会话内 + 跨 turn 缓存，摘要后不丢）。**首次调用记录实际响应 schema**（字段名以内网实测为准，文档不预设），后续按 pinned schema 解析。
+**步 3 决策日志（持久化缓存）**：维护 `icon-b-decisions.json`，每条 `{ keyword, iconPlusName, candidates[], selectedBecause }`。**每个唯一名只调一次** `getIconInfo?keyword=<名>&topK=2&source_id=6`；查前先查表，命中即复用（会话内 + 跨 turn 缓存，摘要后不丢）。**首次调用记录实际响应 schema**（字段名以内网实测为准，文档不预设），后续按 pinned schema 解析。
 
 **步 4 同 turn 并行查**：同一 turn 内并行发多个独立 getIconInfo（WebFetch/curl，不同 keyword 互不依赖），U 个唯一名压到 ⌈U/k⌉ 轮（k≈5–8）。串行逐个查是耗时主因之一，并行批次直接降时。
 
@@ -284,7 +284,7 @@ import { IconPlusIcPublicSearch, IconPlusIcPublicTrash, IconPlusIcPublicEdit } f
 
 高频受害场景（实测回归）：
 
-- **主题切换图标**：`<Icon name={isDark?"sun":"moon"} onClick={toggleDark} title="切换主题"/>` → `{isDark ? <IconPlusIcPublicSun onClick={toggleDark} title="切换到亮色"/> : <IconPlusIcPublicMoon onClick={toggleDark} title="切换到暗色"/>}`。漏 `onClick` → `toggleDark` 成死变量 → `isDark` 永不翻转 → 暗色三轨（`html.dark`/`body.aui3_1_dark`/`aui3_1_dark.css`）永不触发，"切了没反应"。静态 `check-dark-mode.cjs`（纯三轨正则）PASS 拦不住——三轨代码本身正确，断点在运行时点击入口（由 `check-icon-shim.cjs --strict` PROP_DROPPED 兜底拦）。
+- **主题切换图标**：`<Icon name={isDark?"sun":"moon"} onClick={toggleDark} title={isDark?"切换到亮色":"切换到暗色"}/>` → `{isDark ? <IconPlusIcPublicSun onClick={toggleDark} title="切换到亮色"/> : <IconPlusIcPublicMoon onClick={toggleDark} title="切换到暗色"/>}`。漏 `onClick` → `toggleDark` 成死变量 → `isDark` 永不翻转 → 暗色三轨永不触发，"切了没反应"。静态 `check-dark-mode.cjs`（纯三轨正则）PASS 拦不住——三轨代码本身正确，断点在运行时点击入口（由 `check-icon-shim.cjs --strict` PROP_DROPPED 兜底拦）。
 - **表格操作列图标**：漏 `onClick` → 删除按钮变哑图标。
 - **导航/工具栏图标**：漏 `onClick` → 跳转/展开入口失效。
 
