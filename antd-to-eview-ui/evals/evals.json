@@ -1,0 +1,212 @@
+{
+  "description": "antd → eview-ui 迁移 Skill 评测用例（umd-to-antd-vite 产物 → eview-ui aui3）",
+  "cases": [
+    {
+      "id": 1,
+      "name": "组件 props 迁移",
+      "description": "将 antd Select/Switch/Segmented/Rate/InputNumber 的 props 迁移为 eview-ui 等价写法",
+      "input": "antd Select with placeholder/options, Switch checked, Segmented options, Rate count/allowHalf, InputNumber",
+      "assertions": [
+        "Select 替换为 SelectPro（有 Pro 版一律用 Pro——旧 Select 导入即违规）",
+        "SelectPro options 项字段用 text 不是 label",
+        "SelectPro placeholder 同名保留（defaultLabel 是旧 Select 的 prop，不用）",
+        "SelectPro 基础下拉 mode='single'（默认可省）；showSearch 场景 mode='singleSearch' + onInputChange 必填",
+        "SelectPro onChange(value, options) 两参（labelInValue 场景用第 2 参）",
+        "SelectPro defaultValue 仅 mount 生效一次——antd defaultValue 转初始 value state（无默认时取 options[0].value）",
+        "Switch 替换为 Toggle：checked→toggled、onChange→onToggle(value)、data=[关值,开值]",
+        "Segmented 替换为 SelectCard：data=[{text,value}]、禁用是 disable（不是 disabled）",
+        "Rate 替换为 Rating：count→starCount、allowHalf→half、onChange→onClick(event, value)（event 在前）",
+        "InputNumber 替换为 Spinner：onChange 仅有效值触发、无效值走 onError、onBlur(value) 参数是值不是事件",
+        "NOT 保留 antd 的 event 签名写法（e.target.value 在 eview-ui 里首参是值会 undefined 崩溃）"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "布局迁移",
+      "description": "antd Layout/Menu/Breadcrumb/Avatar/Space 迁移：复杂 Layout 手写、Menu→Accordion、Breadcrumb→Crumbs、Avatar/Space 手写",
+      "input": "antd Layout with Header/Sider/Content, Menu items array, Breadcrumb, Avatar, Space",
+      "assertions": [
+        "NOT import Layout from antd",
+        "NOT import Menu from antd",
+        "Menu（items 数组）替换为 Accordion：items→data、label→title、key→value（嵌套 children 逐层映射）",
+        "Accordion selectedKeys 数组→selectedValue 单 string",
+        "Accordion onClick(node) 取 node.value（不是 event.key）",
+        "Crumbs 替代 Breadcrumb：items→data、href/path→url",
+        "Crumbs seprator 拼写（不是 separator）",
+        "Crumbs 最后一项无 url",
+        "复杂 Layout 骨架手写（有 TODO 注释），简单左右分栏可用 eview-ui Layout",
+        "Avatar 手写（有 TODO 注释）",
+        "Space 手写 flex div + gap（Split 是分栏容器不是 Space 对应物，NOT 使用）",
+        "手写元素只用 CSS 变量不写死色值",
+        "类名用业务前缀不用 ev_/evu_/eui_"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "多步向导迁移",
+      "description": "将 antd Steps current/items 迁移为 eview-ui Wizards data/currentStep 模式",
+      "input": "antd Steps current={i} items, Steps.Step children",
+      "assertions": [
+        "Steps 替换为 Wizards（eview-ui 无 Steps 组件）",
+        "Wizards 用 data 不是 items",
+        "Wizards data 用 text 不是 title",
+        "Wizards data 显式配 value（回跳依赖 value 唯一）",
+        "currentStep 对应 data[].value 不是下标（current={i} 需转 data[i].value）",
+        "NOT 使用 Steps.Step children 写法"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "CRUD 弹窗迁移",
+      "description": "将 antd Modal + Modal.confirm 迁移为 eview-ui DialogPro + MessageDialogPro（Pro 优先，旧版弃用）",
+      "input": "antd Modal open/onOk/onCancel/footer/width, Modal.confirm()",
+      "assertions": [
+        "Modal 替换为 DialogPro（有 Pro 版一律用 Pro——旧 Dialog 导入即违规）：open→isOpen",
+        "DialogPro 无 buttons prop——footer 自写：children 底部排 Button text/status/onClick + 自己 setIsOpen(false)",
+        "DialogPro title→customHeader（ReactNode）、content→children",
+        "DialogPro width/height→size=[宽,高] 数组（建议偶数）",
+        "DialogPro onClose(event) 不自动关闭——必须自己 setIsOpen(false)",
+        "DialogPro destroyOnClose 默认 true（antd 默认 false，依赖保留 DOM 状态时显式 false）",
+        "DialogPro 模态必须居中（AUI 规范，NOT 传 position）",
+        "Modal.confirm() 替换为 MessageDialogPro（唯一）：受控形态 type 必填 7 枚举 + buttons={ok,cancel} 对象；或 .confirm(config) 静态（脱离 context 慎用）"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "表格迁移",
+      "description": "将 antd Table 迁移为 eview-ui TablePro（唯一映射，旧 Table 弃用）",
+      "input": "antd Table dataSource/rowKey/rowSelection/pagination/columns render",
+      "assertions": [
+        "dataSource→dataset",
+        "NOT 导入旧 Table（@cloudsop/eview-ui/Table 精确路径）——有 Pro 版一律用 Pro",
+        "TablePro 保留 rowKey/dataIndex/sorter/fixed（antd 同构）",
+        "rowSelection→selection 对象（type/selectedRowKeys/onChange）",
+        "pagination 翻页回调拆 onPageChange(currentPage) + onPageSizeChange(pageSize)",
+        "TablePro columnResizable 默认 true——源 antd 无列宽拖拽时显式 columnResizable={false}",
+        "单元格编辑/虚拟滚动需求查 TablePro 对应能力（无则手写），树表用独立组件 TreeTable"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "骨架换血",
+      "description": "把上游 eview-react scaffold 换血为 eview-ui（依赖/CSS/body 类/src/shared 清理）",
+      "input": "umd-to-antd-vite 产物（@nce/eview-react 依赖 + aui3_1*.css + src/shared 转发包壳）",
+      "assertions": [
+        "package.json 删除 @nce/eview-react、@cloudsop/horizon、@cloudsop/horizon-intl、@cloudsop/htimezone、@baize/wdk（@hui/design-token 保留）",
+        "package.json 加入 @cloudsop/eview-ui ^7.1.37 依赖（scoped 包名，官方文档示例的 eview-ui/X 是简写）",
+        "main.jsx 删除 @nce/eview-react/styles/aui3_1.css 与 aui3_1_dark.css import",
+        "main.jsx 删除 componentsLocales from '@nce/eview-react/locales'（IntlProvider messages 改 {}）",
+        "main.jsx 保留 react-intl IntlProvider（业务 i18n 不动）",
+        "index.html 删除 body 的 aui3_1 与 ev_no_wcag 类",
+        "src/shared/ 删除转发 @nce/eview-react 的包壳目录",
+        "src/shared/Icon/ 保留（图标 shim 策略）",
+        "app.jsx 暗色 useEffect 替换为 eview-ui 三轨（删 aui3_1_dark 旧轨；html .dark + body data-theme + eviewui_aui3_1_default/evening 类互换）",
+        "vite.config.js 的 icon-plus proxy 与 @ 别名保留",
+        "grep @nce/eview-react 全工程零命中"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Provider 接线",
+      "description": "main/app 层 ConfigProvider 接线（locale/version/listenTheme/theme 四项）",
+      "input": "app.jsx AppProvider + isDark",
+      "assertions": [
+        "ConfigProvider 显式传 locale=\"zh\"（默认 en 不传全英文）",
+        "ConfigProvider 传 version=\"aui3\"",
+        "ConfigProvider 传 listenTheme（动态切主题必须）",
+        "ConfigProvider theme={isDark ? 'evening' : 'lightday'} 响应式派生（NOT 静态字符串）",
+        "ConfigProvider 位于 AppProvider 之下包住业务树（不进叶子组件）",
+        "isDark 从 useApp() 取（context.jsx 的 AppProvider，上游已保留）"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "暗色三轨",
+      "description": "eview-ui 暗色三轨：html .dark token 轨 + body data-theme 属性轨 + body eviewui_aui3_1 类轨",
+      "input": "isDark 状态 + .dark token CSS（上游已有）",
+      "assertions": [
+        "html 轨保留：document.documentElement.classList.toggle('dark', isDark)",
+        "body 属性轨：document.body.setAttribute('data-theme', isDark ? 'dark' : 'default')（白天 default / 黑夜 dark）",
+        "body class 轨：classList 互换 eviewui_aui3_1_evening / eviewui_aui3_1_default",
+        "白天也必须挂 eviewui_aui3_1_default 类（NOT 仅移除 evening）",
+        "body 旧轨 aui3_1_dark 已删除（eview-react 专属）",
+        "index.html body 首帧预置 eviewui_aui3_1_default + data-theme=default（防闪）",
+        "ConfigProvider theme 响应 isDark 派生（双保险）"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "显隐 prop 正确性",
+      "description": "eview-ui 显隐 prop 不统一的张冠李戴检查",
+      "input": "Dialog/Drawer/DivMessage/Loader/Tooltip 混用",
+      "assertions": [
+        "Dialog/DialogPro/MessageDialog/MessageDialogPro/Loader 用 isOpen（NOT visible/display）",
+        "Drawer/Tooltip 用 visible（NOT isOpen）",
+        "Popup/TipBox/DivMessage 用 display（NOT isOpen/visible）",
+        "NOT 残留 antd open=（Modal open→isOpen；Drawer v5 open→visible）",
+        "NOT 残留 Spin 的 spinning=（Loader 用 isOpen）"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "图标与图表保留策略",
+      "description": "图标保留源 Icon shim、图表保留源 Chart 封装（eview-ui 无对应）",
+      "input": "<Icon name> 调用点 + <Chart> 调用点（上游 iconCallSites/chartCallSites）",
+      "assertions": [
+        "Icon 调用点零改动（<Icon name=\"...\"> 原样）",
+        "import Icon from '@/shared/Icon'（NOT assets/shared/icon 旧路径）",
+        "NOT 导入 eview-ui/Icon、eview-ui/SvgIcon（废弃）、eview-ui/IconButton（废弃）",
+        "NOT 把 Icon shim 塞进 eview-ui 组件的 leftIcon/rightIcon/icon（url 字符串 prop）",
+        "Button 带图标用 children 组合：<Button><Icon name=\"x\" size={14}/>{文字}</Button>",
+        "Chart 封装保留原样（NOT 补 a2ui/theme——eview-ui 无此约束）",
+        "vite.config.js icon-plus proxy 保留"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "拼写异常照抄",
+      "description": "eview-ui 官方拼写错误照抄 + 正确拼写组件不误改",
+      "input": "Crumbs/SelectCard/FileUpload/Button 混合场景",
+      "assertions": [
+        "Crumbs 用 seprator（正确英文 separator 残留即未迁移）",
+        "SelectCard 用 disable（不是 disabled）",
+        "FileUpload 用 disable + placeHolder + upLoadErrorMessage（三处拼写）",
+        "Tag（message 型）用 disable",
+        "Button/TextField/Select/Menu 用 disabled 正确拼写（NOT 全局替换 disable）",
+        "TipBox/DivMessage 用 disposeTimeOut（TimeOut 大写 O）",
+        "Tree/Table 父子勾选关联用 disabelCheckAssociated"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "导入路径规范",
+      "description": "eview-ui 子路径默认导入 + 4 个特例",
+      "input": "各组件 import 语句",
+      "assertions": [
+        "统一 import X from '@cloudsop/eview-ui/X' 子路径默认导入",
+        "NOT 裸包名 import X from 'eview-ui/X'（官方文档示例是简写，真实包名 scoped）",
+        "NOT import { X } from '@cloudsop/eview-ui' 根包具名导入",
+        "NOT 导入旧版 Pro 组件（eview-ui/Select、eview-ui/Table、eview-ui/Dialog、eview-ui/MessageDialog、eview-ui/Form 精确路径——有 Pro 版一律用 Pro）",
+        "Tab 特例：import Tab, { TabItem } from '@cloudsop/eview-ui/Tab'",
+        "Panel 特例：import PanelE from '@cloudsop/eview-ui/Panel'; const { Panel, PanelItem } = PanelE;（必须解构）",
+        "GridLayout 特例：import { Row, Col } from '@cloudsop/eview-ui/GridLayout'（span→cols、gutter→colMargin）",
+        "RangePicker 特例：const { RangePicker } = DatePicker（<DatePicker.RangePicker> 改 <RangePicker>）",
+        "NOT 残留 from 'antd' / from '@ant-design/icons' / from '@nce/eview-react'"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "回调签名迁移",
+      "description": "eview-ui 值优先签名 + event 在前的反直觉例外",
+      "input": "TextField onChange / Checkbox onChange / Table onRowRightClick / FileUpload onChange",
+      "assertions": [
+        "TextField onChange(value1, value2, event)——首参是新值（e.target.value 写法删除）",
+        "Checkbox onChange(value, checked, event, additionalData) 四参",
+        "Table onRowRightClick(e, row)——事件在前（onRowClick(row, e) 事件在后，两者不同）",
+        "FileUpload onChange(event, itemList)——事件在前",
+        "Rating onClick(event, value)——事件在前且事件名是 onClick",
+        "Paging 的 antd onChange(page, pageSize) 拆成 onPageChange + onPageSizeChange 两个"
+      ]
+    }
+  ]
+}
