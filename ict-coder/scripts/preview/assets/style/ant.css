@@ -1818,7 +1818,6 @@ input.ant-input.ant-input-sm {
   border-radius: 0.5rem;
   align-items: center;
   font-size: var(--font-size-base);
-  box-shadow: 0 0 0 1px var(--gray-0);
   background-color: var(--color-error);
   color: var(--color-text-inverse);
   /* 数字滚动结构：antd 固定 20px 高，滚动条与行盒对齐 16px 盒高，配合 align-items 精确垂直居中 */
@@ -1828,19 +1827,8 @@ input.ant-input.ant-input-sm {
   line-height: 1rem;
 }
 .ant-badge .ant-badge-dot {
-  box-shadow: 0 0 0 1px var(--gray-0);
-  border: 1px solid var(--gray-0);
+  box-shadow: none;
   background-color: var(--color-error);
-}
-.dark {
-  color: var(--color-text-primary);
-}
-.dark .ant-badge .ant-badge-count {
-  box-shadow: 0 0 0 1px rgb(from var(--gray-0) r g b / 0);
-}
-.dark .ant-badge .ant-badge-dot {
-  box-shadow: 0 0 0 1px rgb(from var(--gray-0) r g b / 0);
-  border: 1px solid rgb(from var(--gray-0) r g b / 0);
 }
 
 /* Progress 组件样式（占位，待填充 token 映射） */
@@ -2002,6 +1990,9 @@ input.ant-input.ant-input-sm {
 }
 .ant-steps.ant-steps-small.ant-steps-horizontal:not(.ant-steps-label-vertical) .ant-steps-item {
   padding-inline-start: 0.5rem;
+}
+.ant-steps.ant-steps-label-horizontal .ant-steps-item-container {
+  display: flex;
 }
 .ant-steps.ant-steps-label-vertical .ant-steps-item-icon {
   margin-inline-end: 0.5rem;
@@ -2871,6 +2862,7 @@ input.ant-input.ant-input-sm {
   color: var(--color-text-primary);
   border-radius: var(--radius-base);
   line-height: 2rem;
+  font-size: var(--font-size-md);
 }
 .ant-dropdown .ant-dropdown-menu .ant-dropdown-menu-item:hover {
   background-color: rgb(from var(--gray-90) r g b / 0.05);
