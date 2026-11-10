@@ -2339,7 +2339,21 @@ function main() {
     }
     applyRewrites(scan, byName, srcDir);
     console.log('\n[match-icons] --apply-decisions 完成：所有名取自决策日志（getIconInfo 在线返回），产物零 catalog 名、零占位。');
-    console.log('  untraced/跨边界站点保留 <Icon> shim + 修 import，交 LLM 按 Icon.md recipe 手工；跑 check-icon-shim --strict 复核。');
+    // residual 逐条明细打印到控制台（供步 7 LLM 手改）——与 C 模式 reportConsole 对齐，
+    // 避免步 7 依赖 OS tmp 的 icon-leaves.json（session 重启/tmp 清理易丢，丢失可由 grep + --init-justified
+    // 恢复站点清单但失脚本的 reason 分类）。collectLeaves 的 untraced 段 = untracedSites + variableSites + propWrapperResidual。
+    const bResidual = []
+      .concat((scan.untracedSites || []).map((r) => ({ file: rel(r.file), line: r.line, expr: r.expr, reason: r.reason })))
+      .concat((scan.variableSites || []).map((v) => ({ file: rel(v.file), line: v.line, expr: v.expr, reason: v.isMember ? 'dynamic-member' : 'dynamic-variable' })))
+      .concat((scan.propWrapperResidual || []).map((r) => ({ file: rel(r.wrapperFile), line: r.wrapperLine, expr: r.wrapperName, reason: r.reason })));
+    if (bResidual.length) {
+      console.log(`  residual（保留 <Icon> shim + 修 import，交 LLM 手工追源转 / 真 OPEN 保 shim，见 Icon.md §name 解析 + 跨边界 recipe；跑 check-icon-shim --strict 复核）: ${bResidual.length} 处`);
+      for (const r of bResidual) {
+        console.log(`    ${r.file}:${r.line}  ${r.expr}  [${r.reason}]`);
+      }
+    } else {
+      console.log('  residual：0 处（全部闭集叶子已自动改写，无 untraced/跨边界残留）');
+    }
     return;
   }
 
