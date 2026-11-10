@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * check-icon-shim.cjs — 方案A（<Icon> 运行时 fetch shim）保留硬闸（默认 advisory；`--strict` → 任一违规 exit 1，§3.0 图标步骤用 --strict）
+ * check-icon-shim.cjs — 方案A（<Icon> 运行时 fetch shim）保留硬闸（默认 advisory；`--strict` → 任一违规 exit 1，两处跑：§3.0 图标步骤步 7 residual 复核 + §4.20 阶段 3 验证清单兜底重测）
  *
  * 防 match-icons.cjs --apply（C）/ LLM 在线匹配改写（B）跑完 + residual 处理后，converted src/ 里
  * 残留的 <Icon name={...}/> 兜底站点被默默保留方案 A——典型回归：① LLM 编造不存在的 Icon.md
@@ -48,7 +48,7 @@
  *   residual 路径：分支非字面量 / 链式未确认 / 跨边界 untraced / 扫描漏掉的 tag 落 residual 交 LLM 手改时，
  *   LLM 偶尔只写 `cond ? <A/> : <B/>` 不包外层 `{}` → JSX 子节点位被解析为对象字面量/块语句语法错或静默
  *   渲染错。算法：对每个 `<IconPlusIc…/>` 站点向后回溯找所属条件表达式最外层起点（深度 0 遇 `?`/`&&`/`||`），
- *   起点处做单字符 lookbehind：`>`（JSX 子节点开标签，非 `=>`）或 `}` → JSX 子节点位且未包 → 报
+ *   起点处做单字符 lookbehind：`>`（JSX 子节点开标签，非 `=>`）→ JSX 子节点位且未包 → 报
  *   TERNARY_WRAP_LOST；`{`（已包）/ `(` / `[` / `,` / `=` / `;` 等表达式位 → 不报（与 wrapIfNeeded 一致，
  *   宁可漏报不误报，residual 本就有 doc 指引 + LLM 复核）。
  *
@@ -572,7 +572,13 @@ function main() {
           d2--;
         } else if (d2 === 0) {
           if (ch === '>' && isJsxCloseGt(text, j)) { boundary = { ch: '>', pos: j }; break; }
-          if (ch === ';' || ch === ',' || ch === '=') { boundary = { ch, pos: j }; break; }
+          if (ch === ';' || ch === ',') { boundary = { ch, pos: j }; break; }
+          // '=' 边界仅当它是独立赋值（x = cond ? …）才 break；若是 ==/===/!=/<=/>=/=> 的一部分则跳过，
+          // 否则 `theme === 'dark' ? <A/> : <B/>` 这类比较条件会在到达 '>' JSX 边界前被 '=' 短路漏报。
+          // 判定：左邻或右邻为 = ! < > 即属多字符运算符（=> 的 '=' 左邻是 '>'，>= 的 '=' 左邻是 '<'/'>' 等）。
+          if (ch === '=' && text[j - 1] !== '=' && text[j - 1] !== '!' && text[j - 1] !== '<' && text[j - 1] !== '>' && text[j + 1] !== '=') {
+            boundary = { ch, pos: j }; break;
+          }
         }
         j--;
       }

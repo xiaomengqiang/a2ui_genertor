@@ -59,7 +59,7 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 - **源码 `<Icon name>` shim ≠ 产物方案A**：`<Icon name="字面量">` 站点必须转 B/C 静态 import；**成员表达式 `name={t.icon}` / `name={MENU[0].icon}` 由脚本自动转**——C 跑 `--apply`、B 跑 `--apply-decisions`（绑到静态数组/对象地图即塞 icon+ 元素进 data + render 改 `{t.icon}`；B/C 同机制，仅名来源不同：C catalog / B 决策日志）；**自定义 wrapper 组件**同（C 下由 `--apply` Phase C 自动转、B 下由 `--apply-decisions` Phase C 自动转：调用点 `icon="字面量"`/`icon={常量}`/`icon={扁平三元}` → `icon={<IconPlusIc…/>}`，内部 → `{icon}`；`icon={成员}` 透传 + 容器元素化）。追不到源的（含跨边界 props/useMemo/推入函数闭合集、wrapper 安全闸整组不可解析）→ 报 `untracedSites`，**B/C 都交 LLM 手工**处置按 §name 解析 统一原则（闭合→转 / 真 OPEN→保 shim，详见该节 + §「⚠️ 硬约束：改写 `<Icon>` 调用点必须保留原 DOM/交互 props」）。
 - **方案C `--apply`**：落 confirmed（SEMANTIC/L1-L4）+ 扁平三元两分支均 confirmed + **数据数组图标整组改写**（命中用真实组件，未命中用占位 `IconPlusIcPublicTransverseRectangleTemplate`）+ **孤儿名自动落占位**（UNMATCHED 无候选的字面量，catalog 无任何匹配，直接占位防 LLM 臆造名）；非孤儿 residual（有候选）不自动 apply，交 LLM 选。报告写 OS 临时目录、不进产物根、`--apply` 结束清理。**禁止因 residual 整体放弃方案C**——residual 由 LLM 在会话内按控制台/临时报告逐条复核。
 - **`.js→.jsx` 自动转换**：`--apply` 把因改写引入 JSX（替换串含 `<IconPlusIc`）的 `.js`→`.jsx` / `.ts`→`.tsx`，并扫 `src/` 修引用方显式 `.js`/`.ts` 扩展名 import（无扩展名 import 不动）；非 `src/` 引用（vite.config、index.html）不处理，需人工核对。
-- **已落方案A的产物可原地补救**：调用点仍为 `<Icon name="字面量" .../>` 或 `name={t.icon}` 时，直接 `node scripts/match-icons.cjs <工程根> --apply`（脚本幂等，已含 `IconPlusIc` 的站点自动跳过）。
+- **已落方案A的产物可原地补救**（**仅方案 C**）：调用点仍为 `<Icon name="字面量" .../>` 或 `name={t.icon}` 时，直接 `node scripts/match-icons.cjs <工程根> --apply`。**方案 B 项目不跑 `--apply`**——补救跑 `--plan` + `--apply-decisions`（见下 §方案 B 在线匹配执行 recipe）。幂等/`.js→.jsx` 扩展名转换等详细说明见 migration-workflow.md §3.0。
 
 ### 方案 B 在线匹配执行 recipe（两段式 · 去重 · 并行 · 决策日志）
 
@@ -79,9 +79,9 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 
 **步 6 结构改写（脚本 pass 2，用真名）**：`node scripts/match-icons.cjs <工程根> --apply-decisions --decisions icon-b-decisions.json`——脚本做完整结构改写（Phase A/B/C：闭集叶子塞真实 `<IconPlusIc*>` + render 改写 `wrapIfNeeded` + import 注入合并去重 + `.js→.jsx`），**名取自决策日志，不读 catalog、无占位**。**决策日志缺某 keyword → 脚本报错列出缺失项 + 对应站点、零改写零占位、退出码 1**，强制 LLM 补齐决策日志再重跑（保证产物名 100% 来自 getIconInfo）。脚本幂等（已含 `IconPlusIc` 的站点自动跳过，连跑两次第二次零变更）。
 
-**步 7 residual（跨边界 + props 硬约束 + `{}` 包裹）**：`untraced[]` 段站点（跨边界追源：props/useMemo/useState/推入函数，见 §跨组件边界 props 闭合字面量集）按本文统一方法手工追源转；名同样先进决策日志去重再查（每唯一名只查一次）；改写后这些站点由 LLM 手改或统一处理。残留 `<Icon>` shim 站点跑 `scripts/check-icon-shim.cjs --init-justified` 预填 `.icon-shim-justified.json` 骨架（file/line/expr/source 脚本已知，只补 `closedSet`+`reason`），再 `--strict` 复核（拦闭集误留 / vague-reason / phantom-section-ref / **`TERNARY_WRAP_LOST`**）。**residual 手改条件式图标站点（三元/`&&`/标识符条件）**：JSX 子节点位必包外层 `{}`（见 §`{}` 上下文规则），漏包由 `check-icon-shim.cjs --strict` 的 `TERNARY_WRAP_LOST` 拦——与 `PROP_DROPPED_ON_ICON_REWRITE` 同列必修，`ternaryWrapLost>0` 即 `exit 1`，非 0 时不得声明 `.icon-result.json` status=PASS。
+**步 7 residual（跨边界 + props 硬约束 + `{}` 包裹）**：`untraced[]` 段站点（跨边界追源：props/useMemo/useState/推入函数，见 §跨组件边界 props 闭合字面量集）按本文统一方法手工追源转；名同样先进决策日志去重再查（每唯一名只查一次）；改写后这些站点由 LLM 手改或统一处理。残留 `<Icon>` shim 站点跑 `scripts/check-icon-shim.cjs --init-justified` 预填 `.icon-shim-justified.json` 骨架（file/line/expr/source 脚本已知，只补 `closedSet`+`reason`），再 `--strict` 复核（拦闭集误留 / vague-reason / phantom-section-ref / **`TERNARY_WRAP_LOST`**）。**residual 手改条件式图标站点（三元/`&&`/标识符条件）**：JSX 子节点位必包外层 `{}`（见 §`{}` 上下文规则），漏包由 `check-icon-shim.cjs --strict` 的 `TERNARY_WRAP_LOST` 拦——与 `PROP_DROPPED_ON_ICON_REWRITE` 同列必修，`ternaryWrapLost>0` 即 `exit 1`，非 0 时不得声明 `.migration-result.json` status=PASS。
 
-> **props 硬约束（实测回归点，必读）**：步 6 脚本对**闭集**站点已 passthrough 透传 props（不会丢）；但**步 7 residual 跨边界站点是 LLM 手改**——这是 onClick 丢失的实测回归主因（主题切换漏 `onClick={toggleDark}` → 暗色三轨永不翻转）。手改时必须把原标签的非 icon props 原样搬到 `<IconPlusIc*>`（三元两分支都搬）。完整改写清单 + 正反例 + 收尾复核见 §「⚠️ 硬约束：改写 `<Icon>` 调用点必须保留原 DOM/交互 props」。`check-icon-shim.cjs --strict` 的 `PROP_DROPPED_ON_ICON_REWRITE` 是必修清单：`propDropped>0` 即 `exit 1`，**非 0 时不得声明 `.icon-result.json` status=PASS**——补回 props 重跑至 `0 处` 方算完成。
+> **props 硬约束（实测回归点，必读）**：步 6 脚本对**闭集**站点已 passthrough 透传 props（不会丢）；但**步 7 residual 跨边界站点是 LLM 手改**——这是 onClick 丢失的实测回归主因（主题切换漏 `onClick={toggleDark}` → 暗色三轨永不翻转）。手改时必须把原标签的非 icon props 原样搬到 `<IconPlusIc*>`（三元两分支都搬）。完整改写清单 + 正反例 + 收尾复核见 §「⚠️ 硬约束：改写 `<Icon>` 调用点必须保留原 DOM/交互 props」。`check-icon-shim.cjs --strict` 的 `PROP_DROPPED_ON_ICON_REWRITE` 是必修清单：`propDropped>0` 即 `exit 1`，**非 0 时不得声明 `.migration-result.json` status=PASS**——补回 props 重跑至 `0 处` 方算完成。
 
 
 
@@ -311,7 +311,7 @@ import { IconPlusIcPublicSearch, IconPlusIcPublicTrash, IconPlusIcPublicEdit } f
         : <IconPlusIcPublicMoon iconSize="1.25rem" className="theme-toggle" title="切换到暗色" onClick={toggleDark} />}
 ```
 
-> **收尾复核**：阶段3 收尾对每处 **residual 手改 / Button 外壳剥离** 站点逐一回读改写后的 `<IconPlusIc*>` 确认 props 已搬（闭集自动改写站点经 passthrough 已保留，无需复核）；发现误删立即补回，记进 `.icon-result.json` 的 confirmedSiteRepairs。机器兜底 `check-icon-shim.cjs --strict` 的 `PROP_DROPPED_ON_ICON_REWRITE` **仅核 HANDLER_PROPS 标识符值**（onClick/onMouse*/onKey* 等），`title`/`aria-*`/`role`/`tabIndex` 与箭头函数 handler 是已知盲区，须人工复核。
+> **收尾复核**：阶段3 收尾对每处 **residual 手改 / Button 外壳剥离** 站点逐一回读改写后的 `<IconPlusIc*>` 确认 props 已搬（闭集自动改写站点经 passthrough 已保留，无需复核）；发现误删立即补回，记进 `.migration-result.json` 的 `confirmedSiteRepairs`。机器兜底 `check-icon-shim.cjs --strict` 的 `PROP_DROPPED_ON_ICON_REWRITE` **仅核 HANDLER_PROPS 标识符值**（onClick/onMouse*/onKey* 等），`title`/`aria-*`/`role`/`tabIndex` 与箭头函数 handler 是已知盲区，须人工复核。
 
 ## 3. 联动说明
 

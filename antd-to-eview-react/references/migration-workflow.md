@@ -498,9 +498,10 @@ node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>
 15. 跑 `node <skill目录>/scripts/check-dropdown.cjs <目标工程根>`（§4.16，硬 FAIL + advisory，advisory 项逐条回应写入 `dropdownReviews`）
 16. 跑 `node <skill目录>/scripts/check-select-options.cjs <目标工程根>`（§4.17，**硬 FAIL**，exit≠0 即 FAIL——Select 系 options/data 项 label→text 残留，AST 扫描覆盖 `.map`/`Array.from`/spread/shorthand/计算键等动态形态）
 17. 跑 `node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>`（§4.18，**硬 FAIL**，exit≠0 即 FAIL——`<DatePicker.RangePicker>`/`<RangePicker>`/`<TimePicker.RangePicker>` JSX 残留，eview-react 无 RangePicker 导出）
-18. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
+18. 跑 `node <skill目录>/scripts/check-icon-shim.cjs <目标工程根> --strict`（**硬 FAIL**，B/C 都跑——UNJUSTIFIED 闭集误留 / STALE-SHIM-IMPORT / UNCONVERTED-ICON-SOURCE 数据源半改 / PROP_DROPPED_ON_ICON_REWRITE 丢 handler props / TERNARY_WRAP_LOST 条件式漏包 `{}` 任一，见 [Icon.md](components/Icon.md) 步 7 + §3.0）。**与阶段 2 §3.0 步 7 同闸门、幂等**——stage 3 重测兜底防阶段 2 后续 LLM 临场手改图标站点引入回归（正是 TERNARY_WRAP_LOST 要防的"偶尔丢 `{}`"类），并让 `.migration-result.json` 的 `icon-shim` 键权威实测（非沿用阶段 2 旧结果）。复用阶段 2 步 7 生成的 `.icon-shim-justified.json`（无残留 `<Icon>` shim 站点则不需该文件、0 处直接 PASS）。`PROP_DROPPED`/`TERNARY_WRAP_LOST` 的非 handler props（title/aria-*/role/tabIndex）与箭头函数 handler 是已知盲区，须人工复核（residual 手改 / Button 外壳剥离站点在 `confirmedSiteRepairs` 逐条回应）。
+19. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
 
-**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 17（check-rangepicker）之后、npm install（步骤 18）之前**加跑）：
+**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 18（check-icon-shim）之后、npm install（步骤 19）之前**加跑）：
 - 跑 `node <skill目录>/scripts/check-icon-names.cjs <目标工程根>`（§4.13，**硬 FAIL**，exit≠0 即 FAIL——拦 LLM residual 臆造的非 catalog 实有 IconPlusIc* 名）。
 - **方案 B（内网）项目不跑此闸门**：其图标名真值是在线 `getIconInfo` 接口（实包），非离线 catalog 快照，跑会误报实包有而快照无的名。方案 A 产物无 `IconPlusIc*` 名，跑了亦 no-op。
 
@@ -529,6 +530,7 @@ node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>
     "dropdown": "PASS/FAIL",
     "select-options": "PASS/FAIL",
     "rangepicker": "PASS/FAIL",
+    "icon-shim": "PASS/FAIL",
     "npm-install": "PASS/SKIP"
   },
   "tableDefaultReviews": [
@@ -561,6 +563,10 @@ node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>
     { "file": "src/views/.../list.jsx", "line": 45, "code": "ONCLICK_USED", "decision": "已改 onClick→onItemClick(item, event)，按 item.value 派发" },
     { "file": "src/views/.../list.jsx", "line": 52, "code": "VALUE_BOOLEAN_CHECK", "decision": "已改 if(!item.value)→item.value===undefined，放行 value=0" }
   ],
+  "confirmedSiteRepairs": [
+    { "file": "src/views/.../header.jsx", "line": 12, "site": "residual 手改主题切换 <IconPlusIcPublicSun/>", "repair": "补回 onClick={toggleDark}（源 <Icon onClick={toggleDark}/> 漏搬）" },
+    { "file": "src/views/.../header.jsx", "line": 30, "site": "Button 外壳剥离 <IconPlusIcPublicMoon/>", "repair": "补回 title={t('dark')} + role=\"button\" + tabIndex={0}" }
+  ],
   "notes": "可选说明"
 }
 ```
@@ -568,6 +574,7 @@ node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>
 - 所有验收项全过 → status="PASS"，failures=[]
 - 任一不过（SKIP 不算不过）→ status="FAIL"，failures 逐条写清具体失败点
 - npm-install=SKIP 不影响整体 status（notes 写明外网环境降级，仅静态检查生效）
+- `icon-shim` **硬 FAIL**（**两处跑** `check-icon-shim.cjs --strict`：阶段 2 §3.0 步 7 residual 复核 + 阶段 3 步 18 兜底重测）：exit≠0 → status="FAIL"。阶段 3 重测为权威值（防阶段 2 后续手改引入回归、非沿用旧结果）。5 项拦截项 + 非 handler props 盲区见步 18；**每处 residual 手改 / Button 外壳剥离站点须在 `confirmedSiteRepairs` 写明 props 复核决策**（闭集自动改写站点经 passthrough 已保留，无需记录），未逐条回应 → FAIL
 - `table-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<Table>` 必须在 `tableDefaultReviews` 写明决策**；未逐条回应 → FAIL
 - `steps-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<Steps>` 必须在 `stepsReviews` 写明决策**；未逐条回应 → FAIL
 - `messagedialog-defaults` advisory：脚本 exit=0 但有待核项时，**每个待核 `<MessageDialog>` 必须在 `messageDialogReviews` 写明决策**；未逐条回应 → FAIL
