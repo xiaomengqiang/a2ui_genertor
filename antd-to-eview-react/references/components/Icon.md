@@ -79,7 +79,7 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 
 **步 6 结构改写（脚本 pass 2，用真名）**：`node scripts/match-icons.cjs <工程根> --apply-decisions --decisions icon-b-decisions.json`——脚本做完整结构改写（Phase A/B/C：闭集叶子塞真实 `<IconPlusIc*>` + render 改写 `wrapIfNeeded` + import 注入合并去重 + `.js→.jsx`），**名取自决策日志，不读 catalog、无占位**。**决策日志缺某 keyword → 脚本报错列出缺失项 + 对应站点、零改写零占位、退出码 1**，强制 LLM 补齐决策日志再重跑（保证产物名 100% 来自 getIconInfo）。脚本幂等（已含 `IconPlusIc` 的站点自动跳过，连跑两次第二次零变更）。
 
-**步 7 residual（跨边界 + props 硬约束）**：`untraced[]` 段站点（跨边界追源：props/useMemo/useState/推入函数，见 §跨组件边界 props 闭合字面量集）按本文统一方法手工追源转；名同样先进决策日志去重再查（每唯一名只查一次）；改写后这些站点由 LLM 手改或统一处理。残留 `<Icon>` shim 站点跑 `scripts/check-icon-shim.cjs --init-justified` 预填 `.icon-shim-justified.json` 骨架（file/line/expr/source 脚本已知，只补 `closedSet`+`reason`），再 `--strict` 复核（拦闭集误留 / vague-reason / phantom-section-ref）。
+**步 7 residual（跨边界 + props 硬约束 + `{}` 包裹）**：`untraced[]` 段站点（跨边界追源：props/useMemo/useState/推入函数，见 §跨组件边界 props 闭合字面量集）按本文统一方法手工追源转；名同样先进决策日志去重再查（每唯一名只查一次）；改写后这些站点由 LLM 手改或统一处理。残留 `<Icon>` shim 站点跑 `scripts/check-icon-shim.cjs --init-justified` 预填 `.icon-shim-justified.json` 骨架（file/line/expr/source 脚本已知，只补 `closedSet`+`reason`），再 `--strict` 复核（拦闭集误留 / vague-reason / phantom-section-ref / **`TERNARY_WRAP_LOST`**）。**residual 手改条件式图标站点（三元/`&&`/标识符条件）**：JSX 子节点位必包外层 `{}`（见 §`{}` 上下文规则），漏包由 `check-icon-shim.cjs --strict` 的 `TERNARY_WRAP_LOST` 拦——与 `PROP_DROPPED_ON_ICON_REWRITE` 同列必修，`ternaryWrapLost>0` 即 `exit 1`，非 0 时不得声明 `.icon-result.json` status=PASS。
 
 > **props 硬约束（实测回归点，必读）**：步 6 脚本对**闭集**站点已 passthrough 透传 props（不会丢）；但**步 7 residual 跨边界站点是 LLM 手改**——这是 onClick 丢失的实测回归主因（主题切换漏 `onClick={toggleDark}` → 暗色三轨永不翻转）。手改时必须把原标签的非 icon props 原样搬到 `<IconPlusIc*>`（三元两分支都搬）。完整改写清单 + 正反例 + 收尾复核见 §「⚠️ 硬约束：改写 `<Icon>` 调用点必须保留原 DOM/交互 props」。`check-icon-shim.cjs --strict` 的 `PROP_DROPPED_ON_ICON_REWRITE` 是必修清单：`propDropped>0` 即 `exit 1`，**非 0 时不得声明 `.icon-result.json` status=PASS**——补回 props 重跑至 `0 处` 方算完成。
 
@@ -194,6 +194,7 @@ const items = useMemo(() => [{ icon: <IconPlusIcPublicShoppingCart iconSize="1re
 | `<Icon name={X}/>` 原位置 | 改写后 | 说明 |
 |--------------------------|--------|------|
 | JSX 子节点 `<div><Icon name={X}/></div>`、`<li><Icon name={X}/></li>` | `{X}` | 子节点位需 `{}` 嵌入表达式 |
+| `name` 本身是条件式（三元/`&&`/标识符）`<div><Icon name={cond?"a":"b"}/></div>` | `{cond ? <IconPlusIcA/> : <IconPlusIcB/>}` | 即上一行的 `X` = 条件表达式，`{X}` = **整体包一层 `{}`**（非"每分支各包"）；`<Icon>` 在 JSX 子节点位 → 剥离后整体条件式须包 `{}` |
 | 三元分支表达式 `cond ? <Icon name={X}/> : null` | `X` | 已在表达式位，`{}` 变对象字面量 ❌ |
 | 对象属性值 `icon: <Icon name={X}/>` | `icon: X` | `{}` 变嵌套对象字面量 ❌ |
 | 数组元素 `[<Icon name={X}/>]` | `[X]` | 同上 ❌ |
@@ -203,7 +204,7 @@ const items = useMemo(() => [{ icon: <IconPlusIcPublicShoppingCart iconSize="1re
 
 **规则**：`<Icon name={X}/>` → `{X}` **仅当**原处 JSX 子节点位；**其余表达式位一律裸 `X`（不加 `{}`）**。判定：`<Icon/>` 前一个非空白字符是 `>`（开/自闭合/闭合标签，但非 `=>`）或 `}`（前一个 `{expr}` 子节点结束）→ 子节点位 → 包 `{}`；否则（`(` `)` `,` `:` `[` `?` `{` `=>` `return` 等）→ 表达式位 → 裸。
 
-**prop 驱动调用方同步更新**（数据数组 `icon` 已从字符串改成 icon+ 元素后，调用方去 `<Icon/>` 壳直接透传）：对象值位 `icon: <Icon name={group.icon}/>` → `icon: group.icon`（裸）；JSX 子节点位 `<li><Icon name={group.icon}/></li>` → `<li>{group.icon}</li>`（包）。链式/嵌套三元 LLM 手拼条件渲染同理按上下文判 `{}`。脚本 `--apply` 已按此规则（`wrapIfNeeded`）处理三元与数据数组 render；LLM residual 手改其他形态时务必遵守。
+**prop 驱动调用方同步更新**（数据数组 `icon` 已从字符串改成 icon+ 元素后，调用方去 `<Icon/>` 壳直接透传）：对象值位 `icon: <Icon name={group.icon}/>` → `icon: group.icon`（裸）；JSX 子节点位 `<li><Icon name={group.icon}/></li>` → `<li>{group.icon}</li>`（包）。LLM residual 手改的**任意条件式图标站点**（扁平三元 / 链式嵌套三元 / `&&` 条件 / 裸标识符条件 / 跨边界追源条件）一律按本 `{}` 上下文规则：JSX 子节点位**整体包一层 `{}`**，表达式位裸。脚本自动路径（扁平字面量三元 + 全叶 confirmed 链式三元）由 `wrapIfNeeded` 确定性加 `{}`；residual 手改由 LLM 加，**漏加会被 `check-icon-shim.cjs --strict` 的 `TERNARY_WRAP_LOST` 拦**（见步 7）。脚本 `--apply` / `--apply-decisions` 已按此规则（`wrapIfNeeded`）处理三元与数据数组 render；LLM residual 手改其他形态时务必遵守。
 
 ### 图标-prop wrapper 组件（SoftTag / ToggleRow 模式）
 
@@ -286,7 +287,7 @@ import { IconPlusIcPublicSearch, IconPlusIcPublicTrash, IconPlusIcPublicEdit } f
 
 高频受害场景（实测回归）：
 
-- **主题切换图标**：`<Icon name={isDark?"sun":"moon"} onClick={toggleDark} title={isDark?"切换到亮色":"切换到暗色"}/>` → `{isDark ? <IconPlusIcPublicSun onClick={toggleDark} title="切换到亮色"/> : <IconPlusIcPublicMoon onClick={toggleDark} title="切换到暗色"/>}`。漏 `onClick` → `toggleDark` 成死变量 → `isDark` 永不翻转 → 暗色三轨永不触发，"切了没反应"。静态 `check-dark-mode.cjs`（纯三轨正则）PASS 拦不住——三轨代码本身正确，断点在运行时点击入口（由 `check-icon-shim.cjs --strict` PROP_DROPPED 兜底拦）。
+- **主题切换图标**：`<Icon name={isDark?"sun":"moon"} onClick={toggleDark} title={isDark?"切换到亮色":"切换到暗色"}/>` → `{isDark ? <IconPlusIcPublicSun onClick={toggleDark} title="切换到亮色"/> : <IconPlusIcPublicMoon onClick={toggleDark} title="切换到暗色"/>}`。漏 `onClick` → `toggleDark` 成死变量 → `isDark` 永不翻转 → 暗色三轨永不触发，"切了没反应"。静态 `check-dark-mode.cjs`（纯三轨正则）PASS 拦不住——三轨代码本身正确，断点在运行时点击入口（由 `check-icon-shim.cjs --strict` PROP_DROPPED 兜底拦）。**外层 `{}` 必需**——`<Icon>` 原处 JSX 子节点位，剥离后整体条件式须包 `{}`（见 §`{}` 上下文规则）；`{isDark ? … : …}` 是"整体包一层"，非两分支各包。脚本自动路径（扁平字面量三元）由 `wrapIfNeeded` 确定性加 `{}`、稳定不出错；residual 手改条件式站点须 LLM 自觉加，漏加由 `check-icon-shim.cjs --strict` 的 `TERNARY_WRAP_LOST` 兜底拦。
 - **表格操作列图标**：漏 `onClick` → 删除按钮变哑图标。
 - **导航/工具栏图标**：漏 `onClick` → 跳转/展开入口失效。
 

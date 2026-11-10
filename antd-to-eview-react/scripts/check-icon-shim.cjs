@@ -40,6 +40,18 @@
  *   check-dark-mode.cjs 静态三轨 PASS 拦不住此运行时入口断裂，本检查补盲区（实测回归：case4/case5/
  *   码趣 3 工程暗色失效即此缺陷，check-dark-mode 全 PASS 但 onClick 丢失）。
  *
+ * 条件式图标站点漏包 {} 扫描（TERNARY_WRAP_LOST）：对应 Icon.md §「<Icon name={X}/> 改写的 {} 上下文
+ *   规则」。LLM residual 手改的**任意条件式图标站点**（扁平三元 / 链式嵌套三元 / `&&` 条件 / 裸标识符条件 /
+ *   跨边界追源条件）在 JSX 子节点位须整体包一层 `{}`（`{cond ? <IconPlusIc…/> : <IconPlusIc…/>}`，
+ *   非"每分支各包"）。脚本自动路径（扁平字面量三元 + 全叶 confirmed 链式三元）由 match-icons.cjs 的
+ *   `wrapIfNeeded` 确定性加 `{}`——主题切换 `isDark?"sun":"moon"` 即此路径，稳定不受影响；本扫描兜底拦的是
+ *   residual 路径：分支非字面量 / 链式未确认 / 跨边界 untraced / 扫描漏掉的 tag 落 residual 交 LLM 手改时，
+ *   LLM 偶尔只写 `cond ? <A/> : <B/>` 不包外层 `{}` → JSX 子节点位被解析为对象字面量/块语句语法错或静默
+ *   渲染错。算法：对每个 `<IconPlusIc…/>` 站点向后回溯找所属条件表达式最外层起点（深度 0 遇 `?`/`&&`/`||`），
+ *   起点处做单字符 lookbehind：`>`（JSX 子节点开标签，非 `=>`）或 `}` → JSX 子节点位且未包 → 报
+ *   TERNARY_WRAP_LOST；`{`（已包）/ `(` / `[` / `,` / `=` / `;` 等表达式位 → 不报（与 wrapIfNeeded 一致，
+ *   宁可漏报不误报，residual 本就有 doc 指引 + LLM 复核）。
+ *
  * 用法：
  *   node check-icon-shim.cjs <目标工程根>              # 输出报告，退出码 0
  *   node check-icon-shim.cjs <目标工程根> --strict     # 任一 UNJUSTIFIED 站点退出码 1
@@ -89,6 +101,22 @@ function lineOfOffset(text, offset) {
 
 function rel(p) {
   return p.replace(/\\/g, '/');
+}
+
+// 判 text[pos]（'>'）是否为 JSX 开标签闭合（如 <div>、<Comp className="x">），而非比较运算符 >。
+// 用法：从 pos-1 向回走，遇 '<' 即 JSX 闭合；遇 > ; { } ) ] 等表达式边界即比较运算符。
+// 消歧 count > 0（比较，'<' 左侧是 '>' 即 <div> 的 '>'）vs <div>cond（JSX 闭合，'<' 左侧是 '<'）。
+function isJsxCloseGt(text, pos) {
+  let k = pos - 1;
+  while (k >= 0 && /\s/.test(text[k])) k--;
+  if (k < 0) return false;
+  while (k >= 0) {
+    const ch = text[k];
+    if (ch === '<') return true;
+    if (ch === '>' || ch === ';' || ch === '{' || ch === '}' || ch === ')' || ch === ']') return false;
+    k--;
+  }
+  return false;
 }
 
 // 扫描 <Icon .../> 标签站点（含多行）。返回 [{ offset, tag, file, line, nameExpr }]。
@@ -484,13 +512,92 @@ function main() {
     }
   }
 
+  // ── 条件式图标站点漏包外层 {} 扫描（TERNARY_WRAP_LOST）
+  // 对应 Icon.md §「<Icon name={X}/> 改写的 {} 上下文规则」+ 步 7 residual {} 义务。
+  // 防：LLM residual 手改条件式图标站点（三元 / && / ||）在 JSX 子节点位漏包外层 {}——
+  //   脚本自动路径（扁平字面量三元 + 全叶 confirmed 链式三元）由 wrapIfNeeded 确定性加 {}、稳定不出错；
+  //   residual 手改由 LLM 加，漏加致 JSX 解析为对象字面量/块语句语法错或静默渲染错。本扫描兜底 residual 路径。
+  // 检测：对每个 <IconPlusIc*> 站点，向后走找其所属条件式的最外层 ? / && / ||（深度 0），
+  //   再从该算子向左回溯到条件式左边界（深度负 opener { ( [ / JSX 闭合 > / ; , =）：
+  //   边界 > (isJsxCloseGt) → JSX 子节点位且未包 {} → 报 TERNARY_WRAP_LOST；
+  //   边界 { → 已包（JSX 容器/块/prop 容器，均正确不报）；边界 ( [ ; , = → 表达式位裸正确不报。
+  //   比较运算符 >（如 count > 0）由 isJsxCloseGt 消歧（向左遇 '>' 等 → 非闭合 → 不报），避免误报。
+  //   嵌套/链式三元取最外层 ?；同一条件式多 icon 站点按 (file:边界偏移) 去重只报一次。宁漏不误。
+  const ternaryWrapLost = [];
+  const IconPlusReWrap = /<IconPlusIc[A-Za-z0-9]*\b[\s\S]*?(?:\/>|<\/IconPlusIc[A-Za-z0-9]*>)/g;
+  const wrapFlaggedStarts = new Set();
+  for (const file of files) {
+    const relFile = rel(file);
+    if (relFile.includes('/shared/Icon/')) continue;
+    const text = fs.readFileSync(file, 'utf8');
+    IconPlusReWrap.lastIndex = 0;
+    let im;
+    while ((im = IconPlusReWrap.exec(text)) !== null) {
+      const iconStart = im.index;
+      // phase 1：从 iconStart 向后走，找最外层（最左）深度 0 的条件算子 ? / && / ||
+      let depth = 0;
+      let i = iconStart - 1;
+      let outermostOp = -1;
+      const phaseBound = Math.max(0, iconStart - 800);
+      while (i >= phaseBound) {
+        const ch = text[i];
+        if (ch === ')' || ch === ']' || ch === '}') depth++;
+        else if (ch === '(' || ch === '[' || ch === '{') {
+          if (depth === 0) break; // 触外层 opener → 边界（条件式在此 opener 之内）
+          depth--;
+        } else if (depth === 0) {
+          if (ch === '?') outermostOp = i;
+          else if (ch === '&' && i >= 1 && text[i - 1] === '&') outermostOp = i - 1;
+          else if (ch === '|' && i >= 1 && text[i - 1] === '|') outermostOp = i - 1;
+          // 语句/表达式边界：到这些即条件式不可向左延伸，停（防跨语句/跨箭头体误追最外层 ?）
+          //   ; — 语句尾；=>（箭头）的 '>' 前字符是 '=' — 箭头体边界（如 `() => cond ? <A/> : <B/>`，
+          //   `()` 是平衡括号对，扫过 depth 归 0 不 break，须靠 `=>` 兜底停，否则跨语句追到前一个 ?）。
+          //   不在 '>'(JSX 闭合) 处停——保留嵌套三元取最外层 ? 的能力（<Wrapper>cond ? <div>a?<A/>:<B/></div> : null</Wrapper>）。
+          else if (ch === ';') break;
+          else if (ch === '>' && i >= 1 && text[i - 1] === '=') break; // 箭头 =>
+        }
+        i--;
+      }
+      if (outermostOp < 0) continue; // 该 icon 不在条件式内 → 跳过（plain icon+ 子节点无需 {}）
+      // phase 2：从 outermostOp 向左回溯到条件式左边界（depth 重置 0）
+      let d2 = 0;
+      let j = outermostOp - 1;
+      let boundary = null; // { ch, pos }
+      const condBound = Math.max(0, outermostOp - 200);
+      while (j >= condBound) {
+        const ch = text[j];
+        if (ch === ')' || ch === ']' || ch === '}') d2++;
+        else if (ch === '(' || ch === '[' || ch === '{') {
+          if (d2 === 0) { boundary = { ch, pos: j }; break; }
+          d2--;
+        } else if (d2 === 0) {
+          if (ch === '>' && isJsxCloseGt(text, j)) { boundary = { ch: '>', pos: j }; break; }
+          if (ch === ';' || ch === ',' || ch === '=') { boundary = { ch, pos: j }; break; }
+        }
+        j--;
+      }
+      if (!boundary || boundary.ch !== '>') continue; // {/( /[/;/,/=/超界 → 不报
+      const startKey = relFile + ':' + boundary.pos;
+      if (wrapFlaggedStarts.has(startKey)) continue;
+      wrapFlaggedStarts.add(startKey);
+      const segEnd = Math.min(text.length, iconStart + im[0].length);
+      let seg = text.slice(boundary.pos + 1, segEnd).replace(/\s+/g, ' ').trim();
+      if (seg.length > 80) seg = seg.slice(0, 77) + '...';
+      ternaryWrapLost.push({
+        file: relFile, line: lineOfOffset(text, boundary.pos + 1), expr: seg,
+        issue: 'TERNARY_WRAP_LOST',
+        detail: `条件式图标表达式在 JSX 子节点位漏包外层 {}——前一个非空白字符是 '>'（JSX 开标签闭合），剥离 <Icon/> 后整体条件表达式须包 {}（见 Icon.md §「<Icon name={X}/> 改写的 {} 上下文规则」）。修复：整体用 {} 包裹，如 {cond ? <IconPlusIc…/> : <IconPlusIc…/>}（整体包一层，非每分支各包）。脚本自动路径（扁平字面量三元）由 wrapIfNeeded 确定性加 {}、稳定；此处是 residual 手改漏加。`,
+      });
+    }
+  }
+
   // 报告
   console.log('[check-icon-shim] 方案A 兜底保留校验报告');
   console.log('  契约：方案A 仅 name 值集合 OPEN（后端自由取值）；闭合集（含跨 prop/useMemo/推入函数边界、对象地图）须转 icon+。');
   console.log('        untraced 站点（脚本追不到源）交 LLM 按 Icon.md §name 解析 判，本闸拦闭集误留与未判站点。');
   console.log(`  扫描范围: src/（${files.length} 个文件，${totalShimSites} 处 <Icon> shim 站点，已排除 src/shared/Icon/）`);
   console.log(`  闭合性结论条目: ${justifications.length} 条（.icon-shim-justified.json）`);
-  console.log(`  UNJUSTIFIED: ${unjustified.length} 处；STALE-SHIM-IMPORT: ${staleImports.length} 处；UNCONVERTED-ICON-SOURCE: ${unconvertedSources.length} 处；PROP_DROPPED_ON_ICON_REWRITE: ${propDropped.length} 处`);
+  console.log(`  UNJUSTIFIED: ${unjustified.length} 处；STALE-SHIM-IMPORT: ${staleImports.length} 处；UNCONVERTED-ICON-SOURCE: ${unconvertedSources.length} 处；PROP_DROPPED_ON_ICON_REWRITE: ${propDropped.length} 处；TERNARY_WRAP_LOST: ${ternaryWrapLost.length} 处`);
   if (unjustified.length) {
     console.log('');
     for (const u of unjustified) {
@@ -526,7 +633,14 @@ function main() {
       console.log(`      ${p.detail}`);
     }
   }
-  if (unjustified.length || staleImports.length || unconvertedSources.length || propDropped.length) {
+  if (ternaryWrapLost.length) {
+    console.log('');
+    for (const t of ternaryWrapLost) {
+      console.log(`  ✗ ${t.file}:${t.line}  [${t.issue}]  ${t.expr}`);
+      console.log(`      ${t.detail}`);
+    }
+  }
+  if (unjustified.length || staleImports.length || unconvertedSources.length || propDropped.length || ternaryWrapLost.length) {
     console.log('');
     console.log('修复：按 Icon.md §name 解析与方案A 判定（统一原则）枚举闭集叶子转 icon+，');
     console.log('     或在 .icon-shim-justified.json 补具体 OPEN 集合证据（后端接口/运行时自由取值/props 字段且源不在已扫文件）；');
@@ -535,13 +649,15 @@ function main() {
     console.log('       仅真 OPEN 默认/兜底字面量可留，须 closedSet:false + OPEN 证据 + linksShim 关联保留 shim。');
     console.log('     PROP_DROPPED_ON_ICON_REWRITE：给报出的暗色切换图标补回 onClick={fn}（+ title/role/tabIndex 等 a11y props），');
     console.log('       见 Icon.md「⚠️ 硬约束：改写 <Icon> 调用点必须保留原 DOM/交互 props」改写清单。');
+    console.log('     TERNARY_WRAP_LOST：条件式图标在 JSX 子节点位漏包外层 {}——整体用 {} 包裹，如 {cond ? <IconPlusIc…/> : <IconPlusIc…/>}，');
+    console.log('       见 Icon.md §「<Icon name={X}/> 改写的 {} 上下文规则」。');
   } else if (totalShimSites) {
-    console.log('  全部残留 shim 站点已声明具体 OPEN 集合证据、无 stale import、无数据源半改、无图标改写 props 丢失——PASS');
+    console.log('  全部残留 shim 站点已声明具体 OPEN 集合证据、无 stale import、无数据源半改、无图标改写 props 丢失、无条件式漏包 {}——PASS');
   } else {
-    console.log('  无残留 <Icon> shim 站点、无数据源半改、无图标改写 props 丢失——PASS');
+    console.log('  无残留 <Icon> shim 站点、无数据源半改、无图标改写 props 丢失、无条件式漏包 {}——PASS');
   }
 
-  if (opts.strict && (unjustified.length || staleImports.length || unconvertedSources.length || propDropped.length)) {
+  if (opts.strict && (unjustified.length || staleImports.length || unconvertedSources.length || propDropped.length || ternaryWrapLost.length)) {
     process.exit(1);
   }
 }
