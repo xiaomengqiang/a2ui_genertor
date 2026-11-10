@@ -2466,6 +2466,7 @@ input.ant-input.ant-input-sm {
   height: 2.25rem;
   align-items: center;
   line-height: initial;
+  width: 100%;
 }
 .ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-switcher {
   width: 1rem;
@@ -2502,7 +2503,6 @@ input.ant-input.ant-input-sm {
   padding-inline-start: 0.25rem;
   width: 100%;
   border-radius: 0.25rem;
-  display: inline-block;
 }
 .ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-node-content-wrapper {
   border-radius: var(--radius-base);
@@ -2510,6 +2510,7 @@ input.ant-input.ant-input-sm {
   align-items: center;
   padding-inline: 0.25rem;
   height: 1.75rem;
+  width: 100%;
 }
 .ant-tree .ant-tree-list .ant-tree-list-holder .ant-tree-list-holder-inner .ant-tree-node-content-wrapper .ant-tree-iconEle {
   width: 1rem;
