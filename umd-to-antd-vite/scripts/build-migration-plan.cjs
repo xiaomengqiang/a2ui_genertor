@@ -62,7 +62,7 @@ const handoff = JSON.parse(fs.readFileSync(handoffPath, 'utf8'));
 const SHELL_COMPONENTS = [
   'Select', 'TextField', 'InputSelect', 'MultipleSelect', 'SearchInput', 'TextArea',
   'Tag', 'DatePicker', 'Spinner', 'Cascader', 'TreeSelector', 'IPInput', 'TimePicker',
-  'Crumbs',
+  'Crumbs', 'Accordion', 'Timeline',
   'Accordion',
 ];
 

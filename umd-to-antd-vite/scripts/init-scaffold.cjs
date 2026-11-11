@@ -7,7 +7,7 @@
 //   --profile eview-react  默认。scaffold/ 原样拷贝（@nce/eview-react 依赖 + aui3_1 CSS + src/shared 包壳）
 //   --profile eview-ui     先拷 scaffold/，再用 scaffold-eview-ui/ 差异文件覆盖（package.json/main.jsx/
 //                          index.html/app.jsx/base.css），并删除转发 @nce/eview-react 的 src/shared 包壳
-//                          目录（保留 Icon shim 与 Cascader 手写件）。产物直接衔接 antd-to-eview-ui，
+//                          目录（保留 Icon shim 与 Cascader/Timeline 手写件）。产物直接衔接 antd-to-eview-ui，
 //                          下游跳过「骨架换血」步骤。
 //
 // 用法：
@@ -137,7 +137,7 @@ if (profile === 'eview-ui') {
       removedShells++;
     }
   }
-  // 保留：src/shared/Icon（图标 shim，两路线通用）、src/shared/Cascader（纯手写 antd 兼容件，无 @nce 依赖）
+  // 保留：src/shared/Icon（图标 shim，两路线通用）、src/shared/Cascader、src/shared/Timeline（纯手写 antd 兼容件，无 @nce 依赖）
 }
 
 const pkgPath = path.join(resolvedTarget, 'package.json');
@@ -159,7 +159,7 @@ console.log(`[init-scaffold] package.json name = "${resolvedName}"`);
 console.log(`[init-scaffold] index.html title = "${resolvedTitle}"`);
 if (profile === 'eview-ui') {
   console.log(`[init-scaffold] eview-ui overlay 已应用（覆盖 ${overlayCount} 个差异文件，删除 ${removedShells} 个 eview-react 包壳目录）`);
-  console.log('[init-scaffold] 保留：src/shared/Icon（图标 shim）、src/shared/Cascader（手写 antd 兼容件）');
+  console.log('[init-scaffold] 保留：src/shared/Icon（图标 shim）、src/shared/Cascader、src/shared/Timeline（手写 antd 兼容件）');
   console.log('[init-scaffold] vite.config.js 已含 less 预处理配置（javascriptEnabled + TildeFileManager ~ 导入支持）；less 由 @cloudsop/eview-ui 传递依赖提供（无需显式 devDep）');
   console.log('[init-scaffold] 依赖：@cloudsop/eview-ui ^7.1.37 + @hui/design-token 保留 + .npmrc @cloudsop scope');
   console.log('[init-scaffold] TODO: main.jsx 的 eview-ui 全局样式 import 路径待内网确认（有占位注释，可能是 .less 文件）');

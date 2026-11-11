@@ -72,7 +72,7 @@
 | `Image` | 手写 | 无 Reference |
 | `Carousel` | 手写 | 导出名存在但无 Reference |
 | `Card` | 手写或 `Panel` | 见 [handwrite-templates.md](handwrite-templates.md) §1 |
-| `Timeline` | 手写 | 导出名 `TimeLine` 存在但无 Reference |
+| `Timeline` | `Timeline`（`@/shared/Timeline` 手写） | 导入 `@/shared/Timeline`（scaffold 手写 antd v6 Timeline 兼容件，非 `@nce/eview-react`）；**API 兼容 antd Timeline，调用点近零改动**——`items`/`mode`（`left`/`right`/`alternate`，`left`/`right` 已废弃等价 `start`/`end`）/`reverse`/`pending`/`pendingDot`/`color`（预设 `blue`/`red`/`green`/`gray` + 自定义色值）/`dot`/`icon`/`Timeline.Item` 子元素形态均保留 antd 写法；暗色随 `<html>.dark` + palette token（`--gray-*`/`--blue-50`/`--red-*`/`--mint-*`）自动翻转，无需另写暗色 CSS；见 [Timeline.md](components/Timeline.md) |
 | `Comment` | 手写 | 无导出 |
 | `Transfer` | 手写 | 导出名 `DoubleSelect` 可能近似，无 Reference |
 

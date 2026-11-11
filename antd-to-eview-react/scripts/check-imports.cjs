@@ -34,7 +34,7 @@ const EXTS = new Set(['.js', '.jsx', '.ts', '.tsx']);
 const SHELL_COMPONENTS = [
   'Tag', 'Select', 'TextField', 'InputSelect', 'MultipleSelect', 'SearchInput',
   'TextArea', 'DatePicker', 'Spinner', 'Cascader', 'TreeSelector',
-  'IPInput', 'TimePicker', 'Crumbs', 'Accordion',
+  'IPInput', 'TimePicker', 'Crumbs', 'Accordion', 'Timeline',
 ];
 
 // 扫描整个工程根（含根目录配置文件 + src/ 子树）。跳过 node_modules / .开头目录 /
