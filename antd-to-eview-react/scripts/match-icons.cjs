@@ -322,6 +322,17 @@ function normalizeSourceName(raw) {
   return { raw: String(raw), base, lower: base.toLowerCase(), tokens: new Set(tokensArr), tokensArr };
 }
 
+// ─── icon+ 导出名归一化（方案B）──────────────────────────────────────────────
+// getIconInfo 返回的 icons[0].name 是原始分隔符形式（如 ic-public-search / ic_public_search），
+// 非 @hui/icon-plus 的具名导出形态。按分隔符拆段、首字母大写、前缀 IconPlus → IconPlusIcPublicSearch。
+// 决策日志 iconPlusName 字段存原始 name；loadDecisions 调此函数得导出名，确保产物 specifier 合法。
+function normalizeIconPlusName(rawName) {
+  if (!rawName) return '';
+  const arr = String(rawName).split(/[_\.\s-]/).filter(Boolean);
+  const str = arr.map((seg) => seg.charAt(0).toUpperCase() + seg.slice(1)).join('');
+  return `IconPlus${str}`;
+}
+
 // ─── 匹配核心 ───────────────────────────────────────────────────────────────
 
 // 语义表 key 用源名原始形态（kebab 或 antd 原名）。先按归一化 lower 查，再按 raw 查。
@@ -1748,8 +1759,8 @@ function safeRenderSite(tag) {
   }
 }
 
-// 加载 LLM 维护的决策日志（--apply-decisions 用）。格式：[{ keyword, requestUrl, iconPlusName, candidates[], selectedBecause }]（iconPlusName = response.icons[0].name；requestUrl/candidates/selectedBecause 供审计，loader 仅消费 keyword/iconPlusName）。
-// 返回 { byRaw, byLower, count }：名真值来自 getIconInfo 在线返回，catalog 零参与。
+// 加载 LLM 维护的决策日志（--apply-decisions 用）。格式：[{ keyword, requestUrl, iconPlusName, candidates[], selectedBecause }]（iconPlusName = response.icons[0].name 的原始分隔符形式，如 ic-public-search；requestUrl/candidates/selectedBecause 供审计，loader 仅消费 keyword/iconPlusName）。
+// 返回 { byRaw, byLower, count }：loader 对原始 name 调 normalizeIconPlusName 归一化为 @hui/icon-plus 具名导出名（IconPlusIcPublicSearch），catalog 零参与。
 function loadDecisions(decisionsPath) {
   if (!decisionsPath) {
     console.error('[match-icons] --apply-decisions 需配合 --decisions <path> 指定决策日志');
@@ -1776,19 +1787,20 @@ function loadDecisions(decisionsPath) {
   for (const e of arr) {
     if (!e || typeof e !== 'object') continue;
     const kw = e.keyword != null ? String(e.keyword) : null;
-    const name = e.iconPlusName != null ? String(e.iconPlusName) : null;
-    if (!kw || !name) {
+    const rawName = e.iconPlusName != null ? String(e.iconPlusName) : null;   // 原始 response.icons[0].name（分隔符形式）
+    if (!kw || !rawName) {
       console.error(`[match-icons] 决策日志条目缺 keyword/iconPlusName: ${JSON.stringify(e)}`);
       process.exit(1);
     }
-    byRaw.set(kw, name);
-    byLower.set(kw.toLowerCase(), name);
+    const exportName = normalizeIconPlusName(rawName);                          // 归一化为 @hui/icon-plus 具名导出
+    byRaw.set(kw, exportName);
+    byLower.set(kw.toLowerCase(), exportName);
   }
   return { byRaw, byLower, count: arr.length };
 }
 
-// 决策日志名解析（替换 matchOne/catalog）：命中 → confirmed + getIconInfo 真名；未命中 → missing 并记入 missingSet。
-// 名全部来自决策日志（getIconInfo 在线返回），catalog 不参与；缺名不静默落占位（main 在 apply 前拦截 missing 报错）。
+// 决策日志名解析（替换 matchOne/catalog）：命中 → confirmed + 归一化导出名（loadDecisions 已调 normalizeIconPlusName）；未命中 → missing 并记入 missingSet。
+// 名全部来自决策日志（getIconInfo 在线返回 + 归一化），catalog 不参与；缺名不静默落占位（main 在 apply 前拦截 missing 报错）。
 function resolveFromDecisions(norm, decisions, missingSet) {
   const raw = norm.raw;
   const name = decisions.byRaw.get(raw) || decisions.byLower.get(norm.lower);
@@ -1867,7 +1879,7 @@ function writeLeavesJson(leavesData, outPath) {
     totalLeafSites: leavesData.leaves.length,
     leaves: uniq,
     untraced: leavesData.untraced,
-    note: '每个唯一 sourceKeyword 调一次 getIconInfo——请求参数固定 keyword=<源名>&topK=2&source_id=6（禁止改 topK/source_id、禁止加额外参数）；结果写入 icon-b-decisions.json（每条 {keyword,requestUrl,iconPlusName,candidates[],selectedBecause}，iconPlusName=response.icons[0].name）；untraced 段按 Icon.md 跨边界 recipe 手工。',
+    note: '每个唯一 sourceKeyword 调一次 getIconInfo——请求参数固定 keyword=<源名>&topK=2&source_id=6（禁止改 topK/source_id、禁止加额外参数）；结果写入 icon-b-decisions.json（每条 {keyword,requestUrl,iconPlusName,candidates[],selectedBecause}，iconPlusName=response.icons[0].name 原始分隔符形式如 ic-public-search，脚本 loadDecisions 自动归一化为 IconPlusIcPublicSearch）；untraced 段按 Icon.md 跨边界 recipe 手工。',
   };
   fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
   return { uniqueKeywordCount: uniq.length, totalLeafSites: leavesData.leaves.length, untracedCount: leavesData.untraced.length };
@@ -2391,7 +2403,7 @@ function main() {
     console.log('\n[match-icons] --plan 完成：结构规划，未改任何产物文件（原 <Icon> shim 保留，中间态可编译）；未读 catalog。');
     console.log(`  闭集叶子 ${stats.totalLeafSites} 处 / 唯一 sourceKeyword ${stats.uniqueKeywordCount} 个 / untraced ${stats.untracedCount} 处。`);
     console.log(`  叶子清单写入临时目录 ${outPath}（不进产物）。`);
-    console.log('  下一步：按 Icon.md「方案 B 在线匹配执行 recipe」去重唯一名 + 同 turn 并行调 getIconInfo + 写 icon-b-decisions.json，再跑 --apply-decisions。');
+    console.log('  下一步：按 Icon.md「方案 B 在线匹配执行 recipe」去重唯一名 + 同 turn 并行调 getIconInfo + 写 icon-b-decisions.json（iconPlusName 存 response.icons[0].name 原始分隔符形式，脚本自动归一化），再跑 --apply-decisions。');
     return;
   }
 

@@ -2,7 +2,7 @@
 
 > **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Icon/Icon`；官网组件页 Icon 及示例 `IconBasic.jsx` / `IconPlusBasic.jsx` / `IconPlusType.jsx` / `IconPlusSize.jsx`。`IconButton` 已弃用，可点击图标直接用 icon+ 挂 `onClick`+`title`（见 §2）。
 >
-> 官网首推 **icon+ 图标库**：`import { IconPlusIcPublicSearch } from '@hui/icon-plus'`，按需引入、2000+ 图标；`type="filled"` 换风格、`iconColor` 换色、`iconSize` 换尺寸（B/C 静态 import 支持任意数字 / rem / px 字符串如 `"1.25rem"`，原样透传；**方案A shim 的 `getIcon` API 另需吸附到离散集 12/14/16/20/24/32/36/40/48/60**，见下表 A 行）。组件名合成 = `"IconPlusIc" + Domain + Name`（`Public`+`Search` → `IconPlusIcPublicSearch`，算法见 [match-icons.cjs](../../scripts/match-icons.cjs) `matchOne`）。eview-react 内置 `Icon name="ict_*"` 已下线；scaffold 同名自定义 `<Icon>` 是源项目 `<Icon name>` 运行时 shim 契约保留件（方案A 兜底落到它，见下文「渲染方式」A 行），底层走 icon-plus 在线，**两者不同**。
+> 官网首推 **icon+ 图标库**：`import { IconPlusIcPublicSearch } from '@hui/icon-plus'`，按需引入、2000+ 图标；`type="filled"` 换风格、`iconColor` 换色、`iconSize` 换尺寸（B/C 静态 import 支持任意数字 / rem / px 字符串如 `"1.25rem"`，原样透传；**方案A shim 的 `getIcon` API 另需吸附到离散集 12/14/16/20/24/32/36/40/48/60**，见下表 A 行）。名合成方式因方案而异（C `matchOne` 合成 `IconPlusIc{Domain}{Name}` / B `normalizeIconPlusName` 归一化接口返回名，详见各方案 recipe）。eview-react 内置 `Icon name="ict_*"` 已下线；scaffold 同名自定义 `<Icon>` 是源项目 `<Icon name>` 运行时 shim 契约保留件（方案A 兜底落到它，见下文「渲染方式」A 行），底层走 icon-plus 在线，**两者不同**。
 
 ## name 解析与方案A 判定（统一原则 — 本文骨架）
 
@@ -75,7 +75,9 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 
 **步 4 同 turn 并行查**：同一 turn 内并行发多个独立 getIconInfo（WebFetch/curl，不同 keyword 互不依赖），U 个唯一名压到 ⌈U/k⌉ 轮（k≈5–8）。串行逐个查是耗时主因之一，并行批次直接降时。
 
-**步 5 选名规则（取首条，不做字段匹配）**：直接取 getIconInfo 返回数据中 **`icons` 数组第一条的 `name` 值**作为 `iconPlusName`——**不做任何字段匹配 / 子串匹配 / tie-break**，即 `iconPlusName = response.icons[0].name`。接口必返回 `icons` 非空，故每 keyword 必有选中名写入决策日志。名直接取自接口返回（`icons[0].name`），**禁止**自行拿 `IconPlusIc` + Domain + 源名 PascalCase 拼接（防臆造非实有名）。`candidates[]` 仍原样记录接口返回的 topK 条供审计，但**选中名恒为 `icons[0].name`**。
+**步 5 选名规则（取首条原始名，脚本归一化）**：取 getIconInfo 返回数据中 **`icons` 数组第一条的 `name` 值**，**原样**写入决策日志 `iconPlusName`——该值是**原始分隔符形式**（如 `ic-public-search` / `ic_public_search`），**不是**包导出名。**禁止**自行拼接或改写，脚本 `loadDecisions` 会用 `normalizeIconPlusName` 归一化为 `IconPlus{PascalCase}` 具名导出（`ic_public_search` → `IconPlusIcPublicSearch`）。接口必返回 `icons` 非空，故每 keyword 必有选中名写入决策日志。**禁止**自行拿 `IconPlusIc` + Domain + 源名 PascalCase 拼接（防臆造非实有名）——名只能取自接口返回 + 此归一化公式。`candidates[]` 仍原样记录接口返回的 topK 条供审计，但**选中名恒为 `icons[0].name` 原始形态**（脚本归一化）。
+
+> **归一化公式**（`match-icons.cjs` `normalizeIconPlusName`；residual 手改站点步 7 按 Icon.md 跨边界 recipe 手改时推导导出名亦用此公式）：`exportName = "IconPlus" + name.split(/[_\.\s-]/).filter(Boolean).map(s => s[0].toUpperCase() + s.slice(1)).join("")`。
 
 **步 6 结构改写（脚本 pass 2，用真名）**：`node scripts/match-icons.cjs <工程根> --apply-decisions --decisions icon-b-decisions.json`——脚本做完整结构改写（Phase A/B/C：闭集叶子塞真实 `<IconPlusIc*>` + render 改写 `wrapIfNeeded` + import 注入合并去重 + `.js→.jsx`），**名取自决策日志，不读 catalog、无占位**。**决策日志缺某 keyword → 脚本报错列出缺失项 + 对应站点、零改写零占位、退出码 1**，强制 LLM 补齐决策日志再重跑（保证产物名 100% 来自 getIconInfo）。脚本幂等（已含 `IconPlusIc` 的站点自动跳过，连跑两次第二次零变更）。
 
@@ -92,7 +94,7 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 - **residual 阶段三条铁律**：
   1. **禁止引用不存在的 Icon.md 章节**当保留方案 A 的依据（实测回归：LLM 臆造「函数参数传入的 icon prop（跨组件边界）」「OBJ[runtimeKey] 计算属性访问」之类 Icon.md 根本没有的章节名——一切引用须以 Icon.md 实有标题为准）。
   2. **每处残留 shim 站点必须附 closed-set 追源结论**（源在哪、字面量集合、是否闭合、为何 OPEN），不得空泛写「跨组件边界」了事。`closedSet` 语义：`false`=OPEN 放行保 shim；`true`=闭合应转、误留则拦。`check-icon-shim.cjs --strict` 自动拦：无结论 / `closedSet:true` / 引用幻觉章节 / reason 缺 OPEN 证据 → exit 1。
-  3. **禁止臆造 `IconPlusIc{Domain}{Name}`**——residual 名只能取候选[0] / 占位 `IconPlusIcPublicTransverseRectangleTemplate` / catalog 实有名，**不得自行拿桶前缀 + 源名 PascalCase 基名拼接**（实测回归：源 `siren`→`IconPlusIcPublicAlarm`，但 `Alarm` 只在 Ict 桶；源 `building-2`→`IconPlusIcIctBuilding2`，全库无 `Building2`）。真孤儿名（无候选）由 `--apply` 自动落占位（不交 LLM 拼名）。此铁律 B/C 均适用；**机器闸门 `check-icon-names.cjs` 仅方案 C 跑**（扫产物所有 `IconPlusIc*` 对照 catalog 实有集，任一非实有 → exit 1；B 不跑——其名真值是 `getIconInfo` 接口/实包，名实有性由命中隐式保证）。
+  3. **禁止臆造图标名**——**方案C**：residual 名须取自候选集（top-K 任选其一，`candidates[0]` 为最高分推荐首选）/ 占位 `IconPlusIcPublicTransverseRectangleTemplate` / catalog 实有名，**不得自行拿桶前缀 + 源名 PascalCase 基名拼接**（实测回归：源 `siren`→`IconPlusIcPublicAlarm`，但 `Alarm` 只在 Ict 桶；源 `building-2`→`IconPlusIcIctBuilding2`，全库无 `Building2`）；真孤儿名（无候选）由 `--apply` 自动落占位（不交 LLM 拼名）。**方案B**：名只能取自 `getIconInfo` 接口返回 + `normalizeIconPlusName` 归一化公式（步 5），同样禁止自行拼接。**机器闸门 `check-icon-names.cjs` 仅方案 C 跑**（扫产物所有 `IconPlusIc*` 对照 catalog 实有集，任一非实有 → exit 1；B 不跑——名真值是 `getIconInfo` 接口/实包，名实有性由命中隐式保证）。
 - 可点击图标（编辑/删除/刷新等）直接给 icon+ 挂 `onClick` + 原生 `title` 属性（hover 提示），**`IconButton` 已弃用**：`<IconPlusIcPublicTrash onClick={remove} title="删除" />`；禁用态见 §2。
 - **antd 纯图标按钮（`Button type="text" shape="circle" icon={...}` 无 children）→ 剥 Button 外壳，`onClick`/`title` 直接搬到内层 `<IconPlusIc* />`**（见 [component-mapping.md](../component-mapping.md) 图标行；脚本 `--apply` 已先把内层 `<Icon>`→`<IconPlusIc>` 并吸附 `iconSize`，LLM 只需剥外壳 + 搬 onClick/title）。
 - **带图标的 Button 文字必须用 `text=`，不能写 children**（children 会让图标不渲染，见 [Button.md](Button.md) §4）。
