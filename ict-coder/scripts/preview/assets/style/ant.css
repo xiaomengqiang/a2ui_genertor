@@ -1563,9 +1563,6 @@ input.ant-input.ant-input-sm {
 .ant-table .ant-table-content .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell {
   background-color: var(--brand-05);
 }
-.ant-table .ant-table-content .ant-table-tbody .ant-table-expanded-row .ant-table-cell {
-  background-color: rgb(from var(--gray-90) r g b / 0.05);
-}
 .ant-table .ant-table-content .ant-table-tbody .ant-table-column-sort {
   background: initial;
 }
@@ -1666,9 +1663,6 @@ input.ant-input.ant-input-sm {
 .dark .ant-table .ant-table-content .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell-fix-right {
   background-color: var(--gray-70) !important;
   background-image: linear-gradient(rgb(from var(--brand-50) r g b / 0.2), rgb(from var(--brand-50) r g b / 0.2));
-}
-.dark .ant-table .ant-table-content .ant-table-tbody .ant-table-expanded-row .ant-table-cell {
-  background-color: rgb(from var(--gray-05) r g b / 0.1);
 }
 .dark .ant-table .ant-table-content .ant-table-placeholder {
   background-color: transparent;
