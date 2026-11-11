@@ -1780,6 +1780,7 @@ input.ant-input.ant-input-sm {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  width: fit-content;
 }
 .ant-tag.ant-tag-processing {
   background: var(--color-tag-bg-info);
@@ -1999,6 +2000,11 @@ input.ant-input.ant-input-sm {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  line-height: 2rem;
+  border-radius: 50%;
+  flex: 0 0 2rem;
 }
 .ant-steps .ant-steps-item .ant-steps-item-icon .ant-steps-icon {
   top: 0;
