@@ -16,17 +16,20 @@
  *
  * columnsAllWidth（第 6 项）扫描采用 AST（@babel/parser）：
  *   纯正则的 extractColumnWidths 只扫第一个 [...] 数组体，对 columns={raw.map(c=>({width}))}、
- *   Array.from、spread、function 回调 return 等动态形态全漏（advisory 不触发）。
+ *   Array.from、spread、function 回调 return 等动态形态全漏（硬 FAIL 不触发）。
  *   AST 从 columns 表达式收集【顶层列对象】（数组直接元素 / .map 回调 return 的对象，不深入
  *   嵌套——避免列 render 回调里返回的 {children,props} 被误计入列数），逐个查 width 属性。
  *   其余 5 项是 tag 级 / 文件级文本搜索，不涉及列对象，保留正则。Table 元素定位也改 AST
  *   （精准取开标签节点，frag = text.slice(start, end)）。与字段残留类 check 共用 lib/ast-helpers.cjs。
  *
- * 用法：
- *   node check-table-defaults.cjs <目标工程根>          # advisory，列出待核项，退出码 0
- *   node check-table-defaults.cjs <目标工程根> --strict # 有待核项 exit 1（接入步骤 3 门禁）
+ *   ⚠️ ①-⑤ 是 advisory（需对照源 antd 项目才能判定，exit 0，--strict 才 exit 1）；
+ *      ⑥ columnsAllWidth 是硬 FAIL（全列定宽是产物侧不变量，不依赖源项目，无需 --strict 即 exit 1）。
  *
- * 退出码：0=无待核项/通过，1=有待核项（--strict）/无解析器（--strict），2=用法错误。
+ * 用法：
+ *   node check-table-defaults.cjs <目标工程根>          # ①-⑤ advisory（exit 0）；⑥ columnsAllWidth 硬 FAIL（exit 1）
+ *   node check-table-defaults.cjs <目标工程根> --strict # advisory 项也 exit 1（接入步骤 3 门禁）
+ *
+ * 退出码：0=通过，1=columnsAllWidth 硬 FAIL / advisory 项（--strict）/ 无解析器（--strict），2=用法错误。
  */
 'use strict';
 
@@ -149,8 +152,13 @@ function main() {
       // columnsAllWidth：AST 收集【顶层列对象】（数组元素 / .map 回调 return，不深入嵌套——
       // 列 render 回调里返回的 {children,props} 不算列），逐个查 width 属性。
       // 覆盖 .map/Array.from/spread/function 回调/标识符追源 等动态形态。
-      // 规则：全列有 width 且（列数≥2 或 mapSourced）才报——.map 回调静态只产 1 个形状对象
-      // 但运行时可能 N 列，故 mapSourced 时不看列数阈值，形状带 width 即报（advisory，运行时核列数）。
+      // 规则：全列有 width 且（列数≥2 或 mapSourced）即硬 FAIL——.map 回调静态只产 1 个形状对象
+      // 但运行时可能 N 列，故 mapSourced 时不看列数阈值，形状带 width 即拦。
+      // ⚠️ 硬 FAIL（非 advisory）：全列定宽是 eview-react Table 的显示异常硬伤，产物侧可静态判定，
+      //    不依赖源项目上下文（①-⑤ 需对照源故 advisory；本项是产物不变量故硬 FAIL，无需 --strict 即 exit 1）。
+      //    冻结列（freezeCol: true）保留 width 是正确迁移结果——但"全列 width"含冻结列时仍触发
+      //    （问题是非冻结列也带 width）；正确迁移后非冻结列应去 width，至少一列不设 width 自适应。
+      const hardFailures = [];
       const colExpr = H.getAttrExpr(el, 'columns');
       if (colExpr) {
         const { objects: cols, mapSourced } = H.collectTopLevelObjects(ast, colExpr);
@@ -158,23 +166,26 @@ function main() {
           const withWidth = cols.filter((o) => H.findProperty(o, 'width')).length;
           const allWidth = withWidth === cols.length;
           if (allWidth && (cols.length >= 2 || mapSourced)) {
-            missing.push('columnsAllWidth');
             const cntDesc = mapSourced
               ? `${cols.length} 个列形状（.map/Array.from 动态生成，运行时列数可能更多）`
               : `${cols.length} 列`;
-            detailMsg = `columns 共 ${cntDesc}全部带 width（eview-react Table 列全设 width 会导致表格显示异常——应至少有一列不设 width 让其自适应剩余空间）`;
+            hardFailures.push({
+              code: 'COLUMNS_ALL_WIDTH',
+              detail: `columns 共 ${cntDesc}全部带 width（eview-react Table 列全设 width 会显示异常——迁移时去掉非冻结列的 width，至少一列不设 width 自适应剩余空间；冻结列 freezeCol: true 保留 width）`,
+            });
           }
         }
       }
 
-      if (missing.length || warning.length) {
-        items.push({ file: rel, line, missing, warning, detail: detailMsg });
+      if (missing.length || warning.length || hardFailures.length) {
+        items.push({ file: rel, line, missing, warning, hardFailures, detail: detailMsg });
       }
     }
   }
 
   // ---- 报告 ----
   const tableFiles = files.filter((f) => /<Table\b/.test(fs.readFileSync(f, 'utf8'))).length;
+  const hardFailCount = items.reduce((n, it) => n + it.hardFailures.length, 0);
   console.log('[check-table-defaults] Table 默认值反向坑检查报告');
   console.log(`  扫描范围: ${srcDir}（${files.length} 个文件，含 <Table> 的 ${tableFiles} 个）`);
 
@@ -188,32 +199,49 @@ function main() {
     process.exit(0);
   }
 
-  console.log(`\n发现 ${items.length} 个 <Table> 待核对（eview 默认值与 antd 相反，最易忘）：\n`);
-  for (const it of items) {
-    console.log(`- ${it.file}:${it.line}  <Table>`);
-    if (it.detail) {
-      console.log(`  [columnsAllWidth] ${it.detail}`);
-    }
-    const otherMissing = it.missing.filter(k => k !== 'columnsAllWidth');
-    if (otherMissing.length) {
-      console.log('  缺标记（对照源 antd 项目确认是否需补）：');
-      for (const key of otherMissing) {
-        console.log(`    · ${key}`);
-        console.log(`      ${CHECKS[key].advice}`);
+  // 硬 FAIL 项（columnsAllWidth）先报——全列定宽是产物侧不变量，不依赖源项目
+  if (hardFailCount > 0) {
+    console.log(`\n【硬 FAIL — columnsAllWidth：列全设 width，${hardFailCount} 处】`);
+    for (const it of items) {
+      for (const hf of it.hardFailures) {
+        console.log(`  - ${it.file}:${it.line}  <Table>  [${hf.code}]`);
+        console.log(`    ${hf.detail}`);
       }
     }
-    if (it.warning.length) {
-      console.log('  含标记（需确认源真会触发该行为）：');
-      for (const key of it.warning) {
-        console.log(`    · ${key}`);
-        console.log(`      ${CHECKS[key].advice}`);
-      }
-    }
-    console.log('');
+    console.log('  修复：去掉非冻结列的 columns[].width（至少一列不设 width 自适应剩余空间）；冻结列 freezeCol: true 保留 width。');
+    console.log('  详见 components/Table.md §4 列宽行 + component-mapping.md Table 行「列级 width 去除」。');
   }
 
-  console.log('结论: 待核对 — 上述 <Table> 需逐条对照源 antd 项目确认后补 props。');
-  console.log('  详见 components/Table.md §4/§5（Table 排序项/斑马纹/外层宽度/columns 更新）。');
+  // advisory 项（①-⑤：需对照源 antd 项目才能判定）
+  const advisoryItems = items.filter((it) => it.missing.length || it.warning.length);
+  if (advisoryItems.length) {
+    console.log(`\n【advisory — 默认值反向坑，${advisoryItems.length} 个 <Table> 待核对（对照源 antd 项目）】\n`);
+    for (const it of advisoryItems) {
+      console.log(`- ${it.file}:${it.line}  <Table>`);
+      if (it.missing.length) {
+        console.log('  缺标记（对照源 antd 项目确认是否需补）：');
+        for (const key of it.missing) {
+          console.log(`    · ${key}`);
+          console.log(`      ${CHECKS[key].advice}`);
+        }
+      }
+      if (it.warning.length) {
+        console.log('  含标记（需确认源真会触发该行为）：');
+        for (const key of it.warning) {
+          console.log(`    · ${key}`);
+          console.log(`      ${CHECKS[key].advice}`);
+        }
+      }
+      console.log('');
+    }
+    console.log('结论: 待核对 — 上述 <Table> 需逐条对照源 antd 项目确认后补 props。');
+    console.log('  详见 components/Table.md §4/§5（Table 排序项/斑马纹/外层宽度/columns 更新）。');
+  }
+
+  if (hardFailCount > 0) {
+    console.log('\n结论: FAIL — columnsAllWidth 硬约束违规（列全设 width），必须修复后重跑。');
+    process.exit(1);
+  }
   if (strict) process.exit(1);
 }
 

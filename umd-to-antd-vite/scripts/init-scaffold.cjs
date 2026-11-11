@@ -128,6 +128,7 @@ if (profile === 'eview-ui') {
   const SHELL_DIRS = [
     'Select', 'TextField', 'InputSelect', 'MultipleSelect', 'SearchInput', 'TextArea',
     'DatePicker', 'Spinner', 'TreeSelector', 'TimePicker', 'Tag', 'Crumbs', 'IPInput',
+    'Accordion',
   ];
   for (const d of SHELL_DIRS) {
     const p = path.join(resolvedTarget, 'src', 'shared', d);

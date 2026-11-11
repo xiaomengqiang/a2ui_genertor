@@ -72,6 +72,8 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 > **`{}` 上下文规则（缺陷一/二教训）**：剥离 `<Icon name={X}/>` 包装时，改写结果 `X`（如 `cond ? <A/> : <B/>`、`group.icon`）**仅当原处 JSX 子节点位才包 `{X}`**；三元分支/对象值/数组元素/prop 容器/箭头体/return 等表达式位一律裸 `X`，否则 `{}` 被解析为对象字面量/块语句而语法报错。脚本 `--apply`（三元 + 数据数组 render + 图标-prop wrapper 内部）已按 `wrapIfNeeded` 遵守；LLM residual 手改链式三元、prop 驱动调用方同步更新、wrapper 安全闸 residual 等场景务必同此规则。详见 [Icon.md](components/Icon.md)「`<Icon name={X}/>` 改写的 `{}` 上下文规则」表 +「图标-prop wrapper 组件」小节。
 
 > **⚠️ props 保留规则（缺陷三教训，必读）**：闭集自动改写站点（`--apply`/`--apply-decisions`）经 `collectPassthroughProps` 已透传 `<Icon>` 上的非 icon props（不会丢）；**须 LLM 显式搬 props 的场景限于 residual 手改站点 + 剥 antd 纯图标 Button/IconButton 外壳**（props 在父 `<Button>` 上、脚本不碰 Button）——必须把原调用点所有非 icon props 原样搬到新 `<IconPlusIc*>`，否则交互断链。高频受害：主题切换图标漏 `onClick={toggleDark}` → `isDark` 永不翻转、暗色三轨永不触发（`check-dark-mode.cjs` 静态 PASS 拦不住，见 §4.11 盲区）。完整改写清单 + 正反例 + 收尾复核见 [Icon.md](components/Icon.md) §「⚠️ 硬约束：改写 `<Icon>` 调用点必须保留原 DOM/交互 props」；机器兜底 `check-icon-shim.cjs --strict` PROP_DROPPED_ON_ICON_REWRITE 拦手改丢的 handler（见 §3.0 步7 / Icon.md recipe，仅核 HANDLER_PROPS，title/aria/箭头是盲区须人工复核）。阶段3 收尾必须 grep `toggleDark` 确认有实际调用点（详见 §4.11）。
+>
+> **residual 收尾自净（步 7 之后必跑，B/C 都适用）**：图标步骤 residual 手改（untraced 跨边界追源 / 占位 `IconPlusIcPublicTransverseRectangleTemplate` 替换 / 链式三元）会在 `.js`/`.ts` 数据文件里注入 `<IconPlusIc*>` JSX。`match-icons.cjs` 的 `renameJsxFiles` 只对 `--apply`/`--apply-decisions` **自己改写**的文件改名，**LLM residual 手改的文件不经过它**——且重跑 `--apply` 也救不回（手改后文件无 `<Icon name>` 站点，扫描不进 byFile）。故 residual 收尾后必跑 `node scripts/check-jsx-extension.cjs <工程根> --fix`：AST 扫工程根所有 `.js`/`.ts`（含 `src/` 外 mock），含 `JSXElement`/`JSXFragment` 的自动 `.js→.jsx`/`.ts→.tsx` + 工程级修引用方显式扩展名 import，让 icon 步骤自净（不等步骤 3 闸门兜底）。见 §4.19 + SKILL.md 硬约束 #14。
 
 | 组件 | 源项目用法 | 迁移后（B/C 静态 import） |
 |------|-----------|------------------|
@@ -105,7 +107,7 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 
 **Steps**：`current`→`currentStep`（对应 `data[].value` 不是下标）；`items`→`data=[{text,value}]`；`onClick(index)` 只允许回跳；**antd dot（圆点）形态迁移用 `size="mini"`**（eview-react Steps 无 `type="dot"` prop）；导入 `@nce/eview-react/Steps`（非包壳）。见 [components/Steps.md](components/Steps.md)。
 
-**Modal / Modal.confirm**：`open`→`isOpen`；`footer`→`buttons=[{text,status,onClick}]`；`onClose` 不自动关闭（需 `setIsOpen(false)`）；`Modal.confirm()`→`MessageDialog type="confirm"`，且**每个 `<MessageDialog>` 必须显式写 `iconLocation="title"`**（eview 默认 content 与 antd 形态相反；源 antd 无 icon prop 也要补，见 SKILL.md 硬约束 14）。见 [components/Dialog.md](components/Dialog.md) / [components/MessageDialog.md](components/MessageDialog.md)。
+**Modal / Modal.confirm**：`open`→`isOpen`；`footer`→`buttons=[{text,status,onClick}]`；`onClose` 不自动关闭（需 `setIsOpen(false)`）；`Modal.confirm()`→`MessageDialog type="confirm"`，且**每个 `<MessageDialog>` 必须显式写 `iconLocation="title"`**（eview 默认 content 与 antd 形态相反；源 antd 无 icon prop 也要补，见 §4.12）。见 [components/Dialog.md](components/Dialog.md) / [components/MessageDialog.md](components/MessageDialog.md)。
 
 ### 3.4 替换顺序与执行
 
@@ -130,6 +132,8 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 > **Table 外层宽度**：eview-react 的 Table **默认给最外层 dom 加行内样式 `width:100%;height:100%;`**，在 flex 容器、Grid 布局、卡片内嵌等场景下会撑破父容器、占满高度挤压兄弟元素。**迁移时显式加 `width="unset"` 重置组件库默认行内宽度**——但要先看源 antd Table 有无 width 相关设置：源有显式容器宽度（`style={{ width: ... }}` / className + CSS 设宽）→ 映射到 eview-react `width` prop；`scroll={{ x: ... }}` **直接抛弃不转**（eview `width` 是最外层 dom 宽度，不是 antd 列宽计算/横向滚动阈值概念，实测映射会导致表格宽度错误）；源无显式容器宽度 → 加 `width="unset"`。判定方法：搜源 `<Table` 是否带 `style` 含 `width`、`className` 对应 CSS 是否设宽度。见 [Table.md](components/Table.md) §5 API 速查 `width` 行。
 >
 > **Table columns 更新**：eview-react 的 `enableColumnCompareUpdate` **默认 `false`**，更新 `columns` prop 时不会重新渲染列定义（diff 比较被关掉，columns 变化不生效）。源 antd 的 `columns` 经常动态变化（条件列、权限列、筛选后列集、`useMemo` 依赖变化重建 columns）。**迁移时默认显式加 `enableColumnCompareUpdate={true}`**，否则源项目里 columns 变化的逻辑全部失效。见 [Table.md](components/Table.md) §5 API 速查 `enableColumnCompareUpdate` 行。
+>
+> **Table 列宽去除**：eview-react Table **全列设 `columns[].width` 会显示异常**（至少一列不设 `width` 自适应剩余空间）。源 antd 表有 `scroll`（每列定宽）或全列定宽时，迁移时去掉**非冻结列**的 `columns[].width`；冻结列（`freezeCol: true`）保留 `width`。判定方法：搜源 `<Table` 是否带 `scroll`、源 columns 是否每列都设 `width`。**机器验证**：步骤 3 `check-table-defaults.cjs` 的 `columnsAllWidth` 项**硬 FAIL**（AST 扫 columns 顶层列对象，全列带 width 即拦，不依赖源项目；①-⑤ 仍 advisory）。见 [Table.md](components/Table.md) §4 列宽行。
 
 **硬约束**：遵守 SKILL.md 的"eview-react 硬约束"章节（12 条）。导入路径改为 `import X from '@nce/eview-react/X'`。
 
@@ -242,7 +246,7 @@ node <skill目录>/scripts/check-chart-options.cjs <目标工程根>
 
 > 对应 [Table.md](components/Table.md) §4/§5「Table 排序项/斑马纹/外层宽度/columns 更新」四连——eview-react 的 Table 多个默认值与 antd **相反**，迁移时最易忘、最常错。脚本无法访问源 antd 项目，故全 advisory：列出每个 `<Table>` 缺哪几项标记，**强制迁移方逐条对照源 antd 回应**（决策写入 `.migration-result.json` 的 `tableDefaultReviews`）。这一步把「靠 AI 记住」的约束变成「AI 必须逐条回应」。
 
-脚本 `scripts/check-table-defaults.cjs`，对每个 `<Table>` 标六项：① `enableZebraCrossing`（eview 默认 true 开斑马纹 vs antd 默认无）、② `allowSort`（列级属性，eview 默认 true 全列带排序箭头 vs antd 默认无，检查 columns 数组每列是否标 allowSort）、③ `enableColumnCompareUpdate`（eview 默认 false，columns 动态失效）、④ `width`（eview 默认行内 100%/100% 撑破布局）、⑤ `freezeCol`（eview 无条件冻结，含则需确认源真会横向滚动）、⑥ **`columnsAllWidth`（列级，columns 所有列都带 width 会导致 eview-react Table 显示异常——应至少有一列不设 width 让其自适应剩余空间）**。
+脚本 `scripts/check-table-defaults.cjs`，对每个 `<Table>` 标六项：① `enableZebraCrossing`（eview 默认 true 开斑马纹 vs antd 默认无）、② `allowSort`（列级属性，eview 默认 true 全列带排序箭头 vs antd 默认无，检查 columns 数组每列是否标 allowSort）、③ `enableColumnCompareUpdate`（eview 默认 false，columns 动态失效）、④ `width`（eview 默认行内 100%/100% 撑破布局）、⑤ `freezeCol`（eview 无条件冻结，含则需确认源真会横向滚动）、⑥ **`columnsAllWidth`（列级，columns 所有列都带 width 会导致 eview-react Table 显示异常——至少一列不设 width 自适应剩余空间；非冻结列去 width，冻结列 freezeCol: true 保留）——硬 FAIL（①-⑤ 为 advisory）**。
 
 > **`columnsAllWidth` 扫描基于 AST（@babel/parser）**：从 `columns` 表达式收集【顶层列对象】（数组直接元素 / `.map` 回调 return 的对象，**不深入嵌套**——避免列 `render` 回调里返回的 `{children,props}` 被误计入列数），逐个查 `width` 属性。覆盖 `columns={raw.map(c=>({width}))}`/`Array.from`/spread/function 回调 return/标识符追同文件 `const` 等动态形态（纯正则只扫第一个 `[...]` 数组体，`.map` 列全漏）。规则：全列有 `width` 且（列数≥2 或 `.map`/`Array.from` 动态生成）则报——`.map` 回调静态只产 1 个形状对象但运行时可能 N 列，故动态生成时不看列数阈值。①~⑤ 是 tag 级 / 文件级文本搜索，保留正则；Table 元素定位也走 AST（精准取开标签节点）。与字段残留类 check 共用 `scripts/lib/ast-helpers.cjs`。
 
@@ -250,7 +254,7 @@ node <skill目录>/scripts/check-chart-options.cjs <目标工程根>
 node <skill目录>/scripts/check-table-defaults.cjs <目标工程根>
 ```
 
-advisory 模式 exit 0，但每个待核 `<Table>` 必须在 `.migration-result.json` 的 `tableDefaultReviews` 写明决策（如 `"源无 sorter，已加 allowSort:false"` 或 `"columns 6 列全带 width，已删操作列 width 让其自适应"`）。未逐条回应视同 FAIL。
+advisory 模式 exit 0，但每个待核 `<Table>` 必须在 `.migration-result.json` 的 `tableDefaultReviews` 写明决策（如 `"源无 sorter，已加 allowSort:false"`、`"源无斑马纹，已加 enableZebraCrossing:false"`）。未逐条回应视同 FAIL。**`columnsAllWidth` 为硬 FAIL（exit 1，非 advisory，无需 --strict 即拦）——全列定宽是产物侧不变量，不依赖源项目，命中即必须修复（去掉非冻结列 width，至少一列不设 width 自适应；冻结列 freezeCol: true 保留 width）**。
 
 ### 4.6 IntlProvider 位置 + locale 检查（必跑，硬 FAIL）
 
@@ -463,7 +467,24 @@ node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>
 
 硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（纯残留检查，非 advisory）。工程无 RangePicker JSX → PASS 不报。依赖 `@babel/parser`（同其他 AST check）。
 
-### 4.19 常见报错对照
+### 4.19 .js/.ts 承载 JSX 检查（必跑，硬 FAIL + --fix 兜底）
+
+> 对应 SKILL.md 硬约束 #14。Vite/esbuild 默认不对 `.js`/`.ts` 启用 JSX loader——`.js`/`.ts` 文件含 JSX 语法时项目启动报错。`match-icons.cjs` 的 `renameJsxFiles` 只覆盖 icon 步骤自己的 `<IconPlusIc` 改写、且只扫 `src/`；本脚本是项目级、来源无关的兜底网——icon 步骤漏的、步骤 2 组件替换 / LLM 手改注入 JSX 的、mock 数据在 `src/` 外的，统一拦。
+
+脚本 `scripts/check-jsx-extension.cjs`，基于 AST（@babel/parser，复用 `lib/ast-helpers.cjs`）：扫工程根下所有 `.js`/`.ts`（排除 node_modules/dist/build/.git），解析（jsx 插件），若 AST 含 `JSXElement` / `JSXFragment` 节点 → 该文件承载 JSX → 违规。AST 节点类型判定零误报：`a < b` 比较运算 → BinaryExpression、字符串 `"<Foo/>"` → StringLiteral、TS 类型断言 `<Foo>x` → TSTypeAssertion（均非 JSXElement）；仅 `<Foo/>` / `<Foo>...</Foo>` / `<>...</>` 真 JSX 触发。
+
+两种模式：
+- **检查（默认）**：列出违规 `.js`/`.ts` 文件 + 首个 JSX 行号，**硬 FAIL**（exit 1）。
+- **`--fix`**：违规文件 `.js→.jsx` / `.ts→.tsx`（写新路径删旧，同名冲突跳过交人工）+ 工程级修引用方显式 `.js`/`.ts` 扩展名 import/require（无扩展名 import 不动，解析器仍命中 `.jsx`/`.tsx`）+ 复核无残留。
+
+```bash
+node <skill目录>/scripts/check-jsx-extension.cjs <目标工程根>           # 检查，硬 FAIL
+node <skill目录>/scripts/check-jsx-extension.cjs <目标工程根> --fix     # 自动改扩展名 + 修引用
+```
+
+硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（纯工具链约束，非 advisory）。工程无 `.js`/`.ts` 承载 JSX → PASS 不报。依赖 `@babel/parser`（同其他 AST check）。
+
+### 4.20 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -474,11 +495,11 @@ node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 但 `data.js` 里 value 是短代码、i18n key 带前缀 | 在 render 里补命名空间前缀：`t("deviceType." + value, value)`；详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 4.20 验证
+### 4.21 验证
 
 跑验证脚本，把结果写入 `<目标工程根>/.migration-result.json`。
 
-> **十七个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨/Accordion expand 语义反转+字段残留/Crumbs items+separator+字段残留/Dropdown menu-items-options 残留+字段 key-label-children 残留+disable 拼错+trigger 数组/placement/open/value/onChange 残留/**Select 系 options/data label→text 残留**/**RangePicker JSX 残留**是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/accordion/dropdown/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
+> **十八个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨/Accordion expand 语义反转+字段残留/Crumbs items+separator+字段残留/Dropdown menu-items-options 残留+字段 key-label-children 残留+disable 拼错+trigger 数组/placement/open/value/onChange 残留/**Select 系 options/data label→text 残留**/**RangePicker JSX 残留**/**.js/.ts 承载 JSX（check-jsx-extension）**是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/accordion/dropdown/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
 
 **验证步骤**（全部必跑，按序）：
 1. 相对导入检查**跳过**（见 §4.1）
@@ -499,9 +520,10 @@ node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>
 16. 跑 `node <skill目录>/scripts/check-select-options.cjs <目标工程根>`（§4.17，**硬 FAIL**，exit≠0 即 FAIL——Select 系 options/data 项 label→text 残留，AST 扫描覆盖 `.map`/`Array.from`/spread/shorthand/计算键等动态形态）
 17. 跑 `node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>`（§4.18，**硬 FAIL**，exit≠0 即 FAIL——`<DatePicker.RangePicker>`/`<RangePicker>`/`<TimePicker.RangePicker>` JSX 残留，eview-react 无 RangePicker 导出）
 18. 跑 `node <skill目录>/scripts/check-icon-shim.cjs <目标工程根> --strict`（**硬 FAIL**，B/C 都跑——UNJUSTIFIED 闭集误留 / STALE-SHIM-IMPORT / UNCONVERTED-ICON-SOURCE 数据源半改 / PROP_DROPPED_ON_ICON_REWRITE 丢 handler props / TERNARY_WRAP_LOST 条件式漏包 `{}` 任一，见 [Icon.md](components/Icon.md) 步 7 + §3.0）。**与阶段 2 §3.0 步 7 同闸门、幂等**——stage 3 重测兜底防阶段 2 后续 LLM 临场手改图标站点引入回归（正是 TERNARY_WRAP_LOST 要防的"偶尔丢 `{}`"类），并让 `.migration-result.json` 的 `icon-shim` 键权威实测（非沿用阶段 2 旧结果）。复用阶段 2 步 7 生成的 `.icon-shim-justified.json`（无残留 `<Icon>` shim 站点则不需该文件、0 处直接 PASS）。`PROP_DROPPED`/`TERNARY_WRAP_LOST` 的非 handler props（title/aria-*/role/tabIndex）与箭头函数 handler 是已知盲区，须人工复核（residual 手改 / Button 外壳剥离站点在 `confirmedSiteRepairs` 逐条回应）。
-19. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
+19. 跑 `node <skill目录>/scripts/check-jsx-extension.cjs <目标工程根>`（§4.19，**硬 FAIL**，exit≠0 即 FAIL——`.js`/`.ts` 文件承载 JSX，Vite 不对 `.js`/`.ts` 启用 JSX loader 项目启动报错；拦 icon 步骤 / 步骤 2 组件替换 / LLM 手改向 `.js`/`.ts` 注入 JSX 漏改扩展名。命中可跑 `--fix` 自动 `.js→.jsx` / `.ts→.tsx` + 修引用后重跑）
+20. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
 
-**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 18（check-icon-shim）之后、npm install（步骤 19）之前**加跑）：
+**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 18（check-icon-shim）之后、npm install（步骤 20）之前**加跑）：
 - 跑 `node <skill目录>/scripts/check-icon-names.cjs <目标工程根>`（§4.13，**硬 FAIL**，exit≠0 即 FAIL——拦 LLM residual 臆造的非 catalog 实有 IconPlusIc* 名）。
 - **方案 B（内网）项目不跑此闸门**：其图标名真值是在线 `getIconInfo` 接口（实包），非离线 catalog 快照，跑会误报实包有而快照无的名。方案 A 产物无 `IconPlusIc*` 名，跑了亦 no-op。
 

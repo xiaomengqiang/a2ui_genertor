@@ -782,7 +782,60 @@ function fixShimImportPath(text) {
 }
 
 // 解析数组变量 ARR 的声明位置：先同文件（renderFile），再跨文件按名唯一性找；返回 {arrayFile, arrOpenIdx} 或 null（找不到/多名歧义）。
-function resolveArrayDecl(arrName, renderFile, textCache) {
+// 找 `export default [...]`（匿名默认导出数组）的 '[' 索引；也覆盖 `export default IDENT;` + `const IDENT = [...]`。
+// findArrayDecl 只认 (const|let|var) ARR = [，不认 export default [...]——本函数补这个缺口。
+function findDefaultExportArray(text) {
+  let m = text.match(/export\s+default\s*\[/);
+  if (m) return m.index + m[0].length - 1; // 指向 '['
+  m = text.match(/export\s+default\s+([A-Za-z_$][\w$]*)\s*[;\n\r]/);
+  if (m) {
+    const i = findArrayDecl(text, m[1]);
+    if (i !== -1) return i;
+  }
+  return -1;
+}
+
+// 找 `export default { ... }`（匿名默认导出对象地图）的 '{' 索引；也覆盖 `export default IDENT;` + `const IDENT = {...}`。
+function findDefaultExportObject(text) {
+  let m = text.match(/export\s+default\s*\{/);
+  if (m) return m.index + m[0].length - 1; // 指向 '{'
+  m = text.match(/export\s+default\s+([A-Za-z_$][\w$]*)\s*[;\n\r]/);
+  if (m) {
+    const i = findObjectDecl(text, m[1]);
+    if (i !== -1) return i;
+  }
+  return -1;
+}
+
+// 解析默认 import（`import items from 'PATH'`）定位到 textCache 中的实际文件。
+// 处理相对路径（./ ../）与 @ 别名（@/ → src/），尝试扩展名 .js/.jsx/.ts/.tsx/.mjs/.cjs + index 文件。
+// 用于默认导出回退：渲染端 localName 是 import 起的本地名，与源文件的 const 名/默认导出无关，
+// 必须沿 import 路径定位源文件才能找到 export default [...]。
+function resolveImportFile(localName, renderText, renderFile, textCache, srcDir) {
+  const esc = localName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`\\bimport\\s+${esc}\\b[^\\n]*?from\\s+['"]([^'"]+)['"]`);
+  const m = re.exec(renderText);
+  if (!m) return null;
+  const spec = m[1];
+  let base;
+  if (spec.startsWith('@/')) {
+    base = path.join(srcDir, spec.slice(2));
+  } else if (spec.startsWith('./') || spec.startsWith('../')) {
+    base = path.resolve(path.dirname(renderFile), spec);
+  } else {
+    return null; // 裸包名/其它别名，不在 textCache
+  }
+  const EXTS = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs'];
+  for (const ext of EXTS) {
+    const candidate = base + ext;
+    if (textCache.has(candidate)) return candidate;
+    const idxCandidate = path.join(base, 'index' + ext);
+    if (textCache.has(idxCandidate)) return idxCandidate;
+  }
+  return null;
+}
+
+function resolveArrayDecl(arrName, renderFile, textCache, srcDir) {
   const renderText = textCache.get(renderFile);
   const idx = findArrayDecl(renderText, arrName);
   if (idx !== -1) return { arrayFile: renderFile, arrOpenIdx: idx };
@@ -793,6 +846,16 @@ function resolveArrayDecl(arrName, renderFile, textCache) {
     if (i2 !== -1) hits.push({ file: f, idx: i2 });
   }
   if (hits.length === 1) return { arrayFile: hits[0].file, arrOpenIdx: hits[0].idx };
+  // 默认导入回退：import arrName from 'PATH' → 目标文件 export default [...]
+  // （findArrayDecl 只认 const/let/var ARR = [，不认 export default [...] 匿名默认导出；
+  //   ict-coder mock 数据常用 export default [...] 写法，无此回退则标 untraced → 走 LLM residual 手改 → 无 .js→.jsx 改名钩子）
+  if (hits.length === 0 && srcDir) {
+    const defFile = resolveImportFile(arrName, renderText, renderFile, textCache, srcDir);
+    if (defFile) {
+      const di = findDefaultExportArray(textCache.get(defFile));
+      if (di !== -1) return { arrayFile: defFile, arrOpenIdx: di };
+    }
+  }
   return null;
 }
 
@@ -827,7 +890,7 @@ function findObjectDecl(text, objName) {
 
 // 解析对象变量 OBJ 的声明位置：先同文件（renderFile），再跨文件按名唯一性找；
 // 返回 { objFile, objOpenIdx } 或 null（找不到/多名歧义）。
-function resolveObjectDecl(objName, renderFile, textCache) {
+function resolveObjectDecl(objName, renderFile, textCache, srcDir) {
   const renderText = textCache.get(renderFile);
   const idx = findObjectDecl(renderText, objName);
   if (idx !== -1) return { objFile: renderFile, objOpenIdx: idx };
@@ -838,6 +901,14 @@ function resolveObjectDecl(objName, renderFile, textCache) {
     if (i2 !== -1) hits.push({ file: f, idx: i2 });
   }
   if (hits.length === 1) return { objFile: hits[0].file, objOpenIdx: hits[0].idx };
+  // 默认导入回退：import objName from 'PATH' → 目标文件 export default {...}（同 resolveArrayDecl）
+  if (hits.length === 0 && srcDir) {
+    const defFile = resolveImportFile(objName, renderText, renderFile, textCache, srcDir);
+    if (defFile) {
+      const di = findDefaultExportObject(textCache.get(defFile));
+      if (di !== -1) return { objFile: defFile, objOpenIdx: di };
+    }
+  }
   return null;
 }
 
@@ -2009,7 +2080,7 @@ function main() {
       arrName = site.root; // 直接索引模式：root 即数组名（resolveArrayDecl 会验证它确为数组常量）
       directArray = true;
     }
-    const decl = resolveArrayDecl(arrName, site.file, textCache);
+    const decl = resolveArrayDecl(arrName, site.file, textCache, srcDir);
     // 对象地图回退：arrName 解析不到数组 const 时，root 可能是「= OBJ[runtimeKey] 的局部变量」
     // （const cat = CATEGORY_STYLE[key]），或 root 直接是对象名（<Icon name={CATEGORY_STYLE[x].icon}/>）。
     // 命中后与数据数组共用同一 dataIconSite 形态 + apply 路径（buildDataIconElement/wrapIfNeeded/renameJsxFiles）。
@@ -2022,7 +2093,7 @@ function main() {
         objName = site.root; // 直接形态：root 即对象名（resolveObjectDecl 会验证它确为对象常量）
         directObject = true;
       }
-      objDecl = resolveObjectDecl(objName, site.file, textCache);
+      objDecl = resolveObjectDecl(objName, site.file, textCache, srcDir);
     }
     if (!decl && !objDecl) {
       // 追不到源（无循环绑定且 root 非任何已扫文件中的数组/对象常量 / 跨文件多名歧义 / 跨边界 props）→ untraced：交 LLM 按 closed-set 判（闭集→转 / 真 OPEN→保 shim），不 auto-保方案A
@@ -2202,7 +2273,7 @@ function main() {
               let arrName = findLoopBinding(ct, ident);
               let directArray = false;
               if (!arrName) { arrName = ident; directArray = true; }
-              let decl = resolveArrayDecl(arrName, cf, textCache);
+              let decl = resolveArrayDecl(arrName, cf, textCache, srcDir);
               let containerKind = 'array';
               let containerName = arrName;
               let directContainer = directArray;
@@ -2210,7 +2281,7 @@ function main() {
                 let objName = findObjectMapBinding(ct, ident);
                 let directObject = false;
                 if (!objName) { objName = ident; directObject = true; }
-                const objDecl = resolveObjectDecl(objName, cf, textCache);
+                const objDecl = resolveObjectDecl(objName, cf, textCache, srcDir);
                 if (!objDecl) {
                   c.kind = 'unresolvable'; c.expr = expr; callers.push(c);
                   skipped = true; skipReason = skipReason || 'no-traceable-source'; continue;

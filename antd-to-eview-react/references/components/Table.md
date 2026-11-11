@@ -203,6 +203,7 @@ const columns = [
   { title: '金额', key: 'amount'},
   { title: '操作', key: 'action' },              // 不设 width，自适应剩余空间
 ];
+// 注：冻结列（freezeCol: true）保留 width 不去；本例无冻结列故全去。源 antd 表有 scroll 或全列定宽时才触发此处理（机器验证：check-table-defaults.cjs 的 columnsAllWidth 硬 FAIL）。
 
 // ❌ 对象行的 key 与 columns[].key 对不上，整列为空
 columns=[{ title: '名称', key: 'name' }]  dataset=[{ deviceName: 'a' }]

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * check-icon-shim.cjs — 方案A（<Icon> 运行时 fetch shim）保留硬闸（默认 advisory；`--strict` → 任一违规 exit 1，两处跑：§3.0 图标步骤步 7 residual 复核 + §4.20 阶段 3 验证清单兜底重测）
+ * check-icon-shim.cjs — 方案A（<Icon> 运行时 fetch shim）保留硬闸（默认 advisory；`--strict` → 任一违规 exit 1，两处跑：§3.0 图标步骤步 7 residual 复核 + §4.21 阶段 3 验证清单兜底重测）
  *
  * 防 match-icons.cjs --apply（C）/ LLM 在线匹配改写（B）跑完 + residual 处理后，converted src/ 里
  * 残留的 <Icon name={...}/> 兜底站点被默默保留方案 A——典型回归：① LLM 编造不存在的 Icon.md

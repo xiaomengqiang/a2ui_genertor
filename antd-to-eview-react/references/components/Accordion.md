@@ -1,5 +1,7 @@
 # Accordion 组件功能逻辑规格（手风琴导航菜单）
 
+> 导入：`import Accordion from '@/shared/Accordion'`（scaffold 包壳，透明转发 `@nce/eview-react/Accordion`，API 不变）。
+
 > **资料来源**（eview-react 官方资料，不随 skill 打包）：TypeDoc 类型表 `Accordion/Accordion`；官网组件页 Accordion 及示例 `AccordionBasic.jsx` / `AccordionMultiLevel.jsx` / `AccordionDisabled.jsx` / `AccordionDemo.jsx` / `AccordionIcon.jsx` / `AccordionCustomContent.jsx`；变更日志中的 Accordion 条目
 >
 > ⚠️ Accordion 是**多级导航菜单**（官网："为页面和功能提供导航的菜单列表"）：`data` 驱动，`selectedValue` 是**单个 string**，点击回调 `onClick(node)`。它不是 antd `Collapse` 那种内容折叠面板，内容折叠用 [Panel](Panel.md)。
@@ -100,7 +102,7 @@ interface AccordionItem {
 
 ```tsx
 import React, { useMemo, useState } from 'react';
-import Accordion from '@nce/eview-react/Accordion';
+import Accordion from '@/shared/Accordion';
 import Button from '@nce/eview-react/Button';
 import { IconPlusIcHuaweiCloudNetwork, IconPlusIcPublicSecurity } from '@hui/icon-plus';  
 

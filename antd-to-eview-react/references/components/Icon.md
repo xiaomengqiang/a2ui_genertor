@@ -83,6 +83,8 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 
 > **props 硬约束（实测回归点，必读）**：步 6 脚本对**闭集**站点已 passthrough 透传 props（不会丢）；但**步 7 residual 跨边界站点是 LLM 手改**——这是 onClick 丢失的实测回归主因（主题切换漏 `onClick={toggleDark}` → 暗色三轨永不翻转）。手改时必须把原标签的非 icon props 原样搬到 `<IconPlusIc*>`（三元两分支都搬）。完整改写清单 + 正反例 + 收尾复核见 §「⚠️ 硬约束：改写 `<Icon>` 调用点必须保留原 DOM/交互 props」。`check-icon-shim.cjs --strict` 的 `PROP_DROPPED_ON_ICON_REWRITE` 是必修清单：`propDropped>0` 即 `exit 1`，**非 0 时不得声明 `.migration-result.json` status=PASS**——补回 props 重跑至 `0 处` 方算完成。
 
+> **步 8 residual 收尾自净（B/C 都必跑）**：步 7 residual 手改（untraced 跨边界追源 / 占位 `IconPlusIcPublicTransverseRectangleTemplate` 替换为真名 / 链式三元）会在 `.js`/`.ts` 数据文件里注入 `<IconPlusIc*>` JSX。步 6 的 `renameJsxFiles` 只对 `--apply`/`--apply-decisions` **自己改写**的文件改名，**LLM 手改的文件不经过它**——且重跑扫描也救不回（手改后文件无 `<Icon name>` 站点，不进 byFile）。故步 7 收尾后必跑 `node scripts/check-jsx-extension.cjs <工程根> --fix`：AST 扫工程根所有 `.js`/`.ts`（含 `src/` 外 mock），含 `JSXElement`/`JSXFragment` 的自动 `.js→.jsx`/`.ts→.tsx` + 工程级修引用方显式扩展名 import，让 icon 步骤自净。见 SKILL.md 硬约束 #14 + migration-workflow.md §4.19。
+
 
 
 - eview-react 内置 `Icon name="ict_*"` 已下线，**不要用**；也不要用 `@ant-design/icons`——一律用 `@hui/icon-plus` 的 `IconPlusIc*` 静态 import。
