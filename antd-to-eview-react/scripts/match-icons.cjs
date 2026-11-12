@@ -101,7 +101,7 @@ function parseArgs(argv) {
     topk: 5,
     // 方案 B 两段式（catalog-free，无占位）：
     //   --plan              pass 1：结构规划，不改文件、不读 catalog，产 icon-leaves.json
-    //   --apply-decisions   pass 2：用 --decisions 决策日志的真名做完整结构改写（不读 catalog、无占位）
+    //   --apply-decisions   pass 2：用 --decisions 决策日志的（经 normalizeIconPlusName 归一化的）icon+ 导出名做完整结构改写（不读 catalog、无占位）
     plan: false,
     applyDecisions: false,
     decisionsPath: null,
@@ -137,7 +137,7 @@ function printHelp() {
   方案 C(catalog 名匹配): [--apply] [--no-antd-icons] [--catalog <path>] [--topk N]
   方案 B 两段式(catalog-free,无占位):
     --plan                                  pass 1 结构规划(不改文件,产 icon-leaves.json)
-    --apply-decisions --decisions <path>    pass 2 用决策日志真名做结构改写(缺名即报错)`
+    --apply-decisions --decisions <path>    pass 2 用决策日志归一化导出名做结构改写(缺名即报错)`
   );
 }
 
@@ -1759,8 +1759,8 @@ function safeRenderSite(tag) {
   }
 }
 
-// 加载 LLM 维护的决策日志（--apply-decisions 用）。格式：[{ keyword, requestUrl, iconPlusName, candidates[], selectedBecause }]（iconPlusName = response.icons[0].name 的原始分隔符形式，如 ic-public-search；requestUrl/candidates/selectedBecause 供审计，loader 仅消费 keyword/iconPlusName）。
-// 返回 { byRaw, byLower, count }：loader 对原始 name 调 normalizeIconPlusName 归一化为 @hui/icon-plus 具名导出名（IconPlusIcPublicSearch），catalog 零参与。
+// 加载 LLM 维护的决策日志（--apply-decisions 用）。格式：[{ keyword, requestUrl, iconPlusName }]（iconPlusName = response.icons[0].name 的原始分隔符形式，如 ic-public-search；requestUrl 供审计，loader 仅消费 keyword/iconPlusName；不记 candidates[]/selectedBecause——防 LLM 做语义偏移分析耗 token，旧日志仍含此二字段时前向兼容、被忽略）。
+// 返回 { byRaw, byLower, count }（归一化由 normalizeIconPlusName 完成，见该函数头注；catalog 零参与）。
 function loadDecisions(decisionsPath) {
   if (!decisionsPath) {
     console.error('[match-icons] --apply-decisions 需配合 --decisions <path> 指定决策日志');
@@ -1879,7 +1879,7 @@ function writeLeavesJson(leavesData, outPath) {
     totalLeafSites: leavesData.leaves.length,
     leaves: uniq,
     untraced: leavesData.untraced,
-    note: '每个唯一 sourceKeyword 调一次 getIconInfo——请求参数固定 keyword=<源名>&topK=2&source_id=6（禁止改 topK/source_id、禁止加额外参数）；结果写入 icon-b-decisions.json（每条 {keyword,requestUrl,iconPlusName,candidates[],selectedBecause}，iconPlusName=response.icons[0].name 原始分隔符形式如 ic-public-search，脚本 loadDecisions 自动归一化为 IconPlusIcPublicSearch）；untraced 段按 Icon.md 跨边界 recipe 手工。',
+    note: '每个唯一 sourceKeyword 调一次 getIconInfo——请求参数固定 keyword=<源名>&topK=2&source_id=6（禁止改 topK/source_id、禁止加额外参数）；结果写入 icon-b-decisions.json（每条 {keyword,requestUrl,iconPlusName}，不记 candidates[]/selectedBecause 防语义偏移分析耗 token，旧日志含此二字段时前向兼容），iconPlusName=response.icons[0].name 原始分隔符形式如 ic-public-search，脚本 loadDecisions 自动归一化为 IconPlusIcPublicSearch）；untraced 段按 Icon.md 跨边界 recipe 手工。',
   };
   fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
   return { uniqueKeywordCount: uniq.length, totalLeafSites: leavesData.leaves.length, untracedCount: leavesData.untraced.length };
@@ -1926,7 +1926,7 @@ function main() {
   const byName = {};
   const topk = opts.topk;
   // 名解析闭包：catalog 模式走 matchOne；plan 模式走 stub（不取名、不改文件）；applyDecisions 走决策日志。
-  // applyDecisions 下 match1 命中返回 confirmed+真名，未命中返回 missing 并记入 missingSet（apply 前拦截）。
+  // applyDecisions 下 match1 命中返回 confirmed+归一化导出名，未命中返回 missing 并记入 missingSet（apply 前拦截）。
   const missingSet = new Set();
   const decisions = mode === 'applyDecisions' ? loadDecisions(opts.decisionsPath) : null;
   const match1 =
@@ -2407,7 +2407,7 @@ function main() {
     return;
   }
 
-  // ── 方案 B pass 2：用决策日志真名做结构改写（catalog-free、无占位）────────
+  // ── 方案 B pass 2：用决策日志归一化导出名做结构改写（catalog-free、无占位）────────
   if (mode === 'applyDecisions') {
     // 缺名闸：决策日志未覆盖某 keyword → 列出缺失项 + 站点，中止、零改写、零占位（强制 LLM 补齐再重跑）。
     if (missingSet.size) {
@@ -2421,7 +2421,7 @@ function main() {
       process.exit(1);
     }
     applyRewrites(scan, byName, srcDir);
-    console.log('\n[match-icons] --apply-decisions 完成：所有名取自决策日志（getIconInfo 在线返回），产物零 catalog 名、零占位。');
+    console.log('\n[match-icons] --apply-decisions 完成：所有名取自决策日志（getIconInfo 在线返回，经 normalizeIconPlusName 归一化为 icon+ 导出名），产物零 catalog 名、零占位。');
     // residual 逐条明细打印到控制台（供步 7 LLM 手改）——与 C 模式 reportConsole 对齐，
     // 避免步 7 依赖 OS tmp 的 icon-leaves.json（session 重启/tmp 清理易丢，丢失可由 grep + --init-justified
     // 恢复站点清单但失脚本的 reason 分类）。collectLeaves 的 untraced 段 = untracedSites + variableSites + propWrapperResidual。

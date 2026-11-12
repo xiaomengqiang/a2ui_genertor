@@ -20,7 +20,7 @@
 | 数组成员 `name={t.icon}` 绑 `const ARR=[{icon:"lit"}]` / 直接索引 `name={MENU[0].icon}` | 闭合 | C Phase B 自动 / B 手工 |
 | 对象地图 `cat=OBJ[key];cat.icon` 或 `name={OBJ[key].icon}`，`OBJ`=`const OBJ={…}` | 闭合 | C Phase B 对象地图回退自动 / B 手工 |
 | wrapper `icon` prop `<SoftTag icon="lit">`/`icon={const\|扁平三元\|成员}` | 闭合（调用方可解析） | C Phase C 自动 / B 手工 |
-| 跨边界 `name={x.icon}`，`x` 来自 props（源是父组件 useMemo 字面量 / useState 字面量 seed / 推入函数 `"lit"` 调用点） | **闭合但脚本追不动** | **untraced → LLM 按下法追源手工转**（C 下脚本报 untraced、不断言方案A）；`check-icon-shim --strict` 拦闭集误留 |
+| 跨边界 `name={x.icon}`，`x` 来自 props（源是父组件 useMemo 字面量 / useState 字面量 seed / 推入函数 `"lit"` 调用点） | **闭合但脚本追不动** | **untraced → LLM 按下法追源手工转** |
 | 裸标识符 `name={X}` 跨文件 const / `&&` 条件 `name={cond && "x"}` / 容器字段值是闭合三元 | 闭合（脚本未覆盖） | untraced → LLM 按下法手工转 / gate 拦 |
 | 真 OPEN `name={row.iconField}` 后端自由取值 / props 字段且源不在已扫文件 | **OPEN** | **方案 A**（保 shim + 手修 import 路径 `assets/shared/icon` → `@/shared/Icon`） |
 
@@ -36,11 +36,11 @@
 
 | 方式 | 是什么 | 迁移成本 | 何时用 |
 |------|--------|---------|--------|
-| **B. 在线名匹配 + 静态 import**（内网） | `import { IconPlusIcXxx } from '@hui/icon-plus'`，名靠在线 `getIconInfo?keyword=&topK=2&source_id=6` 接口匹配；与 C 共用静态 import 范式，仅名匹配方式不同 | **中**：**执行 recipe 见下方「方案 B 在线匹配执行 recipe」；两段式：`--plan` 结构规划 → 去重唯一名 + 并行 getIconInfo + 决策日志 → `--apply-decisions` 用真名做结构改写；无占位、不读 catalog** | `https://octo.hdesign.huawei.com/` 可达（内网）；接口必返回名，故无占位 `IconPlusIcPublicTransverseRectangleTemplate` |
+| **B. 在线名匹配 + 静态 import**（内网） | `import { IconPlusIcXxx } from '@hui/icon-plus'`，名靠在线 `getIconInfo?keyword=&topK=2&source_id=6` 接口匹配；与 C 共用静态 import 范式，仅名匹配方式不同 | **中**：**执行 recipe 见下方「方案 B 在线匹配执行 recipe」；两段式：`--plan` 结构规划 → 去重唯一名 + 并行 getIconInfo + 决策日志 → `--apply-decisions` 用真名做结构改写；无占位、不读 catalog** | `https://octo.hdesign.huawei.com/` 可达（内网） |
 | **C. catalog 离线匹配 + 静态 import**（外网，默认） | 读 skill 自带 `../icons/icon-plus-names.json`（顶层 key 是按图标名前置词分的桶，**非语义领域**）离线匹配 → `import { IconPlusIcXxx } from '@hui/icon-plus'` 静态 import（scaffold 已预置依赖）；混合策略：**confirmed**（SEMANTIC/L1-L4，含多桶同名按最短完整名 tie-break）`--apply` 自动改写，**residual**（前缀/fuzzy/未命中/链式三元/未追源变量）带 top-K 候选交 LLM 选、不自动 apply，UNMATCHED 有候选(打分>0)→residual 交 LLM 不落占位；无候选孤儿名→`--apply` 自动落占位 `IconPlusIcPublicTransverseRectangleTemplate`；iconSize 原样透传（支持 rem/px/数字） | **低-中**：`node scripts/match-icons.cjs <工程根> [--apply]` | octo 接口不可达（外网）；无网络依赖、彻底离线；算法见 [match-icons.cjs](../../scripts/match-icons.cjs) |
 | **A. 自定义 `<Icon>` 组件**（B/C 兜底） | scaffold `src/shared/Icon`，保留源项目 `<Icon name="search" size={14} />` 契约；运行时 fetch icon-plus（getConfig → getIconInfo → getIcon 取 SVG 注入），probe 失败渲染 `null`。props：`name`/`src`/`size`（rem/px/数字，shim 内 `toApiSize` 吸附到 **12/14/16/20/24/32/36/40/48/60** 供 getIcon API）/`color`/`variant`/`className`/`style` | **最低**：调用点零改动，只改 import 路径 | B/C 实在识别不出 icon+ 名的调用点；转换后代码运行于内网，运行时 fetch 恒可达 |
 
-> **方案 A/B/C 的选择只由图标名决定**：`size`/`color`/`variant` 是独立 props（B/C 原样透传 icon+，A 由 shim 内部处理），不影响方案选择——尺寸/颜色异常不因此退方案A，名匹配命中即落对应方案。
+> **方案 A/B/C 的选择只由图标名决定**：`size`/`color`/`variant` 是独立 props（B/C 原样透传 icon+，A 由 shim 内部处理）。
 
 **替换示例**：
 
@@ -57,7 +57,7 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 
 - **触发条件**：`src/` 下有 `<Icon name` 调用点（`grep -rl "<Icon\b" src/` 非空）或 `@ant-design/icons` 用法即走图标步骤，**与 `.umd-conversion.json` 的 `antdIcons` 是否为空无关**——ict-coder 产物用自定义 `<Icon name>` shim、`antdIcons` 恒 `[]` 但有大量站点，**`antdIcons: []` 禁止跳过 `match-icons.cjs`**。
 - **源码 `<Icon name>` shim ≠ 产物方案A**：`<Icon name="字面量">` 站点必须转 B/C 静态 import；**成员表达式 `name={t.icon}` / `name={MENU[0].icon}` 由脚本自动转**——C 跑 `--apply`、B 跑 `--apply-decisions`（绑到静态数组/对象地图即塞 icon+ 元素进 data + render 改 `{t.icon}`；B/C 同机制，仅名来源不同：C catalog / B 决策日志）；**自定义 wrapper 组件**同（C 下由 `--apply` Phase C 自动转、B 下由 `--apply-decisions` Phase C 自动转：调用点 `icon="字面量"`/`icon={常量}`/`icon={扁平三元}` → `icon={<IconPlusIc…/>}`，内部 → `{icon}`；`icon={成员}` 透传 + 容器元素化）。追不到源的（含跨边界 props/useMemo/推入函数闭合集、wrapper 安全闸整组不可解析）→ 报 `untracedSites`，**B/C 都交 LLM 手工**处置按 §name 解析 统一原则（闭合→转 / 真 OPEN→保 shim，详见该节 + §「⚠️ 硬约束：改写 `<Icon>` 调用点必须保留原 DOM/交互 props」）。
-- **方案C `--apply`**：落 confirmed（SEMANTIC/L1-L4）+ 扁平三元两分支均 confirmed + **数据数组图标整组改写**（命中用真实组件，未命中用占位 `IconPlusIcPublicTransverseRectangleTemplate`）+ **孤儿名自动落占位**（UNMATCHED 无候选的字面量，catalog 无任何匹配，直接占位防 LLM 臆造名）；非孤儿 residual（有候选）不自动 apply，交 LLM 选。报告写 OS 临时目录、不进产物根、`--apply` 结束清理。**禁止因 residual 整体放弃方案C**——residual 由 LLM 在会话内按控制台/临时报告逐条复核。
+- **方案C `--apply`**：落 confirmed（SEMANTIC/L1-L4）+ 扁平三元两分支均 confirmed + **数据数组图标整组改写**（命中用真实组件；无候选孤儿 leaf 用占位 `IconPlusIcPublicTransverseRectangleTemplate` 顶替，有候选的进 residual 不自动落占位）+ **孤儿名自动落占位**（UNMATCHED 无候选的字面量，catalog 无任何匹配，直接占位防 LLM 臆造名）；非孤儿 residual（有候选）不自动 apply，交 LLM 选。报告写 OS 临时目录、不进产物根、`--apply` 结束清理。**禁止因 residual 整体放弃方案C**——residual 由 LLM 在会话内按控制台/临时报告逐条复核。
 - **`.js→.jsx` 自动转换**：`--apply` 把因改写引入 JSX（替换串含 `<IconPlusIc`）的 `.js`→`.jsx` / `.ts`→`.tsx`，并扫 `src/` 修引用方显式 `.js`/`.ts` 扩展名 import（无扩展名 import 不动）；非 `src/` 引用（vite.config、index.html）不处理，需人工核对。
 - **已落方案A的产物可原地补救**（**仅方案 C**）：调用点仍为 `<Icon name="字面量" .../>` 或 `name={t.icon}` 时，直接 `node scripts/match-icons.cjs <工程根> --apply`。**方案 B 项目不跑 `--apply`**——补救跑 `--plan` + `--apply-decisions`（见下 §方案 B 在线匹配执行 recipe）。幂等/`.js→.jsx` 扩展名转换等详细说明见 migration-workflow.md §3.0。
 
@@ -69,13 +69,15 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 
 **步 2 提取唯一名集合（去重）**：读 `icon-leaves.json` 的 `sourceKeyword`（+ `.umd-conversion.json` 的 `iconCallSites[].name`，[extract-umd.cjs](../../umd-to-antd-vite/scripts/extract-umd.cjs) 不去重）→ `Set` 去重得唯一 keyword 集 U。**禁止逐站点现查现忘**——同名图标全工程只查一次。
 
-**步 3 决策日志（持久化缓存）**：维护 `icon-b-decisions.json`，每条 `{ keyword, requestUrl, iconPlusName, candidates[], selectedBecause }`。**每个唯一名只调一次** getIconInfo；查前先查表，命中即复用（会话内 + 跨 turn 缓存，摘要后不丢）。
+**步 3 决策日志（持久化缓存）**：维护 `icon-b-decisions.json`，每条 `{ keyword, requestUrl, iconPlusName }`（schema 详见步 5：不记 `candidates[]`/`selectedBecause`）。查前先查表，命中即复用（会话内 + 跨 turn 缓存，摘要后不丢）。
 
 > **⚠️ 请求参数固定，禁止偏离**：完整请求 URL = `https://octo.hdesign.huawei.com/assetRepository/iconPlus/getIconInfo?keyword=<源名>&topK=2&source_id=6`。**查询参数固定为 `keyword=<源名>&topK=2&source_id=6`——禁止改 topK（如 topK=20）、禁止改 source_id、禁止追加任何额外查询参数**（page/size/domain/category 等）；`keyword` 是唯一可变项，取步 2 的唯一名。
 
 **步 4 同 turn 并行查**：同一 turn 内并行发多个独立 getIconInfo（WebFetch/curl，不同 keyword 互不依赖），U 个唯一名压到 ⌈U/k⌉ 轮（k≈5–8）。串行逐个查是耗时主因之一，并行批次直接降时。
 
-**步 5 选名规则（取首条原始名，脚本归一化）**：取 getIconInfo 返回数据中 **`icons` 数组第一条的 `name` 值**，**原样**写入决策日志 `iconPlusName`——该值是**原始分隔符形式**（如 `ic-public-search` / `ic_public_search`），**不是**包导出名。**禁止**自行拼接或改写，脚本 `loadDecisions` 会用 `normalizeIconPlusName` 归一化为 `IconPlus{PascalCase}` 具名导出（`ic_public_search` → `IconPlusIcPublicSearch`）。接口必返回 `icons` 非空，故每 keyword 必有选中名写入决策日志。**禁止**自行拿 `IconPlusIc` + Domain + 源名 PascalCase 拼接（防臆造非实有名）——名只能取自接口返回 + 此归一化公式。`candidates[]` 仍原样记录接口返回的 topK 条供审计，但**选中名恒为 `icons[0].name` 原始形态**（脚本归一化）。
+**步 5 选名规则（取首条原始名，脚本归一化）**：取 getIconInfo 返回数据中 **`icons` 数组第一条的 `name` 值**，**原样**写入决策日志 `iconPlusName`——该值是**原始分隔符形式**（如 `ic-public-search` / `ic_public_search`），**不是**包导出名。**禁止**自行拼接或改写，脚本 `loadDecisions` 会用 `normalizeIconPlusName` 归一化为 `IconPlus{PascalCase}` 具名导出（`ic_public_search` → `IconPlusIcPublicSearch`）。**禁止**自行拿 `IconPlusIc` + Domain + 源名 PascalCase 拼接（防臆造非实有名）——名只能取自接口返回 + 此归一化公式。
+
+> **⚠️ 禁止对图标名做语义偏移 / 贴切度分析**——`getIconInfo` 接口即图标语义权威（它是 icon-plus 包的检索服务），`icons[0].name` 即最终名，**不做任何二次评判 / 候选对比 / 选中理由论证**。决策日志只记 `keyword`+`requestUrl`+`iconPlusName`，**不记 `candidates[]`/`selectedBecause`**（记这两字段会诱发 LLM 做 top-K 对比 + 写选中理由→语义偏移分析，纯耗 token）。
 
 > **归一化公式**（`match-icons.cjs` `normalizeIconPlusName`；residual 手改站点步 7 按 Icon.md 跨边界 recipe 手改时推导导出名亦用此公式）：`exportName = "IconPlus" + name.split(/[_\.\s-]/).filter(Boolean).map(s => s[0].toUpperCase() + s.slice(1)).join("")`。
 
@@ -94,7 +96,7 @@ import { IconPlusIcPublicSearch } from '@hui/icon-plus';
 - **residual 阶段三条铁律**：
   1. **禁止引用不存在的 Icon.md 章节**当保留方案 A 的依据（实测回归：LLM 臆造「函数参数传入的 icon prop（跨组件边界）」「OBJ[runtimeKey] 计算属性访问」之类 Icon.md 根本没有的章节名——一切引用须以 Icon.md 实有标题为准）。
   2. **每处残留 shim 站点必须附 closed-set 追源结论**（源在哪、字面量集合、是否闭合、为何 OPEN），不得空泛写「跨组件边界」了事。`closedSet` 语义：`false`=OPEN 放行保 shim；`true`=闭合应转、误留则拦。`check-icon-shim.cjs --strict` 自动拦：无结论 / `closedSet:true` / 引用幻觉章节 / reason 缺 OPEN 证据 → exit 1。
-  3. **禁止臆造图标名**——**方案C**：residual 名须取自候选集（top-K 任选其一，`candidates[0]` 为最高分推荐首选）/ 占位 `IconPlusIcPublicTransverseRectangleTemplate` / catalog 实有名，**不得自行拿桶前缀 + 源名 PascalCase 基名拼接**（实测回归：源 `siren`→`IconPlusIcPublicAlarm`，但 `Alarm` 只在 Ict 桶；源 `building-2`→`IconPlusIcIctBuilding2`，全库无 `Building2`）；真孤儿名（无候选）由 `--apply` 自动落占位（不交 LLM 拼名）。**方案B**：名只能取自 `getIconInfo` 接口返回 + `normalizeIconPlusName` 归一化公式（步 5），同样禁止自行拼接。**机器闸门 `check-icon-names.cjs` 仅方案 C 跑**（扫产物所有 `IconPlusIc*` 对照 catalog 实有集，任一非实有 → exit 1；B 不跑——名真值是 `getIconInfo` 接口/实包，名实有性由命中隐式保证）。
+  3. **禁止臆造图标名**——**方案C**：residual 名须取自候选集（top-K 任选其一，`candidates[0]` 为最高分推荐首选）/ 占位 `IconPlusIcPublicTransverseRectangleTemplate` / catalog 实有名，**不得自行拿桶前缀 + 源名 PascalCase 基名拼接**（实测回归：源 `siren`→`IconPlusIcPublicAlarm`，但 `Alarm` 只在 Ict 桶；源 `building-2`→`IconPlusIcIctBuilding2`，全库无 `Building2`）；真孤儿名（无候选）由 `--apply` 自动落占位（不交 LLM 拼名）。**方案B**：名只能取自 `getIconInfo` 接口返回 + `normalizeIconPlusName` 归一化公式（步 5），同样禁止自行拼接。**机器闸门 `check-icon-names.cjs` 仅方案 C 跑**（扫产物所有 `IconPlusIc*` 对照 catalog 实有集，任一非实有 → exit 1；B 不跑——名真值来自 `getIconInfo` 接口返回 + `normalizeIconPlusName` 归一化，名实有性由接口命中隐式保证）。
 - 可点击图标（编辑/删除/刷新等）直接给 icon+ 挂 `onClick` + 原生 `title` 属性（hover 提示），**`IconButton` 已弃用**：`<IconPlusIcPublicTrash onClick={remove} title="删除" />`；禁用态见 §2。
 - **antd 纯图标按钮（`Button type="text" shape="circle" icon={...}` 无 children）→ 剥 Button 外壳，`onClick`/`title` 直接搬到内层 `<IconPlusIc* />`**（见 [component-mapping.md](../component-mapping.md) 图标行；脚本 `--apply` 已先把内层 `<Icon>`→`<IconPlusIc>` 并吸附 `iconSize`，LLM 只需剥外壳 + 搬 onClick/title）。
 - **带图标的 Button 文字必须用 `text=`，不能写 children**（children 会让图标不渲染，见 [Button.md](Button.md) §4）。
