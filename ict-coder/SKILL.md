@@ -34,6 +34,7 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
   ├── app.jsx   → entry starter (build entry + root container)
   └── src/      → context.jsx (AppProvider + dark toggle) + mock/ + components/ + views/ (empty dirs)
   ```
+- `init.mjs` also creates `AGENTS.md` (fixed content, do not edit) and `README.md` (project documentation template) at `{artifact-folder}/` — **you must fill in the README placeholders** after authoring the page: `[项目名称]`, `[一句话描述项目功能]`, and `[skill路径]`/`[本目录路径]` in the build commands.
 - **Output:** `RESULT: OK` + `SCAFFOLD_DIR: <abs path>` → proceed. `RESULT: FAIL | <reason>` → fix and re-run.
 - **Init runs ONCE per page.** In modification sessions, do NOT re-run init.
 
@@ -141,11 +142,11 @@ When multilingual is required, use react-intl (bundled offline, `import ... from
 ### Content Guidelines
 
 1. **Generative Expansion**: build dense data — mock realistic content, include CTAs, search/filter, status tags.
-2. **Mock data**: 
-  - Use semantic keys (`hotelName`, not `val1`); 
-  - Main list/table ≥20 items with diverse statuses; 
-  - secondary lists ≥5 items.
-  - Images: avatars: `./public/uploads/user.png`; backgrounds: `./public/uploads/background.jpg`; general images: `./public/uploads/image.jpg`.
+2. **Mock data**:
+   - Use semantic keys (`hotelName`, not `val1`);
+   - Main list/table ≥20 items with diverse statuses;
+   - secondary lists ≥5 items.
+   - Images: avatars: `./public/uploads/user.png`; backgrounds: `./public/uploads/background.jpg`; general images: `./public/uploads/image.jpg`.
 
 ## Step 3 — Build (MANDATORY)
 
@@ -169,8 +170,10 @@ node scripts/verify-build.mjs --dir "{SCAFFOLD_DIR}"
 
 ## Step 5 — Output
 
-After build and verify both pass, output the preview link as the final conversation output:
+After build and verify both pass:
 
+1. Fill in the `{artifact-folder}/README.md` placeholders — `[项目名称]`, `[一句话描述项目功能]`, and `[skill路径]`/`[本目录路径]` in the build commands. Do NOT edit `AGENTS.md` (fixed content, created by init).
+2. Output the preview link as the final conversation output:
 ```
 <artifact type="text/link">{SCAFFOLD_DIR}/index.page.html</artifact>
 ```

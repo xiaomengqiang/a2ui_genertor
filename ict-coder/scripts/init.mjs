@@ -155,6 +155,52 @@ const STARTER_CSS = `/* 应用级基础样式 — 页面根节点的 token 消�
 }
 `;
 
+const AGENTS_MD = `本项目的唯一内容源是根目录 **README.md**（目录结构、构建与验证命令、关键非显性约定全部在其中）。
+
+**任何 AI 会话开始工作前，必须先完整阅读 README.md，并严格遵守其中的约定。**
+`;
+
+const README_MD = `# [项目名称]
+
+> 本项目由 ict-coder skill 生成。
+
+[一句话描述项目功能]
+
+## 开发流程
+
+1. 修改 \`app.jsx\` 或 \`src/\` 下的源码
+2. 重新构建：\`node [skill路径]/scripts/build.mjs --dir [本目录路径]/preview\`
+3. 验证构建：\`node [skill路径]/scripts/verify-build.mjs --dir [本目录路径]/preview\`
+4. 刷新浏览器查看效果（构建产物：\`preview/index.page.html\`，双击打开或刷新已打开的页面）
+
+## 目录结构
+
+\`\`\`
+preview/
+├── app.jsx              页面入口（Provider + 根容器组装）
+├── src/
+│   ├── views/           视图组件（一个 tab/section 一个文件夹）
+│   ├── components/      可复用组件
+│   ├── mock/            mock 数据
+│   ├── hooks/           自定义 React hooks
+│   ├── utils/           纯函数工具
+│   ├── constants/       枚举/配置常量
+│   ├── styles/          跨视图共享 CSS
+│   └── context.jsx      全局状态（AppProvider + useApp）
+├── public/              共享资产（React/antd/Babel 运行时 + token CSS + 字体）
+└── index.page.html      构建产物（自动生成，勿手改）
+\`\`\`
+
+## 关键约定
+
+- **先读 skill 再开发**：本工程基于 ict-coder skill 体系，首次工作前请阅读 skill 的 SKILL.md（组件规范、token 体系、禁用规则）
+- **只改源码，不改产物**：修改 \`src/\` 或 \`app.jsx\` 后必须重新 build，禁止直接编辑 \`index.page.html\`
+- **图片资源放 \`public/uploads/\`**；新的 UMD 库（如 three.umd.js）放 \`public/library/\`
+- **不要修改下列文件**：\`public/library/\`（React/antd 运行时）、\`public/style/\`（token CSS）、\`public/shared/\`（icon/chart 共享件）
+- **每次修改后验证**：build 完成后运行 verify-build.mjs，确认 Babel 编译和渲染无错误
+- **init.mjs 只跑一次**：修改会话中不要重新执行 init（幂等无害但无意义）
+`;
+
 try {
   // --- idempotent reuse (modification session) ---
   if (existsSync(join(dest, "app.jsx"))) {
@@ -213,6 +259,8 @@ try {
   writeFileSync(join(dest, "app.jsx"), STARTER_APP, "utf8");
   writeFileSync(join(dest, "src", "context.jsx"), STARTER_CONTEXT, "utf8");
   writeFileSync(join(dest, "app.css"), STARTER_CSS, "utf8");
+  writeFileSync(join(base, "AGENTS.md"), AGENTS_MD, "utf8");
+  writeFileSync(join(base, "README.md"), README_MD, "utf8");
 
   console.log("RESULT: OK");
   console.log(`SCAFFOLD_DIR: ${dest}`);
