@@ -363,16 +363,16 @@ export const Icon = {
     // class/style/@click 等透传到根元素(Vue 默认 attrs 继承)
 
     // 用户自带资源 — <img>
+    // width/height 走 CSS style 而非 img 属性:HTML img 的 width/height 属性只认纯数字 px,
+    // 会丢弃 rem 单位(width="2rem" → 2px);放到 style 里 rem/px/数字都能正确渲染
     if (this.src) {
       return h("img", {
         src: this.src,
         id: this.id || undefined,
-        width: this.resolvedSize,
-        height: this.resolvedSize,
         alt: "",
         "aria-hidden": "true",
         title: this.title || undefined,
-        style: { display: "inline-block", verticalAlign: "middle", ...this.cursorStyle },
+        style: { display: "inline-block", verticalAlign: "middle", width: this.resolvedSize, height: this.resolvedSize, ...this.cursorStyle },
       });
     }
 

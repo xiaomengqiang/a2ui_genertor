@@ -2,7 +2,7 @@
 
 迁移时按需查阅对应文档。组件映射总表见 [../component-mapping.md](../component-mapping.md)。
 
-> **包壳组件**：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`、`DatePicker`、`Spinner`、`Cascader`、`TreeSelector`、`IPInput`、`TimePicker`、`Crumbs` 为 scaffold 预置，从 `@/shared/<X>` 导入（多数透明转发 `@nce/eview-react/<X>`；`TextField` 包壳扩展了 `prefix` prop；`Cascader` 为手写组件 API 基本同 antd），不走 `@nce/eview-react/<X>`。清单见 SKILL.md 硬约束 #1。
+> **包壳组件**：`Tag`、`Select`、`TextField`、`InputSelect`、`MultipleSelect`、`SearchInput`、`TextArea`、`DatePicker`、`Spinner`、`Cascader`、`TreeSelector`、`IPInput`、`TimePicker`、`Crumbs`、`Accordion`、`Timeline` 为 scaffold 预置，从 `@/shared/<X>` 导入（多数透明转发 `@nce/eview-react/<X>`；`TextField` 包壳扩展了 `prefix` prop；`Cascader`/`Timeline` 为手写组件 API 基本同 antd），不走 `@nce/eview-react/<X>`。清单见 SKILL.md 硬约束 #1。
 
 ## 表单与输入
 
@@ -15,6 +15,7 @@
 | Select | [Select.md](Select.md) | 下拉选择（Select） |
 | MultipleSelect | [MultipleSelect.md](MultipleSelect.md) | 多选下拉（Select multiple） |
 | Cascader | —（`@/shared/Cascader` 手写，API 同 antd） | 级联选择（Cascader） |
+| Timeline | [Timeline.md](Timeline.md) | 时间线（Timeline） |
 | TreeSelector | [TreeSelector.md](TreeSelector.md) | 树选择（TreeSelect） |
 | Checkbox | [Checkbox.md](Checkbox.md) | 复选框（Checkbox/Checkbox.Group） |
 | Radio | [Radio.md](Radio.md) | 单选（Radio/Radio.Group） |
@@ -43,6 +44,7 @@
 | Tag | [Tag.md](Tag.md) | 标签（Tag） |
 | TipBox | [TipBox.md](TipBox.md) | 提示框（Tooltip/Popover） |
 | Crumbs | [Crumbs.md](Crumbs.md) | 面包屑（Breadcrumb） |
+| DropDown | [DropDown.md](DropDown.md) | 一级操作菜单（Dropdown） |
 | Chart | [Chart.md](Chart.md) | 图表（HUI Charts / echarts） |
 
 ## 反馈

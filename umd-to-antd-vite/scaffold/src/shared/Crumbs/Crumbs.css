@@ -5,3 +5,7 @@
 .evCrumbs-custom.ev_Crumbs ul li {
     line-height: 1.375rem;
 }
+
+.evCrumbs-custom.ev_Crumbs ul {
+    display: flex;
+}

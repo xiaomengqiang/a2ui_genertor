@@ -1,7 +1,7 @@
 ---
 name: umd-to-antd-vite
 description: >-
-  把 ict-coder 产出的 UMD 单 HTML 工程（index.page.html + 内联 token CSS + Babel-standalone 转译 + 双份代码）转换为标准 eview-react Vite + npm 工程的专项 Skill。提供 scaffold 预制骨架（一键拷贝 eview-react Vite 空壳）、extract-umd.cjs 从产物 assets/style/ 拷贝 ict-coder 已分好的 base/light/theme/dark 四层 CSS（@font-face 路径改写 /font/、uploads 改写 /uploads/）、check-relative-imports.cjs 排查路径错误。工作流为混合编排：主 agent 亲自跑脚本搭骨架+提取内容（步骤 1-2），派发 general 子 agent 搬代码修路径+验证（步骤 3-4）；验证结果写入 .conversion-result.json 供主 agent 判定。产出的 eview-react Vite 工程可直接衔接 antd-to-eview-react skill 继续把业务代码的 antd 组件替换为 @nce/eview-react（骨架已是 eview-react，下游不再跑 init-scaffold.cjs；保留本 skill 外置的 token CSS）。务必在以下场景使用：把 ict-coder 产物的 UMD 单 HTML 转成标准 React 工程、需要外置内联 token CSS 到独立文件、想标准化工程结构以降低后续组件库迁移成本、用户提供了 index.page.html 并要求转成 React 项目、需要为 antd-to-eview-react 迁移做前置工程标准化、想把 UMD 内联的 666+ 个 CSS 变量提取到 tokens.css + theme-dark.css。
+  把 ict-coder 产出的 UMD 单 HTML 工程（index.page.html + 内联 token CSS + Babel-standalone 转译 + 双份代码）转换为标准 Vite + npm 工程的专项 Skill。scaffold 支持双 profile：--profile eview-react（默认，衔接 antd-to-eview-react）/ --profile eview-ui（scaffold-eview-ui 差异覆盖，衔接 antd-to-eview-ui）。提供 scaffold 预制骨架（一键拷贝 Vite 空壳）、extract-umd.cjs 从产物 assets/style/ 拷贝 ict-coder 已分好的 base/light/theme/dark 四层 CSS（@font-face 路径改写 /font/、uploads 改写 /uploads/）、check-relative-imports.cjs 排查路径错误。工作流为混合编排：主 agent 亲自跑脚本搭骨架+提取内容（步骤 1-2），派发 general 子 agent 搬代码修路径+验证（步骤 3-4）；验证结果写入 .conversion-result.json 供主 agent 判定。产出的 Vite 工程可直接衔接对应下游 skill 继续把业务代码的 antd 组件替换为 @nce/eview-react 或 eview-ui（下游不再跑 init-scaffold.cjs；保留本 skill 外置的 token CSS）。务必在以下场景使用：把 ict-coder 产物的 UMD 单 HTML 转成标准 React 工程、需要外置内联 token CSS 到独立文件、想标准化工程结构以降低后续组件库迁移成本、用户提供了 index.page.html 并要求转成 React 项目、需要为 antd-to-eview-react / antd-to-eview-ui 迁移做前置工程标准化、想把 UMD 内联的 666+ 个 CSS 变量提取到 tokens.css + theme-dark.css。
 ---
 
 # UMD → antd Vite 工程标准化 Skill
@@ -26,17 +26,25 @@ description: >-
 
 | 步骤 | 做什么 | 产出 | 执行方式 |
 |------|--------|------|---------|
-| **1. 搭骨架** | 跑 `init-scaffold.cjs` 拷贝 eview-react Vite 空壳（package.json/vite.config.js/index.html/main.jsx/styles/字体/icon shim） | 可运行的 eview-react 空壳工程 | 主 agent 跑脚本 |
-| **2. 提取 UMD 内容** | 跑 `extract-umd.cjs` 从源产物 `assets/style/` 拷贝 ict-coder 已分好的 4 层 CSS：`base.css`（基础色阶+尺寸+排版+间距+@font-face+reset+scrollbar，`@font-face` 路径改写 `/font/`、uploads 路径改写 `/uploads/`，append 到 scaffold 预制 base.css 的 eview 专用样式后）/ `light.css`（语义层 :root）/ `theme.css`（角色层 :root）/ `dark.css`（.dark 覆盖）三个 write 覆盖空壳；`ant.css` 跳过（eview 用 `aui3_1.css`）；扫描 antd 组件导入（组件→文件映射 + 图标列表）；**扫描 `<Icon name>` 调用点**（字面量/动态/无 name，供下游图标步骤预定位）；**扫描 `<IpInput>` 调用点 + 手写共享件**（§4.7，ict-coder 内置 IPInput 非 antd 导入，extract-umd 默认扫不到）；**扫描 `<Chart>` 调用点 + 内置共享件**（§4.9，ict-coder 内置 Chart 非 antd 导入，extract-umd 默认扫不到）；**拷贝 `assets/uploads/` 图片资源到 `public/uploads/`**（§4.8）；扫描 i18n 用法判定 scenario A/B/C + 业务包/antd-locale 文件路径；生成 `.umd-conversion.json` 交接文件供 antd-to-eview-react 读取；无 `src/` 时加 `--scripts` 提取 script 块 | base/light/theme/dark 四层 CSS + antd 清单 + icon 调用点 + IPInput 调用点 + Chart 调用点 + uploads 图片资源 + i18n scenario + 交接文件 | 主 agent 跑脚本 |
+| **1. 搭骨架** | 跑 `init-scaffold.cjs` 拷贝 Vite 空壳（package.json/vite.config.js/index.html/main.jsx/styles/字体/icon shim）——**按下游路线选 profile**：`--profile eview-react`（默认，接 antd-to-eview-react）或 `--profile eview-ui`（接 antd-to-eview-ui，差异见下文「scaffold 预制骨架」） | 可运行的 Vite 空壳工程（profile 化） | 主 agent 跑脚本 |
+| **2. 提取 UMD 内容** | 跑 `extract-umd.cjs` 从源产物 `assets/style/` 拷贝 ict-coder 已分好的 4 层 CSS：`base.css`（基础色阶+尺寸+排版+间距+@font-face+reset+scrollbar，`@font-face` 路径改写 `/font/`、uploads 路径改写 `/uploads/`，append 到 scaffold 预制 base.css 的 eview 专用样式后）/ `light.css`（语义层 :root）/ `theme.css`（角色层 :root）/ `dark.css`（.dark 覆盖）三个 write 覆盖空壳；`ant.css` 跳过（eview 用 `aui3_1.css`）；扫描 antd 组件导入（组件→文件映射 + 图标列表；含 `<Checkbox.Group>`/`<Radio.Group>` JSX 成员访问用法独立 key，供下游 build-migration-plan 按完整 pattern 匹配识别 .Group 形态，避免被当普通 Checkbox/Radio）；**扫描 `<Icon name>` 调用点**（字面量/动态/无 name，供下游图标步骤预定位）；**扫描 `<IpInput>` 调用点 + 手写共享件**（§4.7，ict-coder 内置 IPInput 非 antd 导入，extract-umd 默认扫不到）；**扫描 `<Chart>` 调用点 + 内置共享件**（§4.9，ict-coder 内置 Chart 非 antd 导入，extract-umd 默认扫不到）；**拷贝 `assets/uploads/` 图片资源到 `public/uploads/`**（§4.8）；扫描 i18n 用法判定 scenario A/B/C + 业务包/antd-locale 文件路径；生成 `.umd-conversion.json` 交接文件供 antd-to-eview-react 读取；无 `src/` 时加 `--scripts` 提取 script 块 | base/light/theme/dark 四层 CSS + antd 清单 + icon 调用点 + IPInput 调用点 + Chart 调用点 + uploads 图片资源 + i18n scenario + 交接文件 | 主 agent 跑脚本 |
 | **3. 搬代码 + 修路径 + 转暗色 + i18n 接线** | 把源项目 `src/` 独立文件搬进 scaffold `src/`；修正 `./src/...` → `./...` 相对导入；`app.jsx` 搬入时删除 antd `ConfigProvider` + `theme.darkAlgorithm`，换成 eview 类名切换 `useEffect`；按 `i18nScenario` 做 i18n 静态接线（删 antd locale 文件；scenario B 合并业务包到 `main.jsx`；scenario C 留下游） | 代码就位，import 正确，暗色已转，i18n A/B 接线完成 | 派发 general 子 agent |
 | **4. 验证** | 跑 `check-relative-imports.cjs` 静态检查；验证通过后更新 `.umd-conversion.json` 的 `verification` 字段 | import 通过 + 交接文件就绪 | 子 agent（步骤 3 续做） |
-| **5. 下游评估** | 跑 `build-migration-plan.cjs`：读 `.umd-conversion.json` 的 `antdComponents` + antd-to-eview-react 的 `component-mapping.md`，自动给每组件分类（A/B/C）+ eview-react 替换名 + importPath + shellComponent 标志 + 完整 keyDiffs（映射表原文）+ ref 指引 + 涉及文件，写入 `migrationPlan` 字段；同时写入 `globalRef`（静态拼写异常 + 回调签名速查表）。**始终执行**——不依赖步骤 4 PASS，`antdComponents` 在步骤 2 已就绪 | 下游步骤 0 enriched 评估清单就绪 | 脚本（主 agent 跑 `node scripts/build-migration-plan.cjs <目标工程根>`） |
+| **5. 下游评估** | 跑 `build-migration-plan.cjs`：读 `.umd-conversion.json` 的 `antdComponents`（含 extract-umd 补扫的 `Checkbox.Group`/`Radio.Group` JSX 用法独立 key）+ antd-to-eview-react 的 `component-mapping.md`，按完整 pattern 精确匹配（先 `Checkbox.Group` 再回退 `Checkbox`，避免 .Group 用法被当普通 Checkbox）自动给每组件分类（A/B）+ eview-react 替换名 + importPath + shellComponent 标志 + 完整 keyDiffs（映射表原文）+ ref 指引 + 涉及文件，写入 `migrationPlan` 字段；同时写入 `globalRef`（静态拼写异常 + 回调签名速查表）。**始终执行**——不依赖步骤 4 PASS，`antdComponents` 在步骤 2 已就绪。**eview-ui 路线（步骤 1 `--profile eview-ui`）跳过本步骤**：下游 antd-to-eview-ui 步骤 0 跑自己的 fork 生成 `migrationPlanEui` | 下游步骤 0 enriched 评估清单就绪 | 脚本（主 agent 跑 `node scripts/build-migration-plan.cjs <目标工程根>`） |
 
-## scaffold 预制骨架
+## scaffold 预制骨架（双 profile）
 
-骨架由本 skill 的 `scaffold/` 目录维护，步骤 1 一键拷贝。骨架已含 eview-react 依赖、`aui3_1` body 类、`ConfigProvider` + `IntlProvider`、HarmonyOS 字体、icon shim（`src/shared/Icon/`，folder + 默认导出）；`vite.config.js` 预配 `@`→`./src` 别名 + icon-plus proxy/transform；`src/shared/` 下 Select/TextField/InputSelect/MultipleSelect/SearchInput/TextArea/Tag/DatePicker/Spinner/Cascader/TreeSelector/IPInput/TimePicker/Crumbs 包壳组件（多数透明转发 `@nce/eview-react` 供下游 antd-to-eview-react 从 `@/shared/X` 导入；TextField 包壳扩展了 `prefix` prop——`.prefix-wrapper` 绝对定位实现，用法同 `suffix`；Cascader 为手写组件 API 基本同 antd）。`src/styles/` 下 `light.css` / `theme.css` / `dark.css` 为空壳占位，步骤 2 从产物 `assets/style/` 拷贝填充；`base.css` 预制 eview 专用样式（`ev_no_wcag`/`ev_form_item`），步骤 2 append ict `base.css`（`@font-face` 路径改写 `/font/`）。
+骨架由本 skill 的 `scaffold/` 目录维护，步骤 1 一键拷贝。**profile 由下游迁移路线决定**（执行前问用户或按用户指定）：
 
-用法：`node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标题] [--force]`
+- **`--profile eview-react`（默认，向后兼容）**：`scaffold/` 原样拷贝。已含 eview-react 依赖、`aui3_1` body 类、`ConfigProvider` + `IntlProvider`、HarmonyOS 字体、icon shim（`src/shared/Icon/`，folder + 默认导出）；`vite.config.js` 预配 `@`→`./src` 别名 + icon-plus proxy/transform；`src/shared/` 下 Select/TextField/…/IPInput/Crumbs 包壳组件（多数透明转发 `@nce/eview-react`）；`src/styles/` 四层 CSS（base.css 预制 ev_ 专用样式）。
+- **`--profile eview-ui`**：先拷 `scaffold/`，再用 `scaffold-eview-ui/` 差异文件覆盖（package.json 换 `@cloudsop/eview-ui ^7.1.37` 依赖 + 保留 `@hui/design-token`（.npmrc 加 @cloudsop scope）、main.jsx 去 @nce CSS import 加 eview-ui 样式 TODO、index.html body 预置 `eviewui_aui3_1_default` 类 + `data-theme="default"`（亮态首帧防闪）、app.jsx 暗色**三轨**（html `.dark` + body `data-theme` + body `eviewui_aui3_1_default/evening` 类互换）、base.css 去掉 ev_ 专用样式、vite.config.js 加 **less 预处理配置**——`javascriptEnabled: true` + `paths: [node_modules]` + TildeFileManager 插件处理 `~` 前缀导入，eview-ui 的 .less 样式需要；**less 无需显式 devDep**，由 @cloudsop/eview-ui 传递依赖提供），并**删除**转发 `@nce/eview-react` 的 13 个包壳目录（Select/TextField/InputSelect/MultipleSelect/SearchInput/TextArea/DatePicker/Spinner/TreeSelector/TimePicker/Tag/Crumbs/IPInput）。**保留** `src/shared/Icon`（图标 shim，两路线通用）与 `src/shared/Cascader`、`src/shared/Timeline`（均纯手写 antd 兼容件，无 @nce 依赖）。**TODO 占位**：eview-ui 全局样式 import 路径（可能是 .less）；@cloudsop scope 源路径已按 @nce 同源推断，内网核对。**注意**：官方组件文档示例里写的 `import X from 'eview-ui/X'` 是简写，实际导入必须带 `@cloudsop/` 前缀（真实包名 scoped）。
+
+用法：`node <skill目录>/scripts/init-scaffold.cjs <目标工程根> [项目名] [标题] [--force] [--upgrade] [--profile eview-react|eview-ui]`
+
+**profile 对后续步骤的影响**：
+- 步骤 3 搬 app.jsx 的暗色转换：eview-react profile 写**双轨** useEffect（`.dark` html + `aui3_1_dark` body）；eview-ui profile 写**单轨**（仅 `.dark` html——eview-ui 组件暗色由下游 antd-to-eview-ui 步骤 1 的 `ConfigProvider theme` 接管，不要写 body 轨）
+- 步骤 5 评估清单：eview-react 路线跑本 skill 的 `build-migration-plan.cjs`（读 antd-to-eview-react 映射表）；eview-ui 路线**本步骤可跳**——下游 `antd-to-eview-ui` 步骤 0 跑它自己的 fork（生成 `migrationPlanEui`）
+- 衔接的下游 skill：eview-react → `antd-to-eview-react`；eview-ui → `antd-to-eview-ui`（其步骤 0.5 会自检测骨架 profile：已是 eview-ui 骨架则跳过换血）
 
 ## extract-umd.cjs：自动提取内联内容
 
@@ -74,7 +82,7 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
   "skill": "umd-to-antd-vite",
   "sourceFile": "index.page.html",
   "projectName": "xxx",
-  "antdComponents": { "Button": ["src/views/AppShell.jsx"], "Select": ["src/views/DeviceForm.jsx"] },
+  "antdComponents": { "Button": ["src/views/AppShell.jsx"], "Select": ["src/views/DeviceForm.jsx"], "Checkbox.Group": ["src/views/RoleForm.jsx"], "Radio.Group": ["src/views/Filter.jsx"] },
   "antdIcons": ["SearchOutlined", "SunOutlined"],
   "iconCallSites": [{ "file": "src/views/AppShell.jsx", "line": 42, "name": "search", "type": "literal" }],
   "ipInputCallSites": { "sharedFiles": ["assets/shared/ip-input.jsx"], "imports": [], "callSites": [{ "file": "src/views/DeviceForm.jsx", "line": 15, "component": "IpInput", "props": "type=\"ipv4\"" }] },
@@ -99,7 +107,7 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 }
 ```
 
-`antd-to-eview-react` 步骤 0 检查此文件：有则直接读 `antdComponents` 的 keys 作为迁移清单（跳过 explore 子 agent 扫描），读 `migrationPlan`（步骤 5 `build-migration-plan.cjs` 生成的 enriched 版，含 importPath/shellComponent/full keyDiffs）作为分类评估清单，**A 类组件无需再读 `component-mapping.md` 或 `components/<Name>.md`**，仅 B/C 类按 `ref` 指引读对应 reference；读 `globalRef` 获取静态拼写异常 + 回调签名速查表（跳过读 `component-mapping.md` 文末速查表）；读 `iconCallSites` 获取 `<Icon name>` 调用点预扫描结果（跳过 grep，直接跑 `match-icons.cjs`）；读 `chartCallSites` 获取 `<Chart>` 调用点预扫描结果（Chart 已由 `build-migration-plan.cjs` 注入 migrationPlan，下游步骤 0/2 直接见迁移行 + `a2ui: true`/`theme` 补全提醒）；读 `tokens` 确认 token 已外置（跳过步骤 4）；读 `verification` 确认路径已修正（跳过 `check-relative-imports.cjs`）；读 `i18nScenario.wired` 确认 i18n 静态接线状态（`true` 即 A/B 已由步骤 3 接线完成，下游步骤 1 跳过接线只做运行时验证；`false` 即 scenario C，下游步骤 1 做 keep i18next vs 迁 react-intl 决策）。**`migrationPlan` + `globalRef` 由步骤 5 `build-migration-plan.cjs` 脚本生成，下游步骤 0 直接读，跳过手动对照大表 + 组件文档，显著降低下游上下文压力。**
+`antd-to-eview-react` 步骤 0 检查此文件：有则直接读 `antdComponents` 的 keys 作为迁移清单（跳过 explore 子 agent 扫描），读 `migrationPlan`（步骤 5 `build-migration-plan.cjs` 生成的 enriched 版，含 importPath/shellComponent/full keyDiffs）作为分类评估清单，**A 类组件按 `ref` 读 `components/<Name>.md` 查完整 API（`component-mapping.md` 无需再读，`keyDiffs` 已含其差异摘要）**，仅 B 类按 `ref` 指引读对应 reference；读 `globalRef` 获取静态拼写异常 + 回调签名速查表（跳过读 `component-mapping.md` 文末速查表）；读 `iconCallSites` 获取 `<Icon name>` 调用点预扫描结果（跳过 grep，直接跑 `match-icons.cjs`）；读 `chartCallSites` 获取 `<Chart>` 调用点预扫描结果（Chart 已由 `build-migration-plan.cjs` 注入 migrationPlan，下游步骤 0/2 直接见迁移行 + `a2ui: true`/`theme` 补全提醒）；读 `tokens` 确认 token 已外置（跳过步骤 4）；读 `verification` 确认路径已修正（跳过 `check-relative-imports.cjs`）；读 `i18nScenario.wired` 确认 i18n 静态接线状态（`true` 即 A/B 已由步骤 3 接线完成，下游步骤 1 跳过接线只做运行时验证；`false` 即 scenario C，下游步骤 1 做 keep i18next vs 迁 react-intl 决策）。**`migrationPlan` + `globalRef` 由步骤 5 `build-migration-plan.cjs` 脚本生成，下游步骤 0 直接读，跳过手动对照大表 + 组件文档，显著降低下游上下文压力。**
 
 步骤 4 验证通过后，更新 `verification` 字段：
 
@@ -132,15 +140,24 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 操作：
 1. 把源项目 src/ 下的独立文件（或 _extracted/ 下的提取文件）搬入 <目标工程根>/src/
    - 保持目录结构（src/views/、src/components/ 等）
+   - **保留 src/context.jsx**（ict-coder 产物的 Layer 1 全局状态，含 `AppProvider` + `useApp` hook + isDark/dark toggle）：整文件搬入 <目标工程根>/src/context.jsx，**不改 AppProvider/useApp 的导出契约**——业务组件与下游 antd-to-eview-react 的 Chart theme 派生都依赖 `useApp().isDark`。若 context.jsx 里有 antd ConfigProvider 嵌套则删掉（eview-react ConfigProvider 已在 main.jsx）；AppProvider 内部的 isDark state + toggleDark 保留
    - 搬入源项目 icon.jsx 内容到 src/shared/Icon/Icon.jsx（`export function Icon`→`export default function Icon`，scaffold 的 index.jsx 桶 `export { default } from './Icon.jsx'` 已就位）；业务代码 `import { Icon } from ".../assets/shared/icon.jsx"` → `import Icon from "@/shared/Icon"`（默认导入，`@` 别名已由 vite.config.js 预配）
    - app.jsx 用源项目的版本替换 scaffold 的空壳 app.jsx，同时转换暗色模式：
      a. 删除 antd ConfigProvider（含 locale + theme.darkAlgorithm），eview-react ConfigProvider + IntlProvider 已在 main.jsx 配好
-     b. 保留源项目的 isDark 状态和切换 UI
-     c. 加 useEffect 切类名：
-        useEffect(() => {
-            document.body.classList.toggle('aui3_1_dark', isDark);
-            document.documentElement.classList.toggle('dark', isDark);
-        }, [isDark]);
+     b. **isDark 从 useApp() 取**（`const { isDark, toggleDark } = useApp()`，来自 context.jsx 的 AppProvider）——**不要用 scaffold 空壳的本地 `useState`**；保留源项目的暗色切换 UI（toggleDark 调用点）
+      c. 加暗色切换 useEffect（**按步骤 1 的 profile 二选一**）：
+         - eview-react profile（双轨——源项目单轨只切 `<html>.dark`，产物双轨）：
+           useEffect(() => {
+               document.body.classList.toggle('aui3_1_dark', isDark);     // body 轨：eview 组件库暗色
+               document.documentElement.classList.toggle('dark', isDark); // html 轨：自定义 token 四层
+           }, [isDark]);
+          - eview-ui profile（**三轨**——eview-ui 的暗色机制是 body 的 data-theme 属性 + class 互换，白天也要挂 default 类）：
+            useEffect(() => {
+                document.documentElement.classList.toggle('dark', isDark);                      // html 轨：自定义 token 四层
+                document.body.setAttribute('data-theme', isDark ? 'dark' : 'default');           // body 轨 1：eview-ui 主题属性
+                document.body.classList.toggle('eviewui_aui3_1_evening', isDark);                // body 轨 2：暗色类
+                document.body.classList.toggle('eviewui_aui3_1_default', !isDark);               // body 轨 2：亮色类
+            }, [isDark]);
 2. 修正所有相对导入路径：
    - ./src/context.jsx → ./context.jsx
    - ./src/views/X.jsx → ./views/X.jsx
@@ -206,7 +223,7 @@ node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 脚本自动完成：
 1. 读 `.umd-conversion.json` 的 `antdComponents`
 2. 读 antd-to-eview-react 的 `references/component-mapping.md`，解析映射总表
-3. 对每个 antd 组件匹配映射行，分类 A/B/C + eview 替换名 + importPath（含 @/shared/ 包壳检测 + `SHELL_COMPONENTS` 硬编码列表兜底无 `@/shared/` keyDiffs 的包壳）+ shellComponent 标志 + 完整 keyDiffs（映射表原文，非摘要）+ ref 指引
+3. 对每个 antd 组件匹配映射行，分类 A/B + eview 替换名 + importPath（含 @/shared/ 包壳检测 + `SHELL_COMPONENTS` 硬编码列表兜底无 `@/shared/` keyDiffs 的包壳）+ shellComponent 标志 + 完整 keyDiffs（映射表原文，非摘要）+ ref 指引
 4. 写入 `globalRef`：静态拼写异常速查表（seprator/taggledChildren/disable/status/defaultLabel/toggled/iconSize）+ 回调签名速查表（TextField/Select/TextArea/Button/Tab/Toggle/Spinner/Checkbox/Radio/DragInput/TreeSelector 等 13 条）
 5. 写回 `.umd-conversion.json` 的 `migrationPlan` + `globalRef` 字段
 
@@ -218,8 +235,8 @@ node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 "migrationPlan": [
   { "antd": "Button", "category": "A", "eview": "Button", "importPath": "@nce/eview-react/Button", "shellComponent": false, "keyDiffs": "type→status（default/primary/risk/text）；无 loading/htmlType/danger...", "ref": "components/Button.md", "files": ["src/views/AppShell.jsx"] },
   { "antd": "Select", "category": "A", "eview": "Select", "importPath": "@/shared/Select", "shellComponent": true, "keyDiffs": "options 字段 label→text；placeholder→defaultLabel；onChange(value,oldValue,text,oldText,event) 五参...", "ref": "components/Select.md", "files": ["src/views/DeviceForm.jsx"] },
-  { "antd": "Steps", "category": "C", "eview": "Steps", "importPath": "@nce/eview-react/Steps", "shellComponent": false, "keyDiffs": "current→currentStep（对应 data[].value 不是下标）；items→data=[{text,value}]；size 原生 mini/small/middle/large，dot→size=mini...", "ref": "components/Steps.md", "files": ["src/views/Wizard.jsx"] },
-  { "antd": "Modal", "category": "C", "eview": "Dialog", "importPath": "@nce/eview-react/Dialog", "shellComponent": false, "keyDiffs": "open→isOpen；footer→buttons=[{text,status,onClick}]；onClose 不自动关闭...", "ref": "components/Dialog.md", "files": ["src/views/DeviceForm.jsx"] },
+  { "antd": "Steps", "category": "A", "eview": "Steps", "importPath": "@nce/eview-react/Steps", "shellComponent": false, "keyDiffs": "current→currentStep（对应 data[].value 不是下标）；items→data=[{text,value}]；size 原生 mini/small/middle/large，dot→size=mini...", "ref": "components/Steps.md", "files": ["src/views/Wizard.jsx"] },
+  { "antd": "Modal", "category": "A", "eview": "Dialog", "importPath": "@nce/eview-react/Dialog", "shellComponent": false, "keyDiffs": "open→isOpen；footer→buttons=[{text,status,onClick}]；onClose 不自动关闭...", "ref": "components/Dialog.md", "files": ["src/views/DeviceForm.jsx"] },
   { "antd": "Layout", "category": "B", "eview": "手写", "importPath": null, "shellComponent": false, "keyDiffs": "无对应，CSS 布局", "ref": "handwrite-templates.md §4", "files": ["src/views/AppShell.jsx"] }
 ],
 "globalRef": {
@@ -228,7 +245,16 @@ node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 }
 ```
 
-> 下游 antd-to-eview-react 步骤 0 直接读 `migrationPlan`（含 importPath/shellComponent/full keyDiffs）+ `globalRef`（拼写/回调速查），A 类组件无需再读 `component-mapping.md` 或 `components/<Name>.md`，仅 B/C 类按需读 ref 指向的 reference。
+> 下游 antd-to-eview-react 步骤 0 直接读 `migrationPlan`（含 importPath/shellComponent/full keyDiffs）+ `globalRef`（拼写/回调速查），A 类组件按 `ref` 读 `components/<Name>.md` 查完整 API（`component-mapping.md` 无需再读，`keyDiffs` 已含其差异摘要），仅 B 类按需读 ref 指向的 reference。
+
+## 与 antd-to-eview-ui 的衔接（eview-ui 路线）
+
+步骤 1 用 `--profile eview-ui` 时，产物直接衔接 `antd-to-eview-ui` skill（组件替换为 `eview-ui` 包）：
+
+1. **骨架已是 eview-ui**：依赖/CSS/body 类/包壳均已 profile 化（scaffold-eview-ui overlay），下游 antd-to-eview-ui 的步骤 0.5「骨架换血」**自检测跳过**（其检查 package.json 无 `@nce/eview-react` + main.jsx 无 @nce import 即判定已换血），只核对 eview-ui 样式 import TODO
+2. **暗色已三轨化**：步骤 3 按模板写了三轨 useEffect（html `.dark` + body `data-theme` + body `eviewui_aui3_1_default/evening` 类互换）；下游 antd-to-eview-ui 步骤 1 另接 ConfigProvider（locale/version + theme 响应派生作双保险）
+3. **评估清单由下游自理**：本 skill 步骤 5 的 `build-migration-plan.cjs` 是 eview-react 映射（读 antd-to-eview-react 的 component-mapping.md）——eview-ui 路线**跳过步骤 5**，下游 antd-to-eview-ui 步骤 0 跑它自己的 fork（读自己的 component-mapping.md，写 `.umd-conversion.json` 的 `migrationPlanEui`/`globalRefEui` 独立字段）
+4. 其余衔接（CSS 已外置、相对导入已修正、代码单份、图标/图表调用点预扫）与 eview-react 路线一致
 
 ## 与 antd-to-eview-react 的衔接
 
@@ -241,7 +267,7 @@ node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 3. **CSS 已外置、无需重提**：`base/light/theme/dark` 四层已在步骤 2 从产物 `assets/style/` 拷贝好，骨架的 `src/styles/` 原样保留
 4. **相对导入已修正**：`check-relative-imports.cjs` 已跑过，路径正确——下游验证里此子项跳过（`check-i18n-keys.cjs` 仍照跑）
 5. **代码只有一份**：双份代码已在步骤 3 归一
-6. **评估清单已前置（脚本自动化 + enriched）**：`migrationPlan` 由步骤 5 `build-migration-plan.cjs` 脚本生成（非主 agent 手动），下游步骤 0 直接读它作为组件分类评估清单——含 A/B/C 分类 + 替换名 + **importPath**（含 @/shared/ 包壳检测 + `SHELL_COMPONENTS` 硬编码兜底）+ **shellComponent** 标志 + **完整 keyDiffs**（映射表原文，非一行摘要）+ ref 指引 + 涉及文件。A 类组件无需再读 `component-mapping.md` 或 `components/<Name>.md`，仅 B/C 类按 `ref` 指引读对应 reference。`globalRef`（拼写异常 + 回调签名速查表）由同一脚本写入，下游跳过读 `component-mapping.md` 文末速查表
+6. **评估清单已前置（脚本自动化 + enriched）**：`migrationPlan` 由步骤 5 `build-migration-plan.cjs` 脚本生成（非主 agent 手动），下游步骤 0 直接读它作为组件分类评估清单——含 A/B 分类 + 替换名 + **importPath**（含 @/shared/ 包壳检测 + `SHELL_COMPONENTS` 硬编码兜底）+ **shellComponent** 标志 + **完整 keyDiffs**（映射表原文，非一行摘要）+ ref 指引 + 涉及文件。A 类组件按 `ref` 读 `components/<Name>.md` 查完整 API（`component-mapping.md` 无需再读，`keyDiffs` 已含其差异摘要），仅 B 类按 `ref` 指引读对应 reference。`globalRef`（拼写异常 + 回调签名速查表）由同一脚本写入，下游跳过读 `component-mapping.md` 文末速查表
 7. **图标调用点已预扫**：`iconCallSites` 由步骤 2 `extract-umd.cjs` 预扫写入 `.umd-conversion.json`（字面量/动态/无 name 分类 + 文件 + 行号），下游图标步骤跳过 grep，直接用预扫结果跑 `match-icons.cjs`
 8. **图表调用点已预扫 + 迁移行已注入**：`chartCallSites` 由步骤 2 `extract-umd.cjs` §4.9 预扫写入 `.umd-conversion.json`（chartType 字面量/动态/无 name 分类 + 文件 + 行号 + 共享件路径），步骤 5 `build-migration-plan.cjs` 读 `chartCallSites.callSites` 非空时注入 Chart 迁移行到 `migrationPlan`（category A、importPath `@nce/eview-react/Chart`、keyDiffs 含 `a2ui: true`/`theme` 补全提醒）——下游步骤 0 直接见迁移行，步骤 2 按 keyDiffs 改 import 路径 + 补 `a2ui`/`theme`，无需手动发现 `<Chart>` 调用点
 

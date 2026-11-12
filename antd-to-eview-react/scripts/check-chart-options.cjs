@@ -83,6 +83,13 @@ function objHasKeys(body) {
   };
 }
 
+// 检查对象 body 中 theme 值是否为静态字符串字面量（非 isDark 动态派生）
+// 静态：theme: 'hdesign-light' / theme: "hdesign-dark"（: 后紧跟引号字符串，后跟 , 或 }）
+// 动态：theme: isDark ? '...' : '...' / theme: someVar / theme: `...${...}` —— 这些不匹配
+function themeValueIsStatic(body) {
+  return /\btheme\b\s*:\s*['"][^'"]*['"]\s*(?=[,}])/.test(body);
+}
+
 // 在文件文本中追变量定义，返回其对象 body（若定义是对象字面量）
 // 支持: const NAME = { ... };  const NAME = useMemo(() => ({ ... }), ...);
 function findVarObjectBody(text, varName) {
@@ -200,6 +207,14 @@ function main() {
               });
             }
           }
+          // 静态 theme 检查：theme 值是静态字符串 → 暗色不跟随风险
+          if (keys.hasTheme && themeValueIsStatic(parsed.body)) {
+            advisories.push({
+              file: rel, line,
+              code: 'STATIC_THEME',
+              detail: '<Chart> option 的 theme 是静态字符串（非 isDark 动态派生）——暗色切换时图表主题不跟随。应改为 theme: isDark ? "hdesign-dark" : "hdesign-light"（isDark 来自 useApp()）',
+            });
+          }
         } else if (parsed.type === 'var') {
           const body = findVarObjectBody(text, parsed.varName);
           if (body) {
@@ -224,6 +239,14 @@ function main() {
                   detail: `<Chart> option 变量 "${parsed.varName}" 的定义缺 ${missing.join(' / ')}`,
                 });
               }
+            }
+            // 静态 theme 检查：theme 值是静态字符串 → 暗色不跟随风险
+            if (keys.hasTheme && themeValueIsStatic(body)) {
+              advisories.push({
+                file: rel, line,
+                code: 'STATIC_THEME',
+                detail: `<Chart> option 变量 "${parsed.varName}" 的 theme 是静态字符串（非 isDark 动态派生）——暗色切换时图表主题不跟随。应改为 theme: isDark ? "hdesign-dark" : "hdesign-light"（isDark 来自 useApp()）`,
+              });
             }
           } else {
             advisories.push({

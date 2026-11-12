@@ -295,6 +295,18 @@ function scanAntdImports() {
       const names = im[1].split(',').map(s => s.trim().replace(/\s+as\s+\w+/, '')).filter(Boolean);
       for (const n of names) icons.add(n);
     }
+    // 扫描 <Checkbox.Group / <Radio.Group JSX 成员访问用法
+    // antd 命名导入只记录 Checkbox/Radio，但 .Group 是独立形态（对应 eview CheckboxGroup/RadioGroup），
+    // 需单独记入 antdComponents，让 build-migration-plan 匹配到 Checkbox.Group/Radio.Group 映射行；
+    // 否则 .Group 用法被当作普通 Checkbox/Radio，LLM 步骤 2 漏转 CheckboxGroup/RadioGroup
+    // TODO: 解构别名形态 `const { Group } = Checkbox` + `<Group>` ict-coder 产物罕见，暂不支持
+    const groupRe = /<(Checkbox|Radio)\.Group\b/g;
+    let gm;
+    while ((gm = groupRe.exec(code)) !== null) {
+      const comp = `${gm[1]}.Group`;
+      if (!components[comp]) components[comp] = [];
+      if (!components[comp].includes(relFile)) components[comp].push(relFile);
+    }
   }
 
   stats.antdComponents = components;

@@ -6,6 +6,19 @@
 > ⚠️ 分隔符属性拼写是 **`seprator`**（官方即如此），默认 `>`。
 > ⚠️ 超过 `countLimit`（默认 6）项会自动折叠成下拉。
 
+> **antd Breadcrumb → Crumbs 字段映射（必须逐项改，勿保留 antd prop/字段名）**：
+>
+> | antd Breadcrumb | Crumbs | 说明 |
+> |-----------------|--------|------|
+> | `items` prop | `data` prop | **prop 重命名**，`items=`/`item=` 残留即未转 |
+> | 项 `title` | 项 `title` | 两边同名，**不用改**（但别因此误以为其他字段也不用改） |
+> | 项 `href` / `path` | 项 `url` | **字段重命名**；有 `url` 才可点，最后一项省略 `url` 即当前页 |
+> | 项 `icon` | 项 `icon` | 基本不变（eview 收 `string \| ReactElement`） |
+> | `separator` prop | `seprator` prop | **拼写反转**：eview 官方 API 即拼错的 `seprator`（将错就错），正确英文 `separator` 残留即未转 |
+> | `<Breadcrumb.Item>xxx</Breadcrumb.Item>` JSX 子元素 | `data=[{title:'xxx'}]` | **拍平成数组**，不要保留 `Breadcrumb.Item` 结构 |
+> | `Breadcrumb.Item href="/x"` | `data` 项 `url:'/x'` | 子元素的 `href` 也转成项的 `url` |
+> | `items[].menu`（下拉子菜单） | — | 无对应，手写或删除 |
+
 ## 1. 功能定位
 
 Crumbs 是面包屑导航：显示当前页路径，可点上级跳转，可带标题、图标、自定义分隔符。
@@ -58,6 +71,16 @@ import { IconPlusIcPublicHome, IconPlusIcPublicChevronRight } from '@hui/icon-pl
 <Breadcrumb items={[{ title: '首页', href: '/' }]} separator="/" />
 <Breadcrumb.Item>用户</Breadcrumb.Item>
 
+// ❌ prop 没转：items=/item= 残留（应为 data=）
+<Crumbs items={crumbs} onClick={(d, e) => {}} />
+<Crumbs item={crumbs} onClick={(d, e) => {}} />
+
+// ❌ 字段没转：项里残留 href/path（应为 url）——title 同名掩护了 href 漏改，最常见
+<Crumbs data={[{ title: '首页', href: '/' }, { title: '用户' }]} onClick={(d, e) => {}} />
+
+// ❌ 拼写没转：separator=（正确英文）残留（eview 官方 API 是 seprator，将错就错）
+<Crumbs data={crumbs} separator="/" onClick={(d, e) => {}} />
+
 // ❌ 分隔符按正确英文写 separator（官方拼写是 seprator）
 <Crumbs separator="/" />
 
@@ -77,7 +100,7 @@ data={[{ title: '用户管理', url: '/users' }, { title: '编辑', url: '/users
 
 | API | 类型 / 默认值 | 说明 |
 |-----|--------------|------|
-| `data` | `Array<{ title, url?, enable?, icon? }>`，**必填** | 路径项；有 `url` 才可点；最后一项省略 `url`；`icon` 收 `string \| ReactElement`（默认用 icon+） |
+| `data` | `Array<{ title, url?, enable?, icon? }>`，**必填** | 路径项；**prop 名是 `data`（非 antd 的 `items`），项字段用 `url`（非 antd 的 `href`/`path`），`title` 两边同名**；有 `url` 才可点；最后一项省略 `url`；`icon` 收 `string \| ReactElement`（默认用 icon+） |
 | `onClick` | `(data, event) => void` | 点击带链接的项（组件级，非每项） |
 | `title` | `string` | 面包屑前的标题，如"当前位置" |
 | `seprator` | `string`，默认 `>` | 分隔符（拼写照官方） |

@@ -60,6 +60,20 @@ onClose={(index) => setSections((prev) => prev.filter((_, i) => i !== index))}
 
 // ❌ 校验失败不展开出错面板，用户看不到红字
 onFailed={() => setMessage('有错误')}
+
+// ❌ 用 PanelItem.expanded 实现 antd defaultActiveKey（非受控，不响应切换/联动）
+<Panel>
+  <PanelItem title="基本信息" expanded={true}>…</PanelItem>
+  <PanelItem title="网络配置">…</PanelItem>
+</Panel>
+// ✅ 走 Panel.selectedIndex 做 key→index 映射（items 顺序对应下标）
+const items = [{ key: '1', label: '基本信息' }, { key: '2', label: '网络配置' }];
+const defaultActiveKey = ['1'];
+const openIdx = items.map((it, i) => i).filter((i) => defaultActiveKey.includes(items[i].key));
+<Panel selectedIndex={openIdx} onExpand={(i) => setOpenIdx((p) => p.includes(i) ? p : [...p, i])} onClose={(i, e, collapsed) => collapsed && setOpenIdx((p) => p.filter((x) => x !== i))}>
+  <PanelItem title="基本信息" closable={false}>…</PanelItem>
+  <PanelItem title="网络配置" closable={false}>…</PanelItem>
+</Panel>
 ```
 
 ## 5. API 速查
@@ -75,7 +89,7 @@ onFailed={() => setMessage('有错误')}
 | `destroyInactivePanel` | `boolean`，默认 `false` | 折叠时销毁面板内容 |
 | `children` | `PanelItem[]` | 面板项 |
 | `PanelItem.title` | `any` | 标题（可 ReactNode） |
-| `PanelItem.expanded` | `boolean` | 单项初始展开（与 `selectedIndex` 二选一控制） |
+| `PanelItem.expanded` | `boolean` | 单项非受控初始展开（⚠️ **迁移 antd `Collapse` 时禁止用它替代 `defaultActiveKey`/`activeKey`**——`expanded` 不受控、无法响应切换/联动，受控展开一律走 Panel 的 `selectedIndex` 做 key→index 映射） |
 | `PanelItem.closable` | `boolean`，默认 **`true`** | 显示移除按钮 |
 | `PanelItem.isShowTitleTips` / `titleTipProps` | `boolean` / `TipBoxProps` | 标题悬浮提示 |
 | `PanelItem.titleClassName` / `containerClassName` / `style` / `className` / `id` | — | 样式与标识 |

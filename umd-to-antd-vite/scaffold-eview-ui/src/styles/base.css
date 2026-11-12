@@ -1,0 +1,2 @@
+/* base.css - eview-ui profile 占位（无 eview-react 专用样式 ev_no_wcag/ev_button） */
+/* 步骤 2 extract-umd.cjs 会把源产物 ict base.css append 到本文件（@font-face 路径改写 /font/、uploads 改写 /uploads/） */

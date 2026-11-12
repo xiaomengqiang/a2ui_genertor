@@ -1,0 +1,487 @@
+/* ==========================================================================
+ * Standalone Timeline (JSX) — style
+ * Ported from ant-design v6 `components/timeline/style/*` +
+ * `components/steps/style/*` (dot mode), with default theme token values
+ * baked in. All props below can be overridden on `.temp-eview-timeline`.
+ * ==========================================================================
+ *
+ * Component tokens (same names as antd Timeline ComponentToken):
+ *   --temp-eview-timeline-tail-color          line color              (default: palette --gray-10)
+ *   --temp-eview-timeline-tail-width          line width              (default: 1px)
+ *   --temp-eview-timeline-dot-border-width    dot border width        (default: 0.125rem)
+ *   --temp-eview-timeline-dot-size            dot size                (default: 0.875rem)
+ *   --temp-eview-timeline-dot-bg              dot background          (default: variant based)
+ *   --temp-eview-timeline-item-padding-bottom item bottom padding     (default: 1rem)
+ *
+ * Palette dependency (from ict-coder token system, e.g. ant.css):
+ *   Light: --gray-10 (tail), --gray-90 (text), --gray-50 (secondary),
+ *          --blue-50 / --red-50 / --mint-50 / --gray-40 (preset dots)
+ *   Dark (`.dark` ancestor): --gray-05 (tail), --gray-0 (text), --gray-20 (secondary),
+ *          --blue-50 / --red-40 / --mint-60 / --gray-50 (preset dots)
+ *   Every `var(--palette, fallback)` has an antd-default fallback,
+ *   so the component also works without the token system.
+ * ========================================================================== */
+
+@keyframes tempEviewTimelineSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.temp-eview-timeline {
+  /* ---- Component tokens ---- */
+  --temp-eview-timeline-tail-color: var(--gray-10, rgba(5, 5, 5, 0.06));
+  --temp-eview-timeline-tail-width: 1px;
+  --temp-eview-timeline-dot-border-width: 0.125rem;
+  --temp-eview-timeline-dot-size: 0.875rem;
+  --temp-eview-timeline-dot-bg: initial;
+  --temp-eview-timeline-item-padding-bottom: 1rem;
+
+  /* ---- Global tokens (palette with antd-default fallbacks) ---- */
+  --temp-eview-timeline-color-primary: var(--blue-50, #1677ff);
+  --temp-eview-timeline-color-primary-hover: #4096ff;
+  --temp-eview-timeline-color-success: var(--mint-50, #52c41a);
+  --temp-eview-timeline-color-error: var(--red-50, #ff4d4f);
+  --temp-eview-timeline-color-text: var(--gray-90, rgba(0, 0, 0, 0.88));
+  --temp-eview-timeline-color-text-description: var(--gray-50, rgba(0, 0, 0, 0.65));
+  --temp-eview-timeline-color-text-disabled: var(--gray-40, rgba(0, 0, 0, 0.25));
+
+  /* ---- Internal layout variables (computed) ---- */
+  --temp-eview-timeline-dot-color: var(--temp-eview-timeline-color-primary);
+  --temp-eview-timeline-title-height: 22px; /* fontHeight */
+  --temp-eview-timeline-head-height: max(var(--temp-eview-timeline-dot-size), var(--temp-eview-timeline-title-height));
+  --temp-eview-timeline-icon-offset: calc((var(--temp-eview-timeline-head-height) - var(--temp-eview-timeline-dot-size)) / 2);
+  --temp-eview-timeline-item-gap: 16px; /* icon <-> section gap */
+  --temp-eview-timeline-alternate-gap: 40px; /* margin * 2 + steps dot size */
+  --temp-eview-timeline-horizontal-row-gap: 8px; /* paddingXS */
+  --temp-eview-timeline-rail-gap: 4px; /* gap between rail end and dot */
+  --temp-eview-timeline-motion-duration: 0.3s;
+
+  /* ---- resetComponent ---- */
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Sans Emoji';
+  font-size: 14px;
+  line-height: 1.5714;
+  color: var(--temp-eview-timeline-color-text);
+
+  /* ---- Root layout (from steps basic style) ---- */
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.temp-eview-timeline-item {
+  flex: none;
+  position: relative;
+}
+
+.temp-eview-timeline-item-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.temp-eview-timeline-item-icon {
+  box-sizing: border-box;
+  width: var(--temp-eview-timeline-dot-size);
+  height: var(--temp-eview-timeline-dot-size);
+  margin: 0;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px; /* fontSizeSM, for custom icons */
+  line-height: var(--temp-eview-timeline-dot-size);
+  text-align: center;
+  border-radius: 50%;
+  border: var(--temp-eview-timeline-dot-border-width) solid transparent;
+  color: var(--temp-eview-timeline-dot-color);
+  transition:
+    background-color var(--temp-eview-timeline-motion-duration),
+    border-color var(--temp-eview-timeline-motion-duration),
+    color var(--temp-eview-timeline-motion-duration);
+  z-index: 1;
+}
+
+/* ---- Variant ---- */
+.temp-eview-timeline-outlined .temp-eview-timeline-item-icon {
+  background: var(--temp-eview-timeline-dot-bg, transparent);
+  border-color: var(--temp-eview-timeline-dot-color);
+}
+
+.temp-eview-timeline-filled .temp-eview-timeline-item-icon {
+  background: var(--temp-eview-timeline-dot-bg, var(--temp-eview-timeline-dot-color));
+  border-color: transparent;
+}
+
+/* ---- Custom icon ---- */
+.temp-eview-timeline-item-custom > .temp-eview-timeline-item-wrapper > .temp-eview-timeline-item-icon {
+  background: none;
+  border: 0;
+}
+
+/* ---- Header / Title / Content ---- */
+.temp-eview-timeline-item-header {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  min-height: var(--temp-eview-timeline-head-height);
+}
+
+.temp-eview-timeline-item-empty-header > .temp-eview-timeline-item-wrapper > .temp-eview-timeline-item-section > .temp-eview-timeline-item-header {
+  min-height: auto;
+}
+
+.temp-eview-timeline-item-title {
+  color: var(--temp-eview-timeline-color-text);
+  font-size: 14px;
+  line-height: 1.5714;
+  word-break: break-word;
+  flex: 0 1 auto;
+}
+
+.temp-eview-timeline-item-content {
+  color: var(--temp-eview-timeline-color-text);
+  font-size: 14px;
+  line-height: 1.5714;
+  word-break: break-word;
+}
+
+.temp-eview-timeline-item-title,
+.temp-eview-timeline-item-content {
+  transition: color var(--temp-eview-timeline-motion-duration);
+}
+
+/* ---- Rail ---- */
+.temp-eview-timeline-item-rail {
+  border: 0 solid var(--temp-eview-timeline-tail-color);
+  transition: all var(--temp-eview-timeline-motion-duration);
+}
+
+.temp-eview-timeline-item-rail-process {
+  border-style: dotted;
+}
+
+/* ---- Preset colors (palette tokens, dark overrides below) ---- */
+.temp-eview-timeline-item-color-blue {
+  --temp-eview-timeline-dot-color: var(--blue-50, #1677ff);
+}
+
+.temp-eview-timeline-item-color-red {
+  --temp-eview-timeline-dot-color: var(--red-50, #ff4d4f);
+}
+
+.temp-eview-timeline-item-color-green {
+  --temp-eview-timeline-dot-color: var(--mint-50, #52c41a);
+}
+
+.temp-eview-timeline-item-color-gray {
+  --temp-eview-timeline-dot-color: var(--gray-40, rgba(0, 0, 0, 0.25));
+}
+
+/* ---- Content typography (when using antd Typography inside content) ---- */
+.temp-eview-timeline .temp-eview-timeline-item .temp-eview-timeline-item-content .ant-typography:not(.ant-typography-secondary) {
+  color: var(--gray-90, rgba(0, 0, 0, 0.88));
+}
+
+.temp-eview-timeline .temp-eview-timeline-item .temp-eview-timeline-item-content .ant-typography-secondary {
+  color: var(--gray-50, rgba(0, 0, 0, 0.45));
+}
+
+/* ---- Clickable ---- */
+.temp-eview-timeline-item[role='button'] {
+  cursor: pointer;
+}
+
+.temp-eview-timeline-item[role='button']:not(.temp-eview-timeline-item-active):hover .temp-eview-timeline-item-title,
+.temp-eview-timeline-item[role='button']:not(.temp-eview-timeline-item-active):hover .temp-eview-timeline-item-content {
+  color: var(--temp-eview-timeline-color-primary-hover);
+}
+
+.temp-eview-timeline-item[role='button']:focus-visible {
+  outline: 2px solid var(--temp-eview-timeline-color-primary);
+  outline-offset: 1px;
+}
+
+/* ==========================================================================
+ * Vertical (default)
+ * ========================================================================== */
+
+.temp-eview-timeline:not(.temp-eview-timeline-horizontal) {
+  --temp-eview-timeline-head-span: 12;
+  --temp-eview-timeline-head-span-ptg: calc(var(--temp-eview-timeline-head-span) / 24 * 100%);
+
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.temp-eview-timeline:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item {
+  min-height: 48px; /* controlHeight * 1.5 */
+  padding-bottom: var(--temp-eview-timeline-item-padding-bottom);
+}
+
+.temp-eview-timeline:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+/* Icon aligned with the first title/content line */
+.temp-eview-timeline:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item > .temp-eview-timeline-item-wrapper {
+  column-gap: var(--temp-eview-timeline-item-gap);
+}
+
+.temp-eview-timeline:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item > .temp-eview-timeline-item-wrapper > .temp-eview-timeline-item-icon {
+  margin-block-start: var(--temp-eview-timeline-icon-offset);
+}
+
+.temp-eview-timeline-item-section {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Rail: from dot bottom to next dot top, with a gap on both ends */
+.temp-eview-timeline:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item .temp-eview-timeline-item-rail {
+  position: absolute;
+  top: calc(
+    var(--temp-eview-timeline-icon-offset) + var(--temp-eview-timeline-dot-size) + var(--temp-eview-timeline-rail-gap)
+  );
+  bottom: calc(var(--temp-eview-timeline-rail-gap) - var(--temp-eview-timeline-icon-offset));
+  inset-inline-start: calc(var(--temp-eview-timeline-dot-size) / 2);
+  margin-inline-start: calc(var(--temp-eview-timeline-tail-width) / -2);
+  border-inline-start-width: var(--temp-eview-timeline-tail-width);
+}
+
+/* ---- Same side: mode=end (dot & line on the right) ---- */
+.temp-eview-timeline:not(.temp-eview-timeline-horizontal):not(.temp-eview-timeline-layout-alternate) > .temp-eview-timeline-item-placement-end {
+  text-align: end;
+}
+
+.temp-eview-timeline:not(.temp-eview-timeline-horizontal):not(.temp-eview-timeline-layout-alternate) > .temp-eview-timeline-item-placement-end > .temp-eview-timeline-item-wrapper > .temp-eview-timeline-item-icon {
+  order: 1;
+}
+
+.temp-eview-timeline:not(.temp-eview-timeline-horizontal):not(.temp-eview-timeline-layout-alternate) > .temp-eview-timeline-item-placement-end .temp-eview-timeline-item-rail {
+  inset-inline-start: auto;
+  inset-inline-end: calc(var(--temp-eview-timeline-dot-size) / 2);
+  margin-inline-start: 0;
+  margin-inline-end: calc(var(--temp-eview-timeline-tail-width) / -2);
+}
+
+/* ---- Alternate (left / right) ---- */
+.temp-eview-timeline-layout-alternate:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item {
+  min-height: auto;
+}
+
+.temp-eview-timeline-layout-alternate:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item > .temp-eview-timeline-item-wrapper > .temp-eview-timeline-item-icon,
+.temp-eview-timeline-layout-alternate:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item .temp-eview-timeline-item-rail {
+  position: absolute;
+  inset-inline-start: var(--temp-eview-timeline-head-span-ptg);
+}
+
+.temp-eview-timeline-layout-alternate:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item > .temp-eview-timeline-item-wrapper > .temp-eview-timeline-item-icon {
+  margin-inline-start: calc(var(--temp-eview-timeline-dot-size) / -2);
+}
+
+.temp-eview-timeline-layout-alternate:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item > .temp-eview-timeline-item-wrapper > .temp-eview-timeline-item-section {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--temp-eview-timeline-alternate-gap);
+}
+
+.temp-eview-timeline-layout-alternate:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item .temp-eview-timeline-item-header {
+  text-align: end;
+  flex-direction: column;
+  align-items: stretch;
+  flex: 1 1 calc(var(--temp-eview-timeline-head-span-ptg) - var(--temp-eview-timeline-alternate-gap) / 2);
+}
+
+.temp-eview-timeline-layout-alternate:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item .temp-eview-timeline-item-content {
+  text-align: start;
+  flex: 1 1 calc(100% - var(--temp-eview-timeline-head-span-ptg) - var(--temp-eview-timeline-alternate-gap) / 2);
+}
+
+.temp-eview-timeline-layout-alternate:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item-placement-end .temp-eview-timeline-item-header {
+  text-align: start;
+  order: 1;
+}
+
+.temp-eview-timeline-layout-alternate:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item-placement-end .temp-eview-timeline-item-content {
+  text-align: end;
+}
+
+.temp-eview-timeline-layout-alternate:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item-placement-end > .temp-eview-timeline-item-wrapper > .temp-eview-timeline-item-icon,
+.temp-eview-timeline-layout-alternate:not(.temp-eview-timeline-horizontal) > .temp-eview-timeline-item-placement-end .temp-eview-timeline-item-rail {
+  inset-inline-start: calc(100% - var(--temp-eview-timeline-head-span-ptg));
+}
+
+/* ==========================================================================
+ * Horizontal
+ * ========================================================================== */
+
+.temp-eview-timeline-horizontal {
+  align-items: stretch;
+}
+
+.temp-eview-timeline-horizontal > .temp-eview-timeline-item {
+  flex: 1 1 0%;
+}
+
+.temp-eview-timeline-horizontal > .temp-eview-timeline-item:last-child {
+  flex: 0 1 auto;
+}
+
+.temp-eview-timeline-horizontal > .temp-eview-timeline-item > .temp-eview-timeline-item-wrapper {
+  flex-direction: column;
+  row-gap: var(--temp-eview-timeline-horizontal-row-gap);
+  align-items: center;
+}
+
+.temp-eview-timeline-horizontal > .temp-eview-timeline-item .temp-eview-timeline-item-section {
+  align-self: stretch;
+}
+
+.temp-eview-timeline-horizontal > .temp-eview-timeline-item .temp-eview-timeline-item-header {
+  flex-direction: column;
+  align-items: center;
+}
+
+.temp-eview-timeline-horizontal > .temp-eview-timeline-item .temp-eview-timeline-item-title,
+.temp-eview-timeline-horizontal > .temp-eview-timeline-item .temp-eview-timeline-item-content {
+  text-align: center;
+  max-width: 100%;
+}
+
+/* Rail: horizontal line through dot centers, dot edge to dot edge */
+.temp-eview-timeline-horizontal > .temp-eview-timeline-item .temp-eview-timeline-item-rail {
+  position: absolute;
+  top: calc(var(--temp-eview-timeline-dot-size) / 2 - var(--temp-eview-timeline-tail-width) / 2);
+  inset-inline-start: calc(50% + var(--temp-eview-timeline-dot-size) / 2);
+  inset-inline-end: calc(var(--temp-eview-timeline-dot-size) / 2 - 50%);
+  border-block-start-width: var(--temp-eview-timeline-tail-width);
+}
+
+/* ---- Horizontal same side: mode=end (content above, dot at bottom) ---- */
+.temp-eview-timeline-horizontal:not(.temp-eview-timeline-layout-alternate) > .temp-eview-timeline-item-placement-end {
+  display: flex;
+  align-items: flex-end;
+}
+
+.temp-eview-timeline-horizontal:not(.temp-eview-timeline-layout-alternate) > .temp-eview-timeline-item-placement-end > .temp-eview-timeline-item-wrapper {
+  flex: auto;
+  flex-direction: column-reverse;
+}
+
+.temp-eview-timeline-horizontal:not(.temp-eview-timeline-layout-alternate) > .temp-eview-timeline-item-placement-end .temp-eview-timeline-item-rail {
+  top: auto;
+  bottom: calc(var(--temp-eview-timeline-dot-size) / 2 - var(--temp-eview-timeline-tail-width) / 2);
+}
+
+/* ---- Horizontal alternate ---- */
+.temp-eview-timeline-horizontal.temp-eview-timeline-layout-alternate > .temp-eview-timeline-item > .temp-eview-timeline-item-wrapper {
+  height: calc(
+    var(--temp-eview-timeline-title-height) * 2 +
+    var(--temp-eview-timeline-horizontal-row-gap) * 2 +
+    var(--temp-eview-timeline-dot-size)
+  );
+}
+
+.temp-eview-timeline-horizontal.temp-eview-timeline-layout-alternate > .temp-eview-timeline-item .temp-eview-timeline-item-icon,
+.temp-eview-timeline-horizontal.temp-eview-timeline-layout-alternate > .temp-eview-timeline-item .temp-eview-timeline-item-rail {
+  position: absolute;
+  top: 50%;
+  margin: 0;
+  transform: translateY(-50%);
+}
+
+.temp-eview-timeline-horizontal.temp-eview-timeline-layout-alternate > .temp-eview-timeline-item .temp-eview-timeline-item-title,
+.temp-eview-timeline-horizontal.temp-eview-timeline-layout-alternate > .temp-eview-timeline-item .temp-eview-timeline-item-content {
+  position: absolute;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  max-width: unset;
+}
+
+.temp-eview-timeline-horizontal.temp-eview-timeline-layout-alternate > .temp-eview-timeline-item-placement-start .temp-eview-timeline-item-title {
+  bottom: calc(
+    var(--temp-eview-timeline-title-height) +
+    var(--temp-eview-timeline-horizontal-row-gap) * 2 +
+    var(--temp-eview-timeline-dot-size)
+  );
+}
+
+.temp-eview-timeline-horizontal.temp-eview-timeline-layout-alternate > .temp-eview-timeline-item-placement-start .temp-eview-timeline-item-content {
+  top: calc(
+    var(--temp-eview-timeline-title-height) +
+    var(--temp-eview-timeline-horizontal-row-gap) * 2 +
+    var(--temp-eview-timeline-dot-size)
+  );
+}
+
+.temp-eview-timeline-horizontal.temp-eview-timeline-layout-alternate > .temp-eview-timeline-item-placement-end .temp-eview-timeline-item-title {
+  top: calc(
+    var(--temp-eview-timeline-title-height) +
+    var(--temp-eview-timeline-horizontal-row-gap) * 2 +
+    var(--temp-eview-timeline-dot-size)
+  );
+}
+
+.temp-eview-timeline-horizontal.temp-eview-timeline-layout-alternate > .temp-eview-timeline-item-placement-end .temp-eview-timeline-item-content {
+  bottom: calc(
+    var(--temp-eview-timeline-title-height) +
+    var(--temp-eview-timeline-horizontal-row-gap) * 2 +
+    var(--temp-eview-timeline-dot-size)
+  );
+}
+
+/* ==========================================================================
+ * Dark mode (`.dark` ancestor, ict-coder token system)
+ * ========================================================================== */
+
+.dark .temp-eview-timeline {
+  --temp-eview-timeline-color-text: var(--gray-0, rgba(255, 255, 255, 0.89));
+  --temp-eview-timeline-color-text-description: var(--gray-20, rgba(255, 255, 255, 0.45));
+  /* ant.css uses `rgb(from var(--gray-05) r g b / 0.15)` (needs Chrome 119+);
+     here we use the equivalent color-mix (Chrome 111+), visual result identical */
+  --temp-eview-timeline-tail-color: color-mix(in srgb, var(--gray-05, #fafafa) 15%, transparent);
+}
+
+.dark .temp-eview-timeline-item-color-blue {
+  --temp-eview-timeline-dot-color: var(--blue-50, #1677ff);
+}
+
+.dark .temp-eview-timeline-item-color-red {
+  --temp-eview-timeline-dot-color: var(--red-40, #ff7875);
+}
+
+.dark .temp-eview-timeline-item-color-green {
+  --temp-eview-timeline-dot-color: var(--mint-60, #52c41a);
+}
+
+.dark .temp-eview-timeline-item-color-gray {
+  --temp-eview-timeline-dot-color: var(--gray-50, rgba(255, 255, 255, 0.35));
+}
+
+.dark .temp-eview-timeline .temp-eview-timeline-item .temp-eview-timeline-item-content .ant-typography:not(.ant-typography-secondary) {
+  color: var(--gray-0, rgba(255, 255, 255, 0.89));
+}
+
+.dark .temp-eview-timeline .temp-eview-timeline-item .temp-eview-timeline-item-content .ant-typography-secondary {
+  color: var(--gray-20, rgba(255, 255, 255, 0.45));
+}
+
+/* ==========================================================================
+ * Loading icon animation
+ * ========================================================================== */
+
+.temp-eview-timeline-spin {
+  display: inline-block;
+  animation: tempEviewTimelineSpin 1s infinite linear;
+}

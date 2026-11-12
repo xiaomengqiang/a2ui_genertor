@@ -5,6 +5,7 @@
 > ⚠️ 七种 `type`：`info`（默认）/ `success` / `error` / `warn` / `confirm` / `risk` / `highRisk`；`risk` / `highRisk` 可配 `hasChecked` 要求用户勾选后才能确认。
 > ⚠️ 显隐同 Dialog：`isOpen` 受控，`onClose` / `ok.onClick` / `cancel.onClick` 都要自己 `setIsOpen(false)`。
 > ⚠️ demo 用到的 `closeOnEscape` 不在 API 表里，不要依赖。
+> ⚠️ **每个 `<MessageDialog>` 必须显式写 `iconLocation="title"`**（硬性，不是可选美化）。eview 默认 `iconLocation="content"`（图标在内容区），与 antd `Modal.confirm/info/...` 的形态（类型图标出现在标题旁）相反。源 antd 命令式调用没有 `icon` prop，不要因此把 `iconLocation` 一起省掉——迁移时无论源码有无图标配置都要补 `iconLocation="title"`，否则页面图标位置与 antd 习惯不一致。这是本组件迁移最常见的遗漏，见 §1 转换块。
 
 ## 1. 功能定位
 
@@ -17,7 +18,76 @@ MessageDialog 是带类型图标的信息提示框：`content` 一句话结论 +
 | 页面内非阻断提示条 | `DivMessage`（[DivMessage.md](DivMessage.md)） | MessageDialog |
 | 带表单的弹窗 | `Dialog`（[Dialog.md](Dialog.md)） | MessageDialog 塞表单 |
 
-## 2. 事件与交互逻辑
+### 用法：antd 命令式 → eview 声明式（模式转换）
+
+> antd `Modal.confirm/info/success/warning/error` 是**命令式**调用（返回 instance，有 `.update()`/`.destroy()`）；eview `MessageDialog` 是**声明式** JSX（`isOpen` 受控）。不是改 prop，必须把"一个函数调用"重构成 `pending`/`result` state + 常驻 `<MessageDialog>` 渲染。
+
+```tsx
+// ❌ antd 命令式：调用即弹，返回 instance
+const handleDelete = () => Modal.confirm({
+  title: '确定删除？',
+  content: '删除后不可恢复',
+  okText: '删除',
+  okType: 'danger',
+  onOk: () => api.remove(id),
+});
+
+// ✅ eview 声明式：state + 常驻渲染
+const [pending, setPending] = useState(null);          // null=关着，{ id }=开着
+const handleDelete = (id) => setPending({ id });
+<MessageDialog
+  type="confirm"
+  iconLocation="title"
+  isOpen={!!pending}
+  title="确定删除？"                                     // antd title → title
+  content="删除后不可恢复"                               // antd content → content
+  onClose={() => setPending(null)}
+  buttons={{
+    cancel: { text: '取消', onClick: () => setPending(null) },
+    ok: { text: '删除', onClick: async () => { await api.remove(pending.id); setPending(null); reload(); } },
+  }}
+/>;
+// 危险操作（antd okType:"danger"）→ 升级 type="risk"/"highRisk" + hasChecked，见 §3 高危示例
+
+// ⚠️ iconLocation="title" 是硬性要求，不是可选：antd 命令式调用没有 icon prop，
+//    迁移时不要"源码没传就不补"——每个 <MessageDialog> 都要显式带 iconLocation="title"。
+```
+
+## 2. antd Modal 状态组件 → MessageDialog 映射速查
+
+### 2.1 方法 → type 映射
+
+| antd 方法 | eview `type` | 按钮 | 备注 |
+|-----------|-------------|------|------|
+| `Modal.confirm` | `confirm`（危险操作升 `risk`/`highRisk`+`hasChecked`） | 双按钮 ok+cancel | 默认 `okCancel=true` |
+| `Modal.info` | `info`（默认） | 单按钮（只传 `ok`） | `okCancel=false` |
+| `Modal.success` | `success` | 单按钮 | `okCancel=false` |
+| `Modal.warning` | **`warn`** | 单按钮 | ⚠️ eview 是 `warn` 不是 `warning` |
+| `Modal.error` | `error` | 单按钮 | `okCancel=false` |
+
+### 2.2 config 字段映射表
+
+> ⚠️ **`title`/`content` 保留同名映射，不要调换**：antd `title`→eview `title`、antd `content`→eview `content`。常见错误是套用 §3 的原生 `content`+`detail` 形态，把 antd `title` 挪到 `content`、`content` 挪到 `detail`——这是错的。`detail` 仅当 antd 正文确有"主结论 + 补充详情"两层时才用，否则不用。
+
+| antd config | eview MessageDialog | 备注 |
+|-------------|---------------------|------|
+| `title` | `title` | 保留同名：antd 标题 → eview `title`（作为弹窗标题，覆盖类型默认标题） |
+| `content` | `content` | 保留同名：antd 正文 → eview `content`；仅当正文含"结论+补充详情"两层时，补充部分才放 `detail` |
+| `okText` / `cancelText` | `buttons.ok.text` / `buttons.cancel.text` | |
+| `onOk` / `onCancel` | `buttons.ok.onClick` / `buttons.cancel.onClick` + `onClose` | 不自动关，成功后 `setIsOpen(false)` |
+| `okCancel: false`（info/success/error/warning 默认） | 只传 `ok`，不传 `cancel` | |
+| `okType: "danger"` | 升级 `type="risk"` / `"highRisk"`（+ `hasChecked`） | 按钮无 per-button type，风险靠 `type`；`highRisk` 的 ok 不自动禁用，需 `onClick` 内 `if (!agreed) return` |
+| `icon` | 由 `type` 决定，不传 `icon` prop | 不传 `icon`，但**必须**另加 `iconLocation="title"`（见上方 ⚠️；eview 默认 content 与 antd 形态相反，每个 MessageDialog 都要补） |
+| `width` / `centered` | `size={[w,h]}` / `position` | |
+| `maskClosable` | `closable` / `modal` | |
+| `zIndex` | `zindex`（默认 9993） | |
+| `autoFocusButton: "ok"` | `buttons.ok.focused: true` | |
+| `okButtonProps.disabled` | buttons 对象无 disabled → `onClick` 内 `if (working) return` + 文案切"处理中..." | 见 §4 联动 |
+| `class` / `style` | `className` / `style` | |
+| instance `.destroy()` / `.close()` / `Modal.destroyAll()` | `setPending(null)`（state） | 命令式 instance → state |
+| instance `.update(config)` | 改驱动 `content`/`isOpen` 的 state | React 重渲染 |
+
+## 3. 事件与交互逻辑
 
 ### 确认类：ok 里做事，成功才关
 
@@ -54,7 +124,6 @@ buttons 是对象（与 Dialog 数组不同），agent 必须构造的形状：
 
 ```tsx
 interface MessageButtons { ok?: { text?, onClick, focused? }; cancel?: { text?, onClick } }
-type MessageType = 'error'|'info'|'success'|'warn'|'confirm'|'risk'|'highRisk';
 interface PendingAction<T> { type: 'delete' | 'reset'; row: T }   // null = 关着
 ```
 
@@ -93,18 +162,18 @@ interface PendingAction<T> { type: 'delete' | 'reset'; row: T }   // null = 关�
 />
 ```
 
-## 3. 联动说明
+## 4. 联动说明
 
 - Table 操作列 / 批量按钮 → `setPending({ type, row })` 打开确认 → 成功 → 关窗 + 刷新列表 + `success` 反馈
 - 请求失败 → 保持确认框打开还是切到 `error` 反馈，二选一（避免两层弹窗）
 - `highRisk` 的 `agreed` 在关窗时重置，避免下次打开残留已勾选
 - 处理中 `working` → ok 文案切"处理中..."，`onClick` 内 `if (working) return` 防重复（按钮对象无 disabled 字段可依赖时用此法）
 
-## 4. 反面示例
+## 5. 反面示例
 
 ```tsx
-// ❌ antd 习惯：没有 Modal.confirm / message.success 这类命令式 API，也没有 onOk / onCancel
-Modal.confirm({ title: '确定删除？', onOk: remove });
+// ❌ antd 习惯：没有 message.success / Modal.confirm 这类命令式 API，也没有 onOk / onCancel
+//    Modal.confirm → MessageDialog 见 §1；message.success → DivMessage（[DivMessage.md](DivMessage.md)）
 message.success('删除成功');
 
 // ❌ buttons 写成数组（那是 Dialog 的写法）
@@ -123,7 +192,7 @@ buttons={{ ok: { onClick: doReset } }}
 <MessageDialog type="info" content="删除全部数据？" />
 ```
 
-## 5. API 速查
+## 6. API 速查
 
 > 压缩自 `MessageDialog/types`。
 
@@ -145,10 +214,3 @@ buttons={{ ok: { onClick: doReset } }}
 | `mountId` | `string`，默认 `body` | 挂载节点 |
 | `animationOff` / `autoSetPosition` | `boolean`，默认 `false` | 关动画 / 自动定位 |
 | `detailStyle` / `style` / `className` / `id` | — | 样式与标识 |
-
-## 6. type 参数与 antd 形态对比
-为 `confirm` 时，对应 antd的 `Modal.confirm`
-为 `info` 时，对应 antd的 `Modal.info`
-为 `success` 时，对应 antd的 `Modal.success`
-为 `warn` 时，对应 antd的 `Modal.warning`
-为 `error` 时，对应 antd的 `Modal.error`

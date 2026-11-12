@@ -2,8 +2,9 @@
 
 > **资料来源**（eview-react 官方资料，不随 skill 打包）：`@nce/eview-react/Chart`；契约与源项目的 `<Chart>` 一致（`name` + `option`）。完整 API 以官方 TypeDoc 为准。
 >
-> ⚠️ 迁移时只改 import 路径：`./assets/shared/chart.jsx` → `@nce/eview-react/Chart`。无需 UMD `<script>` 注入或自写封装。
-> ⚠️ **所有图表 option 必须显式携带 `a2ui: true` 与 `theme`**：源项目 Chart 封装在 `setSimpleOption` 前统一注入这两项（`{ theme: isDark ? "hdesign-dark" : "hdesign-light", a2ui: true, ...option }`），改包导入后**不会自动补**——漏写则图表 a2ui 视觉规范失效、暗色切换后主题不跟随（实测坑，见 §4/§8）。
+> ⚠️ 迁移时改 import 路径（`./assets/shared/chart.jsx` → `@nce/eview-react/Chart`）+ option 补 `a2ui: true` 与 `theme`（补偿源套壳的自动注入，见下条）。无需 UMD `<script>` 注入或自写封装。
+> ⚠️ **所有图表 option 必须显式携带 `a2ui: true` 与 `theme`**：源项目 Chart 套壳（ict-coder 的 `assets/shared/chart.jsx`）自动 watch `<html>.dark` + 在 `setSimpleOption` 前注入 `{ theme, a2ui: true, ...option }` + 暗色切换自动 re-render（ict-coder Chart.md: "Dark mode is automatic"）；改 `@nce/eview-react/Chart` 包导入后**自动行为整体丢失**——漏写则 a2ui 视觉规范失效、暗色切换图表主题不跟随。
+> ⚠️ **`theme` 必须响应式引用 `useApp().isDark`**：`isDark` 来自源项目的 `src/context.jsx`（AppProvider + useApp，上游 `umd-to-antd-vite` 步骤 3 已保留），写法 `const { isDark } = useApp()` + `theme: isDark ? 'hdesign-dark' : 'hdesign-light'`。option 的 theme **必须引用 isDark 变量**（不能写静态字符串如 `'hdesign-light'`）——暗色切换时组件 re-render → option 重建（含新 theme）→ 图表按新主题重建。推荐 `const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' }` 聚合后展开进各 option（chartBase 引用 isDark 即响应式）。
 > ⚠️ 旧 scaffold 的 `src/shared/chart.jsx` + `public/library/`（`echarts.min.js` + `hui-charts.umd.js`）方案已废弃，改用 `@nce/eview-react/Chart` 原生组件。
 
 ## 1. 功能定位
@@ -73,7 +74,7 @@ interface ChartProps {
 
 ## 6. 联动说明
 
-- 暗色模式：**`theme` 由业务 option 携带**（`isDark ? 'hdesign-dark' : 'hdesign-light'`，`isDark` 取自全局暗色状态如 `useApp()`），暗色切换 → option 变化 → 图表按新主题重建；组件**不会自动注入** theme
+- 暗色模式：**`theme` 由业务 option 携带**（`isDark ? 'hdesign-dark' : 'hdesign-light'`，`isDark` 来自 `useApp()`——context.jsx 的 AppProvider，上游 `umd-to-antd-vite` 步骤 3 保留）。暗色切换 → isDark 变 → 组件 re-render → option 重建（含新 theme）→ 图表按新主题重建；组件**不会自动注入** theme，也**不会自动 watch `.dark`**（源套壳的自动行为已丢失）。**禁止写静态 theme 字符串**（如 `'hdesign-light'`），暗色切换时图表不跟随
 - 容器尺寸变化（侧栏折叠 / 窗口缩放 / 响应式）：ResizeObserver 自动 resize
 - **`onChartRendered(chart)` 的 `chart` 参数就是 echarts 实例本身**：直接 `chart.on('click', ...)` / `chart.setOption(...)`，**禁止**在回调内再调 `chart.getEchartsInstance()`——该方法只存在于组件 ref 上，回调参数没有
 - ref 方法（只在组件 ref 上调用，如 `chartRef.current.getEchartsInstance()`）：`getEchartsInstance()` 取底层 echarts 实例；`resizeHandler()` 手动触发 resize
@@ -83,7 +84,8 @@ interface ChartProps {
 ```tsx
 import Chart from '@nce/eview-react/Chart';
 
-// a2ui + theme 是每个图表 option 的必含标识；theme 随全局暗色状态派生（useApp() 换成项目的全局暗色状态）
+// a2ui + theme 是每个图表 option 的必含标识；isDark 来自 useApp()（context.jsx 的 AppProvider），
+// chartBase 引用 isDark → 暗色切换时组件 re-render → chartBase 含新 theme → option 重建 → 图表跟随
 export default function DeviceChart({ data }) {
   const { isDark } = useApp();
   const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' };

@@ -62,7 +62,8 @@ const handoff = JSON.parse(fs.readFileSync(handoffPath, 'utf8'));
 const SHELL_COMPONENTS = [
   'Select', 'TextField', 'InputSelect', 'MultipleSelect', 'SearchInput', 'TextArea',
   'Tag', 'DatePicker', 'Spinner', 'Cascader', 'TreeSelector', 'IPInput', 'TimePicker',
-  'Crumbs',
+  'Crumbs', 'Accordion', 'Timeline',
+  'Accordion',
 ];
 
 // ========== 1. Parse component-mapping.md into lookup table ==========
@@ -117,6 +118,14 @@ function parseMappingTable(text) {
 
     if (!lookup[baseName]) lookup[baseName] = [];
     lookup[baseName].push(entry);
+    // 额外用完整 antdPattern（如 Checkbox.Group / Radio.Group）建索引：
+    // extract-umd.cjs 扫描 <Checkbox.Group> JSX 用法记入 antdComponents 的完整 key，
+    // 主循环先按完整 pattern 精确匹配，命中 Checkbox.Group 行（eview=CheckboxGroup）而非
+    // 回退到 baseName=Checkbox 命中 Checkbox 行（避免 .Group 用法被当普通 Checkbox）
+    if (antdRaw.includes('.')) {
+      if (!lookup[antdRaw]) lookup[antdRaw] = [];
+      lookup[antdRaw].push(entry);
+    }
   }
 
   return lookup;
@@ -135,8 +144,6 @@ function extractEviewName(eviewRaw) {
 }
 
 function determineCategory(baseName, eviewName, eviewRaw) {
-  if (baseName === 'Steps') return 'C';
-  if (baseName === 'Modal') return 'C';
   if (eviewName === '手写' || !eviewName) return 'B';
   return 'A';
 }
@@ -157,17 +164,33 @@ function determineImportPath(category, eviewName, keyDiffs) {
   return null;
 }
 
+// eviewName → ref 文件覆盖：部分组件无独立 .md，文档收在另一组件页下
+// CheckboxGroup 收在 Checkbox.md、RadioGroup 收在 Radio.md（独立 .md 留待后续）
+const REF_OVERRIDE = {
+  CheckboxGroup: 'components/Checkbox.md',
+  RadioGroup: 'components/Radio.md',
+};
+
+// 多形态组件分流决策表：importPath 仅给默认形态，LLM 步骤 2 须按调用点 props 分流。
+// Select 是最易错的——eview Select 不支持搜索（无 showSearch/searchable），showSearch 形态须转
+// InputSelect onlySelect、multiple 形态须转 MultipleSelect。若一律按 importPath(@/shared/Select)
+// 转 Select，会把 showSearch/multiple 形态的 placeholder 误转 defaultLabel、丢 onlySelect/searchable。
+const SELECT_DISPATCH = {
+  Select: '⚠️【Select 多形态分流——按调用点 mode/showSearch 判定，importPath=@/shared/Select 仅默认形态①】'
+    + '① 无 mode/showSearch → Select(@/shared/Select)+placeholder→defaultLabel+onChange(value,oldValue,text,oldText,event)五参；'
+    + '② showSearch(无mode) → InputSelect onlySelect=true(@/shared/InputSelect)+placeholder保留+onChange(value,oldValue)两参+删showSearch/filterOption；'
+    + '③ mode="multiple" → MultipleSelect(@/shared/MultipleSelect)+placeholder保留+value数组+onChange(value[],changeValue[],event)三参+showSearch→searchable+maxTagCount→displayItems+allowClear→enableCloseIcon；'
+    + '④ mode="tags" → MultipleSelect(同③，新建标签能力丢失需业务自理)；'
+    + '⑤ AutoComplete → InputSelect 不传onlySelect(@/shared/InputSelect)+placeholder保留+onInputEnter。'
+    + 'placeholder去向：Select→defaultLabel；InputSelect/MultipleSelect→placeholder(保留)',
+};
+
 function determineRef(category, eviewName, keyDiffs) {
-  if (category === 'A') return `components/${eviewName}.md`;
+  if (category === 'A') return REF_OVERRIDE[eviewName] || `components/${eviewName}.md`;
   if (category === 'B') {
     const sectionMatch = keyDiffs.match(/§(\d+)/);
     if (sectionMatch) return `handwrite-templates.md §${sectionMatch[1]}`;
     return 'handwrite-templates.md';
-  }
-  if (category === 'C') {
-    if (eviewName === 'Dialog') return 'components/Dialog.md';
-    if (eviewName === 'MessageDialog') return 'components/MessageDialog.md';
-    return `components/${eviewName}.md`;
   }
   return null;
 }
@@ -180,8 +203,18 @@ const antdComponents = handoff.antdComponents || {};
 const migrationPlan = [];
 const unmatched = [];
 
+// 步骤 3 已删除的 Provider 体系组件（硬约束 #2：antd ConfigProvider 在 app.jsx 删除，
+// eview-react ConfigProvider 由 scaffold main.jsx 预设），不纳入迁移清单
+const SKIP_COMPONENTS = new Set(['ConfigProvider']);
+
 for (const [antdName, files] of Object.entries(antdComponents)) {
+  if (SKIP_COMPONENTS.has(antdName)) continue;
+  // 先按完整 pattern 精确匹配（Checkbox.Group / Radio.Group），再回退 baseName（Checkbox / Radio）
   let rows = lookup[antdName] || [];
+  if (rows.length === 0) {
+    const base = antdName.match(/^([A-Za-z][\w]*)/);
+    if (base) rows = lookup[base[1]] || [];
+  }
 
   if (rows.length === 0) {
     unmatched.push(antdName);
@@ -204,6 +237,9 @@ for (const [antdName, files] of Object.entries(antdComponents)) {
     .map((r, i) => rows.length > 1 ? `[${r.antdPattern}] ${r.keyDiffs}` : r.keyDiffs)
     .join(' | ');
 
+  // 多形态组件（如 Select）：前置分流决策表。importPath 仅默认形态，LLM 须按调用点 props 分流
+  const dispatchPrefix = SELECT_DISPATCH[antdName] ? SELECT_DISPATCH[antdName] + ' | ' : '';
+
   const importPaths = [...new Set(rows.map(r => r.importPath).filter(Boolean))];
   const shellFlags = [...new Set(rows.map(r => r.shellComponent).filter(Boolean))];
 
@@ -213,7 +249,7 @@ for (const [antdName, files] of Object.entries(antdComponents)) {
     eview: primaryRow.eviewName,
     importPath: importPaths[0] || null,
     shellComponent: shellFlags.length > 0,
-    keyDiffs: allKeyDiffs,
+    keyDiffs: dispatchPrefix + allKeyDiffs,
     ref: primaryRow.ref,
     files,
   });
@@ -259,7 +295,7 @@ if (chartInfo && chartInfo.callSites && chartInfo.callSites.length) {
     eview: 'Chart',
     importPath: '@nce/eview-react/Chart',
     shellComponent: false,
-    keyDiffs: 'ict-coder 内置 Chart 共享件（非 antd 组件，从 assets/shared/chart.jsx 导入）。迁移到 @nce/eview-react/Chart。只改 import 路径，name + option 契约不变。⚠️ 每个 option 必须显式补 a2ui: true + theme（暗色派生 hdesign-dark/hdesign-light）：源 Chart 封装在 setSimpleOption 前统一注入这两项，改包导入后不会自动补——漏写则 a2ui 视觉规范失效、暗色切换图表主题不跟随。theme 从全局暗色状态派生（如 useApp().isDark ? "hdesign-dark" : "hdesign-light"）。推荐聚合 const chartBase = { a2ui: true, theme: ... } 后展开进各 option',
+    keyDiffs: 'ict-coder 内置 Chart 共享件（非 antd 组件，从 assets/shared/chart.jsx 导入）。迁移到 @nce/eview-react/Chart：改 import 路径 + option 补 a2ui: true + theme。源套壳自动 watch <html>.dark + 在 setSimpleOption 前注入 { theme, a2ui: true, ...option } + 暗色切换自动 re-render；改包导入后自动行为整体丢失，必须手动补。⚠️ theme 必须响应式引用 useApp().isDark（isDark 来自 src/context.jsx 的 AppProvider，上游 umd-to-antd-vite 步骤 3 已保留）：写法 const { isDark } = useApp() + theme: isDark ? "hdesign-dark" : "hdesign-light"，option 的 theme 引用 isDark 变量（禁止静态字符串，否则暗色切换图表不跟随）。推荐 const chartBase = { a2ui: true, theme: isDark ? "hdesign-dark" : "hdesign-light" } 聚合后展开进各 option（chartBase 引用 isDark 即响应式，暗色切换时组件 re-render → option 重建 → 图表跟随）',
     ref: 'components/Chart.md',
     files: chartFiles,
     sharedFilesToRemove: chartSharedFiles,
@@ -273,9 +309,9 @@ const globalRef = {
   spellingAnomalies: [
     { eview: 'seprator', correct: 'separator', component: 'Crumbs' },
     { eview: 'taggledChildren', correct: 'toggledChildren', component: 'Toggle' },
-    { eview: 'disable', correct: 'disabled', component: 'SelectCard/FileUpload' },
+    { eview: 'disable', correct: 'disabled', component: 'SelectCard/FileUpload/PopUpMenu', note: '仅这三组件用 disable；Toggle/Button/Checkbox/Radio 等仍用 disabled，勿误改' },
     { eview: 'status', antd: 'type', component: 'Button' },
-    { eview: 'defaultLabel', antd: 'placeholder', component: 'Select' },
+    { eview: 'defaultLabel', antd: 'placeholder', component: 'Select', note: '仅 @/shared/Select 转 placeholder→defaultLabel；@/shared/InputSelect 与 @/shared/MultipleSelect 保留 placeholder，勿转 defaultLabel（见 InputSelect.md §反面示例）' },
     { eview: 'toggled', antd: 'checked', component: 'Toggle' },
     { eview: 'iconSize', antd: 'size', component: 'icon-plus' },
   ],
@@ -313,7 +349,7 @@ for (const e of migrationPlan) {
 console.log('');
 console.log('=== build-migration-plan 报告 ===');
 console.log(`  组件总数: ${migrationPlan.length}`);
-console.log(`  分类: A(有对应)=${catCounts.A || 0}, B(手写)=${catCounts.B || 0}, C(模式转换)=${catCounts.C || 0}, unknown=${catCounts.unknown || 0}`);
+console.log(`  分类: A(有对应)=${catCounts.A || 0}, B(无对应)=${catCounts.B || 0}, unknown=${catCounts.unknown || 0}`);
 const shellCount = migrationPlan.filter(e => e.shellComponent).length;
 if (shellCount) console.log(`  包壳组件: ${shellCount} 个`);
 if (unmatched.length) {
