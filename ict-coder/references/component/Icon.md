@@ -7,7 +7,7 @@
 本 skill 的页面图标一律使用 **Lucide 图标**（`<Icon name="..." />`），不使用 `@ant-design/icons`。antd 组件自身的内置图标（Select 箭头、Modal 关闭键等）随 antd.min.js 携带，无需处理、也不做替换。
 
 ```jsx
-import { Icon } from "./assets/shared/icon.jsx";
+import { Icon } from "./public/shared/icon.jsx";
 
 <Icon name="chevron-down" size="1rem" color="#0067D1" className="chev" />
 
@@ -16,7 +16,7 @@ const item = { icon: "home", label: "首页" };
 
 <Icon name={open ? "chevron-up" : "chevron-down"} />
 
-<Icon src="./assets/uploads/logo.svg" size="2rem" />
+<Icon src="./public/uploads/logo.svg" size="2rem" />
 
 <Icon name="trash-2" size="1rem" title="删除" onClick={() => del(row.id)} />
 ```
@@ -65,10 +65,10 @@ const item = { icon: "home", label: "首页" };
 
 ## src 模式（用户资产）
 
-仅当用户明确提供图片资产（svg/png/jpg）时使用。文件放入页面脚手架 `assets/uploads/`，路径相对脚手架根解析：
+仅当用户明确提供图片资产（svg/png/jpg）时使用。文件放入页面脚手架 `public/uploads/`，路径相对脚手架根解析：
 
-1. `<Icon src="./assets/uploads/logo.svg" size="2rem" />`
-2. `<img src="./assets/uploads/banner.png" />`
+1. `<Icon src="./public/uploads/logo.svg" size="2rem" />`
+2. `<img src="./public/uploads/banner.png" />`
 
 ## 与 antd 组件搭配
 

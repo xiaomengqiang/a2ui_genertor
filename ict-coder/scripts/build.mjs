@@ -14,7 +14,7 @@
 //      将图标 nodes 注入 shared/icon.jsx 模块(const LUCIDE = {...})
 //   5. 内联全部产物 — base/light/theme/dark/ant 五层 CSS 进 <style>
 //      (font url() 重写为 HTML 根相对路径),
-//      React/ReactDOM/dayjs/antd/Babel 保持本地 assets/library 引用
+//      React/ReactDOM/dayjs/antd/Babel 保持本地 public/library 引用
 //   6. CSS lint: 组件 CSS 禁止 :root/.dark 块、禁止未知 token、hex 硬编码 → WARN
 //   7. 产出可直接双击打开(file://)的 index.page.html
 //
@@ -34,12 +34,12 @@ const ROOT = resolve(args[dirIdx + 1]);
 
 const ENTRY = resolve(ROOT, "app.jsx");
 const OUT = resolve(ROOT, "index.page.html");
-const STYLE_DIR = resolve(ROOT, "assets/style");
+const STYLE_DIR = resolve(ROOT, "public/style");
 // 五层样式加载序: base(基础色阶) → light(:root 语义) → theme(终极语义别名) → dark(.dark 覆盖)
 // → ant(antd 组件换肤层,.dark 规则随暗色生效)
 const STYLE_FILES = ["base.css", "light.css", "theme.css", "dark.css", "ant.css"].map((f) => resolve(STYLE_DIR, f));
-const LUCIDE_JSON = resolve(ROOT, "assets/library/lucide-icon-nodes.json");
-const ICONS_MODULE = "assets/shared/icon.jsx";
+const LUCIDE_JSON = resolve(ROOT, "public/library/lucide-icon-nodes.json");
+const ICONS_MODULE = "public/shared/icon.jsx";
 
 // Matches: import [Def,] [Def2] [{ named, names }] from "source";
 const IMPORT_RE = /^[ \t]*import\s+(?:(\w+)\s*,\s*)?(?:(\w+)\s+)?(?:\{([^}]*)\})?\s*from\s*["']([^"']+)["'];?[ \t]*$/gm;
@@ -130,7 +130,7 @@ async function loadModule(filePath) {
       return "";
     }
     if (source === "@ant-design/icons") {
-      throw new Error(`${label}: 本 skill 不使用 @ant-design/icons — 页面图标一律使用 <Icon name="lucide-name" />(import { Icon } from "./assets/shared/icon.jsx")`);
+      throw new Error(`${label}: 本 skill 不使用 @ant-design/icons — 页面图标一律使用 <Icon name="lucide-name" />(import { Icon } from "./public/shared/icon.jsx")`);
     }
     deps.push(resolve(dirname(filePath), source));
     if (def) defImports.push({ local: def, dep: resolve(dirname(filePath), source) });
@@ -338,9 +338,9 @@ if (iconsMod) iconsMod.prelude = lucidePrelude;
 
 // --- CSS collection: token vars (base/light/dark) + component css ---
 function rewriteCssUrls(css) {
-  // 样式文件位于 assets/style/,字体位于 assets/font/ — 内联后 url 相对于
+  // 样式文件位于 public/style/,字体位于 public/font/ — 内联后 url 相对于
   // 脚手架根部的 HTML 解析。剥掉 "../" 但保留引号。
-  return css.replace(/url\((\s*)(["']?)\.\.\/(font|library|icons)\//g, "url($1$2assets/$3/");
+  return css.replace(/url\((\s*)(["']?)\.\.\/(font|library|icons)\//g, "url($1$2public/$3/");
 }
 
 const cssParts = [];
@@ -412,18 +412,18 @@ const html = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ICT页面</title>
 <!-- 1. Core Libraries (local UMD) -->
-<script src="./assets/library/react.production.min.js"></script>
-<script src="./assets/library/react-dom.production.min.js"></script>
-<script src="./assets/library/dayjs.min.js"></script>
+<script src="./public/library/react.production.min.js"></script>
+<script src="./public/library/react-dom.production.min.js"></script>
+<script src="./public/library/dayjs.min.js"></script>
 <!-- 2. UI Components (local UMD, antd 内置图标随包携带) -->
-<script src="./assets/library/antd.min.js"></script>
+<script src="./public/library/antd.min.js"></script>
 <!-- 3. Charts (local UMD, echarts → hui-charts 全局 HUICharts) -->
-<script src="./assets/library/echarts.min.js"></script>
-<script src="./assets/library/hui-charts.umd.js"></script>
+<script src="./public/library/echarts.min.js"></script>
+<script src="./public/library/hui-charts.umd.js"></script>
 <!-- 4. react-intl (offline, exposes ReactIntl) -->
-<script src="./assets/library/react-intl.umd.js"></script>
+<script src="./public/library/react-intl.umd.js"></script>
 <!-- 5. Babel Transpiler (local) -->
-<script src="./assets/library/babel.min.js"></script>
+<script src="./public/library/babel.min.js"></script>
 <!-- 6. 五层 CSS(base → light → theme → dark → ant 组件换肤层)内联 -->
 <style>
 ${cssParts.join("\n\n")}

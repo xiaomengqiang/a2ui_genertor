@@ -6,7 +6,7 @@ description: Generate a production-grade single-page prototype from any input �
 # ICT Coder — Single-Page Prototype Generator
 
 You are an expert UI/UX Designer and Frontend Engineer. Your mission is to generate and modify pages: create a production-grade frontend page from the user's input, and revise existing scaffolds when the user requests changes. 
-Deliverables per request: a page scaffold (`app.jsx` + `src/*`) authored as standard ES Modules, compiled into a self-running `index.page.html` (React + Ant Design 5 via local assets, four-layer design token CSS).
+Deliverables per request: a page scaffold (`app.jsx` + `src/*`) authored as standard ES Modules, compiled into a self-running `index.page.html` (React + Ant Design 5 via local public files, four-layer design token CSS).
 
 ## Workflow Overview
 
@@ -30,7 +30,7 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}"
 - `init.mjs` creates a page scaffold at `{artifact-folder}/preview/`:
   ```
   preview/
-  ├── assets/   → linked to the skill's shared assets (library/style/font/shared/uploads)
+  ├── public/   → linked to the skill's shared public files (library/style/font/shared/uploads)
   ├── app.jsx   → entry starter (build entry + root container)
   └── src/      → context.jsx (AppProvider + dark toggle) + mock/ + components/ + views/ (empty dirs)
   ```
@@ -75,10 +75,10 @@ import dayjs from "dayjs";                            // → dayjs global
 import { useState, useEffect } from "react";          // → React globals
 import { Menu, Button, Table, ConfigProvider } from "antd"; // → antd globals (layout components banned, see below)
 import { IntlProvider, FormattedMessage, useIntl } from "react-intl"; // → ReactIntl global (optional, multilingual pages)
-import zhCN from "./assets/shared/antd-zh.js";        // antd zh-CN locale (dayjs zh-cn + antd zhCN)
-import { Icon } from "./assets/shared/icon.jsx";      // Lucide icon component
-import Chart from "./assets/shared/chart.jsx";         // HUICharts React wrapper
-import IpInput from "./assets/shared/ip-input.jsx";    // IP / IPv6 / MAC segmented input
+import zhCN from "./public/shared/antd-zh.js";        // antd zh-CN locale (dayjs zh-cn + antd zhCN)
+import { Icon } from "./public/shared/icon.jsx";      // Lucide icon component
+import Chart from "./public/shared/chart.jsx";         // HUICharts React wrapper
+import IpInput from "./public/shared/ip-input.jsx";    // IP / IPv6 / MAC segmented input
 import { AppProvider, useApp } from "./src/context.jsx"; // relative imports for own modules
 import DeviceTable from "./src/views/device-table/index.jsx"; // component import (optional)
 import "./src/views/device-table/index.css";          // component CSS (optional)
@@ -88,7 +88,7 @@ NOT supported:
 - `import * as`
 - aliased imports (`{ a as b }`)
 - npm packages beyond react/react-dom/antd/dayjs/react-intl
-- importing asset files (`.svg` / `.png` / `.jpg` / etc.) — use runtime path strings (e.g. `<img src="./assets/uploads/x.png" />`) instead
+- importing public files (`.svg` / `.png` / `.jpg` / etc.) — use runtime path strings (e.g. `<img src="./public/uploads/x.png" />`) instead
 - `import ... from "@ant-design/icons"` is **banned**; page icons are Lucide-only via `<Icon name="..." />`
 - `export default` must be a named function declaration (`export default function App()`)
 - Page entry file must be `app.jsx`
@@ -101,7 +101,7 @@ Read **[references/component/Icon.md](references/component/Icon.md)** — Lucide
 
 ### Charts
 
-Use `<Chart>` (`import Chart from "./assets/shared/chart.jsx"`) — React wrapper over HUICharts (echarts-based). Props and sizing patterns see **[references/component/Chart.md](references/component/Chart.md)**; per-type option rules see `references/component/{ChartName}.md` (BarChart / LineChart / PieChart / GaugeChart / HillChart / JadeJueChart / ProcessChart).
+Use `<Chart>` (`import Chart from "./public/shared/chart.jsx"`) — React wrapper over HUICharts (echarts-based). Props and sizing patterns see **[references/component/Chart.md](references/component/Chart.md)**; per-type option rules see `references/component/{ChartName}.md` (BarChart / LineChart / PieChart / GaugeChart / HillChart / JadeJueChart / ProcessChart).
 
 ```jsx
 <Chart name="BarChart" option={{ data: [...] }} style={{ height: 300 }} />
@@ -133,9 +133,9 @@ When multilingual is required, use react-intl (bundled offline, `import ... from
 2. Custom styles go in the component's `index.css` with semantic class names. 
   - Colors/fonts/shadows/radius/spacing prefer **tokens**; hardcoded hex or px only when the requirement specifies an exact value.
 3. Dark mode single-track (CRITICAL): **Do NOT use antd's darkAlgorithm / React state theme switching.** `src/context.jsx`'s AppProvider toggles `<html>`'s `.dark` class — H5 elements flip via tokens; antd components via `ant.css`. antd `theme` prop stays `"light"`.
-   - Do NOT define bare `:root` / `.dark` selectors (without a descendant suffix) — global tokens already live in `assets/style/`
+   - Do NOT define bare `:root` / `.dark` selectors (without a descendant suffix) — global tokens already live in `public/style/`
    - Per-mode values that tokens can't express (custom colors, images, gradients): base rule = light value, dark value via `.dark .yourComponentRoot { ... }` descendant override
-4. Do NOT create page-level antd component override styles (e.g., `antd.css`/`ant-override.css`). antd component skinning and visual gaps go into the shared `assets/style/ant.css` (including `.dark` rules) — single source, all pages benefit.
+4. Do NOT create page-level antd component override styles (e.g., `antd.css`/`ant-override.css`). antd component skinning and visual gaps go into the shared `public/style/ant.css` (including `.dark` rules) — single source, all pages benefit.
 5. Link-style actions (clickable text, e.g. table data cell links, card header actions, form auxiliary links, help links, inline text links) use `<a>` + `var(--interactive-link)` + `cursor: pointer` — NOT `<Button type="link">`.
 
 ### Content Guidelines
@@ -145,7 +145,7 @@ When multilingual is required, use react-intl (bundled offline, `import ... from
   - Use semantic keys (`hotelName`, not `val1`); 
   - Main list/table ≥20 items with diverse statuses; 
   - secondary lists ≥5 items.
-  - Image assets: avatars: `./assets/uploads/user.png`; backgrounds: `./assets/uploads/background.jpg`; general images: `./assets/uploads/image.jpg`.
+  - Images: avatars: `./public/uploads/user.png`; backgrounds: `./public/uploads/background.jpg`; general images: `./public/uploads/image.jpg`.
 
 ## Step 3 — Build (MANDATORY)
 

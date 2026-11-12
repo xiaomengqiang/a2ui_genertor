@@ -4,7 +4,7 @@
 //   2. 导出 antd ConfigProvider 可用的 zhCN locale 对象
 //
 // 用法(页面入口):
-//   import zhCN from "./assets/shared/antd-zh.js";
+//   import zhCN from "./public/shared/antd-zh.js";
 //   <ConfigProvider locale={zhCN}> ... </ConfigProvider>
 import dayjs from "dayjs";
 // ---- 1. 注册 dayjs zh-cn locale(dayjs.min.js 核心包不带任何 locale) ----

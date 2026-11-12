@@ -5,7 +5,7 @@ IP / IPv6 / MAC 地址分段输入控件（antd 无此组件，skill 内置实�
 ## 导入
 
 ```jsx
-import IpInput from "./assets/shared/ip-input.jsx";
+import IpInput from "./public/shared/ip-input.jsx";
 ```
 
 ## Props

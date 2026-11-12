@@ -13,7 +13,7 @@
 // Styling: custom styles in component folder's index.css; prefer tokens for visual values.
 
 import { ConfigProvider, Empty } from "antd";
-import zhCN from "./assets/shared/antd-zh.js";
+import zhCN from "./public/shared/antd-zh.js";
 import { AppProvider } from "./src/context.jsx";
 import "./app.css";
 
@@ -25,8 +25,8 @@ export default function App() {
         locale={zhCN}
         wave={{ disabled: true }}
         renderEmpty={() => <Empty style={{ padding: "2rem 0" }} />}
-        empty={{ image: "./assets/uploads/empty.svg" }}
-        spin={{ indicator: <img src="./assets/uploads/loading.svg" alt="" className="custom-spin-indicator" /> }}
+        empty={{ image: "./public/uploads/empty.svg" }}
+        spin={{ indicator: <img src="./public/uploads/loading.svg" alt="" className="custom-spin-indicator" /> }}
       >
         <div className="app-root">
           {/* view mount point */}

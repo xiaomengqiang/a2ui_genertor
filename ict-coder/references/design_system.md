@@ -4,10 +4,10 @@
 
 | Layer | File | Scope | Role |
 |---|---|---|---|
-| Primitive | `assets/style/base.css` | `:root` + `.dark` | Raw material: color scales, font sizes/weights/line-heights, radius levels, spacing, border widths |
-| Semantic (light) | `assets/style/light.css` | `:root` | `--color-*` role tokens mapped to primitives (default theme) |
-| **Theme (AI-facing)** | `assets/style/theme.css` | `:root` | **The layer custom CSS writes against first** — semantic aliases |
-| Semantic (dark) | `assets/style/dark.css` | `.dark` | Dark-mode values for the full semantic set — overrides light via cascade order |
+| Primitive | `public/style/base.css` | `:root` + `.dark` | Raw material: color scales, font sizes/weights/line-heights, radius levels, spacing, border widths |
+| Semantic (light) | `public/style/light.css` | `:root` | `--color-*` role tokens mapped to primitives (default theme) |
+| **Theme (AI-facing)** | `public/style/theme.css` | `:root` | **The layer custom CSS writes against first** — semantic aliases |
+| Semantic (dark) | `public/style/dark.css` | `.dark` | Dark-mode values for the full semantic set — overrides light via cascade order |
 
 Custom CSS uses the THEME layer first. Dark mode is free: any token reference auto-flips under `.dark`.
 

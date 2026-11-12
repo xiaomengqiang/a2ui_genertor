@@ -20,7 +20,7 @@ if (dirIdx === -1 || !args[dirIdx + 1]) {
 const ROOT = resolve(args[dirIdx + 1]);
 
 const HTML = resolve(ROOT, "index.page.html");
-const LIB = (name) => resolve(ROOT, "assets/library", name);
+const LIB = (name) => resolve(ROOT, "public/library", name);
 
 // --- minimal DOM/browser stubs (enough for UMD module initialization) ---
 let stubDocument; // 先声明(stubElement 在其初始化期间即被调用,此时为 undefined)

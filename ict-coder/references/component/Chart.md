@@ -2,7 +2,7 @@
 
 React wrapper over HUICharts (echarts-based).
 
-**Import:** `import Chart from "../../../assets/shared/chart.jsx"` (adjust relative depth for component folders)
+**Import:** `import Chart from "../../../public/shared/chart.jsx"` (adjust relative depth for component folders)
 
 ## Sizing
 
@@ -112,7 +112,7 @@ Automatic — the wrapper watches `<html>`'s `.dark` class and re-renders with `
 
 ```jsx
 import { useRef } from "react";
-import Chart from "../../../assets/shared/chart.jsx";
+import Chart from "../../../public/shared/chart.jsx";
 
 function ClickableBar({ data, onBarClick }) {
   const chartRef = useRef(null);

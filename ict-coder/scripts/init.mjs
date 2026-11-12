@@ -2,7 +2,7 @@
 // init.mjs — 初始化页面脚手架
 //
 // 在 {artifact-folder}/preview/ 下创建页面工程:
-//   ├── assets/   → 链接(junction/symlink, 失败则拷贝)到 skill 的 scripts/preview/assets
+//   ├── public/   → 链接(junction/symlink, 失败则拷贝)到 skill 的 scripts/preview/public
 //   ├── app.jsx   → 入口 starter(构建入口 + 布局骨架)
 //   └── src/      → 页面源码(context.jsx + components/ views/ 空目录)
 //
@@ -32,7 +32,7 @@ import { join, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ASSETS_SRC = join(__dirname, "preview", "assets");
+const PUBLIC_SRC = join(__dirname, "preview", "public");
 
 function fail(reason) {
   console.log(`RESULT: FAIL | ${reason}`);
@@ -56,8 +56,8 @@ if (!existsSync(base) || !statSync(base).isDirectory()) {
   fail(`Artifact folder does not exist or is not a directory: ${base}`);
 }
 
-// --- validate skill assets completeness ---
-if (!existsSync(ASSETS_SRC)) fail(`skill assets missing: ${ASSETS_SRC}`);
+// --- validate skill public completeness ---
+if (!existsSync(PUBLIC_SRC)) fail(`skill public missing: ${PUBLIC_SRC}`);
 const REQUIRED = [
   "library/react.production.min.js",
   "library/antd.min.js",
@@ -76,7 +76,7 @@ const REQUIRED = [
   "shared/antd-zh.js",
 ];
 for (const p of REQUIRED) {
-  if (!existsSync(join(ASSETS_SRC, p))) fail(`skill assets incomplete, missing: ${p}`);
+  if (!existsSync(join(PUBLIC_SRC, p))) fail(`skill public incomplete, missing: ${p}`);
 }
 
 const dest = join(base, "preview");
@@ -96,7 +96,7 @@ const STARTER_APP = `// App entry — ICT React page
 // Styling: custom styles in component folder's index.css; prefer tokens for visual values.
 
 import { ConfigProvider, Empty } from "antd";
-import zhCN from "./assets/shared/antd-zh.js";
+import zhCN from "./public/shared/antd-zh.js";
 import { AppProvider } from "./src/context.jsx";
 import "./app.css";
 
@@ -107,8 +107,8 @@ export default function App() {
         locale={zhCN}
         wave={{ disabled: true }}
         renderEmpty={() => <Empty style={{ padding: "2rem 0" }} />}
-        empty={{ image: "./assets/uploads/empty.svg" }}
-        spin={{ indicator: <img src="./assets/uploads/loading.svg" alt="" className="custom-spin-indicator" /> }}
+        empty={{ image: "./public/uploads/empty.svg" }}
+        spin={{ indicator: <img src="./public/uploads/loading.svg" alt="" className="custom-spin-indicator" /> }}
       >
         <div className="app-root">
           {/* view mount point */}
@@ -176,39 +176,39 @@ try {
     writeFileSync(join(dest, "src", d, ".gitkeep"), "", "utf8");
   }
 
-  // --- link assets (junction on win32 needs no admin; fallback: full copy) ---
-  const assetsDst = join(dest, "assets");
-  let assetsReady = false;
+  // --- link public (junction on win32 needs no admin; fallback: full copy) ---
+  const publicDst = join(dest, "public");
+  let publicReady = false;
   try {
     if (process.platform === "win32") {
-      symlinkSync(ASSETS_SRC, assetsDst, "junction");
+      symlinkSync(PUBLIC_SRC, publicDst, "junction");
     } else {
-      symlinkSync(ASSETS_SRC, assetsDst, "dir");
+      symlinkSync(PUBLIC_SRC, publicDst, "dir");
     }
-    assetsReady = existsSync(assetsDst);
+    publicReady = existsSync(publicDst);
   } catch {
-    assetsReady = false;
+    publicReady = false;
   }
-  if (!assetsReady) {
+  if (!publicReady) {
     try {
-      rmSync(assetsDst, { force: true });
-      cpSync(ASSETS_SRC, assetsDst, { recursive: true });
-      assetsReady = existsSync(assetsDst);
-      if (assetsReady) console.log("NOTE  junction unavailable — assets fully copied (skill asset updates will NOT propagate; delete the assets folder to re-link)");
+      rmSync(publicDst, { force: true });
+      cpSync(PUBLIC_SRC, publicDst, { recursive: true });
+      publicReady = existsSync(publicDst);
+      if (publicReady) console.log("NOTE  junction unavailable — public fully copied (skill asset updates will NOT propagate; delete the public folder to re-link)");
     } catch {
-      assetsReady = false;
+      publicReady = false;
     }
   }
-  if (!assetsReady) fail(`Could not link or copy assets to: ${assetsDst}`);
+  if (!publicReady) fail(`Could not link or copy public to: ${publicDst}`);
 
   // verify runtime js is reachable through the link
-  const libraryDir = join(assetsDst, "library");
+  const libraryDir = join(publicDst, "library");
   let libFiles = [];
   try { libFiles = readdirSync(libraryDir); } catch { /* link broken */ }
   const runtimeOk =
     libFiles.includes("antd.min.js") &&
     libFiles.includes("babel.min.js");
-  if (!runtimeOk) fail(`assets/library runtime js not reachable at: ${libraryDir}`);
+  if (!runtimeOk) fail(`public/library runtime js not reachable at: ${libraryDir}`);
 
   writeFileSync(join(dest, "app.jsx"), STARTER_APP, "utf8");
   writeFileSync(join(dest, "src", "context.jsx"), STARTER_CONTEXT, "utf8");
