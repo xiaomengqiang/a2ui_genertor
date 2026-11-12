@@ -242,3 +242,117 @@ function SimpleProgress({ percent, status = 'normal' }) {
     );
 }
 ```
+
+## 9. 横向菜单（antd `Menu mode="horizontal"`）
+
+> eview-react 无横向菜单对应组件（`Accordion` 是垂直侧边导航，不适用横向），antd `Menu mode="horizontal"` 按本节手写。
+> 对齐 antd horizontal Menu 能力：横排、选中态高亮、hover 子菜单下拉、`disabled`/`danger`/`icon`/`divider`。
+> **items 字段沿用 antd 形态**（`{ key, label, icon, disabled, danger, children, type }`），模板内部消化，调用点近零改动——仅需把 `<Menu mode="horizontal" items selectedKeys onClick>` 改成 `<AppHorizontalMenu items selectedKey onMenuClick>`。
+> 子菜单下拉用 eview-react `DropDown`（包裹式、`trigger="hover"`，仅一级；antd horizontal 多级子菜单需拍平为一级，见 [DropDown.md](components/DropDown.md)）。
+> **判定**：`mode="horizontal"` 手写；`mode="inline"`/默认垂直仍转 `Accordion`（见 [component-mapping.md](component-mapping.md) Menu 行 + [Accordion.md](components/Accordion.md) §10）。
+
+```tsx
+import DropDown from '@nce/eview-react/DropDown';
+
+interface MenuItem {
+  key: string;
+  label: React.ReactNode;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+  danger?: boolean;
+  children?: MenuItem[];
+  type?: 'divider' | 'group';
+}
+
+function AppHorizontalMenu({ items, selectedKey, onMenuClick }: {
+  items: MenuItem[];
+  selectedKey?: string;
+  onMenuClick?: (key: string) => void;
+}) {
+  const renderLeaf = (item: MenuItem) => (
+    <button
+      type="button"
+      disabled={item.disabled}
+      className={`app-hmenu-item${item.key === selectedKey ? ' app-hmenu-item-active' : ''}${item.danger ? ' app-hmenu-item-danger' : ''}`}
+      onClick={() => !item.disabled && onMenuClick?.(item.key)}
+    >
+      {item.icon ? <span className="app-hmenu-icon">{item.icon}</span> : null}
+      <span>{item.label}</span>
+    </button>
+  );
+
+  return (
+    <nav className="app-hmenu">
+      {items.map((item) => {
+        if (item.type === 'divider') {
+          return <li key={item.key} className="app-hmenu-divider" />;
+        }
+        if (item.children && item.children.length) {
+          // 有子菜单：DropDown 包裹该项，hover 展开（DropDown 仅一级，多级子菜单需拍平）
+          const subData = item.children
+            .filter((c) => c.type !== 'divider')
+            .map((c) => ({ value: c.key, text: c.label, disabled: c.disabled }));
+          return (
+            <li key={item.key} className="app-hmenu-entry app-hmenu-entry-has-sub">
+              <DropDown
+                data={subData}
+                trigger="hover"
+                onItemClick={(node) => {
+                  const child = item.children.find((c) => c.key === node.value);
+                  if (child && !child.disabled) onMenuClick?.(child.key);
+                }}
+              >
+                {renderLeaf(item)}
+              </DropDown>
+            </li>
+          );
+        }
+        return <li key={item.key} className="app-hmenu-entry">{renderLeaf(item)}</li>;
+      })}
+    </nav>
+  );
+}
+
+// 用法（迁移对照）：
+// antd: <Menu mode="horizontal" items={items} selectedKeys={[key]} onClick={({ key }) => setKey(key)} />
+// eview: <AppHorizontalMenu items={items} selectedKey={key} onMenuClick={(key) => setKey(key)} />
+```
+
+```css
+/* app-hmenu.css */
+.app-hmenu {
+  display: flex; align-items: center; gap: 4px;
+  height: 48px; padding: 0 16px; margin: 0; list-style: none;
+  background: var(--surface-container-highest, #fff);
+  border-bottom: 1px solid var(--divider, #e0e0e0);
+}
+.app-hmenu-entry { list-style: none; position: relative; }
+.app-hmenu-entry-has-sub .app-hmenu-item::after {
+  content: '▾'; margin-left: 4px; font-size: 10px; color: var(--on-surface-variant, #999);
+}
+.app-hmenu-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 32px; padding: 0 12px;
+  border: none; background: transparent;
+  color: var(--on-surface-variant, #555);
+  font-size: 14px; cursor: pointer; border-radius: 4px;
+  transition: background .15s, color .15s;
+}
+.app-hmenu-item:hover { background: var(--hover, rgba(0,0,0,0.05)); color: var(--on-surface, #191919); }
+.app-hmenu-item-active { color: var(--primary, #0067D1); font-weight: 500; }
+.app-hmenu-item-active::before {
+  content: ''; position: absolute; left: 12px; right: 12px; bottom: -8px;
+  height: 2px; background: var(--primary, #0067D1);
+}
+.app-hmenu-item-danger { color: var(--error, #E02128); }
+.app-hmenu-item:disabled { color: var(--on-surface-variant, #999); cursor: not-allowed; }
+.app-hmenu-icon { display: inline-flex; }
+.app-hmenu-divider { width: 1px; height: 20px; margin: 0 8px; background: var(--divider, #e0e0e0); list-style: none; }
+```
+
+> **迁移注意**：
+> - antd `onClick({ key, keyPath, domEvent })` → 模板 `onMenuClick(key)`（仅传 key）
+> - antd `selectedKeys` 是数组、horizontal 实际单选 → 模板用 `selectedKey` 单值（`selectedKeys={[k]}` → `selectedKey={k}`）
+> - `type: 'group'`（分组标题）暂按普通项渲染，如需分组标题样式在模板内自行扩展
+> - icon 透传：迁移后 icon 已是 icon+ 组件或 `@/shared/Icon`，原样塞进 `item.icon`
+> - 暗色：色值走 token（`--on-surface-variant`/`--primary`/`--divider` 等），随 `<html>.dark` 自动翻转，无需另写暗色 CSS

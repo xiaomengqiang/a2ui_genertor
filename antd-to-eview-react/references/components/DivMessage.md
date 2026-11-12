@@ -43,6 +43,21 @@ import { IconPlusIcPublicInfo } from '@hui/icon-plus';
 <DivMessage display type="success" showIcon icon={<IconPlusIcPublicInfo />} text="已保存" />
 ```
 
+### 2.5 antd `message.*()` → DivMessage `type` 对照
+
+> antd `message` 是命令式（`message.info()`），eview-react **无命令式 API**，必须渲染 `<DivMessage display type=...>`。`type` 枚举仅 `default/success/error/warn`，**无 `info`/`warning`**——`message.info()` 对应 `type="default"`（不是 `info`）。
+
+| antd 命令式 | DivMessage `type` | 备注 |
+|------------|------------------|------|
+| `message.info()` | `default` | **不是 `info`**；DivMessage 无 info 枚举 |
+| `message.success()` | `success` | |
+| `message.error()` | `error` | 建议加 `enableDisposeTimeOut={false}` 常驻，错误不该 10s 消失 |
+| `message.warning()` / `message.warn()` | `warn` | **不是 `warning`** |
+| `message.loading()` | `default` | 加 `enableDisposeTimeOut={false}` 常驻，或改用 `Loading` 组件 |
+| `message.open({ ... })` | — | 按内容 type 拆成上述形态 |
+
+迁移时把 `message.xxx(text)` 调用改成 `setNotice({ type, text, key })` + 渲染 `<DivMessage display type={notice.type} text={notice.text} key={notice.key} />`，外层包 `position:fixed`+居中定位（见 §2 示例）。
+
 ## 3. 联动说明
 
 - 请求 `try` 成功 → `notify('success', …)`；`catch` → `notify('error', …)`；同一位置只显示最新一条

@@ -251,3 +251,4 @@ export default function ConfigCenterNav() {
 
 - **单层平铺菜单**（antd Menu 无嵌套）：`enableExpand={false}` + `hideIcons` + `hideTitleBar` + 单层 `data`（无 `children`），见 §2
 - **可收起侧边导航**（antd `inlineCollapsed`）：`enableExpand`（默认 `true`）+ `expanded={collapsed}` + `onExpand={(flag) => setCollapsed(!flag)}` + `hideIcons` + `hideTitleBar`，见 §4
+- **横向菜单不走 Accordion**：antd `Menu mode="horizontal"`（横向顶部导航）eview-react 无对应组件，**不转 Accordion**，按 [handwrite-templates.md](../handwrite-templates.md) §9 手写（横排 + hover 子菜单下拉用 `DropDown`）。本节默认配置仅适用于垂直菜单（`mode="inline"` / 默认垂直）。**机器验证**：`check-accordion.cjs` 只扫 `<Accordion>` 不扫横向 Menu，横向手写不会被拦；横向 Menu 残留由 LLM 步骤 2 按 mode 判定处理

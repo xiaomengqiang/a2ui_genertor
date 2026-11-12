@@ -484,7 +484,59 @@ node <skill目录>/scripts/check-jsx-extension.cjs <目标工程根> --fix     #
 
 硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（纯工具链约束，非 advisory）。工程无 `.js`/`.ts` 承载 JSX → PASS 不报。依赖 `@babel/parser`（同其他 AST check）。
 
-### 4.20 常见报错对照
+### 4.20 Checkbox.Group / Radio.Group 残留检查（硬 FAIL 必跑）
+
+> 对应 component-mapping.md Checkbox.Group / Radio/Radio.Group 行。eview-react 的 CheckboxGroup / RadioGroup 是独立组件（`@nce/eview-react/CheckboxGroup`、`@nce/eview-react/RadioGroup` **默认导入**，⚠️ 禁止 `import { RadioGroup } from '@nce/eview-react/Radio'`），antd 的 `<Checkbox.Group>` / `<Radio.Group>` 成员访问形态必须转换。步骤 2 LLM 常漏转 .Group——`extract-umd.cjs` 此前只扫 `import { Checkbox }`、.Group 用法丢失、migrationPlan 把 .Group 当普通 Checkbox/Radio（根因已由 extract-umd 补扫 `<Checkbox.Group>`/`<Radio.Group>` JSX + build-migration-plan 完整 pattern 匹配修复）；步骤 2 后续手改仍可能回归，本脚本做机器兜底。
+
+脚本 `scripts/check-group-jsx.cjs`，用 AST（@babel/parser，复用 `lib/ast-helpers.cjs`）检测两种形态残留（全硬 FAIL）：
+
+1. `GROUP_JSX_RESIDUE` — 任一形态：
+   - **JSX 元素** `<Checkbox.Group>` / `<Radio.Group>`（JSXMemberExpression，`findJsxElements` 的 `jsxElementName` 支持 `<Foo.Bar>` 返回 `'Foo.Bar'`）
+   - **成员访问** `Checkbox.Group` / `Radio.Group`（非 JSX，object 名精确匹配 Checkbox/Radio，无误报；JSX 的 `<X.Group>` 是 JSXMemberExpression 不会被 MemberExpression 分支重复报）
+
+> 注：解构形态 `const { Group } = Checkbox` + `<Group>` 因 `Group` 名通用易误报，暂不检测；ict-coder 产物通常直接 `<Checkbox.Group>`，该形态罕见，如需覆盖后续扩展。
+
+```bash
+node <skill目录>/scripts/check-group-jsx.cjs <目标工程根>
+```
+
+硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（纯残留检查，非 advisory）。工程无 .Group 残留 → PASS 不报。依赖 `@babel/parser`（同其他 AST check）。
+
+### 4.21 DivMessage type 枚举 + 命令式 message 残留检查（硬 FAIL 必跑）
+
+> 对应 component-mapping.md message 行 + components/DivMessage.md §2.5。antd `message.*()` 命令式 → eview-react 渲染式 `<DivMessage display type=...>`（外层 `position:fixed`+居中定位复刻 antd 顶部浮层）。DivMessage type 枚举仅 `default/success/error/warn`，**无 `info`/`warning`**：`message.info()`→`type="default"`（**不是 info**）、`message.warning()`/`message.warn()`→`type="warn"`（**不是 warning**）、`message.success()`→`success`、`message.error()`→`error`、`message.loading()`→`default`+`enableDisposeTimeOut={false}`（或用 `Loading`）。步骤 2 LLM 常犯两类错——① 臆造 `type="info"`；② 漏转命令式 `message.xxx()` 调用（应改为 `setNotice`+`<DivMessage>`）。本脚本做机器兜底。
+
+脚本 `scripts/check-divmessage.cjs`，用 AST（@babel/parser，复用 `lib/ast-helpers.cjs`）检测（全硬 FAIL）：
+
+1. `INVALID_TYPE` — `<DivMessage type="X">` 的 X（StringLiteral 字面量）不在 `{default,success,error,warn}`；动态表达式/变量/三元等静态无法判定的值跳过
+2. `IMPERATIVE_MESSAGE_RESIDUE` — 残留命令式 `message.<method>()` 调用，method ∈ `{info,success,error,warning,warn,open,loading,destroy}`（antd message 方法名，迁移后应已转为 `<DivMessage>`）
+
+```bash
+node <skill目录>/scripts/check-divmessage.cjs <目标工程根>
+```
+
+硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（纯残留检查，非 advisory）。工程无 DivMessage/message → PASS 不报。依赖 `@babel/parser`（同其他 AST check）。
+
+### 4.22 Select 系形态错配检查（硬 FAIL 必跑）
+
+> 对应 component-mapping.md Select / Select showSearch / Select mode="multiple" / Select mode="tags" / AutoComplete 行 + components/Select.md §1 / InputSelect.md / MultipleSelect.md。eview Select **不支持搜索**（无 showSearch/searchable）：可过滤单选用 InputSelect onlySelect、多选用 MultipleSelect。步骤 2 LLM 最易错：① `Select showSearch` 误转 eview Select（残留 `showSearch`/`placeholder`，应转 InputSelect onlySelect+placeholder）；② `Select mode="multiple"` 误转 Select（残留 `mode`）；③ placeholder/defaultLabel 跨组件用错（Select 用 `defaultLabel`，InputSelect/MultipleSelect 用 `placeholder`）。本脚本做形态错配机器兜底——检测 eview Select 系组件身上"不该出现的 prop"。
+
+脚本 `scripts/check-select-form.cjs`，用 AST（@babel/parser，复用 `lib/ast-helpers.cjs`）检测（全硬 FAIL）：
+
+1. `FORM_MISMATCH` — Select 系组件残留不属于该组件的 prop：
+   - `<Select>` 上 `showSearch`/`mode`/`onlySelect`/`searchable`/`placeholder`（Select 无这些 prop；`showSearch`→应转 InputSelect，`mode`→应转 MultipleSelect，`onlySelect` 属 InputSelect，`searchable` 属 MultipleSelect，`placeholder`→应为 `defaultLabel`）
+   - `<InputSelect>` 上 `defaultLabel`/`mode`/`showSearch`/`searchable`（InputSelect 用 `placeholder`；`mode`/`showSearch` 应删；`searchable` 属 MultipleSelect）
+   - `<MultipleSelect>` 上 `defaultLabel`/`mode`/`onlySelect`/`showSearch`（用 `placeholder`；`mode` 应删；`onlySelect` 属 InputSelect；`showSearch`→应为 `searchable`）
+
+> 注：只检 JSXAttribute 标识符 prop 名；spread `{...props}` 跳过（静态无法判定）。`<Select>` 无论导入源都检（antd 残留的 showSearch/mode/placeholder 同样命中，与 check-imports 双重保险）。
+
+```bash
+node <skill目录>/scripts/check-select-form.cjs <目标工程根>
+```
+
+硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（纯残留检查，非 advisory）。工程无 Select 系 → PASS 不报。依赖 `@babel/parser`（同其他 AST check）。
+
+### 4.23 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -495,11 +547,11 @@ node <skill目录>/scripts/check-jsx-extension.cjs <目标工程根> --fix     #
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 但 `data.js` 里 value 是短代码、i18n key 带前缀 | 在 render 里补命名空间前缀：`t("deviceType." + value, value)`；详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 4.21 验证
+### 4.24 验证
 
 跑验证脚本，把结果写入 `<目标工程根>/.migration-result.json`。
 
-> **十八个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨/Accordion expand 语义反转+字段残留/Crumbs items+separator+字段残留/Dropdown menu-items-options 残留+字段 key-label-children 残留+disable 拼错+trigger 数组/placement/open/value/onChange 残留/**Select 系 options/data label→text 残留**/**RangePicker JSX 残留**/**.js/.ts 承载 JSX（check-jsx-extension）**是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/accordion/dropdown/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
+> **二十一个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨/Accordion expand 语义反转+字段残留/Crumbs items+separator+字段残留/Dropdown menu-items-options 残留+字段 key-label-children 残留+disable 拼错+trigger 数组/placement/open/value/onChange 残留/**Select 系 options/data label→text 残留**/**RangePicker JSX 残留**/**Checkbox.Group/Radio.Group 残留**/**DivMessage 非法 type + 命令式 message 残留**/**Select 系形态错配（check-select-form）**/**.js/.ts 承载 JSX（check-jsx-extension）**是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/accordion/dropdown/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
 
 **验证步骤**（全部必跑，按序）：
 1. 相对导入检查**跳过**（见 §4.1）
@@ -519,11 +571,14 @@ node <skill目录>/scripts/check-jsx-extension.cjs <目标工程根> --fix     #
 15. 跑 `node <skill目录>/scripts/check-dropdown.cjs <目标工程根>`（§4.16，硬 FAIL + advisory，advisory 项逐条回应写入 `dropdownReviews`）
 16. 跑 `node <skill目录>/scripts/check-select-options.cjs <目标工程根>`（§4.17，**硬 FAIL**，exit≠0 即 FAIL——Select 系 options/data 项 label→text 残留，AST 扫描覆盖 `.map`/`Array.from`/spread/shorthand/计算键等动态形态）
 17. 跑 `node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>`（§4.18，**硬 FAIL**，exit≠0 即 FAIL——`<DatePicker.RangePicker>`/`<RangePicker>`/`<TimePicker.RangePicker>` JSX 残留，eview-react 无 RangePicker 导出）
-18. 跑 `node <skill目录>/scripts/check-icon-shim.cjs <目标工程根> --strict`（**硬 FAIL**，B/C 都跑——UNJUSTIFIED 闭集误留 / STALE-SHIM-IMPORT / UNCONVERTED-ICON-SOURCE 数据源半改 / PROP_DROPPED_ON_ICON_REWRITE 丢 handler props / TERNARY_WRAP_LOST 条件式漏包 `{}` 任一，见 [Icon.md](components/Icon.md) 步 7 + §3.0）。**与阶段 2 §3.0 步 7 同闸门、幂等**——stage 3 重测兜底防阶段 2 后续 LLM 临场手改图标站点引入回归（正是 TERNARY_WRAP_LOST 要防的"偶尔丢 `{}`"类），并让 `.migration-result.json` 的 `icon-shim` 键权威实测（非沿用阶段 2 旧结果）。复用阶段 2 步 7 生成的 `.icon-shim-justified.json`（无残留 `<Icon>` shim 站点则不需该文件、0 处直接 PASS）。`PROP_DROPPED`/`TERNARY_WRAP_LOST` 的非 handler props（title/aria-*/role/tabIndex）与箭头函数 handler 是已知盲区，须人工复核（residual 手改 / Button 外壳剥离站点在 `confirmedSiteRepairs` 逐条回应）。
-19. 跑 `node <skill目录>/scripts/check-jsx-extension.cjs <目标工程根>`（§4.19，**硬 FAIL**，exit≠0 即 FAIL——`.js`/`.ts` 文件承载 JSX，Vite 不对 `.js`/`.ts` 启用 JSX loader 项目启动报错；拦 icon 步骤 / 步骤 2 组件替换 / LLM 手改向 `.js`/`.ts` 注入 JSX 漏改扩展名。命中可跑 `--fix` 自动 `.js→.jsx` / `.ts→.tsx` + 修引用后重跑）
-20. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
+18. 跑 `node <skill目录>/scripts/check-group-jsx.cjs <目标工程根>`（§4.20，**硬 FAIL**，exit≠0 即 FAIL——`<Checkbox.Group>`/`<Radio.Group>` JSX + 成员访问残留，eview-react 用独立组件 CheckboxGroup/RadioGroup）
+19. 跑 `node <skill目录>/scripts/check-divmessage.cjs <目标工程根>`（§4.21，**硬 FAIL**，exit≠0 即 FAIL——DivMessage type 非 {default/success/error/warn} 枚举 + 残留命令式 `message.xxx()` 调用）
+20. 跑 `node <skill目录>/scripts/check-select-form.cjs <目标工程根>`（§4.22，**硬 FAIL**，exit≠0 即 FAIL——Select 系形态错配：`<Select>` 残留 showSearch/mode/onlySelect/searchable/placeholder、`<InputSelect>` 残留 defaultLabel、`<MultipleSelect>` 残留 defaultLabel/mode/showSearch）
+21. 跑 `node <skill目录>/scripts/check-icon-shim.cjs <目标工程根> --strict`（**硬 FAIL**，B/C 都跑——UNJUSTIFIED 闭集误留 / STALE-SHIM-IMPORT / UNCONVERTED-ICON-SOURCE 数据源半改 / PROP_DROPPED_ON_ICON_REWRITE 丢 handler props / TERNARY_WRAP_LOST 条件式漏包 `{}` 任一，见 [Icon.md](components/Icon.md) 步 7 + §3.0）。**与阶段 2 §3.0 步 7 同闸门、幂等**——stage 3 重测兜底防阶段 2 后续 LLM 临场手改图标站点引入回归（正是 TERNARY_WRAP_LOST 要防的"偶尔丢 `{}`"类），并让 `.migration-result.json` 的 `icon-shim` 键权威实测（非沿用阶段 2 旧结果）。复用阶段 2 步 7 生成的 `.icon-shim-justified.json`（无残留 `<Icon>` shim 站点则不需该文件、0 处直接 PASS）。`PROP_DROPPED`/`TERNARY_WRAP_LOST` 的非 handler props（title/aria-*/role/tabIndex）与箭头函数 handler 是已知盲区，须人工复核（residual 手改 / Button 外壳剥离站点在 `confirmedSiteRepairs` 逐条回应）。
+22. 跑 `node <skill目录>/scripts/check-jsx-extension.cjs <目标工程根>`（§4.19，**硬 FAIL**，exit≠0 即 FAIL——`.js`/`.ts` 文件承载 JSX，Vite 不对 `.js`/`.ts` 启用 JSX loader 项目启动报错；拦 icon 步骤 / 步骤 2 组件替换 / LLM 手改向 `.js`/`.ts` 注入 JSX 漏改扩展名。命中可跑 `--fix` 自动 `.js→.jsx` / `.ts→.tsx` + 修引用后重跑）
+23. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
 
-**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 18（check-icon-shim）之后、npm install（步骤 20）之前**加跑）：
+**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 21（check-icon-shim）之后、npm install（步骤 23）之前**加跑）：
 - 跑 `node <skill目录>/scripts/check-icon-names.cjs <目标工程根>`（§4.13，**硬 FAIL**，exit≠0 即 FAIL——拦 LLM residual 臆造的非 catalog 实有 IconPlusIc* 名）。
 - **方案 B（内网）项目不跑此闸门**：其图标名真值是在线 `getIconInfo` 接口（实包），非离线 catalog 快照，跑会误报实包有而快照无的名。方案 A 产物无 `IconPlusIc*` 名，跑了亦 no-op。
 

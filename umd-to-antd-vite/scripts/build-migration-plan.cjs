@@ -118,6 +118,14 @@ function parseMappingTable(text) {
 
     if (!lookup[baseName]) lookup[baseName] = [];
     lookup[baseName].push(entry);
+    // 额外用完整 antdPattern（如 Checkbox.Group / Radio.Group）建索引：
+    // extract-umd.cjs 扫描 <Checkbox.Group> JSX 用法记入 antdComponents 的完整 key，
+    // 主循环先按完整 pattern 精确匹配，命中 Checkbox.Group 行（eview=CheckboxGroup）而非
+    // 回退到 baseName=Checkbox 命中 Checkbox 行（避免 .Group 用法被当普通 Checkbox）
+    if (antdRaw.includes('.')) {
+      if (!lookup[antdRaw]) lookup[antdRaw] = [];
+      lookup[antdRaw].push(entry);
+    }
   }
 
   return lookup;
@@ -156,8 +164,29 @@ function determineImportPath(category, eviewName, keyDiffs) {
   return null;
 }
 
+// eviewName → ref 文件覆盖：部分组件无独立 .md，文档收在另一组件页下
+// CheckboxGroup 收在 Checkbox.md、RadioGroup 收在 Radio.md（独立 .md 留待后续）
+const REF_OVERRIDE = {
+  CheckboxGroup: 'components/Checkbox.md',
+  RadioGroup: 'components/Radio.md',
+};
+
+// 多形态组件分流决策表：importPath 仅给默认形态，LLM 步骤 2 须按调用点 props 分流。
+// Select 是最易错的——eview Select 不支持搜索（无 showSearch/searchable），showSearch 形态须转
+// InputSelect onlySelect、multiple 形态须转 MultipleSelect。若一律按 importPath(@/shared/Select)
+// 转 Select，会把 showSearch/multiple 形态的 placeholder 误转 defaultLabel、丢 onlySelect/searchable。
+const SELECT_DISPATCH = {
+  Select: '⚠️【Select 多形态分流——按调用点 mode/showSearch 判定，importPath=@/shared/Select 仅默认形态①】'
+    + '① 无 mode/showSearch → Select(@/shared/Select)+placeholder→defaultLabel+onChange(value,oldValue,text,oldText,event)五参；'
+    + '② showSearch(无mode) → InputSelect onlySelect=true(@/shared/InputSelect)+placeholder保留+onChange(value,oldValue)两参+删showSearch/filterOption；'
+    + '③ mode="multiple" → MultipleSelect(@/shared/MultipleSelect)+placeholder保留+value数组+onChange(value[],changeValue[],event)三参+showSearch→searchable+maxTagCount→displayItems+allowClear→enableCloseIcon；'
+    + '④ mode="tags" → MultipleSelect(同③，新建标签能力丢失需业务自理)；'
+    + '⑤ AutoComplete → InputSelect 不传onlySelect(@/shared/InputSelect)+placeholder保留+onInputEnter。'
+    + 'placeholder去向：Select→defaultLabel；InputSelect/MultipleSelect→placeholder(保留)',
+};
+
 function determineRef(category, eviewName, keyDiffs) {
-  if (category === 'A') return `components/${eviewName}.md`;
+  if (category === 'A') return REF_OVERRIDE[eviewName] || `components/${eviewName}.md`;
   if (category === 'B') {
     const sectionMatch = keyDiffs.match(/§(\d+)/);
     if (sectionMatch) return `handwrite-templates.md §${sectionMatch[1]}`;
@@ -180,7 +209,12 @@ const SKIP_COMPONENTS = new Set(['ConfigProvider']);
 
 for (const [antdName, files] of Object.entries(antdComponents)) {
   if (SKIP_COMPONENTS.has(antdName)) continue;
+  // 先按完整 pattern 精确匹配（Checkbox.Group / Radio.Group），再回退 baseName（Checkbox / Radio）
   let rows = lookup[antdName] || [];
+  if (rows.length === 0) {
+    const base = antdName.match(/^([A-Za-z][\w]*)/);
+    if (base) rows = lookup[base[1]] || [];
+  }
 
   if (rows.length === 0) {
     unmatched.push(antdName);
@@ -203,6 +237,9 @@ for (const [antdName, files] of Object.entries(antdComponents)) {
     .map((r, i) => rows.length > 1 ? `[${r.antdPattern}] ${r.keyDiffs}` : r.keyDiffs)
     .join(' | ');
 
+  // 多形态组件（如 Select）：前置分流决策表。importPath 仅默认形态，LLM 须按调用点 props 分流
+  const dispatchPrefix = SELECT_DISPATCH[antdName] ? SELECT_DISPATCH[antdName] + ' | ' : '';
+
   const importPaths = [...new Set(rows.map(r => r.importPath).filter(Boolean))];
   const shellFlags = [...new Set(rows.map(r => r.shellComponent).filter(Boolean))];
 
@@ -212,7 +249,7 @@ for (const [antdName, files] of Object.entries(antdComponents)) {
     eview: primaryRow.eviewName,
     importPath: importPaths[0] || null,
     shellComponent: shellFlags.length > 0,
-    keyDiffs: allKeyDiffs,
+    keyDiffs: dispatchPrefix + allKeyDiffs,
     ref: primaryRow.ref,
     files,
   });
@@ -274,7 +311,7 @@ const globalRef = {
     { eview: 'taggledChildren', correct: 'toggledChildren', component: 'Toggle' },
     { eview: 'disable', correct: 'disabled', component: 'SelectCard/FileUpload/PopUpMenu', note: '仅这三组件用 disable；Toggle/Button/Checkbox/Radio 等仍用 disabled，勿误改' },
     { eview: 'status', antd: 'type', component: 'Button' },
-    { eview: 'defaultLabel', antd: 'placeholder', component: 'Select' },
+    { eview: 'defaultLabel', antd: 'placeholder', component: 'Select', note: '仅 @/shared/Select 转 placeholder→defaultLabel；@/shared/InputSelect 与 @/shared/MultipleSelect 保留 placeholder，勿转 defaultLabel（见 InputSelect.md §反面示例）' },
     { eview: 'toggled', antd: 'checked', component: 'Toggle' },
     { eview: 'iconSize', antd: 'size', component: 'icon-plus' },
   ],
