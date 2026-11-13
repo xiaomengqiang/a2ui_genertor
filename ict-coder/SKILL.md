@@ -31,7 +31,7 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}" --dir-name "{dir-nam
 - `init.mjs` creates a page scaffold at `{artifact-folder}/{dir-name}/`:
   ```
   {dir-name}/
-  ├── public/   → linked to the skill's shared public files (library/style/font/shared/uploads)
+  ├── public/   → copied from the skill's shared public files (library/style/font/shared/uploads)
   ├── app.jsx   → entry starter (build entry + root container)
   └── src/      → context.jsx (AppProvider + dark toggle) + mock/ + components/ + views/ (empty dirs)
   ```

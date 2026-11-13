@@ -17,7 +17,6 @@ import zhCN from "./public/shared/antd-zh.js";
 import { AppProvider } from "./src/context.jsx";
 import "./app.css";
 
-
 export default function App() {
   return (
     <AppProvider>

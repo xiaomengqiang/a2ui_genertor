@@ -2,11 +2,12 @@
 // init.mjs — 初始化页面脚手架
 //
 // 在 {artifact-folder}/{dir-name}/ 下创建页面工程:
-//   ├── public/   → 链接(junction/symlink, 失败则拷贝)到 skill 的 scripts/preview/public
+//   ├── public/   → 完整拷贝自 skill 的 scripts/preview/public
 //   ├── app.jsx   → 入口 starter(构建入口 + 布局骨架)
 //   └── src/      → 页面源码(context.jsx + components/ views/ 空目录)
 //
-// 幂等: 若 {dir-name}/app.jsx 已存在 → 复用现有脚手架,不覆盖任何文件(修改会话场景)。
+// 幂等: 缺省 dir-name 重跑 → 复用现有 preview/ 工程(修改会话场景);
+//       显式 --dir-name 撞名 → 追加 -2 / -3(新建工程意图)。
 //
 // Usage:
 //   node init.mjs --artifact-folder "<abs path>" [--dir-name "<kebab-case name>"]
@@ -25,8 +26,6 @@ import {
   existsSync,
   statSync,
   mkdirSync,
-  symlinkSync,
-  rmSync,
   cpSync,
   writeFileSync,
   readdirSync,
@@ -241,35 +240,19 @@ try {
     writeFileSync(join(dest, "src", d, ".gitkeep"), "", "utf8");
   }
 
-  // --- link public (junction on win32 needs no admin; fallback: full copy) ---
+  // --- copy public (full copy from skill's shared assets) ---
   const publicDst = join(dest, "public");
-  let publicReady = false;
   try {
-    if (process.platform === "win32") {
-      symlinkSync(PUBLIC_SRC, publicDst, "junction");
-    } else {
-      symlinkSync(PUBLIC_SRC, publicDst, "dir");
-    }
-    publicReady = existsSync(publicDst);
+    cpSync(PUBLIC_SRC, publicDst, { recursive: true });
   } catch {
-    publicReady = false;
+    fail(`Could not copy public to: ${publicDst}`);
   }
-  if (!publicReady) {
-    try {
-      rmSync(publicDst, { force: true });
-      cpSync(PUBLIC_SRC, publicDst, { recursive: true });
-      publicReady = existsSync(publicDst);
-      if (publicReady) console.log("NOTE  junction unavailable — public fully copied (skill asset updates will NOT propagate; delete the public folder to re-link)");
-    } catch {
-      publicReady = false;
-    }
-  }
-  if (!publicReady) fail(`Could not link or copy public to: ${publicDst}`);
+  if (!existsSync(publicDst)) fail(`public copy failed: ${publicDst}`);
 
-  // verify runtime js is reachable through the link
+  // verify runtime js is reachable in the copied public
   const libraryDir = join(publicDst, "library");
   let libFiles = [];
-  try { libFiles = readdirSync(libraryDir); } catch { /* link broken */ }
+  try { libFiles = readdirSync(libraryDir); } catch { /* copy incomplete */ }
   const runtimeOk =
     libFiles.includes("antd.min.js") &&
     libFiles.includes("babel.min.js");
