@@ -12,7 +12,7 @@
 
 **回退路径（`migrationPlan` 为 `null`，上游未跑步骤 5）**：读 `antdComponents` 字段（keys 即组件名列表）作为迁移清单，进入 §0.2 手动对照 `component-mapping.md` 分类。文件路径字段仅供参考（搬代码后路径可能变），以组件名为准。**图标发现看 `iconCallSites` 字段或 `grep -rl "<Icon\b" src/`**（见下文 `antdIcons` 陷阱，**不要用 `antdIcons` 字段**——其恒 `[]` 不代表无图标）。
 
-**`antdIcons` 只统计 `@ant-design/icons` 命名导入，不代表有无图标**。ict-coder 产物普遍用**自定义 `<Icon name="...">` 运行时 shim**（`public/shared/icon.jsx`，源码里的"方案A形式"组件）、不用 `@ant-design/icons`，故 `antdIcons` **恒为 `[]`**——但实际有大量 `<Icon name>` 调用点（复杂页面 31 处、preview3 20+ 处），**正是方案 C/B 要识别改写的目标**（C 跑 `match-icons.cjs` 扫描、B 由 LLM 逐个在线 `getIconInfo` 匹配）。**判断是否有图标看 `iconCallSites` 字段（上游 `extract-umd.cjs` 预扫）或 `<Icon name` 调用点，不看 `antdIcons`**：
+**`antdIcons` 只统计 `@ant-design/icons` 命名导入，不代表有无图标**。ict-coder 产物普遍用**自定义 `<Icon name="...">` 运行时 shim**（`assets/shared/icon.jsx`，源码里的"方案A形式"组件）、不用 `@ant-design/icons`，故 `antdIcons` **恒为 `[]`**——但实际有大量 `<Icon name>` 调用点（复杂页面 31 处、preview3 20+ 处），**正是方案 C/B 要识别改写的目标**（C 跑 `match-icons.cjs` 扫描、B 由 LLM 逐个在线 `getIconInfo` 匹配）。**判断是否有图标看 `iconCallSites` 字段（上游 `extract-umd.cjs` 预扫）或 `<Icon name` 调用点，不看 `antdIcons`**：
 > ```bash
 > # iconCallSites 已预扫时直接用；否则 grep 确认
 > grep -rl "<Icon\b" <目标工程>/src/
@@ -59,7 +59,7 @@
 
 ### 3.0 图标（方案 B/C 名匹配 + 静态 import）/ 图表（包导入）
 
-> **图标步骤触发条件 = `src/` 下存在 `<Icon name` 调用点（`grep -rl "<Icon\b" src/` 非空）或 `@ant-design/icons` 用法，与 `.umd-conversion.json` 的 `antdIcons` 是否为空无关**。源项目的 `<Icon name="...">` 运行时 shim（`public/shared/icon.jsx`）是源码里的"方案A形式"组件，但**不等于产物方案A**：其 `<Icon name="字面量">` 调用点、以及**成员表达式 `name={t.icon}` / `name={MENU[0].icon}`（绑到同文件/跨文件静态数组）**都是方案 C/B 的**主要目标**，必须跑 `match-icons.cjs`（C）或在线匹配（B）转为 `import { IconPlusIcXxx } from '@hui/icon-plus'` 静态 import；只有真动态名（`name={row.iconField}` 类运行时数据，绑不到任何已扫文件中的静态数组常量）才落产物方案A shim。**`antdIcons: []` 时只要 src/ 有 `<Icon name` 站点就必跑图标步骤，禁止跳过**（ict-coder 产物 `antdIcons` 恒 `[]` 但有大量 `<Icon name>` 站点——见 §0.1 警告）。
+> **图标步骤触发条件 = `src/` 下存在 `<Icon name` 调用点（`grep -rl "<Icon\b" src/` 非空）或 `@ant-design/icons` 用法，与 `.umd-conversion.json` 的 `antdIcons` 是否为空无关**。源项目的 `<Icon name="...">` 运行时 shim（`assets/shared/icon.jsx`）是源码里的"方案A形式"组件，但**不等于产物方案A**：其 `<Icon name="字面量">` 调用点、以及**成员表达式 `name={t.icon}` / `name={MENU[0].icon}`（绑到同文件/跨文件静态数组）**都是方案 C/B 的**主要目标**，必须跑 `match-icons.cjs`（C）或在线匹配（B）转为 `import { IconPlusIcXxx } from '@hui/icon-plus'` 静态 import；只有真动态名（`name={row.iconField}` 类运行时数据，绑不到任何已扫文件中的静态数组常量）才落产物方案A shim。**`antdIcons: []` 时只要 src/ 有 `<Icon name` 站点就必跑图标步骤，禁止跳过**（ict-coder 产物 `antdIcons` 恒 `[]` 但有大量 `<Icon name>` 站点——见 §0.1 警告）。
 >
 > **已落方案A的产物可原地补救**（仅方案 C）：若产物调用点仍为 `<Icon name="字面量" .../>` 或 `name={t.icon}`（前次迁移漏跑图标步骤），直接 `node scripts/match-icons.cjs <工程根> --apply` 即可把字面量站点 + 数据数组动态名站点转为方案 C 静态 import（脚本幂等：已含 `IconPlusIc` 的站点自动跳过）。**方案 B 项目不跑 `match-icons.cjs --apply`**（catalog 名匹配）；但跑 `--plan` + `--apply-decisions`（结构改写 + 在线名，catalog-free，见 §3.0 B 分支）——B 的名匹配靠在线 `getIconInfo`、非离线 catalog，补救由 LLM 按 [Icon.md](components/Icon.md)「方案 B 在线匹配执行 recipe」两段式处理。`--apply` 还会自动把因改写引入 JSX 的 `.js`→`.jsx` / `.ts`→`.tsx` 并修引用方显式扩展名 import。
 
@@ -77,10 +77,10 @@ B 与 C 仅名匹配方式不同，命中后用法一致：`import { IconPlusIcX
 
 | 组件 | 源项目用法 | 迁移后（B/C 静态 import） |
 |------|-----------|------------------|
-| Icon | `<Icon name="search" size={14} />`（`./public/shared/icon.jsx`） | `import { IconPlusIcPublicSearch } from '@hui/icon-plus'` + `<IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />`（名由 B 在线 / C catalog 匹配；**C** confirmed 自动落、residual 交 LLM 选；**B** 全部名由 getIconInfo 决策日志给定，residual 仅限 untraced 跨边界结构站点、名同样取自决策日志） |
-| Chart | `<Chart name="BarChart" option={...} />`（`../../../public/shared/chart.jsx`） | `import Chart from '@nce/eview-react/Chart'`（任意位置，包导入；**Chart 已在 `migrationPlan` 里**——由 `build-migration-plan.cjs` §2c 读 `chartCallSites` 注入，keyDiffs 含 `a2ui`/`theme` 补全提醒；**option 必须显式补 `a2ui: true` + `theme`**：`theme` 必须响应式引用 `useApp().isDark`（`isDark` 来自 `src/context.jsx` 的 AppProvider，上游 `umd-to-antd-vite` 步骤 3 已保留）——`theme: isDark ? 'hdesign-dark' : 'hdesign-light'`，禁止静态字符串（暗色切换图表不跟随）；推荐 `const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' }` 聚合展开，见 [Chart.md](components/Chart.md)**） |
+| Icon | `<Icon name="search" size={14} />`（`./assets/shared/icon.jsx`） | `import { IconPlusIcPublicSearch } from '@hui/icon-plus'` + `<IconPlusIcPublicSearch iconSize={14} iconColor={['currentcolor']} />`（名由 B 在线 / C catalog 匹配；**C** confirmed 自动落、residual 交 LLM 选；**B** 全部名由 getIconInfo 决策日志给定，residual 仅限 untraced 跨边界结构站点、名同样取自决策日志） |
+| Chart | `<Chart name="BarChart" option={...} />`（`../../../assets/shared/chart.jsx`） | `import Chart from '@nce/eview-react/Chart'`（任意位置，包导入；**Chart 已在 `migrationPlan` 里**——由 `build-migration-plan.cjs` §2c 读 `chartCallSites` 注入，keyDiffs 含 `a2ui`/`theme` 补全提醒；**option 必须显式补 `a2ui: true` + `theme`**：`theme` 必须响应式引用 `useApp().isDark`（`isDark` 来自 `src/context.jsx` 的 AppProvider，上游 `umd-to-antd-vite` 步骤 3 已保留）——`theme: isDark ? 'hdesign-dark' : 'hdesign-light'`，禁止静态字符串（暗色切换图表不跟随）；推荐 `const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' }` 聚合展开，见 [Chart.md](components/Chart.md)**） |
 
-> **方案 A（B/C 兜底，仅留真运行时数据）**：经脚本常量传播 + Phase B 数组绑定 + LLM 跨组件追源仍无法确定 icon+ 名的调用点（典型：`name={row.iconField}` 类**后端运行时数据**，row 来自接口/props、迁移时值不可预知；或成员表达式绑不到任何已扫文件中的静态数组常量；或数组含非字符串字面量字段、集合不封闭），保留 scaffold `src/shared/Icon` 的 `<Icon name="...">` 契约、调用点零改动，`--apply` 仅修 import 路径（`public/shared/icon` → `@/shared/Icon`，具名→默认导入）。链式/嵌套三元、未追源标识符 `name={x}` 仍由 LLM 在 residual 阶段静态解析（recipe 见 [Icon.md](components/Icon.md)「动态名」段）；**成员表达式 `name={t.icon}` / `name={MENU[0].icon}` 绑到静态数组字面量（封闭集合）的，由 `--apply` 自动整组改写为 icon+ 元素塞进 data + render `{t.icon}`，不落 A**。见 [components/Icon.md](components/Icon.md) 渲染方式段。跑 `scripts/check-relative-imports.cjs`（§5.1）扫残留 `./public/shared/...` 旧路径。
+> **方案 A（B/C 兜底，仅留真运行时数据）**：经脚本常量传播 + Phase B 数组绑定 + LLM 跨组件追源仍无法确定 icon+ 名的调用点（典型：`name={row.iconField}` 类**后端运行时数据**，row 来自接口/props、迁移时值不可预知；或成员表达式绑不到任何已扫文件中的静态数组常量；或数组含非字符串字面量字段、集合不封闭），保留 scaffold `src/shared/Icon` 的 `<Icon name="...">` 契约、调用点零改动，`--apply` 仅修 import 路径（`assets/shared/icon` → `@/shared/Icon`，具名→默认导入）。链式/嵌套三元、未追源标识符 `name={x}` 仍由 LLM 在 residual 阶段静态解析（recipe 见 [Icon.md](components/Icon.md)「动态名」段）；**成员表达式 `name={t.icon}` / `name={MENU[0].icon}` 绑到静态数组字面量（封闭集合）的，由 `--apply` 自动整组改写为 icon+ 元素塞进 data + render `{t.icon}`，不落 A**。见 [components/Icon.md](components/Icon.md) 渲染方式段。跑 `scripts/check-relative-imports.cjs`（§5.1）扫残留 `./assets/shared/...` 旧路径。
 >
 > **icon 转换契约（详见 [Icon.md](components/Icon.md) §name 解析与方案A 判定）**：方案A（`src/shared/Icon` shim）仅当 name 值集合 OPEN（后端自由取值 / prop 源不可追·非闭集）；其余闭合集（字面量/常量/扁平三元/数据结构字段/wrapper）一律转 icon+。C `--apply` auto-转脚本能静态到达的闭合形态（字面量/常量/扁平三元/数组/对象地图/wrapper/`@ant-design/icons`）；**链式/嵌套三元与未追源标识符 → residual 交 LLM**；追不到源的（含跨边界 props/useMemo/推入函数闭合集——纯正则追不动跨组件数据流）报 `untracedSites`（不断言方案A、keep shim 可运行+修 import），交 LLM 判（闭合→转 / 真 OPEN→保 shim）。`check-icon-shim.cjs --strict`（图标步骤内跑，见 Icon.md「方案 B recipe」步 7）拦闭集误留与未判站点 + TERNARY_WRAP_LOST。B 两段式 `--plan`+`--apply-decisions` 按同一契约 + [Icon.md](components/Icon.md) recipe 转，仅跨边界 residual 手工。
 > 图表契约（`<Chart name option />`、ResizeObserver 自适应、ref 方法）由 `@nce/eview-react/Chart` 原生提供；**但源 Chart 封装在 `setSimpleOption` 前注入的 `theme` + `a2ui: true` 不会随包导入自动补**——所有图表 option 必须显式携带两项，`theme` 由全局暗色状态派生（`.dark` 切主题靠业务 option 驱动），详见 [components/Chart.md](components/Chart.md)。
@@ -232,7 +232,7 @@ node <skill目录>/scripts/check-imports.cjs <目标工程根>
 
 ### 4.4 图表 option 检查（必跑）
 
-> 对应 SKILL.md 硬约束⑪ + [Chart.md](components/Chart.md)「图表 option 缺 a2ui:true 与 theme 标识」。源 Chart 套壳（ict-coder `public/shared/chart.jsx`）自动 watch `<html>.dark` + 在 `setSimpleOption` 前注入 `theme` + `a2ui: true` + 暗色切换自动 re-render；改 `@nce/eview-react/Chart` 包导入后自动行为整体丢失——漏写则 a2ui 视觉规范失效、暗色不跟随。这是改 import 路径时最容易忘的项。
+> 对应 SKILL.md 硬约束⑪ + [Chart.md](components/Chart.md)「图表 option 缺 a2ui:true 与 theme 标识」。源 Chart 套壳（ict-coder `assets/shared/chart.jsx`）自动 watch `<html>.dark` + 在 `setSimpleOption` 前注入 `theme` + `a2ui: true` + 暗色切换自动 re-render；改 `@nce/eview-react/Chart` 包导入后自动行为整体丢失——漏写则 a2ui 视觉规范失效、暗色不跟随。这是改 import 路径时最容易忘的项。
 
 脚本 `scripts/check-chart-options.cjs`，检查三类问题：① 残留 `setSimpleOption(`（源 Chart 封装未替换为 `@nce/eview-react/Chart` 包导入）→ 硬 FAIL；② 每个 `<Chart option={X}>` 的 X 是否含 `a2ui: true` 与 `theme`——支持内联对象、变量定义（追同文件 `const X={...}`/`useMemo`）、`...chartBase` 聚合展开三种写法，追不到的外部变量标 advisory；③ **STATIC_THEME**：`theme` 值是静态字符串字面量（如 `'hdesign-light'`，非 `isDark` 动态派生）→ advisory（暗色切换时图表主题不跟随，应改 `theme: isDark ? 'hdesign-dark' : 'hdesign-light'`，`isDark` 来自 `useApp()`）。
 
@@ -282,7 +282,7 @@ advisory 模式 exit 0，但每个待核项必须在 `.migration-result.json` �
 
 ### 4.8 色值 token 漂移检查（对照源快照，必跑）
 
-> 对应需求：从 antd 向私有组件转换时，手写样式的色值 token 不应修改（不漂移）。`umd-to-antd-vite` 的 `extract-umd.cjs` 步骤 2 已扫描源项目 `public/style/` 四层 CSS 的 `--xxx: value` 定义，写入 `.umd-conversion.json` 的 `sourceCssTokens` 字段（每层一个 name→value 映射）。本脚本读该快照对照产物，无需访问源项目——解决「对照源项目」的根本边界。
+> 对应需求：从 antd 向私有组件转换时，手写样式的色值 token 不应修改（不漂移）。`umd-to-antd-vite` 的 `extract-umd.cjs` 步骤 2 已扫描源项目 `assets/style/` 四层 CSS 的 `--xxx: value` 定义，写入 `.umd-conversion.json` 的 `sourceCssTokens` 字段（每层一个 name→value 映射）。本脚本读该快照对照产物，无需访问源项目——解决「对照源项目」的根本边界。
 
 脚本 `scripts/check-token-drift.cjs`，检查四类：
 1. **TOKEN_VALUE_DRIFT（硬 FAIL）**：产物 `src/styles/*.css` 的 token 定义值与源快照不一致（如源 `--brand-50: #0067D1`，产物被改成 `#0077E0`）→ exit≠0

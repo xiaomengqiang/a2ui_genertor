@@ -318,16 +318,16 @@ function main() {
   const convertedConsumers = []; // 已转消费端签名 {x.icon}（配对上下文，帮定位半改对）
   const openShimSites = new Set(); // 判 OPEN 放行的保留 <Icon> shim 站点（baseFile:line / normFile:line），供数据源字面量 linksShim 校验
   let totalShimSites = 0;
-  // 旧 shim import 正则：legacy 具名 `import { Icon } from "...(public/)?shared/icon(s).jsx?"（未改成 `@/shared/Icon` 默认导入）
-  const staleShimImportRe = /import\s*\{\s*Icon\s*\}\s*from\s*['"][^'"]*?(?:public\/)?shared\/icons?\.jsx?['"]/;
+  // 旧 shim import 正则：legacy 具名 `import { Icon } from "...(assets/)?shared/icon(s).jsx?"（未改成 `@/shared/Icon` 默认导入）
+  const staleShimImportRe = /import\s*\{\s*Icon\s*\}\s*from\s*['"][^'"]*?(?:assets\/)?shared\/icons?\.jsx?['"]/;
   for (const file of files) {
     // 跳过 shim 自身（src/shared/Icon/）
     if (rel(file).includes('/shared/Icon/')) continue;
     const text = fs.readFileSync(file, 'utf8');
     const sites = scanShimSites(text);
     if (sites.length && staleShimImportRe.test(text)) {
-      // 残留 <Icon> 站点的文件仍 import 旧 public/shared/icon 路径 → A3 后脚本不再 auto-修，须 LLM 手改 @/shared/Icon
-      staleImports.push({ file: rel(file), issue: 'STALE-SHIM-IMPORT', detail: '残留 <Icon> 站点的文件仍 import 旧 `public/shared/icon` 路径（具名）——A3 后脚本不 auto-修，须手改 `import Icon from "@/shared/Icon"`（默认导入），否则运行时 404' });
+      // 残留 <Icon> 站点的文件仍 import 旧 assets/shared/icon 路径 → A3 后脚本不再 auto-修，须 LLM 手改 @/shared/Icon
+      staleImports.push({ file: rel(file), issue: 'STALE-SHIM-IMPORT', detail: '残留 <Icon> 站点的文件仍 import 旧 `assets/shared/icon` 路径（具名）——A3 后脚本不 auto-修，须手改 `import Icon from "@/shared/Icon"`（默认导入），否则运行时 404' });
     }
     for (const s of sites) {
       totalShimSites++;

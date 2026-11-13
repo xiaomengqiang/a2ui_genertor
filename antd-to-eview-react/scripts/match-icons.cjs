@@ -786,10 +786,10 @@ function dataRenderReplacement(expr, text, offset) {
   return wrapIfNeeded(expr, text, offset);
 }
 
-// 方案A shim import 路径修正：public/shared/icon(.jsx?) 或旧产物 shared/icon(.jsx?) → @/shared/Icon（scaffold 把 shim 重构为 src/shared/Icon/ folder + 默认导出）。
+// 方案A shim import 路径修正：assets/shared/icon(.jsx?) 或旧产物 shared/icon(.jsx?) → @/shared/Icon（scaffold 把 shim 重构为 src/shared/Icon/ folder + 默认导出）。
 // 同时把具名 import { Icon } 改为默认 import Icon（scaffold 桶 export { default }）。幂等：已是 @/shared/Icon 默认导入不匹配。
 function fixShimImportPath(text) {
-  return text.replace(/import\s*\{\s*Icon\s*\}\s*from\s*['"][^'"]*?(?:public\/shared|shared)\/icons?\.jsx?['"]/g, 'import Icon from "@/shared/Icon"');
+  return text.replace(/import\s*\{\s*Icon\s*\}\s*from\s*['"][^'"]*?(?:assets\/shared|shared)\/icons?\.jsx?['"]/g, 'import Icon from "@/shared/Icon"');
 }
 
 // 解析数组变量 ARR 的声明位置：先同文件（renderFile），再跨文件按名唯一性找；返回 {arrayFile, arrOpenIdx} 或 null（找不到/多名歧义）。
@@ -1587,7 +1587,7 @@ function applyRewrites(scan, byName, srcDir) {
     }
   }
   // 旧 Icon import 清理正则（文件已无 <Icon 调用时移除）：覆盖 legacy 具名 shared/icon(s).jsx（scaffold 旧产物/源项目）与新默认 @/shared/Icon（scaffold 重构后）
-  const oldIconImportRe = /^\s*import\s*(?:\{\s*Icon\s*\}|Icon)\s*from\s*['"](?:[^'"]*?(?:public\/)?shared\/icons?\.jsx?|@\/shared\/Icon)['"];?\s*\r?\n?/gm;
+  const oldIconImportRe = /^\s*import\s*(?:\{\s*Icon\s*\}|Icon)\s*from\s*['"](?:[^'"]*?(?:assets\/)?shared\/icons?\.jsx?|@\/shared\/Icon)['"];?\s*\r?\n?/gm;
 
   // untraced 站点（追不到源）+ 安全闸 wrapper 残留文件：纳入 byFile 以触写（不 auto-保方案A、不断言 runtime——
   // 仅 keep 残留 <Icon> shim 可运行：修 import 路径让产物不崩，每处残留交 LLM 按 closed-set 原则判、check-icon-shim --strict 拦）

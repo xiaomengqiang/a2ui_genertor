@@ -22,7 +22,7 @@
 | wrapper `icon` prop `<SoftTag icon="lit">`/`icon={const\|扁平三元\|成员}` | 闭合（调用方可解析） | C Phase C 自动 / B 手工 |
 | 跨边界 `name={x.icon}`，`x` 来自 props（源是父组件 useMemo 字面量 / useState 字面量 seed / 推入函数 `"lit"` 调用点） | **闭合但脚本追不动** | **untraced → LLM 按下法追源手工转** |
 | 裸标识符 `name={X}` 跨文件 const / `&&` 条件 `name={cond && "x"}` / 容器字段值是闭合三元 | 闭合（脚本未覆盖） | untraced → LLM 按下法手工转 / gate 拦 |
-| 真 OPEN `name={row.iconField}` 后端自由取值 / props 字段且源不在已扫文件 | **OPEN** | **方案 A**（保 shim + 手修 import 路径 `public/shared/icon` → `@/shared/Icon`） |
+| 真 OPEN `name={row.iconField}` 后端自由取值 / props 字段且源不在已扫文件 | **OPEN** | **方案 A**（保 shim + 手修 import 路径 `assets/shared/icon` → `@/shared/Icon`） |
 
 > **C 下 `match-icons.cjs` 标的 `untracedSites` ≠ 方案A**：脚本追不到源（含跨边界）只 keep 残留 `<Icon>` shim 可运行 + 修 import，**不断言 runtime、不 auto-保方案A**——每处交 LLM 按本表判（闭合→转 / OPEN→保 shim），`scripts/check-icon-shim.cjs --strict` 拦闭集误留与未判站点（无结论 / vague-reason 缺 OPEN 证据 / 幻觉章节引用）。
 
@@ -133,7 +133,7 @@ const data = [
 - **整组全改写**：数组内每个 `icon: "lit"` 字段都改写——命中的用真实 icon+ 组件，**未命中的用 icon+ 默认占位图标 `IconPlusIcPublicTransverseRectangleTemplate` 顶替**（保证 render `{t.icon}` 永远拿到 React 元素，不出现"一半字符串一半元素"的中间态）。未命中项同时进 residual 报告带 top-K 候选，供 LLM 后续把占位换成贴切图标。
 - **render 站点按上下文替换**：`<Icon name={EXPR}/>` → `EXPR`（箭头隐式返回体 / prop 表达式容器 `leftIcon={<Icon/>}` / 括号位）或 `{EXPR}`（独立 JSX 子节点 `<div><Icon/></div>`）。EXPR 即原表达式（`t.icon` / `MENU[0].icon`）。
 - **`size`/`color`/`variant`**：取自 render 站点，透传进 data 元素的 `iconSize`/`iconColor`/`type`（`iconSize` 支持 rem/px/数字，B/C 不转换）。
-- **绑不到静态数组源**（`IDENT` 非循环变量、也非任何已扫文件中的 `const ARR = [...]`；或数组含非字符串字面量字段，集合不封闭；或跨文件同名多名歧义）→ **untraced**：脚本 keep 残留 `<Icon name={IDENT.field}/>` shim 可运行 + 修 `shared/Icon` import 路径（`public/shared/icon` → `@/shared/Icon`，具名→默认），报 `untracedSites` 段交 LLM 按 §name 解析 判（闭合→转 / 真 OPEN→保 shim）；**不断言方案A**。`check-icon-shim --strict` 拦闭集误留。
+- **绑不到静态数组源**（`IDENT` 非循环变量、也非任何已扫文件中的 `const ARR = [...]`；或数组含非字符串字面量字段，集合不封闭；或跨文件同名多名歧义）→ **untraced**：脚本 keep 残留 `<Icon name={IDENT.field}/>` shim 可运行 + 修 `shared/Icon` import 路径（`assets/shared/icon` → `@/shared/Icon`，具名→默认），报 `untracedSites` 段交 LLM 按 §name 解析 判（闭合→转 / 真 OPEN→保 shim）；**不断言方案A**。`check-icon-shim --strict` 拦闭集误留。
 - **`.js`→`.jsx`**：data 文件塞进 `<IconPlusIc…/>` 元素即引入 JSX，`--apply` 自动把该 `.js` 转 `.jsx`（`.ts`→`.tsx`），并修引用方显式 `.js`/`.ts` 扩展名 import（无扩展名 import 不动，解析器仍命中 `.jsx`）。
 - 仅**标识符** `name={x}`（常量传播未命中）与**链式/嵌套三元** `name={a ? 'x' : b ? 'y' : 'z'}` 仍交 LLM 在 residual 阶段按 catalog/候选解析（recipe：name→组件 map + fallback `<Icon name={t.icon}/>` 兜底未知 key）。
 
@@ -251,10 +251,10 @@ scaffold 预置 `src/shared/Icon`（folder + 默认导出），保留源项目 `
 
 | 源项目原路径 | 迁移后路径 | 调用点位置 |
 |-------------|-----------|-----------|
-| `./public/shared/icon.jsx` | `@/shared/Icon`（`import Icon`，默认导入） | `src/` 下文件 |
-| `../../../public/shared/icon.jsx` | `@/shared/Icon`（`import Icon`，默认导入） | `src/views/` 下文件 |
+| `./assets/shared/icon.jsx` | `@/shared/Icon`（`import Icon`，默认导入） | `src/` 下文件 |
+| `../../../assets/shared/icon.jsx` | `@/shared/Icon`（`import Icon`，默认导入） | `src/views/` 下文件 |
 
-> 跑 `scripts/check-relative-imports.cjs`（见 [migration-workflow.md §4.1](../migration-workflow.md)）扫残留 `./public/shared/...` 旧路径。
+> 跑 `scripts/check-relative-imports.cjs`（见 [migration-workflow.md §4.1](../migration-workflow.md)）扫残留 `./assets/shared/...` 旧路径。
 
 ## 2. 事件与交互逻辑
 
