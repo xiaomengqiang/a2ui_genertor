@@ -44,7 +44,7 @@ const stats = {
   antdComponents: {}, antdIcons: [], iconCallSites: [],
   ipInputCallSites: { sharedFiles: [], imports: [], callSites: [] },
   chartCallSites: { sharedFiles: [], imports: [], callSites: [] },
-  uploadsAssets: { copied: [], copiedCount: 0, pathRewrite: { from: './public/uploads/', to: '/uploads/' } },
+  uploadsAssets: { copied: [], copiedCount: 0, pathRewrite: { from: './assets/uploads/', to: '/uploads/' } },
   // 源项目 CSS token 定义快照（供下游 check-token-drift.cjs 对照防 token 漂移）
   sourceCssTokens: {},
   // 源项目业务 CSS 写死色值快照（供下游 check-css.cjs 对照防色值漂移）
@@ -53,61 +53,61 @@ const stats = {
   inputPropCallSites: [],
 };
 
-// ========== 1. 从产物 public/style/ 拷贝 4 层 CSS（ict-coder 已分好类：base/light/theme/dark） ==========
-// ict-coder 的 style 五层（base/light/theme/dark/ant）已分文件存于产物 public/style/，
+// ========== 1. 从产物 assets/style/ 拷贝 4 层 CSS（ict-coder 已分好类：base/light/theme/dark） ==========
+// ict-coder 的 style 五层（base/light/theme/dark/ant）已分文件存于产物 assets/style/，
 // extract-umd 直接读这 4 个文件（ant.css 跳过，eview-react 用 aui3_1.css 替代），
 // 不再从 index.page.html 内联 <style> 艰难按内容特征区分 :root 三层——分类 ict 已做好。
 
 function copyStyleFiles() {
-  const publicStyleDir = path.join(sourceDir, 'public', 'style');
+  const assetsStyleDir = path.join(sourceDir, 'assets', 'style');
   const stylesDir = path.join(resolvedOutput, 'src', 'styles');
   if (!fs.existsSync(stylesDir)) fs.mkdirSync(stylesDir, { recursive: true });
   const cssFilesWritten = [];
 
-  if (!fs.existsSync(publicStyleDir)) {
-    console.warn(`[extract-umd] 源项目无 public/style/ 目录（ict-coder 标准产物应含此目录，含 base/light/theme/dark/ant 五层 CSS），跳过 CSS 拷贝；scaffold 空壳占位将保留`);
+  if (!fs.existsSync(assetsStyleDir)) {
+    console.warn(`[extract-umd] 源项目无 assets/style/ 目录（ict-coder 标准产物应含此目录，含 base/light/theme/dark/ant 五层 CSS），跳过 CSS 拷贝；scaffold 空壳占位将保留`);
     return cssFilesWritten;
   }
 
-  // base.css: @font-face 字体路径改写（../font/ | ./font/ | public/font/ → /font/，Vite public 绝对路径）；
-  // ./public/uploads/ → /uploads/（图片资源由 §4.8 拷到 public/uploads/）；
+  // base.css: @font-face 字体路径改写（../font/ | ./font/ | assets/font/ → /font/，Vite public 绝对路径）；
+  // ./assets/uploads/ → /uploads/（图片资源由 §4.8 拷到 public/uploads/）；
   // append 到 scaffold 预制的 base.css（eview 专用样式 ev_no_wcag/ev_form_item 保留在前）
-  const baseSrc = path.join(publicStyleDir, 'base.css');
+  const baseSrc = path.join(assetsStyleDir, 'base.css');
   if (fs.existsSync(baseSrc)) {
     let content = fs.readFileSync(baseSrc, 'utf8');
     content = content.replace(
-      /url\(\s*['"]?(?:\.\.\/)*(?:\.\/)?(?:public\/)?(font\/HarmonyOS_SansSC\/[^'")\s]+)['"]?\s*\)/g,
+      /url\(\s*['"]?(?:\.\.\/)*(?:\.\/)?(?:assets\/)?(font\/HarmonyOS_SansSC\/[^'")\s]+)['"]?\s*\)/g,
       "url('/$1')"
     );
-    content = content.replace(/\.\/public\/uploads\//g, '/uploads/');
+    content = content.replace(/\.\/assets\/uploads\//g, '/uploads/');
     const baseDest = path.join(stylesDir, 'base.css');
-    fs.appendFileSync(baseDest, `\n\n/* 以下从源项目 public/style/base.css 拷贝（@font-face 字体路径已改写为 Vite /font/ 绝对路径，uploads 图片路径改写为 /uploads/） */\n\n${content}\n`, 'utf8');
+    fs.appendFileSync(baseDest, `\n\n/* 以下从源项目 assets/style/base.css 拷贝（@font-face 字体路径已改写为 Vite /font/ 绝对路径，uploads 图片路径改写为 /uploads/） */\n\n${content}\n`, 'utf8');
     cssFilesWritten.push('src/styles/base.css');
-    stats.styleFiles.push({ from: 'public/style/base.css', to: 'src/styles/base.css' });
+    stats.styleFiles.push({ from: 'assets/style/base.css', to: 'src/styles/base.css' });
     console.log(`[extract-umd] base.css: 拷贝 + 路径改写（@font-face → /font/，uploads → /uploads/）`);
   }
 
   // light.css / theme.css / dark.css: 直接 write（覆盖 scaffold 空壳占位）
   for (const name of ['light.css', 'theme.css', 'dark.css']) {
-    const src = path.join(publicStyleDir, name);
+    const src = path.join(assetsStyleDir, name);
     if (fs.existsSync(src)) {
       const content = fs.readFileSync(src, 'utf8');
       fs.writeFileSync(path.join(stylesDir, name), content, 'utf8');
       cssFilesWritten.push(`src/styles/${name}`);
-      stats.styleFiles.push({ from: `public/style/${name}`, to: `src/styles/${name}` });
+      stats.styleFiles.push({ from: `assets/style/${name}`, to: `src/styles/${name}` });
       const varCount = (content.match(/--[a-zA-Z0-9-]+\s*:/g) || []).length;
       console.log(`[extract-umd] ${name}: 拷贝（${varCount} 个变量定义）`);
     }
   }
 
   // ant.css 跳过（eview-react 用 aui3_1.css 替代，不需 antd 组件换肤层）
-  if (fs.existsSync(path.join(publicStyleDir, 'ant.css'))) {
+  if (fs.existsSync(path.join(assetsStyleDir, 'ant.css'))) {
     console.log(`[extract-umd] ant.css: 跳过（eview-react 用 aui3_1.css 替代）`);
   }
 
   // 扫描 4 层 CSS 的 token 定义生成 sourceCssTokens 快照（供下游 check-token-drift.cjs 对照）
   for (const name of ['base.css', 'light.css', 'theme.css', 'dark.css']) {
-    const src = path.join(publicStyleDir, name);
+    const src = path.join(assetsStyleDir, name);
     if (fs.existsSync(src)) {
       stats.sourceCssTokens[name] = extractCssTokens(fs.readFileSync(src, 'utf8'));
     }
@@ -610,11 +610,11 @@ stats.sourceCssColors = scanSourceCssColors();
 function scanIpInputCallSites() {
   const result = { sharedFiles: [], imports: [], callSites: [] };
 
-  // 1) 检测源项目里的手写 IPInput 共享件（public/shared/ip-input.jsx 等常见位置 + src/components/ip-input/）
+  // 1) 检测源项目里的手写 IPInput 共享件（assets/shared/ip-input.jsx 等常见位置 + src/components/ip-input/）
   const candidates = [
-    'public/shared/ip-input.jsx',
-    'public/shared/IpInput.jsx',
-    'public/shared/IPInput.jsx',
+    'assets/shared/ip-input.jsx',
+    'assets/shared/IpInput.jsx',
+    'assets/shared/IPInput.jsx',
   ];
   for (const rel of candidates) {
     if (fs.existsSync(path.join(sourceDir, rel))) result.sharedFiles.push(rel);
@@ -630,8 +630,8 @@ function scanIpInputCallSites() {
   for (const { fullPath, relFile } of collectScanFiles(/\.(jsx?|tsx?)$/)) {
     const code = fs.readFileSync(fullPath, 'utf8');
 
-    // import IpInput from ".../public/shared/ip-input.jsx" 或 .../components/ip-input
-    const importRe = /import\s+(\w+)\s+from\s+['"]([^'"]*(?:public\/shared\/ip-input|components\/ip-input)[^'"]*)['"]/gi;
+    // import IpInput from ".../assets/shared/ip-input.jsx" 或 .../components/ip-input
+    const importRe = /import\s+(\w+)\s+from\s+['"]([^'"]*(?:assets\/shared\/ip-input|components\/ip-input)[^'"]*)['"]/gi;
     let im;
     while ((im = importRe.exec(code)) !== null) {
       result.imports.push({ file: relFile, importName: im[1], source: im[2] });
@@ -659,17 +659,17 @@ if (stats.ipInputCallSites.callSites.length) {
   console.log(`[extract-umd] <IpInput> 调用点: ${stats.ipInputCallSites.callSites.length} 处, import 来源: ${stats.ipInputCallSites.imports.length} 处, 手写共享件: ${stats.ipInputCallSites.sharedFiles.length} 个`);
 }
 
-// ========== 4.8 拷贝 public/uploads/ 图片资源到 public/uploads/（scaffold public/ 预置 font/，无 uploads/） ==========
-// ict-coder 把图片放在 public/uploads/，UMD 用相对路径 ./public/uploads/xxx 引用。
-// Vite 工程下这些路径会断，需：① 整目录拷到 public/uploads/；② JSX/CSS 里的 ./public/uploads/xxx 改写成 /uploads/xxx。
+// ========== 4.8 拷贝 assets/uploads/ 图片资源到 public/uploads/（scaffold public/ 预置 font/，无 uploads/） ==========
+// ict-coder 把图片放在 assets/uploads/，UMD 用相对路径 ./assets/uploads/xxx 引用。
+// Vite 工程下这些路径会断，需：① 整目录拷到 public/uploads/；② JSX/CSS 里的 ./assets/uploads/xxx 改写成 /uploads/xxx。
 // 本步做①（拷贝）+ 记录 pathRewrite 规则到 .umd-conversion.json（供步骤 3 子 agent 改 JSX 路径）；
 // CSS 改写已在上文 §1 buckets 生成后统一完成（CSS 文件由 extract-umd 写、子 agent 不碰）。
 
 function copyUploadsAssets() {
-  const result = { copied: [], copiedCount: 0, pathRewrite: { from: './public/uploads/', to: '/uploads/' } };
-  const srcUploadsDir = path.join(sourceDir, 'public', 'uploads');
+  const result = { copied: [], copiedCount: 0, pathRewrite: { from: './assets/uploads/', to: '/uploads/' } };
+  const srcUploadsDir = path.join(sourceDir, 'assets', 'uploads');
   if (!fs.existsSync(srcUploadsDir)) {
-    console.log('[extract-umd] 源项目无 public/uploads/ 目录，跳过图片资源拷贝');
+    console.log('[extract-umd] 源项目无 assets/uploads/ 目录，跳过图片资源拷贝');
     return result;
   }
   const destUploadsDir = path.join(resolvedOutput, 'public', 'uploads');
@@ -697,7 +697,7 @@ function copyUploadsAssets() {
 stats.uploadsAssets = copyUploadsAssets();
 
 if (stats.uploadsAssets.copiedCount) {
-  console.log(`[extract-umd] 拷贝 public/uploads/ 图片资源: ${stats.uploadsAssets.copiedCount} 个文件 → public/uploads/`);
+  console.log(`[extract-umd] 拷贝 assets/uploads/ 图片资源: ${stats.uploadsAssets.copiedCount} 个文件 → public/uploads/`);
 }
 
 // ========== 4.9 扫描 Chart 调用点（ict-coder 内置图表共享件，非 antd 导入，extract-umd 默认扫不到） ==========
@@ -705,10 +705,10 @@ if (stats.uploadsAssets.copiedCount) {
 function scanChartCallSites() {
   const result = { sharedFiles: [], imports: [], callSites: [] };
 
-  // 1) 检测源项目里的 Chart 共享件（public/shared/chart.jsx 等常见位置 + src/components/chart/）
+  // 1) 检测源项目里的 Chart 共享件（assets/shared/chart.jsx 等常见位置 + src/components/chart/）
   const candidates = [
-    'public/shared/chart.jsx',
-    'public/shared/Chart.jsx',
+    'assets/shared/chart.jsx',
+    'assets/shared/Chart.jsx',
   ];
   for (const rel of candidates) {
     if (fs.existsSync(path.join(sourceDir, rel))) result.sharedFiles.push(rel);
@@ -724,8 +724,8 @@ function scanChartCallSites() {
   for (const { fullPath, relFile } of collectScanFiles(/\.(jsx?|tsx?)$/)) {
     const code = fs.readFileSync(fullPath, 'utf8');
 
-    // import Chart from ".../public/shared/chart.jsx" 或 .../components/chart
-    const importRe = /import\s+(\w+)\s+from\s+['"]([^'"]*(?:public\/shared\/chart|components\/chart)[^'"]*)['"]/gi;
+    // import Chart from ".../assets/shared/chart.jsx" 或 .../components/chart
+    const importRe = /import\s+(\w+)\s+from\s+['"]([^'"]*(?:assets\/shared\/chart|components\/chart)[^'"]*)['"]/gi;
     let im;
     while ((im = importRe.exec(code)) !== null) {
       result.imports.push({ file: relFile, importName: im[1], source: im[2] });
@@ -789,7 +789,7 @@ const handoff = {
   chartCallSites: stats.chartCallSites,
   uploadsAssets: stats.uploadsAssets,
   styles: {
-    source: 'public/style',
+    source: 'assets/style',
     files: stats.styleFiles,
     cssFiles: cssFilesWritten,
   },
