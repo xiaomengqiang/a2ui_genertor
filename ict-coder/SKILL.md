@@ -35,7 +35,7 @@ node scripts/init.mjs --artifact-folder "{artifact-folder}" --dir-name "{dir-nam
   ├── app.jsx   → entry starter (build entry + root container)
   └── src/      → context.jsx (AppProvider + dark toggle) + mock/ + components/ + views/ (empty dirs)
   ```
-- `init.mjs` also creates `AGENTS.md` (fixed content, do not edit) and `README.md` (project documentation template) at `{artifact-folder}/` — **you must fill in the README placeholders** after authoring the page: `[项目名称]`, `[一句话描述项目功能]`, `[skill路径]`, and `[工程目录]`.
+- `init.mjs` also creates `AGENTS.md` (fixed content, do not edit) and `README.md` (project documentation template) at `{artifact-folder}/` — **you must fill in the README placeholders** after authoring the page: `[项目名称]`, `[一句话描述项目功能]`, and `[工程目录]` (relative path from README, e.g. `./device-alarm-management`).
 - **Output:** `RESULT: OK` + `SCAFFOLD_DIR: <abs path>` → proceed. `RESULT: FAIL | <reason>` → fix and re-run.
 - **Init runs ONCE per page.** In modification sessions, do NOT re-run init.
 
@@ -173,7 +173,7 @@ node scripts/verify-build.mjs --dir "{SCAFFOLD_DIR}"
 
 After build and verify both pass:
 
-1. Fill in the `{artifact-folder}/README.md` placeholders — `[项目名称]`, `[一句话描述项目功能]`, `[skill路径]`, and `[工程目录]`. Do NOT edit `AGENTS.md` (fixed content, created by init).
+1. Fill in the `{artifact-folder}/README.md` placeholders — `[项目名称]`, `[一句话描述项目功能]`, and `[工程目录]` (relative path from README). Do NOT edit `AGENTS.md` (fixed content, created by init).
 2. Output the preview link as the final conversation output:
 ```
 <artifact type="text/link">{SCAFFOLD_DIR}/index.page.html</artifact>
@@ -214,7 +214,9 @@ When modifying an existing page, **do NOT regenerate from scratch or edit `index
 2. app.jsx: `export default function App()` present
 3. Mock data complete (row count, status diversity, semantic keys)
 4. Every used antd component follows `references/component/{Name}.md` specs
-5. `<artifact>` link output
+5. **Chart height check:** every `<Chart>` has a computable height — inline `style={{ height }}`, a CSS class on a definite-height element, a fixed-height ancestor, or Pattern C's `flex:1` + `minHeight` floor. Never on an auto-height parent without any of these.
+6. **Chart loop check:** stretch-only chart layouts must cut both feedback channels — container `flex:1 1 0`+`min-height:0`, wrapper `flex:1`+`minHeight:0`+`minWidth:0`.
+7. `<artifact>` link output
 
 ## References
 

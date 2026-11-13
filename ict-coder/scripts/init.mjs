@@ -197,9 +197,11 @@ const README_MD = `# [项目名称]
 
 ## 开发流程
 
+在 README 所在目录运行以下命令。
+
 1. 修改 \`app.jsx\` 或 \`src/\` 下的源码
-2. 重新构建：\`node [skill路径]/scripts/build.mjs --dir [工程目录]\`
-3. 验证构建：\`node [skill路径]/scripts/verify-build.mjs --dir [工程目录]\`
+2. 重新构建：运行 ict-coder skill 的 \`build.mjs --dir [工程目录]\`（skill 目录因人而异）
+3. 验证构建：运行 ict-coder skill 的 \`verify-build.mjs --dir [工程目录]\`
 4. 刷新浏览器查看效果（构建产物：\`[工程目录]/index.page.html\`，双击打开或刷新已打开的页面）
 
 ## 目录结构
