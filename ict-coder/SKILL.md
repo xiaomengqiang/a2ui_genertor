@@ -13,7 +13,7 @@ Deliverables per request: a page scaffold (`app.jsx` + `src/*`) authored as stan
 ```
 init scaffold → author page → build → verify → output
 ```
-0. **Init:** create the page scaffold at `{artifact-folder}/preview/`
+0. **Init:** create the page scaffold at `{artifact-folder}/{dir-name}/`
 1. **Author:** write the page source (app.jsx + src/**) as ES Modules
 2. **Build & verify:** compile to a single `index.page.html`, machine-check it
 3. **Output:** emit the preview link as an `<artifact>` tag
@@ -23,18 +23,19 @@ init scaffold → author page → build → verify → output
 ## Step 1 — Init Scaffold (MANDATORY, once per page)
 
 ```
-node scripts/init.mjs --artifact-folder "{artifact-folder}"
+node scripts/init.mjs --artifact-folder "{artifact-folder}" --dir-name "{dir-name}"
 ```
 
 - `{artifact-folder}` comes from the runtime context — use it as-is, do NOT create/guess/fabricate it. If absent, omit the flag (falls back to the current working directory).
-- `init.mjs` creates a page scaffold at `{artifact-folder}/preview/`:
+- `{dir-name}` derived from the user's page description (kebab-case English, e.g. `device-alarm-management`). If omitted, defaults to `"preview"`. Use distinct dir names for multiple pages in the same workspace; conflicts auto-append `-2`/`-3`.
+- `init.mjs` creates a page scaffold at `{artifact-folder}/{dir-name}/`:
   ```
-  preview/
+  {dir-name}/
   ├── public/   → linked to the skill's shared public files (library/style/font/shared/uploads)
   ├── app.jsx   → entry starter (build entry + root container)
   └── src/      → context.jsx (AppProvider + dark toggle) + mock/ + components/ + views/ (empty dirs)
   ```
-- `init.mjs` also creates `AGENTS.md` (fixed content, do not edit) and `README.md` (project documentation template) at `{artifact-folder}/` — **you must fill in the README placeholders** after authoring the page: `[项目名称]`, `[一句话描述项目功能]`, and `[skill路径]`/`[本目录路径]` in the build commands.
+- `init.mjs` also creates `AGENTS.md` (fixed content, do not edit) and `README.md` (project documentation template) at `{artifact-folder}/` — **you must fill in the README placeholders** after authoring the page: `[项目名称]`, `[一句话描述项目功能]`, `[skill路径]`, and `[工程目录]`.
 - **Output:** `RESULT: OK` + `SCAFFOLD_DIR: <abs path>` → proceed. `RESULT: FAIL | <reason>` → fix and re-run.
 - **Init runs ONCE per page.** In modification sessions, do NOT re-run init.
 
@@ -172,7 +173,7 @@ node scripts/verify-build.mjs --dir "{SCAFFOLD_DIR}"
 
 After build and verify both pass:
 
-1. Fill in the `{artifact-folder}/README.md` placeholders — `[项目名称]`, `[一句话描述项目功能]`, and `[skill路径]`/`[本目录路径]` in the build commands. Do NOT edit `AGENTS.md` (fixed content, created by init).
+1. Fill in the `{artifact-folder}/README.md` placeholders — `[项目名称]`, `[一句话描述项目功能]`, `[skill路径]`, and `[工程目录]`. Do NOT edit `AGENTS.md` (fixed content, created by init).
 2. Output the preview link as the final conversation output:
 ```
 <artifact type="text/link">{SCAFFOLD_DIR}/index.page.html</artifact>
@@ -184,7 +185,7 @@ After build and verify both pass:
 
 When modifying an existing page, **do NOT regenerate from scratch or edit `index.page.html` directly** — modify the `src` source and rebuild:
 
-1. **Locate:** `{artifact-folder}/preview/` (the `SCAFFOLD_DIR` from init).
+1. **Locate:** the `SCAFFOLD_DIR` from init (i.e. `{artifact-folder}/{dir-name}/`).
 2. **Edit:** only the parts the user mentioned — keep the rest untouched.
 3. **Rebuild & verify:** Step 3 + Step 4. 
 4. **Output:** output the same `<artifact>` link as in Step 5.

@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 // init.mjs — 初始化页面脚手架
 //
-// 在 {artifact-folder}/preview/ 下创建页面工程:
+// 在 {artifact-folder}/{dir-name}/ 下创建页面工程:
 //   ├── public/   → 链接(junction/symlink, 失败则拷贝)到 skill 的 scripts/preview/public
 //   ├── app.jsx   → 入口 starter(构建入口 + 布局骨架)
 //   └── src/      → 页面源码(context.jsx + components/ views/ 空目录)
 //
-// 幂等: 若 preview/app.jsx 已存在 → 复用现有脚手架,不覆盖任何文件(修改会话场景)。
+// 幂等: 若 {dir-name}/app.jsx 已存在 → 复用现有脚手架,不覆盖任何文件(修改会话场景)。
 //
 // Usage:
-//   node init.mjs --artifact-folder "<abs path>"
-//   short: -a      (artifact-folder 缺省时使用当前工作目录)
+//   node init.mjs --artifact-folder "<abs path>" [--dir-name "<kebab-case name>"]
+//   short: -a / -d     (artifact-folder 缺省时使用当前工作目录; dir-name 缺省时为 "preview")
+//
+// dir-name 命名规则: kebab-case, 由 AI 根据用户页面描述提取(如 "device-alarm-management")
+// 冲突处理: 若同名目录已含工程(app.jsx), 自动追加 -2 / -3
 //
 // Output (agent-parseable):
 //   RESULT: OK
@@ -50,10 +53,17 @@ function getOpt(long, short) {
 }
 
 const artifactFolder = getOpt("--artifact-folder", "-a");
+const dirNameOpt = getOpt("--dir-name", "-d");
 
 const base = resolve(artifactFolder ? artifactFolder : process.cwd());
 if (!existsSync(base) || !statSync(base).isDirectory()) {
   fail(`Artifact folder does not exist or is not a directory: ${base}`);
+}
+
+// dir-name: kebab-case, derived from user's page description; default "preview"
+const dirName = dirNameOpt || "preview";
+if (!/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(dirName)) {
+  fail(`Invalid dir-name "${dirName}" — must be kebab-case (e.g. "device-alarm-management")`);
 }
 
 // --- validate skill public completeness ---
@@ -79,7 +89,16 @@ for (const p of REQUIRED) {
   if (!existsSync(join(PUBLIC_SRC, p))) fail(`skill public incomplete, missing: ${p}`);
 }
 
-const dest = join(base, "preview");
+// resolve conflicts: only when dir-name was explicitly passed (new project intent);
+// default "preview" re-run means a modification session → idempotent reuse
+let dest = join(base, dirName);
+if (dirNameOpt && existsSync(join(dest, "app.jsx"))) {
+  let n = 2;
+  while (existsSync(join(base, `${dirName}-${n}`, "app.jsx"))) n++;
+  const resolved = `${dirName}-${n}`;
+  console.log(`NOTE  dir-name conflict: "${dirName}" already has a project, using "${resolved}"`);
+  dest = join(base, resolved);
+}
 
 const STARTER_APP = `// App entry — ICT React page
 // Layering convention (one folder per component, kebab-case + index.jsx/index.css):
@@ -169,14 +188,14 @@ const README_MD = `# [项目名称]
 ## 开发流程
 
 1. 修改 \`app.jsx\` 或 \`src/\` 下的源码
-2. 重新构建：\`node [skill路径]/scripts/build.mjs --dir [本目录路径]/preview\`
-3. 验证构建：\`node [skill路径]/scripts/verify-build.mjs --dir [本目录路径]/preview\`
-4. 刷新浏览器查看效果（构建产物：\`preview/index.page.html\`，双击打开或刷新已打开的页面）
+2. 重新构建：\`node [skill路径]/scripts/build.mjs --dir [工程目录]\`
+3. 验证构建：\`node [skill路径]/scripts/verify-build.mjs --dir [工程目录]\`
+4. 刷新浏览器查看效果（构建产物：\`[工程目录]/index.page.html\`，双击打开或刷新已打开的页面）
 
 ## 目录结构
 
 \`\`\`
-preview/
+[工程目录]/
 ├── app.jsx              页面入口（Provider + 根容器组装）
 ├── src/
 │   ├── views/           视图组件（一个 tab/section 一个文件夹）
@@ -259,8 +278,9 @@ try {
   writeFileSync(join(dest, "app.jsx"), STARTER_APP, "utf8");
   writeFileSync(join(dest, "src", "context.jsx"), STARTER_CONTEXT, "utf8");
   writeFileSync(join(dest, "app.css"), STARTER_CSS, "utf8");
-  writeFileSync(join(base, "AGENTS.md"), AGENTS_MD, "utf8");
-  writeFileSync(join(base, "README.md"), README_MD, "utf8");
+  // AGENTS.md / README.md: shared at base level, only write if not already present
+  if (!existsSync(join(base, "AGENTS.md"))) writeFileSync(join(base, "AGENTS.md"), AGENTS_MD, "utf8");
+  if (!existsSync(join(base, "README.md"))) writeFileSync(join(base, "README.md"), README_MD, "utf8");
 
   console.log("RESULT: OK");
   console.log(`SCAFFOLD_DIR: ${dest}`);
