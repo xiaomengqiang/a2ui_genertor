@@ -178,6 +178,17 @@ const AGENTS_MD = `本项目的唯一内容源是根目录 **README.md**（目�
 **任何 AI 会话开始工作前，必须先完整阅读 README.md，并严格遵守其中的约定。**
 `;
 
+const GITIGNORE = `.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+.octo/
+.history/
+node_modules/
+dist/
+`;
+
 const README_MD = `# [项目名称]
 
 > 本项目由 ict-coder skill 生成。
@@ -261,9 +272,10 @@ try {
   writeFileSync(join(dest, "app.jsx"), STARTER_APP, "utf8");
   writeFileSync(join(dest, "src", "context.jsx"), STARTER_CONTEXT, "utf8");
   writeFileSync(join(dest, "app.css"), STARTER_CSS, "utf8");
-  // AGENTS.md / README.md: shared at base level, only write if not already present
+  // AGENTS.md / README.md / .gitignore: shared at base level, only write if not already present
   if (!existsSync(join(base, "AGENTS.md"))) writeFileSync(join(base, "AGENTS.md"), AGENTS_MD, "utf8");
   if (!existsSync(join(base, "README.md"))) writeFileSync(join(base, "README.md"), README_MD, "utf8");
+  if (!existsSync(join(base, ".gitignore"))) writeFileSync(join(base, ".gitignore"), GITIGNORE, "utf8");
 
   console.log("RESULT: OK");
   console.log(`SCAFFOLD_DIR: ${dest}`);
