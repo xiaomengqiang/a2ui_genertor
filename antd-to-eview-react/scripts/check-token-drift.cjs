@@ -3,7 +3,7 @@
  * check-token-drift.cjs — 色值 token 漂移检查（对照源项目快照）
  *
  * 对应需求：从 antd 向私有组件转换时，手写样式的色值 token 不应修改（不漂移）。
- * 数据来源：umd-to-antd-vite 的 extract-umd.cjs 在步骤 2 扫描源项目 assets/style/
+ * 数据来源：umd-to-antd-vite 的 extract-umd.cjs 在步骤 2 扫描源项目 public/style/
  * 四层 CSS 的 --xxx: value 定义，写入 .umd-conversion.json 的 sourceCssTokens 字段。
  * 本脚本读该快照对照产物，无需访问源项目。
  *

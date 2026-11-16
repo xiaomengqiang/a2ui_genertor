@@ -41,9 +41,9 @@ index.page.html (~2000 行)
 `extract-umd.cjs` 用括号计数法拆分顶层 CSS 规则：
 
 1. 从 HTML 提取所有 `<style>` 块内容，拼接成一个大 CSS 字符串
-2. 检测产物 `assets/style/` 目录是否存在（ict-coder 标准产物含此目录，带 base/light/theme/dark/ant 五层 CSS 源文件）
+2. 检测产物 `public/style/` 目录是否存在（ict-coder 标准产物含此目录，带 base/light/theme/dark/ant 五层 CSS 源文件）
 3. 拷贝 4 层 CSS（ict-coder 已分好类，对齐 ict 的 base/light/theme/dark 四分类）：
-   - `base.css` → `src/styles/base.css`（append 到 scaffold 预制的 eview 专用样式后；`@font-face` 路径 `../font/` 改写为 Vite `/font/` 绝对路径、`./assets/uploads/` 改写为 `/uploads/`）
+   - `base.css` → `src/styles/base.css`（append 到 scaffold 预制的 eview 专用样式后；`@font-face` 路径 `../font/` 改写为 Vite `/font/` 绝对路径、`./public/uploads/` 改写为 `/uploads/`）
    - `light.css` → `src/styles/light.css`（语义层 :root，`--color-*` 变量，整文件 write 覆盖空壳）
    - `theme.css` → `src/styles/theme.css`（角色层 :root，`--primary`/`--surface`/`--font-body-*` 等，整文件 write）
    - `dark.css` → `src/styles/dark.css`（`.dark` 暗色覆盖，整文件 write）
@@ -91,7 +91,7 @@ index.page.html (~2000 行)
 
 ### 5.1 源项目 icon 组件结构
 
-源项目的 icon 组件（通常 `assets/shared/icon.jsx` 或 `icons.js`）做三件事：
+源项目的 icon 组件（通常 `public/shared/icon.jsx` 或 `icons.js`）做三件事：
 
 1. **Lucide SVG path 表**：`lucide-icon-nodes.json`（~763KB），离线兜底
 2. **运行时 fetch icon-plus 在线**：`fetch(getConfig)` 探测 → `fetch(getIconInfo?keyword=xxx)` 查名 → `fetch(getIcon?url=xxx&style=xxx&color=xxx&fileType=svg)` 取 SVG → `dangerouslySetInnerHTML` 注入
