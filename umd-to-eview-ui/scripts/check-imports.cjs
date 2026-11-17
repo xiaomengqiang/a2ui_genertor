@@ -18,7 +18,7 @@
  *   6. PANEL_NO_DESTRUCT    `import ... from '@cloudsop/eview-ui/Panel'` 默认导入后同文件无
  *                          `const { Panel` 解构（默认导出不是 Panel 组件，直接用必炸）
  *   7. SHIM_PATH_RESIDUE    Icon shim 旧路径（`assets/shared/icon`）残留（应 `@/shared/Icon`）
- *   8. EVUI_ICON_FORBIDDEN  图标策略违例：导入 eview-ui/Icon、eview-ui/SvgIcon（废弃）、
+ *   8. EVUI_ICON_FORBIDDEN  图标策略违例：导入 eview-ui/Icon、
  *                          eview-ui/IconButton（废弃）——图标保留源 shim
  *   9. TAB_DATA_PROP        `<Tab>` 上挂了 data（禁止）—— eview-ui Tab 同样是 TabItem
  *                          children 驱动，data 是 Select 系/Wizards 等的 prop
@@ -151,11 +151,11 @@ function main() {
           detail: line.trim() + ' —— 应改为 import Icon from "@/shared/Icon"',
         });
       }
-      // 8. 图标策略违例（eview-ui Icon / SvgIcon 废弃 / IconButton 废弃）
-      if (/\bfrom\s+['"](?:@cloudsop\/)?eview-ui\/(Icon|SvgIcon|IconButton)['"]/.test(line)) {
+      // 8. 图标策略违例（eview-ui Icon / IconButton 废弃）
+      if (/\bfrom\s+['"](?:@cloudsop\/)?eview-ui\/(Icon|IconButton)['"]/.test(line)) {
         violations.push({
           file: rel, line: ln, code: 'EVUI_ICON_FORBIDDEN',
-          detail: line.trim() + ' —— 图标保留源 shim（@/shared/Icon）；eview-ui Icon 名体系不同，SvgIcon/IconButton 已废弃',
+          detail: line.trim() + ' —— 图标保留源 shim（@/shared/Icon）；eview-ui Icon 名体系不同，IconButton 已废弃',
         });
       }
     }
@@ -208,7 +208,7 @@ function main() {
     EVUI_ROOT_IMPORT: 'eview-ui 根包具名导入（应子路径默认导入）',
     PANEL_NO_DESTRUCT: 'Panel 默认导入未解构',
     SHIM_PATH_RESIDUE: 'Icon shim 旧路径残留',
-    EVUI_ICON_FORBIDDEN: '图标策略违例（导入 eview-ui Icon/SvgIcon/IconButton）',
+    EVUI_ICON_FORBIDDEN: '图标策略违例（导入 eview-ui Icon/IconButton）',
     TAB_DATA_PROP: 'Tab 挂 data（应 TabItem children 驱动）',
     LEGACY_PRO_USED: '旧版 Pro 组件导入（有 Pro 版一律用 Pro 版）',
   };

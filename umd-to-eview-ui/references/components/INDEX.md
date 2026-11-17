@@ -3,7 +3,7 @@
 迁移时按需查阅对应文档。每个组件文档（`<Name>.md`）内的「antd 迁移注意事项」区块是该组件的迁移决策表（antd 写法→eview 写法 + 迁移要点，由 build-migration-plan.cjs 解析）；无 eview 对应、需手写的 antd 组件索引见 [../handwrite-templates.md](../handwrite-templates.md) 头部；三张横切速查表（拼写异常 / 回调签名 / 显隐 prop）见本文档文末。
 
 > **导入规范**：统一 `import X from '@cloudsop/eview-ui/X'` 子路径默认导入。特例仅 4 个：`import Tab, { TabItem } from '@cloudsop/eview-ui/Tab'`（TabItem 具名导出）；`import PanelE from '@cloudsop/eview-ui/Panel'; const { Panel, PanelItem } = PanelE;`（**必须解构**，默认导出不是 Panel 本身）；`import { Row, Col } from '@cloudsop/eview-ui/GridLayout'`（Row/Col 具名导出）；`import DatePicker from '@cloudsop/eview-ui/DatePicker'; const { RangePicker } = DatePicker;`（`<DatePicker.RangePicker>` 改 `<RangePicker>`）。**本目录官方文档示例里的 `import X from 'eview-ui/X'` 是简写**——真实包名是 scoped 的 `@cloudsop/eview-ui`，写代码时必须带前缀。
-> **不使用**：`PopUpMenu`（文档标注废弃）、`IconButton`（废弃）、`SvgIcon`（废弃，推荐 Icon）、`Carousel`（Under Development，慎用）、`TimeRangeSelector`（在开发中）。列表中标注 ⛔。
+> **不使用**：`PopUpMenu`（文档标注废弃）、`IconButton`（废弃）、`Carousel`（Under Development，慎用）、`TimeRangeSelector`（在开发中）。列表中标注 ⛔。
 
 ## 表单与输入
 
@@ -88,7 +88,6 @@
 | ⛔ IconButton | [IconButton.md](IconButton.md) | 图标按钮（废弃，不用） |
 | IconButtonGroup | [IconButtonGroup.md](IconButtonGroup.md) | 图标按钮组（data 驱动） |
 | Icon | [Icon.md](Icon.md) | 图标（name 体系——**本 skill 保留源 Icon shim，不迁移到此组件**） |
-| ⛔ SvgIcon | [SvgIcon.md](SvgIcon.md) | SVG 图标（废弃，不用） |
 | ConfigProvider | [ConfigProvider.md](ConfigProvider.md) | 全局配置（locale zh / version aui3 / theme lightday-evening） |
 | performanceDesc | [performanceDesc.md](performanceDesc.md) | 组件性能规格（数据规模上限），非组件 |
 

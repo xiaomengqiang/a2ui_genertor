@@ -253,7 +253,7 @@ if (iconCallSitesArr.length) {
     category: 'P',
     eview: 'Icon（保留源 shim）',
     importPath: '@/shared/Icon',
-    keyDiffs: '保留不动——import Icon from "@/shared/Icon" 与 <Icon name="..."> 调用点零改动；禁止改用 eview-ui Icon/SvgIcon（废弃）/IconButton（废弃）；禁止把 Icon shim 塞进 eview-ui 组件的 leftIcon/rightIcon/icon（url 字符串 prop，类型不匹配）；Button 带图标用 children 组合：<Button><Icon name="x" size={14}/>{文字}</Button>。步骤 3 仅 check-imports.cjs 校验路径',
+    keyDiffs: '保留不动——import Icon from "@/shared/Icon" 与 <Icon name="..."> 调用点零改动；禁止改用 eview-ui Icon/IconButton（废弃）；禁止把 Icon shim 塞进 eview-ui 组件的 leftIcon/rightIcon/icon（url 字符串 prop，类型不匹配）；Button 带图标用 children 组合：<Button><Icon name="x" size={14}/>{文字}</Button>。步骤 3 仅 check-imports.cjs 校验路径',
     ref: 'components/Icon.md',
     files: iconFiles,
   });

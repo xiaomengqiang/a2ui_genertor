@@ -158,7 +158,7 @@
       "assertions": [
         "Icon 调用点零改动（<Icon name=\"...\"> 原样）",
         "import Icon from '@/shared/Icon'（NOT assets/shared/icon 旧路径）",
-        "NOT 导入 eview-ui/Icon、eview-ui/SvgIcon（废弃）、eview-ui/IconButton（废弃）",
+        "NOT 导入 eview-ui/Icon、eview-ui/IconButton（废弃）",
         "NOT 把 Icon shim 塞进 eview-ui 组件的 leftIcon/rightIcon/icon（url 字符串 prop）",
         "Button 带图标用 children 组合：<Button><Icon name=\"x\" size={14}/>{文字}</Button>",
         "Chart 封装保留原样（NOT 补 a2ui/theme——eview-ui 无此约束）",

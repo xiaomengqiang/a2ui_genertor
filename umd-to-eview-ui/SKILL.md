@@ -253,7 +253,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 
 7. **CSS 色值不漂移 + token 不漂移**：原项目 CSS 写死色值**允许**（忠实保留），但不能擅自改值；类名用业务前缀。**机器验证**：步骤 8 `check-css.cjs` + `check-token-drift.cjs` 对照 `.umd-conversion.json` 的 `sourceCssColors`/`sourceCssTokens` 快照。
 
-8. **图标保留源 shim，不迁移**：`<Icon name="...">`（icon-plus 在线 + Lucide）调用点**零改动**，`import Icon from '@/shared/Icon'` 路径保持；**禁止**改用 eview-ui `Icon`（name 体系不同、无 catalog 匹配依据）、`SvgIcon`（文档标注废弃）、`IconButton`（废弃）。eview-ui 组件的 `leftIcon`/`rightIcon`/`icon` 类 prop 接收**图标 url 字符串**，与 Icon shim（ReactNode）类型不匹配——**不要把 Icon shim 塞进这些 prop**；带图标场景用 children 组合（如 `<Button><Icon name="x"/>{文字}</Button>`）。
+8. **图标保留源 shim，不迁移**：`<Icon name="...">`（icon-plus 在线 + Lucide）调用点**零改动**，`import Icon from '@/shared/Icon'` 路径保持；**禁止**改用 eview-ui `Icon`（name 体系不同、无 catalog 匹配依据）、`IconButton`（废弃）。eview-ui 组件的 `leftIcon`/`rightIcon`/`icon` 类 prop 接收**图标 url 字符串**，与 Icon shim（ReactNode）类型不匹配——**不要把 Icon shim 塞进这些 prop**；带图标场景用 children 组合（如 `<Button><Icon name="x"/>{文字}</Button>`）。
 
 9. **图表保留源封装，不迁移**：eview-ui **无 Chart 组件**——保留源项目 `chart.jsx` 封装与其 import 原样；**不需要**补 `a2ui: true`/`theme`（eview-ui 无此约束，勿凭空添加）；暗色下图表主题跟随由源项目逻辑自理。
 

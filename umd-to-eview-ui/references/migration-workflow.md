@@ -38,7 +38,7 @@ node <本 skill 目录>/scripts/build-migration-plan.cjs <目标工程根>
 
 ### 5.3 图标与图表：保留策略
 
-- **图标**：`iconCallSites` 列出的调用点**零改动**。`import Icon from '@/shared/Icon'` 保持；不转 eview-ui `Icon`/`SvgIcon`/`IconButton`；不往 eview-ui 组件的 `leftIcon`/`rightIcon`/`icon`（url 字符串 prop）塞 ReactNode。步骤 8 仅 `check-imports.cjs` 校验路径。
+- **图标**：`iconCallSites` 列出的调用点**零改动**。`import Icon from '@/shared/Icon'` 保持；不转 eview-ui `Icon`/`IconButton`；不往 eview-ui 组件的 `leftIcon`/`rightIcon`/`icon`（url 字符串 prop）塞 ReactNode。步骤 8 仅 `check-imports.cjs` 校验路径。
 - **图表**：`chartCallSites` 列出的 `<Chart>` 调用点**零改动**（含其共享封装 import）；不补 `a2ui`/`theme`；暗色跟随由源逻辑自理。
 
 ### 5.4 eview-ui 样式接入（已确认）
