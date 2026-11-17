@@ -145,7 +145,7 @@
       "assertions": [
         "Dialog/DialogPro/MessageDialog/MessageDialogPro/Loader 用 isOpen（NOT visible/display）",
         "Drawer/Tooltip 用 visible（NOT isOpen）",
-        "Popup/TipBox/DivMessage 用 display（NOT isOpen/visible）",
+        "Popup/DivMessage 用 display（NOT isOpen/visible）",
         "NOT 残留 antd open=（Modal open→isOpen；Drawer v5 open→visible）",
         "NOT 残留 Spin 的 spinning=（Loader 用 isOpen）"
       ]
@@ -158,7 +158,7 @@
       "assertions": [
         "Icon 调用点零改动（<Icon name=\"...\"> 原样）",
         "import Icon from '@/shared/Icon'（NOT assets/shared/icon 旧路径）",
-        "NOT 导入 eview-ui/Icon、eview-ui/SvgIcon（废弃）、eview-ui/IconButton（废弃）",
+        "NOT 导入 eview-ui/Icon、eview-ui/IconButton（废弃）",
         "NOT 把 Icon shim 塞进 eview-ui 组件的 leftIcon/rightIcon/icon（url 字符串 prop）",
         "Button 带图标用 children 组合：<Button><Icon name=\"x\" size={14}/>{文字}</Button>",
         "Chart 封装保留原样（NOT 补 a2ui/theme——eview-ui 无此约束）",
@@ -174,9 +174,8 @@
         "Crumbs 用 seprator（正确英文 separator 残留即未迁移）",
         "SelectCard 用 disable（不是 disabled）",
         "FileUpload 用 disable + placeHolder + upLoadErrorMessage（三处拼写）",
-        "Tag（message 型）用 disable",
         "Button/TextField/Select/Menu 用 disabled 正确拼写（NOT 全局替换 disable）",
-        "TipBox/DivMessage 用 disposeTimeOut（TimeOut 大写 O）",
+        "DivMessage 用 disposeTimeOut（TimeOut 大写 O）",
         "Tree/Table 父子勾选关联用 disabelCheckAssociated"
       ]
     },

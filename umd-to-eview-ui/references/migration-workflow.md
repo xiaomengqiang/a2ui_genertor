@@ -38,7 +38,7 @@ node <本 skill 目录>/scripts/build-migration-plan.cjs <目标工程根>
 
 ### 5.3 图标与图表：保留策略
 
-- **图标**：`iconCallSites` 列出的调用点**零改动**。`import Icon from '@/shared/Icon'` 保持；不转 eview-ui `Icon`/`SvgIcon`/`IconButton`；不往 eview-ui 组件的 `leftIcon`/`rightIcon`/`icon`（url 字符串 prop）塞 ReactNode。步骤 8 仅 `check-imports.cjs` 校验路径。
+- **图标**：`iconCallSites` 列出的调用点**零改动**。`import Icon from '@/shared/Icon'` 保持；不转 eview-ui `Icon`/`IconButton`；不往 eview-ui 组件的 `leftIcon`/`rightIcon`/`icon`（url 字符串 prop）塞 ReactNode。步骤 8 仅 `check-imports.cjs` 校验路径。
 - **图表**：`chartCallSites` 列出的 `<Chart>` 调用点**零改动**（含其共享封装 import）；不补 `a2ui`/`theme`；暗色跟随由源逻辑自理。
 
 ### 5.4 eview-ui 样式接入（已确认）
@@ -270,7 +270,7 @@ export const ThemeProvider = ({ children }) => {
 - **§4.2 check-select-options**：AST 扫描 `.map`/`Array.from`/spread/shorthand/计算键等动态形态里 `label:` 字段残留 → FAIL（拦 LLM 漏改 `label`→`text` 致下拉项文字空白）。
 - **§4.3 check-provider**：全工程无 `<ConfigProvider` → FAIL；有但 `locale` 不是 `"zh"`（或缺）→ FAIL；`version` 非 `aui3-1`（或缺）→ FAIL；`theme` 是静态字符串（无 `isDark`/三元/派生）或缺失 → FAIL。listenTheme 不作要求（实测 theme 单独驱动组件暗色）。
 - **§4.4 check-dark-mode**：检测暗色需求（CSS 有 `.dark` 选择器或 JS 有 `isDark`/`toggleDark`）后验证**双轨**：html 轨（`documentElement` 切 `.dark`）缺 → FAIL；theme 轨（`<ConfigProvider` 的 `theme={…}` 动态派生）缺 → FAIL；`aui3_1_dark` 残留 → FAIL（混入 eview-react 旧骨架）；@nce CSS import 残留 → FAIL。body `data-theme` / `eviewui_aui3_1_*` 类轨**不检查**（组件库内部管理，手写属多余但不算错）。
-- **§4.5 check-visibility**：JSX 扫描 `<Dialog`/`<DialogPro`/`<MessageDialog`/`<MessageDialogPro`/`<PopUpMenu`/`<Loader` 元素上 `visible=`/`display=`/`isShow=` → FAIL；`<Drawer`/`<Tooltip` 上 `isOpen=`/`display=` → FAIL；`<DivMessage`/`<TipBox`/`<Popup` 上 `isOpen=`/`visible=` → FAIL。
+- **§4.5 check-visibility**：JSX 扫描 `<Dialog`/`<DialogPro`/`<MessageDialog`/`<MessageDialogPro`/`<PopUpMenu`/`<Loader` 元素上 `visible=`/`display=`/`isShow=` → FAIL；`<Drawer`/`<Tooltip` 上 `isOpen=`/`display=` → FAIL；`<DivMessage`/`<Popup` 上 `isOpen=`/`visible=` → FAIL。
 - **§4.6 check-wizards**：`<Steps`/`Steps.Step` 残留、`<Wizards` 上 `items=` 残留、data 项 `title:`/`label:` 字段残留（AST 扫描，无 @babel/parser 时降级跳过并注明）→ 硬 FAIL；`currentStep={数字直接量或下标变量名}` → advisory（疑似传下标而非 `data[].value`，需人工确认）。
 - **§4.7 check-crumbs**：`separator=`（正确英文）残留 → FAIL；`<Breadcrumb`/`items=` → FAIL；`<Crumbs` data 项 `href:`/`path:` 字段 → FAIL。
 - **§4.8 check-table-defaults**：`dataSource=` → FAIL（TablePro 用 dataset）；`rowSelection=` antd 形态残留 → advisory（应 `selection` 对象）；TablePro `columnResizable` 默认 true 未显式处理 → advisory（须回应「有意保留拖拽」或补 false）。旧 Table 的使用由 §4.1 check-imports 的 LEGACY_PRO_USED 拦截（导入即 FAIL）。

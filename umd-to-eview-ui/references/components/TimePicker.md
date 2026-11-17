@@ -4,55 +4,54 @@
 
 输入或选择时间。
 
-
 ## antd 迁移注意事项
 
 > 迁移分类：A｜本表由 build-migration-plan.cjs 解析生成迁移计划
 
-| antd 写法 | eview 写法 | 迁移要点 |
-|-----------|-----------|----------|
+| antd 写法    | eview 写法   | 迁移要点                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `TimePicker` | `TimePicker` | **`value`→`time` 数字数组** `[时, 分, 秒]`（antd 是 dayjs 对象，**必须转数组**）；`onChange(time: number[])` 回传数字数组；`format` 小写 `'hh:mm:ss'`/`'hh:mm'`/`'mm:ss'`；12 小时制 `use12HrClock`（不是 format 里写 a）；**无 RangePicker**（范围用 `TimeRangeSelector`——但标注在开发中，建议两个 TimePicker 手动组合）；`label` 类 props 已废弃；`display` prop 传入布尔值后将完全由 props 控制显隐（勿轻易传） |
 
 ## API
 
 ### 属性
 
-| 属性名称              | 描述                                       | 输入                               | 默认                  |
-|:------------------|:-----------------------------------------|:---------------------------------|:--------------------|
-| className         | 输入框最外层选择器类名                              | string                           |                     |
-| defaultTime       | 初始传入的时间值, 数组形式, 24小时制, 如 [13:02:03]      | `[number, number, number]        | [number, number]    | null` | null |
-| time              | 时间值, 数组形式, 24小时制, 如 [13:02:03]           | `[number, number, number]        | [number, number]    | null` | null |
-| onChange          | 时间选择后触发回调                                | `(time: [number, number, number] | [number, number]    | null) => void` |  |
-| disabled          | 是否被禁用                                    | boolean                          | false               |
-| display           | 选择弹出框是否显示 (注意: props传入布尔值后将完全由props控制显隐) | boolean                          |                     |
-| onDisplayChange   | display发生状态时触发的回调                        | (display: boolean) => void       |                     |
-| use12HrClock      | 时间显示为12小时制(AM/PM)                        | boolean                          | false               |
-| format            | 时间格式, 有hh:mm:ss, hh:mm, mm:ss            | `'hh:mm:ss'                      | 'mm:ss'             | 'hh:mm'` | 'hh:mm:ss' |
-| placement         | 选择框展开方向                                  | `'bottomLeft'                    | 'bottomRight'       | 'topLeft'| 'topRight'| 'top'| 'bottom' | ((alignedRect: DOMRect, popupRect: DOMRect) => { left: number, top: number })` | 'bottomLeft' |
-| placeholder       | 在输入框为空时的placeholder                      | string                           |                     |
-| popupZIndex       | 下拉选择框的z-index                            | number                           | 1000 (css)          |
-| style             | 输入框外层div元素的自定义样式                         | React.CSSProperties              |                     |
-| inputStyle        | input输入框的自定义样式                           | React.CSSProperties              |                     |
-| iconStyle         | 图标按钮外层span元素的自定义样式                       | React.CSSProperties              |                     |
-| popupStyle        | 按出选择框外层div的自定义样式                         | React.CSSProperties              |                     |
-| selectStyle       | 下拉选择器的自定义样式                              | React.CSSProperties              |                     |
-| cellStyle         | 选择器中元素的自定义样式                             | React.CSSProperties              |                     |
-| locale            | 设置组件国际化，该配置比ConfigProvider优先级更高          | string                           |
-| getPopupContainer | 设置弹窗的容器元素，默认挂载在body下                     | () => HTMLElement                       | () => document.body |
-| ignoreDST | 是否忽略夏令时影响                     | boolean                     | false |
+| 属性名称          | 描述                                                              | 输入                                                                                                                                                                                           | 默认                |
+| :---------------- | :---------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------ |
+| className         | 输入框最外层选择器类名                                            | string                                                                                                                                                                                         |                     |
+| defaultTime       | 初始传入的时间值, 数组形式, 24小时制, 如 [13:02:03]               | `[number, number, number]        \| [number, number]    \| null`                                                                                                                               | null                |
+| time              | 时间值, 数组形式, 24小时制, 如 [13:02:03]                         | `[number, number, number]        \| [number, number]    \| null`                                                                                                                               | null                |
+| onChange          | 时间选择后触发回调                                                | `(time: [number, number, number] \| [number, number]    \| null) => void`                                                                                                                      |                     |
+| disabled          | 是否被禁用                                                        | boolean                                                                                                                                                                                        | false               |
+| display           | 选择弹出框是否显示 (注意: props传入布尔值后将完全由props控制显隐) | boolean                                                                                                                                                                                        |                     |
+| onDisplayChange   | display发生状态时触发的回调                                       | (display: boolean) => void                                                                                                                                                                     |                     |
+| use12HrClock      | 时间显示为12小时制(AM/PM)                                         | boolean                                                                                                                                                                                        | false               |
+| format            | 时间格式, 有hh:mm:ss, hh:mm, mm:ss                                | `'hh:mm:ss'                      \| 'mm:ss'             \| 'hh:mm'`                                                                                                                            | 'hh:mm:ss'          |
+| placement         | 选择框展开方向                                                    | `'bottomLeft'                    \| 'bottomRight'       \| 'topLeft'      \| 'topRight' \| 'top' \| 'bottom' \| ((alignedRect: DOMRect, popupRect: DOMRect) => { left: number, top: number })` | 'bottomLeft'        |
+| placeholder       | 在输入框为空时的placeholder                                       | string                                                                                                                                                                                         |                     |
+| popupZIndex       | 下拉选择框的z-index                                               | number                                                                                                                                                                                         | 1000 (css)          |
+| style             | 输入框外层div元素的自定义样式                                     | React.CSSProperties                                                                                                                                                                            |                     |
+| inputStyle        | input输入框的自定义样式                                           | React.CSSProperties                                                                                                                                                                            |                     |
+| iconStyle         | 图标按钮外层span元素的自定义样式                                  | React.CSSProperties                                                                                                                                                                            |                     |
+| popupStyle        | 按出选择框外层div的自定义样式                                     | React.CSSProperties                                                                                                                                                                            |                     |
+| selectStyle       | 下拉选择器的自定义样式                                            | React.CSSProperties                                                                                                                                                                            |                     |
+| cellStyle         | 选择器中元素的自定义样式                                          | React.CSSProperties                                                                                                                                                                            |                     |
+| locale            | 设置组件国际化，该配置比ConfigProvider优先级更高                  | string                                                                                                                                                                                         |
+| getPopupContainer | 设置弹窗的容器元素，默认挂载在body下                              | () => HTMLElement                                                                                                                                                                              | () => document.body |
+| ignoreDST         | 是否忽略夏令时影响                                                | boolean                                                                                                                                                                                        | false               |
 
 ### 废弃属性
 
-| 属性名称           | 描述                                  | 输入        | 默认       |
-|:---------------|:------------------------------------|:----------|:---------|
-| id             |                                     | string    |          |
-| label          | 不再附带label, 请使用placeholder或自行添加label | string    |          |
-| labelClassName | 不再附带label, 请使用placeholder或自行添加label | string    |          |
-| labelStyle     | 不再附带label, 请使用placeholder或自行添加label | string    |          |
-| amPm           | 请使用use12HrClock                     | boolean   |          |
-| required       | 是否为必填项                              | boolean   | false    |
-| labelPosition  | 不再附带label, 请使用placeholder或自行添加label | `'before' | 'after'` |  |
-| direction      | 选择框展开方向, 请使用placement               | `'auto'   | 'up'     | 'down'` | 'auto' |
+| 属性名称       | 描述                                            | 输入                             | 默认   |
+| :------------- | :---------------------------------------------- | :------------------------------- | :----- |
+| id             |                                                 | string                           |        |
+| label          | 不再附带label, 请使用placeholder或自行添加label | string                           |        |
+| labelClassName | 不再附带label, 请使用placeholder或自行添加label | string                           |        |
+| labelStyle     | 不再附带label, 请使用placeholder或自行添加label | string                           |        |
+| amPm           | 请使用use12HrClock                              | boolean                          |        |
+| required       | 是否为必填项                                    | boolean                          | false  |
+| labelPosition  | 不再附带label, 请使用placeholder或自行添加label | `'before' \| 'after'`            |        |
+| direction      | 选择框展开方向, 请使用placement                 | `'auto'   \| 'up'     \| 'down'` | 'auto' |
 
 ## 使用示例
 
@@ -61,18 +60,20 @@
 点击时间选择器输入或选时间
 
 ```jsx
-import React from 'react';
-import TimePicker from 'eview-ui/TimePicker';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import React from "react";
+import TimePicker from "eview-ui/TimePicker";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 const [version, theme] = getDemoVersion();
 
 ReactDOM.render(
   // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
   <ConfigProvider version={version} theme={theme}>
-    <TimePicker/>
-  </ConfigProvider>, mountNode);
+    <TimePicker />
+  </ConfigProvider>,
+  mountNode,
+);
 ```
 
 ### 时间传入与获取
@@ -126,19 +127,19 @@ ReactDOM.render(<TimePickerUseTimeDemo />, mountNode);
 禁用操作
 
 ```jsx
-import React from 'react';
-import TimePicker from 'eview-ui/TimePicker';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import React from "react";
+import TimePicker from "eview-ui/TimePicker";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 const [version, theme] = getDemoVersion();
 
 ReactDOM.render(
   // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
   <ConfigProvider version={version} theme={theme}>
-    <TimePicker defaultTime={[12, 9, 8]} disabled/>
+    <TimePicker defaultTime={[12, 9, 8]} disabled />
   </ConfigProvider>,
-  mountNode
+  mountNode,
 );
 ```
 
@@ -171,4 +172,3 @@ ReactDOM.render(
   mountNode
 );
 ```
-

@@ -2,8 +2,8 @@
 
 > **资料来源**（eview-react 官方资料，不随 skill 打包）：`@nce/eview-react/Chart`；契约与源项目的 `<Chart>` 一致（`name` + `option`）。完整 API 以官方 TypeDoc 为准。
 >
-> ⚠️ 迁移时改 import 路径（`./assets/shared/chart.jsx` → `@nce/eview-react/Chart`）+ option 补 `a2ui: true` 与 `theme`（补偿源套壳的自动注入，见下条）。无需 UMD `<script>` 注入或自写封装。
-> ⚠️ **所有图表 option 必须显式携带 `a2ui: true` 与 `theme`**：源项目 Chart 套壳（ict-coder 的 `assets/shared/chart.jsx`）自动 watch `<html>.dark` + 在 `setSimpleOption` 前注入 `{ theme, a2ui: true, ...option }` + 暗色切换自动 re-render（ict-coder Chart.md: "Dark mode is automatic"）；改 `@nce/eview-react/Chart` 包导入后**自动行为整体丢失**——漏写则 a2ui 视觉规范失效、暗色切换图表主题不跟随。
+> ⚠️ 迁移时改 import 路径（`./public/shared/chart.jsx` → `@nce/eview-react/Chart`）+ option 补 `a2ui: true` 与 `theme`（补偿源套壳的自动注入，见下条）。无需 UMD `<script>` 注入或自写封装。
+> ⚠️ **所有图表 option 必须显式携带 `a2ui: true` 与 `theme`**：源项目 Chart 套壳（ict-coder 的 `public/shared/chart.jsx`）自动 watch `<html>.dark` + 在 `setSimpleOption` 前注入 `{ theme, a2ui: true, ...option }` + 暗色切换自动 re-render（ict-coder Chart.md: "Dark mode is automatic"）；改 `@nce/eview-react/Chart` 包导入后**自动行为整体丢失**——漏写则 a2ui 视觉规范失效、暗色切换图表主题不跟随。
 > ⚠️ **`theme` 必须响应式引用 `useApp().isDark`**：`isDark` 来自源项目的 `src/context.jsx`（AppProvider + useApp，上游 `umd-to-antd-vite` 步骤 3 已保留），写法 `const { isDark } = useApp()` + `theme: isDark ? 'hdesign-dark' : 'hdesign-light'`。option 的 theme **必须引用 isDark 变量**（不能写静态字符串如 `'hdesign-light'`）——暗色切换时组件 re-render → option 重建（含新 theme）→ 图表按新主题重建。推荐 `const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' }` 聚合后展开进各 option（chartBase 引用 isDark 即响应式）。
 > ⚠️ 旧 scaffold 的 `src/shared/chart.jsx` + `public/library/`（`echarts.min.js` + `hui-charts.umd.js`）方案已废弃，改用 `@nce/eview-react/Chart` 原生组件。
 
@@ -112,7 +112,7 @@ import Chart from './shared/chart.jsx';
 // index.html: <script src="/library/echarts.min.js"></script>
 
 // ❌ import 路径用源项目的资产目录旧路径
-import Chart from './assets/shared/chart.jsx';
+import Chart from './public/shared/chart.jsx';
 
 // ❌ 直接操作 window.echarts 绕过组件
 const chart = echarts.init(dom);

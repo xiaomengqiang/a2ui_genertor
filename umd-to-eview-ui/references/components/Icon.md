@@ -9,7 +9,7 @@ Icon组件可通过配置name属性，便可以获取组件库中的对应图标
 > 迁移分类：P（保留源 Icon shim，**不迁移到本组件**）｜build-migration-plan.cjs 跳过本节（Icon 保留行走 P 类注入，与手写无关）
 
 - 源项目 `<Icon name="...">` shim（icon-plus 在线 + Lucide 兜底）调用点**零改动**：`import Icon from '@/shared/Icon'` 路径保持；vite proxy 不动
-- **不使用** eview-ui `Icon`（name 体系不同、无 catalog 匹配依据）也不使用 `SvgIcon`（文档标注废弃）、`IconButton`（废弃）
+- **不使用** eview-ui `Icon`（name 体系不同、无 catalog 匹配依据）也不使用 `IconButton`（废弃）
 - 源项目出现 `@ant-design/icons` 具名导入时：按语义换 `<Icon name="语义名">`（icon-plus 在线名）或 Lucide 内联
 - eview-ui 组件的 `leftIcon`/`rightIcon`/`icon` 类 prop 接收**图标 url 字符串**，与 Icon shim（ReactNode）类型不匹配——**不要把 Icon shim 塞进这些 prop**；带图标场景用 children 组合（如 `<Button><Icon name="x" size={14}/>{文字}</Button>`）
 

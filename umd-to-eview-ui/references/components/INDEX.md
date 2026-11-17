@@ -3,7 +3,7 @@
 迁移时按需查阅对应文档。每个组件文档（`<Name>.md`）内的「antd 迁移注意事项」区块是该组件的迁移决策表（antd 写法→eview 写法 + 迁移要点，由 build-migration-plan.cjs 解析）；无 eview 对应、需手写的 antd 组件索引见 [../handwrite-templates.md](../handwrite-templates.md) 头部；三张横切速查表（拼写异常 / 回调签名 / 显隐 prop）见本文档文末。
 
 > **导入规范**：统一 `import X from '@cloudsop/eview-ui/X'` 子路径默认导入。特例仅 4 个：`import Tab, { TabItem } from '@cloudsop/eview-ui/Tab'`（TabItem 具名导出）；`import PanelE from '@cloudsop/eview-ui/Panel'; const { Panel, PanelItem } = PanelE;`（**必须解构**，默认导出不是 Panel 本身）；`import { Row, Col } from '@cloudsop/eview-ui/GridLayout'`（Row/Col 具名导出）；`import DatePicker from '@cloudsop/eview-ui/DatePicker'; const { RangePicker } = DatePicker;`（`<DatePicker.RangePicker>` 改 `<RangePicker>`）。**本目录官方文档示例里的 `import X from 'eview-ui/X'` 是简写**——真实包名是 scoped 的 `@cloudsop/eview-ui`，写代码时必须带前缀。
-> **不使用**：`PopUpMenu`（文档标注废弃）、`IconButton`（废弃）、`SvgIcon`（废弃，推荐 Icon）、`Carousel`（Under Development，慎用）、`TimeRangeSelector`（在开发中）。列表中标注 ⛔。
+> **不使用**：`PopUpMenu`（文档标注废弃）、`IconButton`（废弃）、`Carousel`（Under Development，慎用）、`TimeRangeSelector`（在开发中）。列表中标注 ⛔。
 
 ## 表单与输入
 
@@ -25,7 +25,6 @@
 | Rating | [Rating.md](Rating.md) | 评分（Rate） |
 | DatePicker | [DatePicker.md](DatePicker.md) | 日期选择（DatePicker；RangePicker 为其静态属性） |
 | TimePicker | [TimePicker.md](TimePicker.md) | 时间选择（TimePicker，time 数字数组） |
-| TimeSelector | [TimeSelector.md](TimeSelector.md) | 旧式时间选择（TimeSelector，amPm） |
 | ⛔ TimeRangeSelector | [TimeRangeSelector.md](TimeRangeSelector.md) | 时间线式范围选择（在开发中，勿用） |
 | Spinner | [Spinner.md](Spinner.md) | 数字步进（InputNumber） |
 | FileUpload | [FileUpload.md](FileUpload.md) | 文件上传（Upload） |
@@ -75,7 +74,6 @@
 | Popup | [Popup.md](Popup.md) | 下拉列表弹层（无 antd 直接对应，Dropdown 内部物） |
 | PopConfirm | [PopConfirm.md](PopConfirm.md) | 气泡确认（Popconfirm，仅 ICT 3.1） |
 | Tooltip | [Tooltip.md](Tooltip.md) | 提示（Tooltip，title→content；trigger="click" 当 Popover） |
-| TipBox | [TipBox.md](TipBox.md) | 静态浮层提示（display 默认 true） |
 | HelpTip | [HelpTip.md](HelpTip.md) | 问号帮助提示（iconDisplay） |
 
 ## 通用
@@ -90,7 +88,6 @@
 | ⛔ IconButton | [IconButton.md](IconButton.md) | 图标按钮（废弃，不用） |
 | IconButtonGroup | [IconButtonGroup.md](IconButtonGroup.md) | 图标按钮组（data 驱动） |
 | Icon | [Icon.md](Icon.md) | 图标（name 体系——**本 skill 保留源 Icon shim，不迁移到此组件**） |
-| ⛔ SvgIcon | [SvgIcon.md](SvgIcon.md) | SVG 图标（废弃，不用） |
 | ConfigProvider | [ConfigProvider.md](ConfigProvider.md) | 全局配置（locale zh / version aui3 / theme lightday-evening） |
 | performanceDesc | [performanceDesc.md](performanceDesc.md) | 组件性能规格（数据规模上限），非组件 |
 
@@ -122,10 +119,10 @@
 | 正确英文 | eview-ui 实际拼写 | 所属组件 | 备注 |
 |---------|------------------|---------|------|
 | separator | **`seprator`** | Crumbs（另有 `sepratorStyle`） | 残留 `separator` 即未迁移 |
-| disabled | **`disable`** | SelectCard、FileUpload、Tag（message 型）、PopUpMenu Option 项、ButtonMenu options 项 | **其余组件（Button/TextField/Select/Menu 等）都是正确拼写 `disabled`——不要全局替换** |
+| disabled | **`disable`** | SelectCard、FileUpload、PopUpMenu Option 项、ButtonMenu options 项 | **其余组件（Button/TextField/Select/Menu/Tag 等）都是正确拼写 `disabled`——不要全局替换** |
 | placeholder | **`placeHolder`** | FileUpload、BrowseButton | 大写 H |
 | uploadErrorMessage | **`upLoadErrorMessage`**/`upLoadSuccessMessage` | FileUpload | upLoad |
-| disposeTimeout | **`disposeTimeOut`** | TipBox、DivMessage | 大写 O |
+| disposeTimeout | **`disposeTimeOut`** | DivMessage | 大写 O |
 | disableCheckAssociated | **`disabelCheckAssociated`** | TablePro selection、Tree、TreeTable | 父子勾选关联 |
 | enableMultiExpand | **`enableMulitiExpand`** | Table | Muliti |
 | onRowExpand | **`onRowExpend`**/`onRowExpendClick`/`expandedRow` | Table | Expend |
@@ -179,10 +176,10 @@
 |------|------|
 | `isOpen` | DialogPro、MessageDialogPro、PopUpMenu、Loader |
 | `visible` | Drawer、Tooltip、Dropdown |
-| `display` | Popup、TipBox、DivMessage、LinkField（TipBox/DivMessage/LinkField 的 display 默认 **true** 即显示；Popup 默认 false） |
+| `display` | Popup、DivMessage、LinkField（DivMessage/LinkField 的 display 默认 **true** 即显示；Popup 默认 false） |
 | `iconDisplay` | HelpTip（默认 true） |
 | `isShow` | Shade（默认 true） |
 | 无显隐 prop | PopConfirm（内部管理）、PageMessage、FormMessage（父级条件渲染） |
 | `destroyOnClose` 默认 **true** | DialogPro、MessageDialogPro（**antd 默认 false——语义反转**） |
-| 不自动关闭 | 所有弹层 onClose 均需手动置 false（DivMessage/TipBox 靠 disposeTimeOut） |
+| 不自动关闭 | 所有弹层 onClose 均需手动置 false（DivMessage 靠 disposeTimeOut） |
 

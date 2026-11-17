@@ -245,7 +245,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 
 3. **回调签名**：第一个参数通常是值不是 event（TextField `onChange(value1, value2, event)`、SelectPro `onChange(value, options)`、Checkbox 四参）；**反直觉例外**：Rating `onClick(event, value)`、Table `onRowRightClick(e, row)`、FileUpload `onChange(event, itemList)`——event 在前。完整速查见 [components/INDEX.md](references/components/INDEX.md) 文末「回调签名差异」表。
 
-4. **显隐 prop 不统一**（最高频张冠李戴）：DialogPro/MessageDialogPro/Loader 用 `isOpen`；Drawer/Tooltip 用 `visible`；Popup/TipBox/DivMessage 用 `display`。**DialogPro/MessageDialogPro 的 `destroyOnClose` 默认 true（antd 默认 false，语义反转）**；所有弹层 `onClose` 都不自动关闭。速查见 [components/INDEX.md](references/components/INDEX.md) 文末「显隐 prop 速查」表。**机器验证**：步骤 8 `check-visibility.cjs`。
+4. **显隐 prop 不统一**（最高频张冠李戴）：DialogPro/MessageDialogPro/Loader 用 `isOpen`；Drawer/Tooltip 用 `visible`；Popup/DivMessage 用 `display`。**DialogPro/MessageDialogPro 的 `destroyOnClose` 默认 true（antd 默认 false，语义反转）**；所有弹层 `onClose` 都不自动关闭。速查见 [components/INDEX.md](references/components/INDEX.md) 文末「显隐 prop 速查」表。**机器验证**：步骤 8 `check-visibility.cjs`。
 
 5. **validator 返回 `{result, message}`**（`result: true` = 通过）；FormPro 的 Rule 是**扁平字段**（`required/email/ipv4/min...` + `custom`），不是 antd `{required, message, validator}` 数组——antd Form 迁 FormPro 时必须重写 rules。
 
@@ -253,7 +253,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 
 7. **CSS 色值不漂移 + token 不漂移**：原项目 CSS 写死色值**允许**（忠实保留），但不能擅自改值；类名用业务前缀。**机器验证**：步骤 8 `check-css.cjs` + `check-token-drift.cjs` 对照 `.umd-conversion.json` 的 `sourceCssColors`/`sourceCssTokens` 快照。
 
-8. **图标保留源 shim，不迁移**：`<Icon name="...">`（icon-plus 在线 + Lucide）调用点**零改动**，`import Icon from '@/shared/Icon'` 路径保持；**禁止**改用 eview-ui `Icon`（name 体系不同、无 catalog 匹配依据）、`SvgIcon`（文档标注废弃）、`IconButton`（废弃）。eview-ui 组件的 `leftIcon`/`rightIcon`/`icon` 类 prop 接收**图标 url 字符串**，与 Icon shim（ReactNode）类型不匹配——**不要把 Icon shim 塞进这些 prop**；带图标场景用 children 组合（如 `<Button><Icon name="x"/>{文字}</Button>`）。
+8. **图标保留源 shim，不迁移**：`<Icon name="...">`（icon-plus 在线 + Lucide）调用点**零改动**，`import Icon from '@/shared/Icon'` 路径保持；**禁止**改用 eview-ui `Icon`（name 体系不同、无 catalog 匹配依据）、`IconButton`（废弃）。eview-ui 组件的 `leftIcon`/`rightIcon`/`icon` 类 prop 接收**图标 url 字符串**，与 Icon shim（ReactNode）类型不匹配——**不要把 Icon shim 塞进这些 prop**；带图标场景用 children 组合（如 `<Button><Icon name="x"/>{文字}</Button>`）。
 
 9. **图表保留源封装，不迁移**：eview-ui **无 Chart 组件**——保留源项目 `chart.jsx` 封装与其 import 原样；**不需要**补 `a2ui: true`/`theme`（eview-ui 无此约束，勿凭空添加）；暗色下图表主题跟随由源项目逻辑自理。
 
@@ -262,7 +262,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
     ② ConfigProvider theme 轨：`theme={isDark ? 'evening' : 'lightday'}` + `version="aui3-1"`——**组件库内部自行切换暗色，不需要手写 body `data-theme` / `eviewui_aui3_1_*` 类切换，也不要加 listenTheme**。
     index.html body 首帧已预置 `eviewui_aui3_1_default` + `data-theme="default"`（亮态防闪，运行时无需维护）。两轨统一收口在 ThemeProvider（消费 useApp().isDark），业务侧只管 `toggleDark`。**机器验证**：步骤 8 `check-dark-mode.cjs`（检测暗色需求后验证双轨完整性）。
 
-11. **拼写异常照抄原文**：`seprator`（Crumbs）、`disable`（**仅 SelectCard/FileUpload/Tag(message)/PopUpMenu 项**——其余组件用正确拼写 `disabled`，**不要全局替换**）、`placeHolder`（FileUpload/BrowseButton）、`upLoadErrorMessage`、`disposeTimeOut`、`disabelCheckAssociated`、`enablHorzScroll` 等。完整表见 [components/INDEX.md](references/components/INDEX.md) 文末「属性拼写异常」表。**机器验证**：`check-crumbs.cjs`（separator 正确英文残留即 FAIL）。
+11. **拼写异常照抄原文**：`seprator`（Crumbs）、`disable`（**仅 SelectCard/FileUpload/PopUpMenu 项**——其余组件用正确拼写 `disabled`，**不要全局替换**）、`placeHolder`（FileUpload/BrowseButton）、`upLoadErrorMessage`、`disposeTimeOut`、`disabelCheckAssociated`、`enablHorzScroll` 等。完整表见 [components/INDEX.md](references/components/INDEX.md) 文末「属性拼写异常」表。**机器验证**：`check-crumbs.cjs`（separator 正确英文残留即 FAIL）。
 
 12. **按钮/文字类组件内容用 prop 不用 children**：`Button text`、`TextButton text`、`DivMessage text`、`LabelField text`（Button 带 Icon 时例外走 children 组合，见硬约束 8）；`MessageDialog content/detail` 结构区分。
 
