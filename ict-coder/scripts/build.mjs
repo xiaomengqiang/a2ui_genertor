@@ -104,6 +104,7 @@ async function loadModule(filePath) {
   const antdNames = new Set();
   const intlNames = new Set();
   const bundleNames = [];
+  const namedImports = []; // { name, source } — for import validation
   const defImports = []; // { local, dep } — default import 的本地名与依赖路径
   let code = raw;
 
@@ -135,6 +136,7 @@ async function loadModule(filePath) {
     deps.push(resolve(dirname(filePath), source));
     if (def) defImports.push({ local: def, dep: resolve(dirname(filePath), source) });
     splitNames(named).forEach((n) => bundleNames.push(n));
+    namedImports.push(...splitNames(named).map((n) => ({ name: n, source: resolve(dirname(filePath), source) })));
     return "";
   });
 
@@ -142,6 +144,38 @@ async function loadModule(filePath) {
     const dep = resolve(dirname(filePath), source);
     deps.push(dep);
     if (extname(dep) === ".css" && !cssFiles.includes(dep)) cssFiles.push(dep);
+    return "";
+  });
+
+  // --- re-export: export { a, b as c } from "source" — record deps, extract export names (alias supported) ---
+  // At runtime, each re-exported name needs a local variable declaration in this module's IIFE
+  // so that Object.assign(__export, { ... }) can reference it. We inject `const name = __export.originalName;`
+  const reExportNames = []; // { local, exported }
+  const reExportInjections = []; // runtime variable declarations
+  code = code.replace(/^[ \t]*export\s*\{([^}]*)\}\s*from\s*["']([^"']+)["'];?[ \t]*$/gm, (_match, named, source) => {
+    const dep = resolve(dirname(filePath), source);
+    deps.push(dep);
+    for (const item of named.split(",").map((s) => s.trim()).filter(Boolean)) {
+      const aliasMatch = item.match(/^(\w+)\s+as\s+(\w+)$/);
+      if (aliasMatch) {
+        reExportNames.push({ local: aliasMatch[1], exported: aliasMatch[2] });
+        reExportInjections.push(`const ${aliasMatch[2]} = __export.${aliasMatch[1]};`);
+      } else {
+        reExportNames.push({ local: item, exported: item });
+        reExportInjections.push(`const ${item} = __export.${item};`);
+      }
+    }
+    return "";
+  });
+
+  // --- re-export: export * from "source" — record dep (names merged after deps are loaded) ---
+  // No runtime injection needed for star: the names are already in __export by the source module.
+  // We just register them in this module's exported list so downstream imports can find them.
+  const starExportDeps = [];
+  code = code.replace(/^[ \t]*export\s*\*\s*from\s*["']([^"']+)["'];?[ \t]*$/gm, (_match, source) => {
+    const dep = resolve(dirname(filePath), source);
+    deps.push(dep);
+    starExportDeps.push(dep);
     return "";
   });
 
@@ -191,6 +225,28 @@ async function loadModule(filePath) {
     return `let ${name}`;
   });
 
+  // --- re-export names: merge after all local exports are collected (local wins on conflict) ---
+  for (const re of reExportNames) {
+    if (!exported.includes(re.exported)) exported.push(re.exported);
+  }
+  // --- export * from: merge target module's exports (local + named re-exports win on conflict) ---
+  // Star-merged names are NOT injected as variables (they're already in __export by the source module's IIFE).
+  // They go into starExported for import validation only — NOT into exported (which drives Object.assign).
+  const starExported = [];
+  for (const starDep of starExportDeps) {
+    const target = moduleByPath.get(starDep);
+    if (target) {
+      const candidates = [...target.exported, ...(target.starExported || [])];
+      for (const name of candidates) {
+        if (!exported.includes(name) && !starExported.includes(name)) starExported.push(name);
+      }
+    }
+  }
+  // --- inject runtime variable declarations for named re-exports (so Object.assign can reference them) ---
+  if (reExportInjections.length) {
+    code = reExportInjections.join("\n") + "\n" + code;
+  }
+
   scanIconUsage(raw, label);
 
   const mod = {
@@ -199,9 +255,11 @@ async function loadModule(filePath) {
     antdNames: [...antdNames],
     intlNames: [...intlNames],
     bundleNames: [...new Set(bundleNames)],
+    namedImports,
     defImports,
     code: code.trim(),
     exported,
+    starExported,
     defaultPoolKey,
     prelude: "",
   };
@@ -229,6 +287,23 @@ await loadModule(ENTRY);
 
 if (!entryDefault) {
   throw new Error("app.jsx must have: export default function App()");
+}
+
+// --- Import validation: every named import must exist in the target module's exports ---
+const importErrors = [];
+for (const mod of modules) {
+  for (const nit of mod.namedImports) {
+    const target = moduleByPath.get(nit.source);
+    if (!target) continue; // css or unresolved — already handled elsewhere
+    if (!target.exported.includes(nit.name) && !(target.starExported || []).includes(nit.name)) {
+      importErrors.push(`  ${mod.label}: imports \`${nit.name}\` from ${target.label}, but that module does not export it (exports: ${target.exported.join(", ") || "none"})`);
+    }
+  }
+}
+if (importErrors.length) {
+  console.error(`FAIL  Named import not found in target module's exports:`);
+  for (const e of importErrors) console.error(e);
+  process.exit(1);
 }
 
 // --- Banned antd components (布局/装饰类 — 须用 H5 + CSS 或组件组合实现) ---
