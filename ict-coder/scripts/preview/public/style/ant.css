@@ -777,9 +777,9 @@ input.ant-input.ant-input-sm {
   gap: 0.25rem;
 }
 .ant-select-dropdown .rc-virtual-list-scrollbar-thumb {
-  width: 4px !important;
-  background: #dfdfdf !important;
-  left: calc(50% - 2px);
+  width: 0.25rem !important;
+  background: var(--color-border-separator) !important;
+  left: calc(50% - 0.125rem);
 }
 .ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
   background: var(--color-hover);
@@ -1009,9 +1009,9 @@ input.ant-input.ant-input-sm {
   display: none;
 }
 .ant-tree-select-dropdown .ant-select-tree .ant-select-tree-list-scrollbar-thumb {
-  width: 4px !important;
-  background: #dfdfdf !important;
-  left: calc(50% - 2px);
+  width: 0.25rem !important;
+  background: var(--color-border-separator) !important;
+  left: calc(50% - 0.125rem);
 }
 .ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode-active .ant-select-tree-node-content-wrapper {
   background: var(--color-hover);
@@ -2483,6 +2483,9 @@ input.ant-input.ant-input-sm {
 .ant-steps.ant-steps-panel .ant-steps-item.ant-steps-item-error.ant-steps-item-active .ant-steps-panel-arrow path {
   fill: var(--color-error);
 }
+.ant-steps .ant-steps-item-error .ant-steps-item-container .ant-steps-item-content .ant-steps-item-title::after {
+  background-color: var(--color-border-separator);
+}
 .dark .ant-steps.ant-steps-panel .ant-steps-item.ant-steps-item-error {
   background-color: rgba(238, 0, 34, 0.4);
 }
@@ -3032,9 +3035,11 @@ input.ant-input.ant-input-sm {
   border-radius: var(--radius-md);
   padding: 0.125rem;
   background: var(--color-fill);
-  width: initial !important;
   /* 尺寸变体：label 基础样式固定了行高/字号，需按 antd 的 lg/sm 类分别覆盖
      规格高度为最外层（.ant-segmented）高度 = label 行高 + 轨道上下内边距 4px：大 40 = 36+4，小 28 = 24+4 */
+}
+.ant-segmented:not(.ant-segmented-block) {
+  width: fit-content !important;
 }
 .ant-segmented .ant-segmented-group {
   gap: 0.25rem;

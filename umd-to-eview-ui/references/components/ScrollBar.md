@@ -8,21 +8,19 @@
 
 ### 属性
 
-| 属性名称        | 描述                                                                                                        | 输入       | 默认   |
-|:------------|:----------------------------------------------------------------------------------------------------------|:---------|:-----|
+| 属性名称    | 描述                                                                                                                                                   | 输入     | 默认 |
+| :---------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- | :------- | :--- |
 | style       | maxWidth: 550,// 配置组件需要水平滚动的的最大宽度. minWidth: 300, // 设置组件需要水平滚动的最小宽度. maxHeight: 200,//配置max组件需要垂直滚动条的高度. | shape    | {}   |
-| children    | 滚动条的子组件                                                                                                   | node     | null |
-| scrollEvent | 滚动后的回调函数                                                                                                  | function |      |
-| scrollStep  | 设置滚动条单次滚动的步长                                                                                              | number   | 53   |
+| children    | 滚动条的子组件                                                                                                                                         | node     | null |
+| scrollEvent | 滚动后的回调函数                                                                                                                                       | function |      |
+| scrollStep  | 设置滚动条单次滚动的步长                                                                                                                               | number   | 53   |
 
 ## 接口定义
 
 ```typescript
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
 interface ScrollBar {
-
-
   /**
    *maxWidth: 550;// required set max Width of the component need horizontal scroll.
    *minWidth: 300; // set min Width of the component need horizontal scroll.
@@ -69,7 +67,6 @@ interface ScrollBar {
   id: string;
   version: string;
   theme: string;
-
 }
 
 interface HorizontalScrollbar {
@@ -107,17 +104,12 @@ interface VerticalScrollbar {
 
 ### 基本属性设置
 
-## en-US
-
-
-
 ```jsx
-import ScrollBar from 'eview-ui/ScrollBar';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import ScrollBar from "eview-ui/ScrollBar";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class ScrollBarExample extends React.Component {
-
   handleScrollEvent = () => {
     console.log("scrollEvent Fired.");
   };
@@ -130,97 +122,36 @@ export default class ScrollBarExample extends React.Component {
     };
 
     const kolom = {
-      background: '#2196F3',
-      width: '150px',
-      height: '150px',
-      display: 'inline-block',
-      margin: '15px'
-    }
-    const [version, theme] = getDemoVersion()
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <ScrollBar style={myScrollbar} scrollEvent={this.handleScrollEvent}>
-          <div className="scroll-content">
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div className="clearfix" />
-          </div>
-
-        </ScrollBar>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ScrollBarExample />, mountNode);
-
-```
-
-```jsx
-import ScrollBar from 'eview-ui/ScrollBar';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-
-export default class ScrollBarExample extends React.Component {
-
-  handleScrollEvent = () => {
-    console.log("scrollEvent Fired.");
-  };
-
-  render() {
-    const myScrollbar = {
-      maxWidth: 550,
-      minWidth: 300,
-      maxHeight: 200,
+      background: "#2196F3",
+      width: "150px",
+      height: "150px",
+      display: "inline-block",
+      margin: "15px",
     };
-
-    const kolom = {
-      background: '#2196F3',
-      width: '150px',
-      height: '150px',
-      display: 'inline-block',
-      margin: '15px'
-    }
-    const [version, theme] = getDemoVersion()
+    const [version, theme] = getDemoVersion();
     return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
       <ConfigProvider version={version} theme={theme}>
         <ScrollBar style={myScrollbar} scrollEvent={this.handleScrollEvent}>
           <div className="scroll-content">
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
-            <div style={kolom}/>
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
+            <div style={kolom} />
             <div className="clearfix" />
           </div>
-
         </ScrollBar>
       </ConfigProvider>
     );
@@ -228,6 +159,4 @@ export default class ScrollBarExample extends React.Component {
 }
 
 ReactDOM.render(<ScrollBarExample />, mountNode);
-
 ```
-
