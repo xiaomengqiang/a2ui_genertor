@@ -145,7 +145,7 @@
       "assertions": [
         "Dialog/DialogPro/MessageDialog/MessageDialogPro/Loader 用 isOpen（NOT visible/display）",
         "Drawer/Tooltip 用 visible（NOT isOpen）",
-        "Popup/TipBox/DivMessage 用 display（NOT isOpen/visible）",
+        "Popup/DivMessage 用 display（NOT isOpen/visible）",
         "NOT 残留 antd open=（Modal open→isOpen；Drawer v5 open→visible）",
         "NOT 残留 Spin 的 spinning=（Loader 用 isOpen）"
       ]
@@ -174,9 +174,8 @@
         "Crumbs 用 seprator（正确英文 separator 残留即未迁移）",
         "SelectCard 用 disable（不是 disabled）",
         "FileUpload 用 disable + placeHolder + upLoadErrorMessage（三处拼写）",
-        "Tag（message 型）用 disable",
         "Button/TextField/Select/Menu 用 disabled 正确拼写（NOT 全局替换 disable）",
-        "TipBox/DivMessage 用 disposeTimeOut（TimeOut 大写 O）",
+        "DivMessage 用 disposeTimeOut（TimeOut 大写 O）",
         "Tree/Table 父子勾选关联用 disabelCheckAssociated"
       ]
     },

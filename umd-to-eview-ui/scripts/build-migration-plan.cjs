@@ -301,10 +301,10 @@ if (ipInputInfo && ipInputInfo.callSites && ipInputInfo.callSites.length) {
 const globalRefEui = {
   spellingAnomalies: [
     { eview: 'seprator', correct: 'separator', component: 'Crumbs（另有 sepratorStyle）' },
-    { eview: 'disable', correct: 'disabled', component: 'SelectCard、FileUpload、Tag(message 型)、PopUpMenu 项、ButtonMenu options 项', note: '仅这些用 disable；Button/TextField/Select/Menu 等仍用 disabled，勿全局替换' },
+    { eview: 'disable', correct: 'disabled', component: 'SelectCard、FileUpload、PopUpMenu 项、ButtonMenu options 项', note: '仅这些用 disable；Button/TextField/Select/Menu/Tag 等仍用 disabled，勿全局替换' },
     { eview: 'placeHolder', correct: 'placeholder', component: 'FileUpload、BrowseButton' },
     { eview: 'upLoadErrorMessage/upLoadSuccessMessage', correct: 'uploadErrorMessage/…', component: 'FileUpload' },
-    { eview: 'disposeTimeOut', correct: 'disposeTimeout', component: 'TipBox、DivMessage' },
+    { eview: 'disposeTimeOut', correct: 'disposeTimeout', component: 'DivMessage' },
     { eview: 'disabelCheckAssociated', correct: 'disableCheckAssociated', component: 'TablePro selection、Tree、TreeTable' },
     { eview: 'enableMulitiExpand', correct: 'enableMultiExpand', component: 'Table' },
     { eview: 'onRowExpend/expandedRow', correct: 'onRowExpand/…', component: 'Table' },
@@ -370,7 +370,7 @@ const globalRefEui = {
   visibilityProps: {
     isOpen: ['DialogPro', 'MessageDialogPro', 'PopUpMenu(废弃)', 'Loader'],
     visible: ['Drawer', 'Tooltip', 'Dropdown'],
-    display: ['Popup', 'TipBox(默认 true)', 'DivMessage(默认 true)', 'LinkField(默认 true)'],
+    display: ['Popup', 'DivMessage(默认 true)', 'LinkField(默认 true)'],
     iconDisplay: ['HelpTip(默认 true)'],
     isShow: ['Shade(默认 true)'],
     none: ['PopConfirm(内部管理)', 'PageMessage', 'FormMessage(父级条件渲染)'],

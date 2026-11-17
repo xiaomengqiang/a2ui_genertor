@@ -6,7 +6,7 @@
  * eview-ui 各组件显隐 prop 名不统一，是最高频迁移错误：
  *   isOpen:   Dialog / DialogPro / MessageDialog / MessageDialogPro / Loader
  *   visible:  Drawer / Tooltip
- *   display:  Popup / TipBox / DivMessage
+ *   display:  Popup / DivMessage
  *   iconDisplay: HelpTip；isShow: Shade；PopConfirm/PageMessage/FormMessage 无显隐 prop
  *
  * 检查项（均硬 FAIL）：
@@ -38,7 +38,6 @@ const VISIBILITY_MAP = {
   Tooltip: 'visible',
   Dropdown: 'visible',
   Popup: 'display',
-  TipBox: 'display',
   DivMessage: 'display',
   HelpTip: 'iconDisplay',
   Shade: 'isShow',
@@ -126,7 +125,7 @@ function main() {
           if (wpRe.test(tagWindow)) {
             fails.push({
               file: rel, line, code: 'VISIBILITY_WRONG_PROP',
-              detail: `<${n}> 的显隐 prop 应是 ${correct}=（不是 ${wp}=）——eview-ui 显隐 prop 全家速查：isOpen(Dialog系/Loader)、visible(Drawer/Tooltip)、display(Popup/TipBox/DivMessage)、iconDisplay(HelpTip)、isShow(Shade)`,
+              detail: `<${n}> 的显隐 prop 应是 ${correct}=（不是 ${wp}=）——eview-ui 显隐 prop 全家速查：isOpen(Dialog系/Loader)、visible(Drawer/Tooltip)、display(Popup/DivMessage)、iconDisplay(HelpTip)、isShow(Shade)`,
             });
           }
         }

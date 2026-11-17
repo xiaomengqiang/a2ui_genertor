@@ -245,7 +245,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 
 3. **回调签名**：第一个参数通常是值不是 event（TextField `onChange(value1, value2, event)`、SelectPro `onChange(value, options)`、Checkbox 四参）；**反直觉例外**：Rating `onClick(event, value)`、Table `onRowRightClick(e, row)`、FileUpload `onChange(event, itemList)`——event 在前。完整速查见 [components/INDEX.md](references/components/INDEX.md) 文末「回调签名差异」表。
 
-4. **显隐 prop 不统一**（最高频张冠李戴）：DialogPro/MessageDialogPro/Loader 用 `isOpen`；Drawer/Tooltip 用 `visible`；Popup/TipBox/DivMessage 用 `display`。**DialogPro/MessageDialogPro 的 `destroyOnClose` 默认 true（antd 默认 false，语义反转）**；所有弹层 `onClose` 都不自动关闭。速查见 [components/INDEX.md](references/components/INDEX.md) 文末「显隐 prop 速查」表。**机器验证**：步骤 8 `check-visibility.cjs`。
+4. **显隐 prop 不统一**（最高频张冠李戴）：DialogPro/MessageDialogPro/Loader 用 `isOpen`；Drawer/Tooltip 用 `visible`；Popup/DivMessage 用 `display`。**DialogPro/MessageDialogPro 的 `destroyOnClose` 默认 true（antd 默认 false，语义反转）**；所有弹层 `onClose` 都不自动关闭。速查见 [components/INDEX.md](references/components/INDEX.md) 文末「显隐 prop 速查」表。**机器验证**：步骤 8 `check-visibility.cjs`。
 
 5. **validator 返回 `{result, message}`**（`result: true` = 通过）；FormPro 的 Rule 是**扁平字段**（`required/email/ipv4/min...` + `custom`），不是 antd `{required, message, validator}` 数组——antd Form 迁 FormPro 时必须重写 rules。
 
@@ -262,7 +262,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
     ② ConfigProvider theme 轨：`theme={isDark ? 'evening' : 'lightday'}` + `version="aui3-1"`——**组件库内部自行切换暗色，不需要手写 body `data-theme` / `eviewui_aui3_1_*` 类切换，也不要加 listenTheme**。
     index.html body 首帧已预置 `eviewui_aui3_1_default` + `data-theme="default"`（亮态防闪，运行时无需维护）。两轨统一收口在 ThemeProvider（消费 useApp().isDark），业务侧只管 `toggleDark`。**机器验证**：步骤 8 `check-dark-mode.cjs`（检测暗色需求后验证双轨完整性）。
 
-11. **拼写异常照抄原文**：`seprator`（Crumbs）、`disable`（**仅 SelectCard/FileUpload/Tag(message)/PopUpMenu 项**——其余组件用正确拼写 `disabled`，**不要全局替换**）、`placeHolder`（FileUpload/BrowseButton）、`upLoadErrorMessage`、`disposeTimeOut`、`disabelCheckAssociated`、`enablHorzScroll` 等。完整表见 [components/INDEX.md](references/components/INDEX.md) 文末「属性拼写异常」表。**机器验证**：`check-crumbs.cjs`（separator 正确英文残留即 FAIL）。
+11. **拼写异常照抄原文**：`seprator`（Crumbs）、`disable`（**仅 SelectCard/FileUpload/PopUpMenu 项**——其余组件用正确拼写 `disabled`，**不要全局替换**）、`placeHolder`（FileUpload/BrowseButton）、`upLoadErrorMessage`、`disposeTimeOut`、`disabelCheckAssociated`、`enablHorzScroll` 等。完整表见 [components/INDEX.md](references/components/INDEX.md) 文末「属性拼写异常」表。**机器验证**：`check-crumbs.cjs`（separator 正确英文残留即 FAIL）。
 
 12. **按钮/文字类组件内容用 prop 不用 children**：`Button text`、`TextButton text`、`DivMessage text`、`LabelField text`（Button 带 Icon 时例外走 children 组合，见硬约束 8）；`MessageDialog content/detail` 结构区分。
 
