@@ -75,24 +75,6 @@ ReactDOM.render(
 );
 ```
 
-```jsx
-import Tooltip from "eview-ui/Tooltip";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-
-const [version, theme] = getDemoVersion();
-
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <Tooltip content="prompt text" trigger={["hover", "focus"]}>
-      <span>Tooltip will show on mouse enter.</span>
-    </Tooltip>
-  </ConfigProvider>,
-  mountNode,
-);
-```
-
 ### 触发开关方式
 
 设置`trigger`控制触发方式。
@@ -357,56 +339,6 @@ ReactDOM.render(
 ```
 
 ### 多种颜色
-
-```jsx
-import Tooltip from "eview-ui/Tooltip";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-
-const [version, theme] = getDemoVersion();
-
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <div style={{ display: "flex", justifyContent: "space-around" }}>
-      <Tooltip
-        content="Text!!"
-        overlayStyle={{ color: "#fff" }}
-        color="#f50"
-        trigger={["hover", "focus"]}
-      >
-        <Button text="#ff5500"></Button>
-      </Tooltip>
-      <Tooltip
-        content="Text!!"
-        overlayStyle={{ color: "#fff" }}
-        color="#2db7f5"
-        trigger={["hover", "focus"]}
-      >
-        <Button text="#2db7f5"></Button>
-      </Tooltip>
-      <Tooltip
-        content="Text!!"
-        overlayStyle={{ color: "#fff" }}
-        color="#87d068"
-        trigger={["hover", "focus"]}
-      >
-        <Button text="#87d068"></Button>
-      </Tooltip>
-      <Tooltip
-        content="Text!!"
-        overlayStyle={{ color: "#fff" }}
-        color="#108ee9"
-        trigger={["hover", "focus"]}
-      >
-        <Button text="#108ee9"></Button>
-      </Tooltip>
-    </div>
-  </ConfigProvider>,
-  mountNode,
-);
-```
 
 ```jsx
 import Tooltip from "eview-ui/Tooltip";
