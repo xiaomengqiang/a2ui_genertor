@@ -434,15 +434,16 @@ node <skill目录>/scripts/check-dropdown.cjs <目标工程根>
 
 硬 FAIL 项 exit≠0 即 FAIL；advisory 项 exit=0 但每个待核 `<DropDown>` 必须在 `.migration-result.json` 的 `dropdownReviews` 写明决策（如 `"已改 onClick→onItemClick"` 或 `"已改 if(!item.value)→item.value===undefined"`）。未逐条回应视同 FAIL。工程无 `<DropDown>` → PASS 不报。
 
-### 4.17 Select 系 options/data label→text 残留检查（硬 FAIL 必跑）
+### 4.17 Select 系 options/data prop 名 + label→text 残留检查（硬 FAIL 必跑）
 
-> 对应 component-mapping.md Select / MultipleSelect / InputSelect / SelectCard / CheckboxGroup / RadioGroup 行 + components/Select.md §2「选项结构」。eview-react 这些组件的选项项字段是 `{ text, value }`（不是 antd 的 `{ label, value }`），按 `text` 取显示文字——漏改 `label→text` 则下拉项文字空白。`label→text` 重命名发生在步骤 2（LLM 手工替换），本脚本做机器兜底。
+> 对应 component-mapping.md Select / MultipleSelect / InputSelect / SelectCard / CheckboxGroup / RadioGroup 行 + components/Select.md §2「选项结构」。eview-react 这些组件的选项项字段是 `{ text, value }`（不是 antd 的 `{ label, value }`），按 `text` 取显示文字——漏改 `label→text` 则下拉项文字空白。**选项 prop 名按组件分两组，不能串**：`Select`/`MultipleSelect`/`InputSelect` 用 `options`，`SelectCard`/`CheckboxGroup`/`RadioGroup` 用 `data`（两组项结构同为 `{text,value}` 但 prop 名不同）；LLM 易把"eview 用 data"套到 Select，或把 Select 的 options 套到 SelectCard——双向都守，与 §4.16 DropDown 的 `OPTIONS_PROP_RESIDUE`（DropDown 用 data，options= 残留）对称。prop 名与 `label→text` 重命名都发生在步骤 2（LLM 手工替换），本脚本做机器兜底。
 
-脚本 `scripts/check-select-options.cjs`，对每个 Select 系元素（`Select`/`MultipleSelect`/`InputSelect` 取 `options`；`SelectCard`/`CheckboxGroup`/`RadioGroup` 取 `data`）检查（全硬 FAIL）：
+脚本 `scripts/check-select-options.cjs`，对每个 Select 系元素检查（全硬 FAIL）：
 
-1. `LABEL_TEXT_RESIDUE` — options/data 项残留 antd 字段名 `label`（应为 `text`）
+1. `PROP_RESIDUE` — 选项 prop 名串了组件：`Select`/`MultipleSelect`/`InputSelect` 残留 `data=`（应为 `options=`），或 `SelectCard`/`CheckboxGroup`/`RadioGroup` 残留 `options=`（应为 `data=`）
+2. `LABEL_TEXT_RESIDUE` — options/data 项残留 antd 字段名 `label`（应为 `text`）
 
-**扫描基于 AST（@babel/parser）**——从 options/data 表达式递归收集所有 ObjectExpression，覆盖 `.map(item=>({value,label}))`（最常见的产物形态）/`.map` 块体 return/`.map(function)`/`Array.from`/spread/嵌套/shorthand `{label}`/计算键 `{['label']:x}` 等全部 JS 书写形态，标识符引用追同文件 `const` 定义（含 `.map` 产生的）。之所以用 AST 而非正则：纯正则的 `resolveArrayBody` 只扫第一个 `[...]` 数组体（即 `.map` 的源数组 `[1,2,3]`），扫不到回调里的对象字面量；且 `label: item`（标识符值）非字符串字面量，旧正则 `label:\s*['"`]` 也匹配不到。AST 与 check-dropdown/check-accordion 共用 `scripts/lib/ast-helpers.cjs`。
+**扫描基于 AST（@babel/parser）**——从 options/data 表达式递归收集所有 ObjectExpression（含残留 prop 名的 `data=`/`options=`，prop 名也错时 label 一并报全），覆盖 `.map(item=>({value,label}))`（最常见的产物形态）/`.map` 块体 return/`.map(function)`/`Array.from`/spread/嵌套/shorthand `{label}`/计算键 `{['label']:x}` 等全部 JS 书写形态，标识符引用追同文件 `const` 定义（含 `.map` 产生的）。之所以用 AST 而非正则：纯正则的 `resolveArrayBody` 只扫第一个 `[...]` 数组体（即 `.map` 的源数组 `[1,2,3]`），扫不到回调里的对象字面量；且 `label: item`（标识符值）非字符串字面量，旧正则 `label:\s*['"`]` 也匹配不到。prop 名检查用 AST 精确匹配属性名（`data-source` 不误判为 `data`）。AST 与 check-dropdown/check-accordion 共用 `scripts/lib/ast-helpers.cjs`。
 
 ```bash
 node <skill目录>/scripts/check-select-options.cjs <目标工程根>
@@ -569,7 +570,7 @@ node <skill目录>/scripts/check-select-form.cjs <目标工程根>
 13. 跑 `node <skill目录>/scripts/check-accordion.cjs <目标工程根>`（§4.14，硬 FAIL + advisory，advisory 项逐条回应写入 `accordionReviews`）
 14. 跑 `node <skill目录>/scripts/check-crumbs.cjs <目标工程根>`（§4.15，**硬 FAIL**，exit≠0 即 FAIL）
 15. 跑 `node <skill目录>/scripts/check-dropdown.cjs <目标工程根>`（§4.16，硬 FAIL + advisory，advisory 项逐条回应写入 `dropdownReviews`）
-16. 跑 `node <skill目录>/scripts/check-select-options.cjs <目标工程根>`（§4.17，**硬 FAIL**，exit≠0 即 FAIL——Select 系 options/data 项 label→text 残留，AST 扫描覆盖 `.map`/`Array.from`/spread/shorthand/计算键等动态形态）
+16. 跑 `node <skill目录>/scripts/check-select-options.cjs <目标工程根>`（§4.17，**硬 FAIL**，exit≠0 即 FAIL——Select 系选项 prop 名串组件（`Select`/`MultipleSelect`/`InputSelect` 残留 `data=`、`SelectCard`/`CheckboxGroup`/`RadioGroup` 残留 `options=`）+ options/data 项 label→text 残留，AST 扫描覆盖 `.map`/`Array.from`/spread/shorthand/计算键等动态形态）
 17. 跑 `node <skill目录>/scripts/check-rangepicker.cjs <目标工程根>`（§4.18，**硬 FAIL**，exit≠0 即 FAIL——`<DatePicker.RangePicker>`/`<RangePicker>`/`<TimePicker.RangePicker>` JSX 残留，eview-react 无 RangePicker 导出）
 18. 跑 `node <skill目录>/scripts/check-group-jsx.cjs <目标工程根>`（§4.20，**硬 FAIL**，exit≠0 即 FAIL——`<Checkbox.Group>`/`<Radio.Group>` JSX + 成员访问残留，eview-react 用独立组件 CheckboxGroup/RadioGroup）
 19. 跑 `node <skill目录>/scripts/check-divmessage.cjs <目标工程根>`（§4.21，**硬 FAIL**，exit≠0 即 FAIL——DivMessage type 非 {default/success/error/warn} 枚举 + 残留命令式 `message.xxx()` 调用）
