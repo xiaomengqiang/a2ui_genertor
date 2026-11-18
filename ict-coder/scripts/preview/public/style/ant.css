@@ -1129,6 +1129,15 @@ input.ant-input.ant-input-sm {
 .ant-picker-outlined:focus-within {
   background-color: var(--color-fill-subtle);
 }
+/* error 状态的 outlined 变体：antd 状态规则不给背景，补上与其他变体一致的填充色 */
+.ant-picker-outlined.ant-picker-status-error:not(.ant-picker-disabled) {
+  background: var(--color-fill-subtle);
+}
+.ant-picker-outlined.ant-picker-status-error:not(.ant-picker-disabled):hover,
+.ant-picker-outlined.ant-picker-status-error:not(.ant-picker-disabled):focus,
+.ant-picker-outlined.ant-picker-status-error:not(.ant-picker-disabled):focus-within {
+  background-color: var(--color-fill-subtle);
+}
 .ant-picker-dropdown {
   color: var(--color-text-primary);
   font-size: var(--font-size-md);
