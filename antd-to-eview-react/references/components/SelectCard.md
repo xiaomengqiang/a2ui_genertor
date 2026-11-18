@@ -52,6 +52,33 @@ const handleRegionChange = (region: string) => {
 };
 ```
 
+### 选项图标：antd Segmented / Radio.Button 的 icon 并入 text
+
+SelectCard 的 `data` 形状是 `Array<{ value, text, disable?, tipsText? }>`——**没有 `icon` 字段**。antd `Segmented` / `Radio.Button` 选项里的 `icon` 字段**不能原样保留为独立 `icon` key**，否则会被 SelectCard 静默丢弃、图标不渲染。必须把图标**并入 `text`**，包一个 inline-flex 的 `<div>`（`text` 既可以是字符串又可以是 DOM 节点，见 §5 API 表）。
+
+**recipe**：
+1. 先按 [Icon.md](Icon.md) 把选项里的 `icon: "lit"` 解析为 `<IconPlusIcPublic… iconSize="0.875rem" iconColor={['currentcolor']} />`（无 render 站点时选项内联图标 `iconSize` 默认 `"0.875rem"`；`iconColor` 必须是数组小写形式 `['currentcolor']`，不要写字符串 `"currentColor"`）。
+2. 把该 icon+ 元素与原 `text` 文字拼进一个 `<div style={{ display: "inline-flex", alignItems: "center", gap: "6px", lineHeight: 0 }}>` 作为新的 `text`——图标在前、空格、文字在后。
+3. **删除独立的 `icon` 字段**。
+
+```tsx
+// 前（antd Segmented 源）
+const viewOpts = [
+  { text: '列表', value: 'list', icon: 'lists' },
+  { text: '卡片', value: 'card', icon: 'app' },
+];
+<Segmented options={viewOpts} defaultValue="list" />
+
+// 后（迁移为 SelectCard）
+import { IconPlusIcPublicLists, IconPlusIcPublicApp } from '@hui/icon-plus';
+const viewOpts = [
+  { text: (<div style={{ display: "inline-flex", alignItems: "center", gap: "6px", lineHeight: 0 }}><IconPlusIcPublicLists iconSize="0.875rem" iconColor={['currentcolor']} /> 列表</div>), value: 'list' },
+  { text: (<div style={{ display: "inline-flex", alignItems: "center", gap: "6px", lineHeight: 0 }}><IconPlusIcPublicApp iconSize="0.875rem" iconColor={['currentcolor']} /> 卡片</div>), value: 'card' },
+];
+const [view, setView] = useState('list');   // defaultValue → 初始 value（见 §4）
+<SelectCard data={viewOpts} value={view} onChange={setView} />
+```
+
 ## 3. 联动说明
 
 - 档位变化 → 价格 / 配额 / 下方表单默认值联动；切换时清掉与旧档位绑定的输入
@@ -88,6 +115,20 @@ const opts = [{ value: 1, text: 'A', disabled: true }];
 
 // ❌ data 字段名写 label（应为 text）
 <SelectCard data={[{ value: 1, label: '100MB' }]} />
+
+// ❌ SelectCard 无 icon 字段，独立 icon 会被静默丢弃（图标不渲染）
+// 源 antd: <Segmented options={[{ text: '列表', value: 'list', icon: 'lists' }]} />
+// 错误迁移（套用 Select 的 icon 字段写法）：
+const viewOpts = [
+  { text: '列表', value: 'list', icon: <IconPlusIcPublicLists iconSize="0.875rem" iconColor={['currentcolor']} /> },
+];
+// 迁移后应为（icon 并入 text，见 §2 选项图标）：
+const viewOpts = [
+  { text: (<div style={{ display: "inline-flex", alignItems: "center", gap: "6px", lineHeight: 0 }}><IconPlusIcPublicLists iconSize="0.875rem" iconColor={['currentcolor']} /> 列表</div>), value: 'list' },
+];
+
+// ❌ iconColor 写成字符串 "currentColor"（应为数组小写 ['currentcolor']）
+<IconPlusIcPublicLists iconSize="0.875rem" iconColor="currentColor" />
 
 // ❌ 替换 data 后不校正 value，选中值落在新选项之外
 setSizeOptions(next); // 少了 if (!next.some(o => o.value === size)) setSize(...)
