@@ -2113,6 +2113,11 @@ input.ant-input.ant-input-sm {
   font: var(--font-body-s);
   /* 数字滚动结构：antd 固定 20px 高，滚动条与行盒对齐 16px 盒高，配合 align-items 精确垂直居中 */
 }
+.ant-badge .ant-badge-count > bdi {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .ant-badge .ant-badge-count > bdi > .ant-scroll-number-only {
   display: flex;
   align-items: center;
@@ -3294,17 +3299,40 @@ input.ant-input.ant-input-sm {
 .ant-modal .ant-modal-header {
   color: var(--gray-90);
   border-bottom: var(--spacing-4);
+  margin-top: -0.25rem;
+  margin-bottom: 1rem;
 }
 .ant-modal .ant-modal-header .ant-modal-title {
   font-size: var(--font-size-2xl);
+  /* 标题行高固定 32px（2rem），供关闭按钮对齐计算 */
+  line-height: 2rem;
   color: var(--gray-90);
+  border-radius: 0;
+  /* 超长省略：截断处距叉图标左缘 2rem
+               = 图标右距 0.4375rem + 按钮宽 2rem(antd controlHeight) + 间距 2rem - 右 padding 1.5rem = 47px */
+  padding-right: calc(0.4375rem + 2rem + 2rem - 1.5rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .ant-modal .ant-modal-body .ant-typography.ant-typography-secondary,
 .ant-modal .ant-modal-body .ant-typography.ant-typography-link.ant-typography-secondary {
   color: var(--gray-90);
+  margin-bottom: 0;
+}
+.ant-modal .ant-modal-footer {
+  margin-top: 1.5rem;
 }
 .ant-modal .ant-modal-close {
   color: var(--gray-90);
+  /* 叉图标顶部与标题文字字形最上面对齐：
+           padding 24px - header margin 4px + 半行距 (32-20)/2 = 26px（文字 em 顶部） */
+  top: calc(var(--spacing-6) - 0.25rem + (2rem - var(--font-size-2xl)) / 2);
+  height: 2rem;
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  inset-inline-end: 0.4375rem;
   /* 去掉 hover 的图标变色与灰色背景块，保持正常态 */
   /* 图标 14×14（antd 默认 16px） */
 }
