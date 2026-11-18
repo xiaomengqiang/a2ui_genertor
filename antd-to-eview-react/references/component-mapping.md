@@ -40,8 +40,8 @@
 | `Checkbox` | `Checkbox` | `onChange(value, checked, event, additionalData)`；`onPreChange` 拦截 |
 | `Checkbox.Group` | `CheckboxGroup` | `data=[{text,value}]`；`value[]`；`selectAll`；`rows` |
 | `Radio` / `.Group` | `Radio` / `RadioGroup` | Group 用 `data=[{text,value}]`；需 `isControlled` 才受控；`onChange` 参数顺序有冲突，用兼容写法 |
-| `Radio.Button` | `SelectCard` | 导出名 SelectCard（不是 Segmented）；`data=[{text,value}]`；`onChange(value,event)`；禁用是 `disable`（不是 disabled） |
-| `Segmented` | `SelectCard` | 映射同 `Radio.Button`：`options` 字符串数组或 `{label,value}` 对象数组 → `data=[{text,value}]`；`defaultValue` 转为初始 `value` state；`block`→无对应（宽度走 `style`/`itemStyle`）；`disabled`→`disable`；`onChange(value)` 首参即为选中值 |
+| `Radio.Button` | `SelectCard` | 导出名 SelectCard（不是 Segmented）；`data=[{text,value}]`；`onChange(value,event)`；禁用是 `disable`（不是 disabled）；选项带 `icon` → 并入 `text`（SelectCard `data` 无 `icon` 字段，见 SelectCard.md §选项图标） |
+| `Segmented` | `SelectCard` | 映射同 `Radio.Button`：`options` 字符串数组或 `{label,value}` 对象数组 → `data=[{text,value}]`；`defaultValue` 转为初始 `value` state；`block`→无对应（宽度走 `style`/`itemStyle`）；`disabled`→`disable`；`onChange(value)` 首参即为选中值；选项带 `icon` → 并入 `text`（SelectCard `data` 无 `icon` 字段，见 SelectCard.md §选项图标） |
 | `Switch` | `Toggle` | `checked`→`toggled`；`onChange`→`onToggle(value)`；`data=[关,开]`；`taggledChildren`（拼错）；`Switch isControlToggled` 二次确认；**`disabled` 保留不变**（Toggle 用 `disabled` 正确拼写，**不是 `disable`**——`disable` 只属于 SelectCard/FileUpload） |
 | `Slider` | `DragInput` | `value` **永远是数组**；`type="range"` 开双滑块；`markIndexes` 数组；导出名是 DragInput 不是 Slider |
 | `Rate` | `Rating` | 取值是 `onClick(value)` 不是 onChange；`onMouseOver/Leave` 悬浮预览；`half`；`disabled` 只读 |

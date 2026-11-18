@@ -136,6 +136,7 @@ const data = [
 - **绑不到静态数组源**（`IDENT` 非循环变量、也非任何已扫文件中的 `const ARR = [...]`；或数组含非字符串字面量字段，集合不封闭；或跨文件同名多名歧义）→ **untraced**：脚本 keep 残留 `<Icon name={IDENT.field}/>` shim 可运行 + 修 `shared/Icon` import 路径（`public/shared/icon` → `@/shared/Icon`，具名→默认），报 `untracedSites` 段交 LLM 按 §name 解析 判（闭合→转 / 真 OPEN→保 shim）；**不断言方案A**。`check-icon-shim --strict` 拦闭集误留。
 - **`.js`→`.jsx`**：data 文件塞进 `<IconPlusIc…/>` 元素即引入 JSX，`--apply` 自动把该 `.js` 转 `.jsx`（`.ts`→`.tsx`），并修引用方显式 `.js`/`.ts` 扩展名 import（无扩展名 import 不动，解析器仍命中 `.jsx`）。
 - 仅**标识符** `name={x}`（常量传播未命中）与**链式/嵌套三元** `name={a ? 'x' : b ? 'y' : 'z'}` 仍交 LLM 在 residual 阶段按 catalog/候选解析（recipe：name→组件 map + fallback `<Icon name={t.icon}/>` 兜底未知 key）。
+- **SelectCard 例外**：若该数组是 `SelectCard` 的 `data`（形状 `{ value, text, disable?, tipsText? }`，**无 `icon` 字段**），不要保留独立 `icon` key——把 icon+ 元素并入 `text`，包 `<div style={{ display: "inline-flex", alignItems: "center", gap: "6px", lineHeight: 0 }}>{icon} {text}</div>` 作为新 `text`、删 `icon` 字段；`iconSize` 默认 `"0.875rem"`、`iconColor={['currentcolor']}`。见 [SelectCard.md](SelectCard.md) §选项图标。
 
 ### OBJ[runtimeKey].field 静态对象地图（cat.icon）
 
@@ -147,6 +148,8 @@ const data = [
 1. 对象声明处每个 `icon: "lit"` → `icon: <IconPlusIc… iconSize={取 render 站点 size} iconColor={['currentcolor']} />`（C 由 catalog `matchOne` 匹配名；B 由在线 `getIconInfo` API 查名）；查不到用占位 `IconPlusIcPublicTransverseRectangleTemplate` 顶替并带候选进 residual。
 2. render `<Icon name={cat.icon}/>` → `{cat.icon}`（JSX 子节点位包 `{}`，表达式位裸，按 §`<Icon name={X}/>` 改写的 `{}` 上下文规则）。
 3. 该 `.js` 文件因引入 JSX → `.jsx`，修引用方显式 `.js` 扩展名 import。
+
+> **SelectCard 例外**：若该对象地图喂给 `SelectCard` 的 `data`（形状 `{ value, text, disable?, tipsText? }`，**无 `icon` 字段**），不要保留独立 `icon` key——把 icon+ 元素并入 `text`，包 `<div style={{ display: "inline-flex", alignItems: "center", gap: "6px", lineHeight: 0 }}>{icon} {text}</div>` 作为新 `text`、删 `icon` 字段；`iconSize` 默认 `"0.875rem"`、`iconColor={['currentcolor']}`。见 [SelectCard.md](SelectCard.md) §选项图标。
 
 ```tsx
 // 前
