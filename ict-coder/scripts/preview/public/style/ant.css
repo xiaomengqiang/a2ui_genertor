@@ -1575,18 +1575,70 @@ input.ant-input.ant-input-sm {
      Chrome 121+ 中滚动元素上非 auto 的标准滚动条属性会让 ::-webkit-scrollbar 自定义样式全部失效，
      重置为 auto 以恢复 6px 自定义滚动条（含 base.css 的全局规则） */
   scrollbar-color: auto !important;
+  /* 滚动条与间距：.ant-table-content（普通/横滚结构）与 .ant-table-body（scroll.y 固定表头的滚动容器）双挂 */
+  /* scroll.y 固定表头：antd 追加一个独立的 8px 滚动条占位列（th.ant-table-cell-scrollbar，
+	   继承末列的 fixed），原生机制即为与 body 滚动条对齐，不需要额外的宽度补偿。
+	   仅去掉 antd 默认的 8px 顶部圆角（与 .ant-table-content 的处理一致） */
+  /* 表格内容规则挂 .ant-table-container：scroll.y 固定表头时结构为 container > .ant-table-header/.ant-table-body
+	   两个独立 table，不存在 .ant-table-content，挂 container 使两种结构都生效 */
 }
-.ant-table .ant-table-content {
+.ant-table .ant-table-content,
+.ant-table .ant-table-body {
+  /* 元素级重置：antd 会在 header/body 上直接指定 scrollbar-color（继承的 auto 压不过元素级指定值），
+		   非 auto 值会让 Chrome 121+ 的 ::-webkit-scrollbar 自定义全部失效，滚动条宽度不可控 */
+  scrollbar-color: auto !important;
   border-start-start-radius: 0 !important;
   border-start-end-radius: 0 !important;
   /* 滚动条下移：横向滚动条渲染在 padding 之下，这里留出与表格的间距；负 margin 抵消无滚动条表格多占的空间 */
   padding-bottom: 2px;
   margin-bottom: -2px;
-  /* 横向滚动条（scroll.x 的滚动容器就是 .ant-table-content，规则生效依赖上方 .ant-table 的 scrollbar-color 重置）
+  /* 横向滚动条（scroll.x 的滚动容器是 .ant-table-content，scroll.y 时为 .ant-table-body，
+		   规则生效依赖上方 .ant-table 的 scrollbar-color 重置）
 		   注意：Chromium 中 hover 改 ::-webkit-scrollbar 高度存在渲染滞后（需交互才刷新且不还原），
 		   故轨道固定 8px；滑块用固定 2px 透明边框把可视区缩到 4px（内半径 = 4-2 = 2px，圆角生效），
 		   hover 只切换 background-clip/颜色（纯绘制属性，即时生效）铺满 8px */
   /* 隐藏两端三角按钮与角落 */
+}
+.ant-table .ant-table-content::-webkit-scrollbar,
+.ant-table .ant-table-body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: transparent;
+  border: none;
+}
+.ant-table .ant-table-content::-webkit-scrollbar-thumb,
+.ant-table .ant-table-body::-webkit-scrollbar-thumb {
+  cursor: pointer;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-color: #dfdfdf;
+  background-clip: padding-box;
+}
+.ant-table .ant-table-content::-webkit-scrollbar-thumb:hover,
+.ant-table .ant-table-body::-webkit-scrollbar-thumb:hover {
+  background-color: #dededf;
+  background-clip: border-box;
+}
+.ant-table .ant-table-content::-webkit-scrollbar-track,
+.ant-table .ant-table-body::-webkit-scrollbar-track {
+  background: transparent;
+  border: none;
+}
+.ant-table .ant-table-content::-webkit-scrollbar-button,
+.ant-table .ant-table-body::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.ant-table .ant-table-content::-webkit-scrollbar-corner,
+.ant-table .ant-table-body::-webkit-scrollbar-corner {
+  background: transparent;
+}
+.ant-table .ant-table-header {
+  border-start-start-radius: 0 !important;
+  border-start-end-radius: 0 !important;
+}
+.ant-table .ant-table-container {
   /* 右对齐列（rc-table 以内联 text-align 标记，对 flex 表头无效）：
 		   排序表头的 [标题+图标] 组改用 flex-end 整体靠右 */
   /* antd 的 .ant-table-column-sorters::after 是覆盖整个表头单元格的透明点击遮罩（整格可点击排序），
@@ -1594,63 +1646,34 @@ input.ant-input.ant-input-sm {
 		   hover 高亮只响应图标区域，悬停标题文字不再变色 */
   /* 排序列：手型光标只在排序图标上，表头其余区域恢复默认箭头（点击任意位置仍可排序） */
 }
-.ant-table .ant-table-content::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-  background: transparent;
-  border: none;
-}
-.ant-table .ant-table-content::-webkit-scrollbar-thumb {
-  cursor: pointer;
-  border-radius: 4px;
-  border: 2px solid transparent;
-  background-color: #dfdfdf;
-  background-clip: padding-box;
-}
-.ant-table .ant-table-content::-webkit-scrollbar-thumb:hover {
-  background-color: #dededf;
-  background-clip: border-box;
-}
-.ant-table .ant-table-content::-webkit-scrollbar-track {
-  background: transparent;
-  border: none;
-}
-.ant-table .ant-table-content::-webkit-scrollbar-button {
-  display: none;
-  width: 0;
-  height: 0;
-}
-.ant-table .ant-table-content::-webkit-scrollbar-corner {
-  background: transparent;
-}
-.ant-table .ant-table-content .ant-table-thead > tr > th[style*="text-align: right"] .ant-table-column-sorters {
+.ant-table .ant-table-container .ant-table-thead > tr > th[style*="text-align: right"] .ant-table-column-sorters {
   justify-content: flex-end;
 }
-.ant-table .ant-table-content .ant-table-column-sorters {
+.ant-table .ant-table-container .ant-table-column-sorters {
   justify-content: flex-start;
   max-width: 100%;
 }
-.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-title {
+.ant-table .ant-table-container .ant-table-column-sorters .ant-table-column-title {
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter {
+.ant-table .ant-table-container .ant-table-column-sorters .ant-table-column-sorter {
   display: inline-flex;
   align-items: center;
   line-height: 0;
   margin-inline-start: 0.5rem;
 }
-.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-up.active) {
+.ant-table .ant-table-container .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-up.active) {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_45'%3e%3crect%20id='ic_public_sort_up'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_45)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%201.95L10.02%205.46C10.22%205.66%2010.53%205.66%2010.72%205.46C10.92%205.26%2010.92%204.95%2010.72%204.75L6.35%200.39C6.25%200.29%206.13%200.25%206%200.25C5.86%200.25%205.74%200.29%205.64%200.39L1.27%204.75C1.07%204.95%201.07%205.26%201.27%205.46C1.46%205.66%201.77%205.66%201.97%205.46L5.5%201.95L5.5%2011.25C5.5%2011.53%205.72%2011.75%206%2011.75C6.28%2011.75%206.5%2011.53%206.5%2011.25L6.5%201.95Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat !important;
   background-size: 0.75rem;
 }
-.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-down.active) {
+.ant-table .ant-table-container .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-down.active) {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_31'%3e%3crect%20id='ic_public_sort_down'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_31)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%200.75C6.5%200.47%206.28%200.25%206%200.25C5.72%200.25%205.5%200.47%205.5%200.75L5.5%2010.04L1.97%206.53C1.77%206.33%201.46%206.33%201.27%206.53C1.07%206.73%201.07%207.04%201.27%207.24L5.64%2011.6C5.74%2011.7%205.86%2011.75%206%2011.75C6.13%2011.75%206.25%2011.7%206.35%2011.6L10.72%207.24C10.92%207.04%2010.92%206.73%2010.72%206.53C10.53%206.33%2010.22%206.33%2010.02%206.53L6.5%2010.04L6.5%200.75Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat !important;
   background-size: 0.75rem;
 }
-.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner {
+.ant-table .ant-table-container .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner {
   display: inline-block;
   width: 1rem;
   height: 1.5rem;
@@ -1659,47 +1682,47 @@ input.ant-input.ant-input-sm {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M4.44%2011.5C4.44%2011.78%204.22%2012%203.94%2012C3.66%2012%203.44%2011.78%203.44%2011.5L3.44%201.7L1.72%203.41C1.53%203.61%201.22%203.61%201.02%203.41C0.82%203.22%200.82%202.91%201.02%202.71L3.58%200.14C3.63%200.09%203.69%200.06%203.75%200.03C3.8%200.01%203.87%200%203.94%200C4.1%200%204.23%200.04%204.31%200.12C4.4%200.2%204.44%200.33%204.44%200.5L4.44%2011.5ZM7.85%200C7.57%200%207.35%200.21%207.35%200.5L7.35%2011.5C7.35%2011.66%207.39%2011.79%207.47%2011.87C7.56%2011.95%207.68%2012%207.85%2012C7.99%2012%208.1%2011.95%208.2%2011.85L10.77%209.28C10.97%209.08%2010.97%208.77%2010.77%208.58C10.57%208.38%2010.26%208.38%2010.06%208.58L8.35%2010.29L8.35%200.5C8.35%200.21%208.13%200%207.85%200Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat;
   background-size: 0.75rem;
 }
-.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner > span {
+.ant-table .ant-table-container .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner > span {
   display: none;
 }
-.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:hover {
+.ant-table .ant-table-container .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:hover {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M4.44%2011.5C4.44%2011.78%204.22%2012%203.94%2012C3.66%2012%203.44%2011.78%203.44%2011.5L3.44%201.7L1.72%203.41C1.53%203.61%201.22%203.61%201.02%203.41C0.82%203.22%200.82%202.91%201.02%202.71L3.58%200.14C3.63%200.09%203.69%200.06%203.75%200.03C3.8%200.01%203.87%200%203.94%200C4.1%200%204.23%200.04%204.31%200.12C4.4%200.2%204.44%200.33%204.44%200.5L4.44%2011.5ZM7.85%200C7.57%200%207.35%200.21%207.35%200.5L7.35%2011.5C7.35%2011.66%207.39%2011.79%207.47%2011.87C7.56%2011.95%207.68%2012%207.85%2012C7.99%2012%208.1%2011.95%208.2%2011.85L10.77%209.28C10.97%209.08%2010.97%208.77%2010.77%208.58C10.57%208.38%2010.26%208.38%2010.06%208.58L8.35%2010.29L8.35%200.5C8.35%200.21%208.13%200%207.85%200Z'%20fill='%232E86DE'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat !important;
   background-size: 0.75rem;
 }
-.ant-table .ant-table-content .ant-table-thead > tr > th.ant-table-column-has-sorters {
+.ant-table .ant-table-container .ant-table-thead > tr > th.ant-table-column-has-sorters {
   cursor: default !important;
 }
-.ant-table .ant-table-content .ant-table-column-sorter-inner {
+.ant-table .ant-table-container .ant-table-column-sorter-inner {
   cursor: pointer;
 }
-.ant-table .ant-table-content .ant-table-column-sorters::after {
+.ant-table .ant-table-container .ant-table-column-sorters::after {
   pointer-events: none;
 }
-.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:hover:has(.ant-table-column-sorter-up.active) {
+.ant-table .ant-table-container .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:hover:has(.ant-table-column-sorter-up.active) {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_45'%3e%3crect%20id='ic_public_sort_up'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_45)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%201.95L10.02%205.46C10.22%205.66%2010.53%205.66%2010.72%205.46C10.92%205.26%2010.92%204.95%2010.72%204.75L6.35%200.39C6.25%200.29%206.13%200.25%206%200.25C5.86%200.25%205.74%200.29%205.64%200.39L1.27%204.75C1.07%204.95%201.07%205.26%201.27%205.46C1.46%205.66%201.77%205.66%201.97%205.46L5.5%201.95L5.5%2011.25C5.5%2011.53%205.72%2011.75%206%2011.75C6.28%2011.75%206.5%2011.53%206.5%2011.25L6.5%201.95Z'%20fill='%232E86DE'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat !important;
   background-size: 0.75rem;
 }
-.ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:hover:has(.ant-table-column-sorter-down.active) {
+.ant-table .ant-table-container .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner:hover:has(.ant-table-column-sorter-down.active) {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_31'%3e%3crect%20id='ic_public_sort_down'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_31)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%200.75C6.5%200.47%206.28%200.25%206%200.25C5.72%200.25%205.5%200.47%205.5%200.75L5.5%2010.04L1.97%206.53C1.77%206.33%201.46%206.33%201.27%206.53C1.07%206.73%201.07%207.04%201.27%207.24L5.64%2011.6C5.74%2011.7%205.86%2011.75%206%2011.75C6.13%2011.75%206.25%2011.7%206.35%2011.6L10.72%207.24C10.92%207.04%2010.92%206.73%2010.72%206.53C10.53%206.33%2010.22%206.33%2010.02%206.53L6.5%2010.04L6.5%200.75Z'%20fill='%232E86DE'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat !important;
   background-size: 0.75rem;
 }
-.ant-table .ant-table-content .ant-table-filter-column {
+.ant-table .ant-table-container .ant-table-filter-column {
   justify-content: flex-start;
   align-items: center;
 }
-.ant-table .ant-table-content .ant-table-filter-column > .ant-table-column-title:has(> .ant-table-column-sorters) {
+.ant-table .ant-table-container .ant-table-filter-column > .ant-table-column-title:has(> .ant-table-column-sorters) {
   display: contents;
 }
-.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorters {
+.ant-table .ant-table-container .ant-table-filter-column .ant-table-column-sorters {
   display: contents;
 }
-.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-title {
+.ant-table .ant-table-container .ant-table-filter-column .ant-table-column-title {
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.ant-table .ant-table-content .ant-table-filter-column .ant-table-filter-trigger {
+.ant-table .ant-table-container .ant-table-filter-column .ant-table-filter-trigger {
   order: 1;
   margin-inline-start: 0.5rem;
   margin-inline-end: 0;
@@ -1710,25 +1733,25 @@ input.ant-input.ant-input-sm {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M7.98%209.25L7.98%206.96C7.98%206.68%207.76%206.46%207.48%206.46C7.2%206.46%206.98%206.68%206.98%206.96L6.98%209.25C6.98%209.33%206.96%209.4%206.92%209.46C6.9%209.49%206.8%209.6%206.77%209.62L4.88%2010.71L4.88%205.5C4.88%205.36%204.83%205.25%204.74%205.15L1.41%201.71C1.36%201.66%201.33%201.61%201.31%201.55C1.3%201.47%201.29%201.33%201.32%201.25C1.36%201.18%201.41%201.11%201.47%201.07C1.54%201.02%201.62%201%201.71%201L10.24%201C10.3%201%2010.37%201.01%2010.42%201.04C10.44%201.05%2010.52%201.1%2010.54%201.12C10.58%201.16%2010.6%201.2%2010.63%201.26C10.66%201.33%2010.67%201.41%2010.66%201.49C10.64%201.58%2010.6%201.65%2010.54%201.72L7.12%205.14C6.93%205.34%206.93%205.65%207.13%205.85C7.32%206.05%207.64%206.05%207.83%205.85L11.24%202.42C11.46%202.21%2011.59%201.95%2011.64%201.66C11.66%201.54%2011.67%201.42%2011.66%201.3C11.64%201.16%2011.61%201.01%2011.55%200.87C11.49%200.73%2011.41%200.6%2011.32%200.49C11.24%200.4%2011.15%200.32%2011.05%200.25C10.81%200.08%2010.54%200%2010.24%200L1.71%200C1.54%200%201.38%200.02%201.23%200.08C1.11%200.12%201%200.18%200.9%200.25C0.8%200.32%200.71%200.4%200.63%200.49C0.54%200.6%200.46%200.72%200.4%200.86C0.34%201%200.31%201.14%200.29%201.29C0.28%201.41%200.29%201.53%200.31%201.65C0.33%201.77%200.36%201.89%200.41%202C0.48%202.15%200.57%202.28%200.69%202.41L3.88%205.7L3.88%2010.77C3.88%2010.95%203.93%2011.12%204.02%2011.27C4.1%2011.41%204.22%2011.52%204.36%2011.61C4.51%2011.69%204.66%2011.73%204.83%2011.73C4.91%2011.74%204.99%2011.73%205.06%2011.71C5.15%2011.69%205.24%2011.65%205.32%2011.61L7.27%2010.48C7.49%2010.36%207.66%2010.18%207.79%209.96C7.91%209.74%207.98%209.51%207.98%209.25Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat;
   background-size: 0.75rem;
 }
-.ant-table .ant-table-content .ant-table-filter-column .ant-table-filter-trigger > span {
+.ant-table .ant-table-container .ant-table-filter-column .ant-table-filter-trigger > span {
   display: none;
 }
-.ant-table .ant-table-content .ant-table-filter-column .ant-table-filter-trigger:hover {
+.ant-table .ant-table-container .ant-table-filter-column .ant-table-filter-trigger:hover {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M7.98%209.25L7.98%206.96C7.98%206.68%207.76%206.46%207.48%206.46C7.2%206.46%206.98%206.68%206.98%206.96L6.98%209.25C6.98%209.33%206.96%209.4%206.92%209.46C6.9%209.49%206.8%209.6%206.77%209.62L4.88%2010.71L4.88%205.5C4.88%205.36%204.83%205.25%204.74%205.15L1.41%201.71C1.36%201.66%201.33%201.61%201.31%201.55C1.3%201.47%201.29%201.33%201.32%201.25C1.36%201.18%201.41%201.11%201.47%201.07C1.54%201.02%201.62%201%201.71%201L10.24%201C10.3%201%2010.37%201.01%2010.42%201.04C10.44%201.05%2010.52%201.1%2010.54%201.12C10.58%201.16%2010.6%201.2%2010.63%201.26C10.66%201.33%2010.67%201.41%2010.66%201.49C10.64%201.58%2010.6%201.65%2010.54%201.72L7.12%205.14C6.93%205.34%206.93%205.65%207.13%205.85C7.32%206.05%207.64%206.05%207.83%205.85L11.24%202.42C11.46%202.21%2011.59%201.95%2011.64%201.66C11.66%201.54%2011.67%201.42%2011.66%201.3C11.64%201.16%2011.61%201.01%2011.55%200.87C11.49%200.73%2011.41%200.6%2011.32%200.49C11.24%200.4%2011.15%200.32%2011.05%200.25C10.81%200.08%2010.54%200%2010.24%200L1.71%200C1.54%200%201.38%200.02%201.23%200.08C1.11%200.12%201%200.18%200.9%200.25C0.8%200.32%200.71%200.4%200.63%200.49C0.54%200.6%200.46%200.72%200.4%200.86C0.34%201%200.31%201.14%200.29%201.29C0.28%201.41%200.29%201.53%200.31%201.65C0.33%201.77%200.36%201.89%200.41%202C0.48%202.15%200.57%202.28%200.69%202.41L3.88%205.7L3.88%2010.77C3.88%2010.95%203.93%2011.12%204.02%2011.27C4.1%2011.41%204.22%2011.52%204.36%2011.61C4.51%2011.69%204.66%2011.73%204.83%2011.73C4.91%2011.74%204.99%2011.73%205.06%2011.71C5.15%2011.69%205.24%2011.65%205.32%2011.61L7.27%2010.48C7.49%2010.36%207.66%2010.18%207.79%209.96C7.91%209.74%207.98%209.51%207.98%209.25Z'%20fill='%232E86DE'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat;
   background-size: 0.75rem;
 }
-.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter {
+.ant-table .ant-table-container .ant-table-filter-column .ant-table-column-sorter {
   order: 2;
 }
-.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-up.active) {
+.ant-table .ant-table-container .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-up.active) {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_45'%3e%3crect%20id='ic_public_sort_up'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_45)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%201.95L10.02%205.46C10.22%205.66%2010.53%205.66%2010.72%205.46C10.92%205.26%2010.92%204.95%2010.72%204.75L6.35%200.39C6.25%200.29%206.13%200.25%206%200.25C5.86%200.25%205.74%200.29%205.64%200.39L1.27%204.75C1.07%204.95%201.07%205.26%201.27%205.46C1.46%205.66%201.77%205.66%201.97%205.46L5.5%201.95L5.5%2011.25C5.5%2011.53%205.72%2011.75%206%2011.75C6.28%2011.75%206.5%2011.53%206.5%2011.25L6.5%201.95Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat;
   background-size: 0.75rem;
 }
-.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-down.active) {
+.ant-table .ant-table-container .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-down.active) {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_31'%3e%3crect%20id='ic_public_sort_down'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_31)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%200.75C6.5%200.47%206.28%200.25%206%200.25C5.72%200.25%205.5%200.47%205.5%200.75L5.5%2010.04L1.97%206.53C1.77%206.33%201.46%206.33%201.27%206.53C1.07%206.73%201.07%207.04%201.27%207.24L5.64%2011.6C5.74%2011.7%205.86%2011.75%206%2011.75C6.13%2011.75%206.25%2011.7%206.35%2011.6L10.72%207.24C10.92%207.04%2010.92%206.73%2010.72%206.53C10.53%206.33%2010.22%206.33%2010.02%206.53L6.5%2010.04L6.5%200.75Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat !important;
   background-size: 0.75rem;
 }
-.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner {
+.ant-table .ant-table-container .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner {
   display: inline-block;
   width: 1rem;
   height: 1.5rem;
@@ -1737,14 +1760,20 @@ input.ant-input.ant-input-sm {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M4.44%2011.5C4.44%2011.78%204.22%2012%203.94%2012C3.66%2012%203.44%2011.78%203.44%2011.5L3.44%201.7L1.72%203.41C1.53%203.61%201.22%203.61%201.02%203.41C0.82%203.22%200.82%202.91%201.02%202.71L3.58%200.14C3.63%200.09%203.69%200.06%203.75%200.03C3.8%200.01%203.87%200%203.94%200C4.1%200%204.23%200.04%204.31%200.12C4.4%200.2%204.44%200.33%204.44%200.5L4.44%2011.5ZM7.85%200C7.57%200%207.35%200.21%207.35%200.5L7.35%2011.5C7.35%2011.66%207.39%2011.79%207.47%2011.87C7.56%2011.95%207.68%2012%207.85%2012C7.99%2012%208.1%2011.95%208.2%2011.85L10.77%209.28C10.97%209.08%2010.97%208.77%2010.77%208.58C10.57%208.38%2010.26%208.38%2010.06%208.58L8.35%2010.29L8.35%200.5C8.35%200.21%208.13%200%207.85%200Z'%20fill='%23191919'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat;
   background-size: 0.75rem;
 }
-.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner > span {
+.ant-table .ant-table-container .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner > span {
   display: none;
 }
-.ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner:hover {
+.ant-table .ant-table-container .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner:hover {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M4.44%2011.5C4.44%2011.78%204.22%2012%203.94%2012C3.66%2012%203.44%2011.78%203.44%2011.5L3.44%201.7L1.72%203.41C1.53%203.61%201.22%203.61%201.02%203.41C0.82%203.22%200.82%202.91%201.02%202.71L3.58%200.14C3.63%200.09%203.69%200.06%203.75%200.03C3.8%200.01%203.87%200%203.94%200C4.1%200%204.23%200.04%204.31%200.12C4.4%200.2%204.44%200.33%204.44%200.5L4.44%2011.5ZM7.85%200C7.57%200%207.35%200.21%207.35%200.5L7.35%2011.5C7.35%2011.66%207.39%2011.79%207.47%2011.87C7.56%2011.95%207.68%2012%207.85%2012C7.99%2012%208.1%2011.95%208.2%2011.85L10.77%209.28C10.97%209.08%2010.97%208.77%2010.77%208.58C10.57%208.38%2010.26%208.38%2010.06%208.58L8.35%2010.29L8.35%200.5C8.35%200.21%208.13%200%207.85%200Z'%20fill='%232E86DE'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat !important;
   background-size: 0.75rem;
 }
-.ant-table .ant-table-content .ant-table-thead > tr > th {
+.ant-table .ant-table-container .ant-table-thead {
+  /* 分隔线画在 th 右缘（inset-inline-end），固定列交界处那条线属于倒数第二个 th
+			   （fix-right 的前兄弟），:has 选中并将其分隔线恢复透明 */
+  /* 占位 th 是 last-child 无分隔线（antd :not(:last-child) 规则），
+			   与占位列交界处的线来自最后一个数据 th 的右缘 ::before，同样透明 */
+}
+.ant-table .ant-table-container .ant-table-thead > tr > th {
   height: 2.5rem;
   line-height: 2.5rem;
   padding: 0 0.5rem;
@@ -1758,22 +1787,46 @@ input.ant-input.ant-input-sm {
   border-bottom: 1px solid var(--gray-05);
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-normal);
+  /* antd 给紧邻滚动条的 th（.ant-table-cell-scrollbar）设置独立背景/boxShadow（tableHeaderBg），
+			   与自定义表头背景不一致导致最后一列色差，统一为表头背景。
+			   占位列继承末列 fixed 而带 fix-right 类，会误中固定列的实色背景规则，
+			   组合选择器优先级压过 fix 规则：占位列恒用通用表头背景 */
+  /* antd 原生会将固定列与滚动区交界的分隔线（::before）设为透明、由阴影替代，
+			   项目的分隔线色以 !important 强制显示导致交界处多一条短线，此处恢复透明 */
+  /* sticky 固定列与相邻 th 之间的 1px 亚像素渲染缝：左缘补 1px 同背景色阴影盖缝 */
 }
-.ant-table .ant-table-content .ant-table-thead > tr > th::before {
+.ant-table .ant-table-container .ant-table-thead > tr > th::before {
   background-color: var(--gray-20) !important;
   height: 1em !important;
 }
-.ant-table .ant-table-content .ant-table-thead > tr > th:first-child {
+.ant-table .ant-table-container .ant-table-thead > tr > th:first-child {
   border-start-start-radius: 0 !important;
 }
-.ant-table .ant-table-content .ant-table-thead > tr > th:last-child {
+.ant-table .ant-table-container .ant-table-thead > tr > th:last-child {
   border-start-end-radius: 0 !important;
 }
-.ant-table .ant-table-content .ant-table-thead > tr > th.ant-table-cell-fix-right,
-.ant-table .ant-table-content .ant-table-thead > tr > th.ant-table-cell-fix-left {
+.ant-table .ant-table-container .ant-table-thead > tr > th.ant-table-cell-fix-right.ant-table-cell-scrollbar,
+.ant-table .ant-table-container .ant-table-thead > tr > th.ant-table-cell-scrollbar {
+  background-color: rgb(from var(--gray-90) r g b / 0.05) !important;
+  box-shadow: none;
+}
+.ant-table .ant-table-container .ant-table-thead > tr > th.ant-table-cell-fix-right,
+.ant-table .ant-table-container .ant-table-thead > tr > th.ant-table-cell-fix-left {
   background-color: var(--gray-05) !important;
 }
-.ant-table .ant-table-content .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
+.ant-table .ant-table-container .ant-table-thead > tr > th.ant-table-cell-fix-right::before {
+  background-color: transparent !important;
+}
+.ant-table .ant-table-container .ant-table-thead > tr > th.ant-table-cell-fix-right {
+  box-shadow: -1px 0 0 var(--gray-05);
+}
+.ant-table .ant-table-container .ant-table-thead > tr > th:has(+ th.ant-table-cell-fix-right)::before {
+  background-color: transparent !important;
+}
+.ant-table .ant-table-container .ant-table-thead > tr > th:has(+ th.ant-table-cell-scrollbar)::before {
+  background-color: transparent !important;
+}
+.ant-table .ant-table-container .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
   height: 2.5rem;
   line-height: 1.5714;
   vertical-align: middle;
@@ -1784,27 +1837,29 @@ input.ant-input.ant-input-sm {
   font-size: var(--font-size-md);
   border-bottom: 1px solid var(--gray-05);
 }
-.ant-table .ant-table-content .ant-table-tbody > tr:not(.ant-table-measure-row) > td > * {
+.ant-table .ant-table-container .ant-table-tbody > tr:not(.ant-table-measure-row) > td > * {
   vertical-align: top;
 }
-.ant-table .ant-table-content .ant-table-tbody > tr:not(.ant-table-measure-row):not(.ant-table-expanded-row) > td {
+.ant-table .ant-table-container .ant-table-tbody > tr:not(.ant-table-measure-row):not(.ant-table-expanded-row) > td {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ant-table .ant-table-content .ant-table-tbody .ant-table-row > .ant-table-cell-row-hover {
+.ant-table .ant-table-container .ant-table-tbody .ant-table-row > .ant-table-cell-row-hover {
   background-color: var(--brand-10) !important;
 }
-.ant-table .ant-table-content .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell {
+.ant-table .ant-table-container .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell {
   background-color: var(--brand-05);
 }
-.ant-table .ant-table-content .ant-table-tbody .ant-table-column-sort {
+.ant-table .ant-table-container .ant-table-tbody .ant-table-column-sort {
   background: initial;
 }
-.ant-table .ant-table-content .ant-table-cell.ant-table-cell-fix-right {
+.ant-table .ant-table-container .ant-table-cell.ant-table-cell-fix-right {
   overflow: visible !important;
+  /* scroll.y 固定表头：antd 给表头中紧邻滚动条的单元格加 ant-table-cell-scrollbar，
+				   仅该单元格去掉 ::after 阴影（否则固定表头的最后一列与前面割裂），其余 fix-right 保持原效果 */
 }
-.ant-table .ant-table-content .ant-table-cell.ant-table-cell-fix-right::after {
+.ant-table .ant-table-container .ant-table-cell.ant-table-cell-fix-right::after {
   position: absolute;
   top: 0;
   bottom: -1px;
@@ -1817,22 +1872,25 @@ input.ant-input.ant-input-sm {
   background: none !important;
   box-shadow: inset -8px 0 12px -8px rgb(from var(--gray-90) r g b / 0.3);
 }
-.ant-table.ant-table-middle .ant-table-content .ant-table-thead > tr > th {
+.ant-table .ant-table-container .ant-table-cell.ant-table-cell-fix-right.ant-table-cell-scrollbar::after {
+  display: none;
+}
+.ant-table.ant-table-middle .ant-table-container .ant-table-thead > tr > th {
   height: 2rem;
   line-height: 2rem;
   padding: 0 0.5rem;
 }
-.ant-table.ant-table-middle .ant-table-content .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
+.ant-table.ant-table-middle .ant-table-container .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
   height: 2rem;
   line-height: 1.5714;
   padding: 0 0.5rem;
 }
-.ant-table.ant-table-small .ant-table-content .ant-table-thead > tr > th {
+.ant-table.ant-table-small .ant-table-container .ant-table-thead > tr > th {
   height: 1.75rem;
   line-height: 1.75rem;
   padding: 0 0.5rem;
 }
-.ant-table.ant-table-small .ant-table-content .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
+.ant-table.ant-table-small .ant-table-container .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
   height: 1.75rem;
   line-height: 1.5714;
   padding: 0 0.5rem;
@@ -1843,72 +1901,102 @@ input.ant-input.ant-input-sm {
 .dark .ant-table {
   background-color: rgba(0, 0, 0, 0);
 }
-.dark .ant-table .ant-table-content {
-  /* 深色模式滚动条滑块用亮色（#f3f3f3），其余几何/圆角/hover 放大规则沿用上方浅色定义 */
+.dark .ant-table .ant-table-container {
+  /* 深色模式滚动条滑块用亮色（#f3f3f3），其余几何/圆角/hover 放大规则沿用上方浅色定义；
+			   双挂：普通/横滚为 .ant-table-content，scroll.y 为 .ant-table-body */
 }
-.dark .ant-table .ant-table-content .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner,
-.dark .ant-table .ant-table-content .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner {
+.dark .ant-table .ant-table-container .ant-table-column-sorters .ant-table-column-sorter .ant-table-column-sorter-inner,
+.dark .ant-table .ant-table-container .ant-table-filter-column .ant-table-column-sorter .ant-table-column-sorter-inner {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M4.44%2011.5C4.44%2011.78%204.22%2012%203.94%2012C3.66%2012%203.44%2011.78%203.44%2011.5L3.44%201.7L1.72%203.41C1.53%203.61%201.22%203.61%201.02%203.41C0.82%203.22%200.82%202.91%201.02%202.71L3.58%200.14C3.63%200.09%203.69%200.06%203.75%200.03C3.8%200.01%203.87%200%203.94%200C4.1%200%204.23%200.04%204.31%200.12C4.4%200.2%204.44%200.33%204.44%200.5L4.44%2011.5ZM7.85%200C7.57%200%207.35%200.21%207.35%200.5L7.35%2011.5C7.35%2011.66%207.39%2011.79%207.47%2011.87C7.56%2011.95%207.68%2012%207.85%2012C7.99%2012%208.1%2011.95%208.2%2011.85L10.77%209.28C10.97%209.08%2010.97%208.77%2010.77%208.58C10.57%208.38%2010.26%208.38%2010.06%208.58L8.35%2010.29L8.35%200.5C8.35%200.21%208.13%200%207.85%200Z'%20fill='%23FFFFFF'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat;
   background-size: 0.75rem;
 }
-.dark .ant-table .ant-table-content .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-up.active) {
+.dark .ant-table .ant-table-container .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-up.active) {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_45'%3e%3crect%20id='ic_public_sort_up'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_45)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%201.95L10.02%205.46C10.22%205.66%2010.53%205.66%2010.72%205.46C10.92%205.26%2010.92%204.95%2010.72%204.75L6.35%200.39C6.25%200.29%206.13%200.25%206%200.25C5.86%200.25%205.74%200.29%205.64%200.39L1.27%204.75C1.07%204.95%201.07%205.26%201.27%205.46C1.46%205.66%201.77%205.66%201.97%205.46L5.5%201.95L5.5%2011.25C5.5%2011.53%205.72%2011.75%206%2011.75C6.28%2011.75%206.5%2011.53%206.5%2011.25L6.5%201.95Z'%20fill='%23FFFFFF'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat !important;
   background-size: 0.75rem;
 }
-.dark .ant-table .ant-table-content .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-down.active) {
+.dark .ant-table .ant-table-container .ant-table-column-sorter .ant-table-column-sorter-inner:has(.ant-table-column-sorter-down.active) {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdefs%3e%3cclipPath%20id='clip2_31'%3e%3crect%20id='ic_public_sort_down'%20width='12.000000'%20height='12.000000'%20fill='white'%20fill-opacity='0'/%3e%3c/clipPath%3e%3c/defs%3e%3cg%20clip-path='url(%23clip2_31)'%3e%3cpath%20id='path4%20(边框)'%20d='M6.5%200.75C6.5%200.47%206.28%200.25%206%200.25C5.72%200.25%205.5%200.47%205.5%200.75L5.5%2010.04L1.97%206.53C1.77%206.33%201.46%206.33%201.27%206.53C1.07%206.73%201.07%207.04%201.27%207.24L5.64%2011.6C5.74%2011.7%205.86%2011.75%206%2011.75C6.13%2011.75%206.25%2011.7%206.35%2011.6L10.72%207.24C10.92%207.04%2010.92%206.73%2010.72%206.53C10.53%206.33%2010.22%206.33%2010.02%206.53L6.5%2010.04L6.5%200.75Z'%20fill='%23FFFFFF'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/g%3e%3c/svg%3e") center no-repeat !important;
   background-size: 0.75rem;
 }
-.dark .ant-table .ant-table-content .ant-table-filter-column .ant-table-filter-trigger:not(:hover) {
+.dark .ant-table .ant-table-container .ant-table-filter-column .ant-table-filter-trigger:not(:hover) {
   background: url("data:image/svg+xml,%3csvg%20width='12.000000'%20height='12.000000'%20viewBox='0%200%2012%2012'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%20xmlns:xlink='http://www.w3.org/1999/xlink'%3e%3cdesc%3e%20Created%20with%20Pixso.%20%3c/desc%3e%3cdefs/%3e%3cpath%20id='合并'%20d='M7.98%209.25L7.98%206.96C7.98%206.68%207.76%206.46%207.48%206.46C7.2%206.46%206.98%206.68%206.98%206.96L6.98%209.25C6.98%209.33%206.96%209.4%206.92%209.46C6.9%209.49%206.8%209.6%206.77%209.62L4.88%2010.71L4.88%205.5C4.88%205.36%204.83%205.25%204.74%205.15L1.41%201.71C1.36%201.66%201.33%201.61%201.31%201.55C1.3%201.47%201.29%201.33%201.32%201.25C1.36%201.18%201.41%201.11%201.47%201.07C1.54%201.02%201.62%201%201.71%201L10.24%201C10.3%201%2010.37%201.01%2010.42%201.04C10.44%201.05%2010.52%201.1%2010.54%201.12C10.58%201.16%2010.6%201.2%2010.63%201.26C10.66%201.33%2010.67%201.41%2010.66%201.49C10.64%201.58%2010.6%201.65%2010.54%201.72L7.12%205.14C6.93%205.34%206.93%205.65%207.13%205.85C7.32%206.05%207.64%206.05%207.83%205.85L11.24%202.42C11.46%202.21%2011.59%201.95%2011.64%201.66C11.66%201.54%2011.67%201.42%2011.66%201.3C11.64%201.16%2011.61%201.01%2011.55%200.87C11.49%200.73%2011.41%200.6%2011.32%200.49C11.24%200.4%2011.15%200.32%2011.05%200.25C10.81%200.08%2010.54%200%2010.24%200L1.71%200C1.54%200%201.38%200.02%201.23%200.08C1.11%200.12%201%200.18%200.9%200.25C0.8%200.32%200.71%200.4%200.63%200.49C0.54%200.6%200.46%200.72%200.4%200.86C0.34%201%200.31%201.14%200.29%201.29C0.28%201.41%200.29%201.53%200.31%201.65C0.33%201.77%200.36%201.89%200.41%202C0.48%202.15%200.57%202.28%200.69%202.41L3.88%205.7L3.88%2010.77C3.88%2010.95%203.93%2011.12%204.02%2011.27C4.1%2011.41%204.22%2011.52%204.36%2011.61C4.51%2011.69%204.66%2011.73%204.83%2011.73C4.91%2011.74%204.99%2011.73%205.06%2011.71C5.15%2011.69%205.24%2011.65%205.32%2011.61L7.27%2010.48C7.49%2010.36%207.66%2010.18%207.79%209.96C7.91%209.74%207.98%209.51%207.98%209.25Z'%20fill='%23FFFFFF'%20fill-opacity='1.000000'%20fill-rule='evenodd'/%3e%3c/svg%3e") center no-repeat;
   background-size: 0.75rem;
 }
-.dark .ant-table .ant-table-content::-webkit-scrollbar-thumb {
+.dark .ant-table .ant-table-container .ant-table-content::-webkit-scrollbar-thumb,
+.dark .ant-table .ant-table-container .ant-table-body::-webkit-scrollbar-thumb {
   background-color: rgb(from var(--gray-05) r g b / 0.15);
 }
-.dark .ant-table .ant-table-content .ant-table-thead > tr > th {
+.dark .ant-table .ant-table-container .ant-table-thead {
+  /* 与占位列交界处的分隔线（最后一个数据 th 右缘）暗色同样透明 */
+}
+.dark .ant-table .ant-table-container .ant-table-thead > tr > th {
   color: var(--color-text-primary);
   background-color: rgb(from var(--gray-05) r g b / 0.1) !important;
   border-bottom: 1px solid rgb(from var(--gray-05) r g b / 0.1);
+  /* 暗色同样恢复固定列交界分隔线透明（优先级压过上方 gray-50 !important），
+					   含交界线真正载体：fix-right 前一个 th 的右缘分隔线 */
+  /* 暗色下盖缝阴影颜色：亮色的 gray-05 在暗色背景上会成为亮线 */
+  /* 暗色占位 th 区分是否固定列：带 fix-right 类（末列固定时占位列继承 fixed）
+					   用固定列同款实色背景；无固定列表格用通用表头背景 */
 }
-.dark .ant-table .ant-table-content .ant-table-thead > tr > th::before {
+.dark .ant-table .ant-table-container .ant-table-thead > tr > th::before {
   background-color: var(--gray-50) !important;
 }
-.dark .ant-table .ant-table-content .ant-table-tbody > tr > td {
+.dark .ant-table .ant-table-container .ant-table-thead > tr > th.ant-table-cell-fix-right::before {
+  background-color: transparent !important;
+}
+.dark .ant-table .ant-table-container .ant-table-thead > tr > th.ant-table-cell-fix-right {
+  box-shadow: -1px 0 0 var(--gray-70);
+}
+.dark .ant-table .ant-table-container .ant-table-thead > tr > th.ant-table-cell-fix-right.ant-table-cell-scrollbar {
+  background-color: var(--gray-70) !important;
+  box-shadow: none;
+}
+.dark .ant-table .ant-table-container .ant-table-thead > tr > th.ant-table-cell-scrollbar {
+  background-color: rgb(from var(--gray-05) r g b / 0.1) !important;
+  box-shadow: none;
+}
+.dark .ant-table .ant-table-container .ant-table-thead > tr > th:has(+ th.ant-table-cell-fix-right)::before {
+  background-color: transparent !important;
+}
+.dark .ant-table .ant-table-container .ant-table-thead > tr > th:has(+ th.ant-table-cell-scrollbar)::before {
+  background-color: transparent !important;
+}
+.dark .ant-table .ant-table-container .ant-table-tbody > tr > td {
   color: var(--color-text-primary);
   border-bottom: 1px solid rgb(from var(--gray-05) r g b / 0.1);
   background-color: rgba(0, 0, 0, 0);
 }
-.dark .ant-table .ant-table-content .ant-table-tbody .ant-table-row {
+.dark .ant-table .ant-table-container .ant-table-tbody .ant-table-row {
   /* 固定列是 sticky 定位，横向滚动时有内容从其下方穿过；悬停/选中的半透明背景会透出
 				   其他单元格内容，故固定列（左/右）改为「不透明底色 + 半透明渐变叠加层」，视觉一致但不透底 */
 }
-.dark .ant-table .ant-table-content .ant-table-tbody .ant-table-row > .ant-table-cell-row-hover {
+.dark .ant-table .ant-table-container .ant-table-tbody .ant-table-row > .ant-table-cell-row-hover {
   background-color: rgb(from var(--brand-50) r g b / 0.4) !important;
 }
-.dark .ant-table .ant-table-content .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell {
+.dark .ant-table .ant-table-container .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell {
   background-color: rgb(from var(--brand-50) r g b / 0.2);
 }
-.dark .ant-table .ant-table-content .ant-table-tbody .ant-table-row > .ant-table-cell-fix-left.ant-table-cell-row-hover,
-.dark .ant-table .ant-table-content .ant-table-tbody .ant-table-row > .ant-table-cell-fix-right.ant-table-cell-row-hover {
+.dark .ant-table .ant-table-container .ant-table-tbody .ant-table-row > .ant-table-cell-fix-left.ant-table-cell-row-hover,
+.dark .ant-table .ant-table-container .ant-table-tbody .ant-table-row > .ant-table-cell-fix-right.ant-table-cell-row-hover {
   background-color: var(--gray-70) !important;
   background-image: linear-gradient(rgb(from var(--brand-50) r g b / 0.4), rgb(from var(--brand-50) r g b / 0.4));
 }
-.dark .ant-table .ant-table-content .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell-fix-left,
-.dark .ant-table .ant-table-content .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell-fix-right {
+.dark .ant-table .ant-table-container .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell-fix-left,
+.dark .ant-table .ant-table-container .ant-table-tbody .ant-table-row.ant-table-row-selected > .ant-table-cell-fix-right {
   background-color: var(--gray-70) !important;
   background-image: linear-gradient(rgb(from var(--brand-50) r g b / 0.2), rgb(from var(--brand-50) r g b / 0.2));
 }
-.dark .ant-table .ant-table-content .ant-table-placeholder {
+.dark .ant-table .ant-table-container .ant-table-placeholder {
   background-color: transparent;
 }
-.dark .ant-table .ant-table-content .ant-table-cell.ant-table-cell-fix-left {
+.dark .ant-table .ant-table-container .ant-table-cell.ant-table-cell-fix-left {
   background-color: var(--gray-70) !important;
 }
-.dark .ant-table .ant-table-content .ant-table-cell.ant-table-cell-fix-right {
+.dark .ant-table .ant-table-container .ant-table-cell.ant-table-cell-fix-right {
   background-color: var(--gray-70) !important;
 }
-.dark .ant-table .ant-table-content .ant-table-cell.ant-table-cell-fix-right::after {
+.dark .ant-table .ant-table-container .ant-table-cell.ant-table-cell-fix-right::after {
   box-shadow: inset -8px 0 12px -8px rgb(from var(--gray-100) r g b / 0.7);
 }
 /* 展开行图标：antd 默认为 border 方块 + ::before/::after 画加减线，
