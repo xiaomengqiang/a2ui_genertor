@@ -2,208 +2,100 @@
 
 > 分类：数据录入
 
-该组件用于分类输入，支持同时定义文本框的名称，直接使用可简化样式定义，同时支持自定义样式，该组件同时支持必填设置与校验，同时可设置下拉列表框是否展示。
+该组件用于分类输入，由下拉选择框和文本输入框组合而成，支持同时定义文本框的名称，直接使用可简化样式定义，同时支持自定义样式。该组件同时支持必填设置与校验，同时可设置下拉列表框是否展示。
 
 
 ## API
 
-| 方法名      | 描述                                                                          | 参数 | 返回值 |
-| ----------- | ----------------------------------------------------------------------------- | ---- | ------ |
-| getSelected | 返回当前分类搜索框的下拉选中项的值，即分类搜索的类别 | 无   | 分类搜索框的下拉项值  |
-| getValue | 返回当前分类搜索框的文本框的值，即搜索关键词 | 无   | 分类搜索框文本框的值  |
-| validate | required为true时可调用 | 无   | 判定两边都有值返回 true，否则为 false  |
+| 方法名 | 描述 | 参数 | 返回值 |
+|-----|-----|-----|-----|
+| getCategory | 返回当前分类搜索框的下拉选中项的值，即分类搜索的类别 | 无 | 当前选中的下拉项值（类型与 categoryOptions 中的 value 一致） |
+| getValue | 返回当前分类搜索框的文本框的值，即搜索关键词 | 无 | 分类搜索框文本框的值 |
+| validate | 校验组件值是否合法，required 为 true 时可调用 | 无 | required 为 true 时：两边都有值返回 true，否则返回 false；required 为 false 时返回 undefined |
+| focus | 使输入框获得焦点 | 无 | 无 |
 
 ### 属性
 
-| 属性名称 | 描述 | 输入 | 默认 |
+| 属性名称 | 描述 | 类型 | 默认值 |
 |-----|-----|-----|-----|
-|id|搜索输入框根节点的id|string| |
-|className|搜索输入框根节点的样式类名|string| |
-|style|覆盖搜索输入框根节点的行内样式|object| |
-|selectClassName|下拉框的样式类名|string| |
-|selectStyle|下拉框的行内样式|object| |
-|categoryOptions| 设置下拉框的options,例如：[{text: "China",value: 1}, {text: "UK",value: 2}, {text: "USA",value: 3}]|array| |
-|category|通过设置category 对应categoryOptions中的value值）来选中select中的对应项|any| |
-|onCategoryChange|设置组件select部分的onChange事件<br><br>**签名:**<br>`function(value:any) => void`<br>*value:* 当前选中的select的value值|func| |
-|placeholder|设置文本输入框的placeholder|string| |
-|inputClassName|该属性是通过添加class的方式来控制input的样式|string| |
-|inputStyle|该属性是通过添加style的方式来控制input的样式|object| |
-|value|支持给input设置value值|any| |
-|required|支持设置组件值是否必须，若为必须，则input前的label文字前加*，同时支持非空校验|bool|false|
-|disabled|设置组件的灰化|bool|false|
-|onBlur|定义组件的输入框失去焦点时的事件<br><br>**签名:**<br>`function(event:object) => void`<br>*event:* 原生dom的event|func| |
-|onChange|定义组件输入框内容改变时的事件<br><br>**签名:**<br>`function(value:any,oldValue:any,event:object) => void`<br>*value:* 当前输入框的值<br>*oldValue:* 上次输入框的值<br>*event:* 原生dom的event|func| |
-|onFocus|定义组件聚焦时的事件<br><br>**签名:**<br>`function(event:object) => void`<br>*event:* 原生dom的event|func| |
-|labelClassName|通过添加class的方式自定义label的名称的样式|string| |
-|labelStyle|通过添加style的方式自定义label的名称的样式|object| |
-|label|设置下拉框的名称文字|string| |
-|labelPosition|设置输入框的名称文字的位置，before代表名称文字在输入框的左边，after代表名称文字在输入框的右边|enum:<br>&nbsp;'before'<br>&nbsp;'after'<br>|'before'|
-|inputPosition|设置输入框的位置|enum:<br>&nbsp;'left'<br>&nbsp;'right'<br>|'right'|
-|format|输入框的值类型|enum:<br>&nbsp;'number'<br>&nbsp;'any'<br>| |
-|maxLength|设置输入框的最大可输入长度|number| |
+| id | 搜索输入框根节点的 id | string | 自动生成 |
+| className | 搜索输入框根节点的样式类名 | string |  |
+| style | 覆盖搜索输入框根节点的行内样式 | object |  |
+| version | 传入该值可定制当前组件匹配的 ucd 规范，不传则默认 aui2 规范 | string |  |
+| theme | 传入该值可定制当前组件匹配的主题模式样式，不传则默认白天模式 | string |  |
+| selectClassName | 下拉框的样式类名 | string |  |
+| selectStyle | 下拉框的行内样式 | object |  |
+| categoryOptions | 设置下拉框的 options，例如：`[{text: "China", value: 1}, {text: "UK", value: 2}, {text: "USA", value: 3}]` | CategoryOption[] |  |
+| category | 通过设置 category（对应 categoryOptions 中的 value 值）来选中 select 中的对应项 | any |  |
+| selectedIndex | 设置下拉框默认选中的选项索引 | number |  |
+| onCategoryChange | 设置组件 select 部分的 onChange 事件<br><br>**签名:**<br>`function(value: any) => void`<br>*value:* 当前选中的 select 的 value 值 | func |  |
+| placeholder | 设置文本输入框的 placeholder | string |  |
+| inputClassName | 通过添加 class 的方式控制 input 的样式 | string |  |
+| inputStyle | 通过添加 style 的方式控制 input 的样式 | object |  |
+| value | 支持给 input 设置 value 值 | any |  |
+| required | 支持设置组件值是否必须，若为必须，则 input 前的 label 文字前加 *，同时支持非空校验 | boolean | false |
+| disabled | 设置组件的灰化（禁用）状态 | boolean | false |
+| onBlur | 定义组件的输入框失去焦点时的事件<br><br>**签名:**<br>`function(event: object) => void`<br>*event:* 原生 dom 的 event | func |  |
+| onChange | 定义组件输入框内容改变时的事件<br><br>**签名:**<br>`function(value: any, oldValue: any, event: object) => void`<br>*value:* 当前输入框的值<br>*oldValue:* 上次输入框的值<br>*event:* 原生 dom 的 event | func |  |
+| onFocus | 定义组件聚焦时的事件<br><br>**签名:**<br>`function(event: object) => void`<br>*event:* 原生 dom 的 event | func |  |
+| labelClassName | 通过添加 class 的方式自定义 label 的名称的样式 | string |  |
+| labelStyle | 通过添加 style 的方式自定义 label 的名称的样式 | object |  |
+| label | 设置下拉框的名称文字 | string |  |
+| labelPosition | 设置输入框的名称文字的位置，`before` 代表名称文字在输入框的左边，`after` 代表名称文字在输入框的右边 | `'before'` \| `'after'` | `'before'` |
+| inputPosition | 设置输入框的位置，`right` 代表下拉框在左输入框在右，`left` 代表输入框在左下拉框在右 | `'left'` \| `'right'` | `'right'` |
+| format | 输入框的值类型 | `'number'` \| `'any'` |  |
+| maxLength | 设置输入框的最大可输入长度 | number |  |
 
 ## 接口定义
 
 ```typescript
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent, FocusEvent } from 'react';
 
-interface data {
+interface CategoryOption {
   text: string;
   value: any;
 }
 
 interface CategoryInput {
 
-
-  /**
-   *  搜索输入框根节点的id。
-   */
   id: string;
-
-  /**
-   *  搜索输入框根节点的样式类名。
-   */
   className: string;
-
-  /**
-   *  传入该值可定制当前组件匹配的ucd规范，不传则默认aui2规范。
-   */
   version: string;
-
-  /**
-   *  传入该值可定制当前组件匹配的主题模式样式，不传则默认白天模式。
-   */
   theme: string;
-
-  /**
-   * 覆盖搜索输入框根节点的行内样式。
-   */
-  style: object;
-
-  /**
-   * 下拉框的样式类名。
-   */
+  style: React.CSSProperties;
   selectClassName: string;
-
-  /**
-   * 下拉框的行内样式。
-   */
-  selectStyle: object;
-
-  /**
-   * 设置下拉框的options;例如：[{text: "China";value: 1}; {text: "UK";value: 2}; {text: "USA";value: 3}]
-   */
-  categoryOptions: data[];
-
-  /**
-   * 通过设置category 对应categoryOptions中的value值）来选中select中的对应项
-   */
+  selectStyle: React.CSSProperties;
+  categoryOptions: CategoryOption[];
   category: any;
-
-  /**
-   * 设置组件select部分的onChange事件，参数为：
-   * @param {any} value 当前选中的select的value值
-   */
-  onCategoryChange: (value: string) => unknown;
-
-  /**
-   * 设置文本输入框的placeholder
-   */
-  placeholder: string;
-
-  /**
-   * 该属性是通过添加class的方式来控制input的样式
-   */
-  inputClassName: string;
-
-  /**
-   * 该属性是通过添加style的方式来控制input的样式
-   */
-  inputStyle: object;
-
-  /**
-   *  支持给input设置value值
-   */
-  value: any;
-
-  /**
-   *  支持设置组件值是否必须，若为必须，则input前的label文字前加*，同时支持非空校验
-   */
-  required: boolean;
-
-  /**
-   * 设置组件的灰化
-   */
-  disabled: boolean;
-
-  /**
-   * 定义组件的输入框失去焦点时的事件
-   *
-   * @param {object} event 原生dom的event
-   */
-  onBlur: (e: FocusEvent) => unknown;
-
-  /**
-   * 定义组件输入框内容改变时的事件
-   *
-   * @param {string} value 当前输入框的值
-   * @param {string} oldValue 上次输入框的值
-   * @param {object} event 原生dom的event
-   */
-  onChange: (value: string, oldValue: string, e: ChangeEvent) => unknown;
-
-  /**
-   * 定义组件聚焦时的事件
-   *
-   * @param {object} event 原生dom的event
-   */
-  onFocus: (e: FocusEvent) => unknown;
-
-  /**
-   * 通过添加class的方式自定义label的名称的样式
-   */
-  labelClassName: string;
-
-  /**
-   * 通过添加style的方式自定义label的名称的样式
-   */
-  labelStyle: object;
-
-  /**
-   * 设置下拉框的名称文字
-   */
-  label: string;
-
-  /**
-   * 设置输入框的名称文字的位置
-   * before代表名称文字在输入框的左边，after代表名称文字在输入框的右边
-   */
-  labelPosition: 'before' | 'after';
-
-  /**
-   * 设置输入框的位置
-   */
-  inputPosition: 'left' | 'right';
-
-  /**
-   * 输入框的值类型
-   */
-  format: 'number' | 'any';
-
   selectedIndex: number;
-
-  selectOptions: any;
-
-  onSelectClick: any;
+  onCategoryChange: (value: any) => unknown;
+  placeholder: string;
+  inputClassName: string;
+  inputStyle: React.CSSProperties;
+  value: any;
+  required: boolean;
+  disabled: boolean;
+  onBlur: (e: FocusEvent<HTMLInputElement>) => unknown;
+  onChange: (value: any, oldValue: any, e: ChangeEvent<HTMLInputElement>) => unknown;
+  onFocus: (e: FocusEvent<HTMLInputElement>) => unknown;
+  labelClassName: string;
+  labelStyle: React.CSSProperties;
+  label: string;
+  labelPosition: 'before' | 'after';
+  inputPosition: 'left' | 'right';
+  format: 'number' | 'any';
+  maxLength: number;
 
 }
+
+export type Props = Partial<CategoryInput>;
 ```
 
 ## 使用示例
 
 ### 基本属性设置
 
-基本属性设置
+基本属性设置，展示默认、禁用、必填样式，以及 validate / getCategory /getValue API 调用
 
 ```jsx
 import CategoryInput from 'eview-ui/CategoryInput';
@@ -293,7 +185,7 @@ ReactDOM.render(<CategoryInputExample />, mountNode);
 
 ### 事件处理
 
-事件处理
+事件处理，展示 onChange、onBlur、onFocus、onCategoryChange 回调
 
 ```jsx
 import CategoryInput from 'eview-ui/CategoryInput';
@@ -302,49 +194,34 @@ import DivMessage from 'eview-ui/DivMessage';
 import ConfigProvider from 'eview-ui/ConfigProvider';
 import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-
-const popItems = [{ text: "a", value: 1 }, { text: "ab", value: 2 }, { text: "abc", value: 3 }];
-
 export default class CategoryInputEventExample extends React.Component {
   state = {
     msg: '',
-    data: popItems,
     value: '',
-    selectedValue: '',
   };
 
-  handleChange = (value) => {
-    this.setState({ msg: "onChange callback, Value : " + value, value: value });
+  handleChange = (value, oldValue, event) => {
+    this.setState({ msg: "onChange callback, Value: " + value + ", OldValue: " + oldValue, value: value });
   };
 
   handleBlur = (e) => {
-    this.setState({ msg: "onBlur callback, Value : " + e.target.value, value: e.target.value });
+    this.setState({ msg: "onBlur callback, Value: " + e.target.value });
   };
 
   handleFocus = (e) => {
-    this.setState({ msg: "onFocus callback, Value : " + e.target.value, value: e.target.value });
+    this.setState({ msg: "onFocus callback, Value: " + e.target.value });
   };
 
   handleCategoryChange = (val) => {
-    this.setState({ msg: "onCategoryChange callback, Value : " + val});
+    this.setState({ msg: "onCategoryChange callback, Value: " + val });
   };
-
 
   render() {
     const [version, theme] = getDemoVersion();
     const options = [
-      {
-        text: 'China',
-        value: 'China',
-      },
-      {
-        text: 'UK',
-        value: 'UK',
-      },
-      {
-        text: 'USA',
-        value: 'USA',
-      },
+      { text: 'China', value: 'China' },
+      { text: 'UK', value: 'UK' },
+      { text: 'USA', value: 'USA' },
     ];
     const labelStyle = {
       display: 'block',
@@ -363,7 +240,7 @@ export default class CategoryInputEventExample extends React.Component {
             </div>
             <div style={{ display: "inline-block" }}>
               <CategoryInput categoryOptions={options}
-                inputValue={this.state.value}
+                value={this.state.value}
                 placeholder="Please enter..."
                 onChange={this.handleChange}
                 onBlur={this.handleBlur}
@@ -372,7 +249,7 @@ export default class CategoryInputEventExample extends React.Component {
               />
             </div>
           </div>
-          {this.state.msg ? <DivMessage text={this.state.msg} type="success" style={{ marginTop: '10px', width: '500px', }} /> : ''}
+          {this.state.msg ? <DivMessage text={this.state.msg} type="success" style={{ marginTop: '10px', width: '500px' }} /> : ''}
         </div>
       </ConfigProvider>
     );
@@ -382,5 +259,42 @@ export default class CategoryInputEventExample extends React.Component {
 
 ReactDOM.render(<CategoryInputEventExample />, mountNode);
 
+```
+
+### 主题与版本
+
+通过 version 和 theme 属性控制组件外观规范
+
+```jsx
+import CategoryInput from 'eview-ui/CategoryInput';
+import ConfigProvider from 'eview-ui/ConfigProvider';
+import { getDemoVersion } from 'eview-ui/ThemeProvider';
+
+export default class CategoryInputThemeExample extends React.Component {
+  render() {
+    const [version, theme] = getDemoVersion();
+    const options = [
+      { text: 'Option1', value: 1 },
+      { text: 'Option2', value: 2 },
+    ];
+    return (
+      <ConfigProvider version={version} theme={theme}>
+        <div style={{ marginTop: '20px', marginLeft: '20px' }}>
+          <CategoryInput
+            label="AUI3 Theme"
+            categoryOptions={options}
+            version="aui3"
+            theme="theme_dark"
+            selectStyle={{ width: '80px' }}
+            inputStyle={{ width: '220px' }}
+            placeholder="Please enter..."
+          />
+        </div>
+      </ConfigProvider>
+    );
+  }
+}
+
+ReactDOM.render(<CategoryInputThemeExample />, mountNode);
 ```
 

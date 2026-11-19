@@ -15,49 +15,145 @@
 
 ## API
 
-|方法名|参数|返回值|描述|
-|---|---|---|---|---|
-|getValue|无|文件对象|获取当前用户上传的文件对象|
-|getValueEx|None|File Objects|Get the current user uploaded file objects|
-|setFileList|fileList数组|无|手动设置fileList|
+### Ref Methods
+
+| 方法名 | 参数 | 返回值 | 描述 |
+|:-----|:-----|:-----|:-----|
+| getValue | 无 | string[] | 获取当前用户上传的文件名列表 |
+| getValueEx | 无 | File[] | 获取当前用户上传的 File 对象数组 |
+| setFileList | fileList: File[] | 无 | 手动设置 fileList |
 
 ### 属性
 
-| 属性名称 | 描述                                                                                                                                                                                                                                                                                                                                                                                          | 输入 | 默认 |
-|:-----|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----|:-----|
-| id | Custom组件id, 定义id将覆盖组件生成自动 ,例如: id = 'eui_fileUpload_1001'                                                                                                                                                                                                                                                                                                                                   | string | null |
-| className | 定制组件类, 通过在上添加类组件默认风格定制的组件样式 例如: className = 'FileuploadUpdateClassName'                                                                                                                                                                                                                                                                                                                     | string |  |
-| style | 增加File Upload风格的定制类                                                                                                                                                                                                                                                                                                                                                                         | object |  |
-| disable | 设置开启或关闭File Upload                                                                                                                                                                                                                                                                                                                                                                          | bool | false |
-| display | 要显示或隐藏文件上传                                                                                                                                                                                                                                                                                                                                                                                  | bool | true |
-| type | 选择单个或多个文件.                                                                                                                                                                                                                                                                                                                                                                                  | string | 'single' |
-| accept | 支持的过滤文件选择.                                                                                                                                                                                                                                                                                                                                                                                  | string | '' |
-| maxSize | 指定输入文件的最大大小限制。默认单位为'字节'。                                                                                                                                                                                                                                                                                                                                                                    | string | '' |
-| validator | 设置自定义校验规则<br><br>**签名:**<br>`function(value: value,id: id, type: type) => Object`<br>*value:* 用户输入值<br>*id:* ID of component which generate this.<br> *type:* if its triggered by "onChange" or "onBlur"<br><br> *returns* (Object): validationReturnMap={'result'：result,'message':message}  <br>result {bool} 用来设置校验是否有错误 <br>message {string} 用来设置错误提示的文本信息 <br>result和message，不能更换为其他字段 | function |  |
-| width | 设置宽度.                                                                                                                                                                                                                                                                                                                                                                                       | string | '350px' |
-| updateProgressStatus | 更新进度值百分比 .Ex: updateProgressStatus={'10'}                                                                                                                                                                                                                                                                                                                                                   | object | {} |
-| placeHolder | 自定义placeHolder                                                                                                                                                                                                                                                                                                                                                                              | string |  |
-| handleSubmit | 如果用户选择的文件上传.                                                                                                                                                                                                                                                                                                                                                                                | function |  |
-| hideUploadButton | 隐藏上传按钮.                                                                                                                                                                                                                                                                                                                                                                                     | Bool | false |
-| hideReload | 在文件上传失败时隐藏重试图标.                                                                                                                                                                                                                                                                                                                                                                             | Bool | false |
-| formatter | 格式文件大小size与文件maxsize值显示。签名:`(value: number, precision: number) => string` | function | `(value, precision) => value.toFixed(precision)` |
-| onFileClose | Callback when file is removed.                                                                                                                                                                                                                                                                                                                                                              | function |  |
-| onCancelUpload | Callback when file upload is cancelled.                                                                                                                                                                                                                                                                                                                                                     | function |  |
-| fileUploadStatus | 设置文件upoloading状态 ,上传状态和加载''失败''成功'                                                                                                                                                                                                                                                                                                                                                          | object | {} |
-| maxFileCount | 定制文件的最大值,可以上传, 默认为 10 , 示例: maxFileCount = 1 . 本特性支持多种文件类型时                                                                                                                                                                                                                                                                                                                                 | number | 10 |
-| buttonText | 设置按钮的名称。英语默认名称 'Upload' 中国 '上传'                                                                                                                                                                                                                                                                                                                                                             | string |  |
-| buttonStyle | Custom风格, 例如: style = {{width:'100px'}}                                                                                                                                                                                                                                                                                                                                                     | object |  |
-| showFileSize | 隐藏文件项的文件大小                                                                                                                                                                                                                                                                                                                                                                                  | bool | true |
-| displayToolTip | 隐藏自定义工具提示                                                                                                                                                                                                                                                                                                                                                                                   | bool | false |
-| tipText | 支持自定义提示信息                                                                                                                                                                                                                                                                                                                                                                                   | string |  |
-| disableLinks | 默认在文件上传过程中会展示取消按钮。该属性设置为true时，则不展示                                                                                                                                                                                                                                                                                                                                                          | boolean | false |
-| upLoadErrorMessage | 上传失败提示信息                                                                                                                                                                                                                                                                                                                                                                                    | ReactNode |  |
-| upLoadErrorClassName | 定制上传失败提示信息样式                                                                                                                                                                                                                                                                                                                                                                                | string |  |
-| upLoadSuccessMessage | 上传成功提示信息                                                                                                                                                                                                                                                                                                                                                                                    | ReactNode |  |
-| upLoadSuccessClassName | 定制上传成功提示信息样式                                                                                                                                                                                                                                                                                                                                                                                | string |  |
-| onChange | 文件选择事件                                                                                                                                                                                                                                                                                                                                                                                      | (event: React.ChangeEvent<HTMLInputElement>, itemList: File[]) => void |  |
-| onReload | 文件重新上传事件                                                                                                                                                                                                                                                                                                                                                                                    | (event: {<br>event: fileReload;<br>data: File[];<br>}) => void |  |
-| fileList | 从props中传入文件                                                                                                                                                                                                                                                                                                                                                                                 | file[] | []
+| 属性名称 | 描述 | 类型 | 默认值 |
+|:-----|:-----|:-----|:-----|
+| id | 自定义组件 id，定义 id 将覆盖组件自动生成的 id | string |  |
+| className | 定制组件类名 | string |  |
+| style | 自定义组件样式 | CSSProperties |  |
+| disable | 设置是否禁用 FileUpload | boolean | false |
+| display | 是否显示文件上传组件 | boolean | true |
+| type | 选择单个或多个文件，可选 `'single'` 或 `'multi'` | 'single' &#124; 'multi' | 'single' |
+| accept | 支持的文件过滤选择 | string | '' |
+| maxSize | 指定上传文件的最大大小限制，默认单位为字节，支持 KB/MB/GB/TB 后缀 | string | '' |
+| validator | 设置自定义校验规则，签名: `(itemList: File[]) => { result: boolean; message: string }` | (itemList: File[]) => { result: boolean; message: string } |  |
+| width | 设置组件宽度 | string | '350px' |
+| updateProgressStatus | 更新上传进度值百分比，key 为文件名，value 为百分比数字。示例: `{[fileName]: 10}` | { [fileName: string]: number } | {} |
+| placeHolder | 自定义占位提示文本 | string |  |
+| handleSubmit | 用户点击上传按钮时的回调，不自动发请求，业务需自行发起上传。签名: `(event: { event: React.MouseEvent; data: File[] }) => void` | (event: { event: React.MouseEvent; data: File[] }) => void |  |
+| hideUploadButton | 是否隐藏上传按钮 | boolean | false |
+| hideReload | 文件上传失败时是否隐藏重试图标 | boolean | false |
+| formatter | 格式化文件大小显示，接收大小值和精度，返回格式化后的字符串 | (value: number, precision: number) => string |  |
+| onFileClose | 文件被移除时的回调。签名: `(event: FileCloseEvent) => void` | (event: FileCloseEvent) => void |  |
+| onCancelUpload | 取消文件上传时的回调 | () => void |  |
+| fileUploadStatus | 设置文件的上传状态，key 为文件名，value 为 `'loading'` / `'fail'` / `'success'` / `'added'` / `''` | { [fileName: string]: upLoadStatus } | {} |
+| maxFileCount | 最大可上传文件数量，默认为 10 | number | 10 |
+| buttonText | 设置上传按钮的名称 | string |  |
+| buttonStyle | 自定义上传按钮样式 | object |  |
+| showFileSize | 是否显示文件大小 | boolean | true |
+| displayToolTip | 是否显示自定义工具提示（hover 提示） | boolean | false |
+| tipText | 自定义提示信息 | string |  |
+| disableLinks | 默认上传过程中会展示取消按钮。设为 true 时不展示取消按钮 | boolean | false |
+| upLoadErrorMessage | 上传失败提示信息 | React.ReactNode |  |
+| upLoadErrorClassName | 定制上传失败提示信息的样式类名 | string |  |
+| upLoadSuccessMessage | 上传成功提示信息 | React.ReactNode |  |
+| upLoadSuccessClassName | 定制上传成功提示信息的样式类名 | string |  |
+| onChange | 文件选择变化时的回调 | (event: React.ChangeEvent<HTMLInputElement>, itemList: File[]) => void |  |
+| onReload | 文件重新上传事件回调。签名: `(event: { event: FileReload; data: File[] }) => void` | (event: { event: FileReload; data: File[] }) => void |  |
+| fileList | 从 props 中传入文件列表（受控） | File[] | [] |
+| version | 设置组件版本，例如 `'aui3'` | string |  |
+| theme | 设置组件主题，例如 `'evening'` | string |  |
+
+```typescript
+type upLoadType = 'single' | 'multi';
+type upLoadStatus = 'loading' | 'fail' | 'success' | 'added' | '';
+
+interface FileCloseEvent {
+  event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>;
+  title: string;
+}
+
+interface FileReload {
+  event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>;
+  title: string;
+  size: number;
+}
+
+type FileUploadProps = {
+  /** 自定义组件 id */
+  id?: string;
+  /** 定制组件类名 */
+  className?: string;
+  /** 设置组件版本，例如 'aui3' */
+  version?: string;
+  /** 设置组件主题，例如 'evening' */
+  theme?: string;
+  /** 自定义组件样式 */
+  style?: CSSProperties;
+  /** 自定义占位提示文本 */
+  placeHolder?: string;
+  /** 用户点击上传按钮时的回调，不自动发请求，业务需自行发起上传 */
+  handleSubmit?: (event: { event: React.MouseEvent<HTMLSpanElement>; data: File[] }) => void;
+  /** 取消文件上传时的回调 */
+  onCancelUpload?: () => void;
+  /** 设置上传按钮的名称 */
+  buttonText?: string;
+  /** 自定义上传按钮样式 */
+  buttonStyle?: object;
+  /** 指定上传文件的最大大小限制，默认单位为字节，支持 KB/MB/GB/TB 后缀 */
+  maxSize?: string;
+  /** 设置自定义校验规则 */
+  validator?: (itemList: File[]) => { result: boolean; message: string };
+  /** 从 props 中传入文件列表（受控） */
+  fileList?: File[];
+  /** 上传失败提示信息 */
+  upLoadErrorMessage?: React.ReactNode;
+  /** 定制上传失败提示信息的样式类名 */
+  upLoadErrorClassName?: string;
+  /** 上传成功提示信息 */
+  upLoadSuccessMessage?: React.ReactNode;
+  /** 定制上传成功提示信息的样式类名 */
+  upLoadSuccessClassName?: string;
+  /** 文件选择变化时的回调 */
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>, itemList: File[]) => void;
+  /** 文件被移除时的回调 */
+  onFileClose?: (event: FileCloseEvent) => void;
+  /** 文件重新上传事件回调 */
+  onReload?: (event: { event: FileReload; data: File[] }) => void;
+  /** 测试 id */
+  'data-test-id'?: string;
+  /** 格式化文件大小显示 */
+  formatter?: (value: number, precision: number) => string;
+} & {
+  /** 设置是否禁用 FileUpload, @default false */
+  disable: boolean;
+  /** 是否显示文件上传组件, @default true */
+  display: boolean;
+  /** 选择单个或多个文件, @default 'single' */
+  type: upLoadType;
+  /** 支持的文件过滤选择, @default '' */
+  accept: string;
+  /** 设置组件宽度, @default '350px' */
+  width: string;
+  /** 更新上传进度值百分比, @default {} */
+  updateProgressStatus: { [fileName: string]: number };
+  /** 设置文件的上传状态, @default {} */
+  fileUploadStatus: { [fileName: string]: upLoadStatus };
+  /** 最大可上传文件数量, @default 10 */
+  maxFileCount: number;
+  /** 是否隐藏上传按钮, @default false */
+  hideUploadButton: boolean;
+  /** 是否显示文件大小, @default true */
+  showFileSize: boolean;
+  /** 是否显示自定义工具提示, @default false */
+  displayToolTip: boolean;
+  /** 自定义提示信息, @default '' */
+  tipText: string;
+  /** 默认上传过程中会展示取消按钮。设为 true 时不展示, @default false */
+  disableLinks: boolean;
+  /** 文件上传失败时是否隐藏重试图标, @default false */
+  hideReload: boolean;
+};
+```
 
 ## 使用示例
 

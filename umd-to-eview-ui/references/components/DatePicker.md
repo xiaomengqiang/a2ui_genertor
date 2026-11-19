@@ -3,80 +3,135 @@
 > 分类：数据录入
 
 输入或选择日期的控件。<br/>
-新版 DatePicker 不再提供 getValue 等 angularjs 风格 方法，请使用`value`与`onChange`维护 value 值，直接访问。<br/>
-使用快捷键时，打开日期面板后需要先按一下Tab键，然后再按ctrl+左右键/上下键,ctrl+左右键切换月份，ctrl+上下键切换年份，Tab键切换面板
+新版 DatePicker 不再提供 getValue 等 angularjs 风格方法，请使用`value`与`onChange`维护 value 值，直接访问。<br/>
+使用快捷键时，打开日期面板后需要先按一下Tab键，然后再按ctrl+左右键/上下键，ctrl+左右键切换月份，ctrl+上下键切换年份，Tab键切换面板
 
 
 ## antd 迁移注意事项
 
-> 导入特例：`import DatePicker from '@cloudsop/eview-ui/DatePicker'; const { RangePicker } = DatePicker;`（`<DatePicker.RangePicker>` 改 `<RangePicker>`）
+> 导入特例：`import DatePicker from 'eview-ui/DatePicker'; const { RangePicker } = DatePicker;`（`<DatePicker.RangePicker>` 改 `<RangePicker>`）
 
 > 迁移分类：A｜本表由 build-migration-plan.cjs 解析生成迁移计划
 
 | antd 写法 | eview 写法 | 迁移要点 |
 |-----------|-----------|----------|
-| `DatePicker` | `DatePicker` | `picker`→**`type`**（`date`/`datetime`/`year`/`month`/`week`）；`value` 接受 Date/string/number；`placeholder` 同名；**`disabledDate` 回调→`range=[start, end]` 值数组**（静态范围，动态禁用逻辑需业务前置过滤）；`format` 支持数组（多格式匹配、展示第一个）；`showTime`→`type="datetime"`（可选 `ampm`）；`rules=[{validator, message, required}]`；**无 getValue()**（新版用 value+onChange 维护）；ref：`focus/blur/validate/clearValidation` |
-| `DatePicker.RangePicker` | `RangePicker`（解构） | `import DatePicker from '@cloudsop/eview-ui/DatePicker'; const { RangePicker } = DatePicker;`；`value=[Date, Date]` 数组；`placeholder=['开始日期','结束日期']` 数组；可选范围同用 `range`；**JSX 标签 `<DatePicker.RangePicker>` 改为 `<RangePicker>`**（成员访问形式改解构变量） |
+| `DatePicker` | `DatePicker` | `picker`→**`type`**（`date`/`datetime`/`year`/`month`/`week`）；`value` 接受 Date/string/number；`placeholder` 同名；**`disabledDate` 回调→`range=[start, end]` 值数组**（静态范围，动态禁用逻辑需业务前置过滤）；`format` 支持数组（多格式匹配、展示第一个）；`showTime`→`type="datetime"`（可选 `ampm`）；`rules=[{validator, message, required}]`；**无 getValue()**（新版用 value+onChange 维护）；ref：`focus/blur/validate/clearValidation/hideValidateTips` |
+| `DatePicker.RangePicker` | `RangePicker`（解构） | `import DatePicker from 'eview-ui/DatePicker'; const { RangePicker } = DatePicker;`；`value=[Date, Date]` 数组；`placeholder=['开始日期','结束日期']` 数组；可选范围同用 `range`；`separator` 设置分隔符；`format` 仅支持 string（不支持数组）；`onChange(date[], detail[])` 两个参数；**JSX 标签 `<DatePicker.RangePicker>` 改为 `<RangePicker>`**（成员访问形式改解构变量） |
 
 ## API
 
-### 属性
+### DatePicker 属性
 
-| 属性名称               | 描述                                                                                                                                                                           | 输入                                                                                                         | 默认                          |
-|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|-----------------------------|
-| value              | 日期值                                                                                                                                                                          | Date \| string                                                                                             | number                      | -      |
-| format             | 设置日期格式，为数组时支持多格式匹配，展示以第一个为准。配置参考 [moment.js](https://momentjs.com/docs/#/parsing/string-formats/)                                                                            | string\| string[]                                                                                          |                             |
-| placeholder        | 输入框提示文字                                                                                                                                                                      | string                                                                                                     | -                           |
-| style              | 自定义输入框样式                                                                                                                                                                     | CSSProperties                                                                                              |                             |
-| className          | 自定义输入框className                                                                                                                                                              | string                                                                                                     |                             |
-| popupStyle         | 自定义弹出日历样式                                                                                                                                                                    | CSSProperties                                                                                              |                             |
-| popupClassName     | 自定义弹出日历 className                                                                                                                                                            | string                                                                                                     |                             |
-| zIndex             | 自定义弹出日历zIndex                                                                                                                                                                | number                                                                                                     | 100000                      |
-| disabled           | 是否禁用日期组件                                                                                                                                                                     | boolean                                                                                                    | false                       |
-| showToday          | 是否展示“此刻”按钮                                                                                                                                                                   | boolean                                                                                                    | true                        |
-| readOnly           | 是否禁用                                                                                                                                                                         | bool                                                                                                       | false                       |
-| type               | 设置选择器类型                                                                                                                                                                      | 'date' \| 'datetime'                                                                                       | 'year' \| 'month' \| 'week' | date   |
-| range              | 1、日期的可选范围 \[start, end\]。建议通过rangeFormat来指定格式，以被组件正确识别；或者传入通用时间格式，形如 2021/08/05 04:54:03。<br>2、start与end 可以置为null，组件会自动填充<br>3、如果值只设置了日期，没有时分秒，组件会自动补零                       | \[string, string\]                                                                                         | null                        |
-| rangeFormat        | 可选范围的日期格式                                                                                                                                                                    |                                                                                                            |                             |
-| ampm               | 是否提供AM/PM选择器，该值为true且type='datetime'时，才会生效。<br/>AM - 表示凌晨00:00:00到上午11:59:59; PM - 表示下午12:00:00到晚上23:59:59<br/>12:00:00 AM 表示凌晨00:00:00, 12:00:00 PM表示中午12:00:00<br/>与显示格式无关 | bool                                                                                                       | false                       |
-| timezone           | 设置时区 ，有夏令时的时区默认会有夏令时计算（如Asia/Shanghai）[所有时区列表](https://github.com/moment/moment-timezone/blob/develop/data/packed/latest.json)                                               | string                                                                                                     | -                           |
-| showDST            | 是否展示夏令时标志                                                                                                                                                                    | bool                                                                                                       | true                        |
-| showFormat         | 输入错误时是否展示日期格式提示                                                                                                                                                              | bool                                                                                                       | true                        |
-| rules              | 检验规则                                                                                                                                                                         | [Rule](#Rule)[]                                                                                            | -                           |
-| validationTipsType | 检验提示类型                                                                                                                                                                       | 'div' \| 'tipbox'                                                                                          | div                         |
-| locale             | zh: 显示上午下午， en: 显示AM PM                                                                                                                                                      | 'zh'\| 'en'                                                                                                |                             |
-| onChange           | 时间发生变化的回调，发生在用户选择时间时                                                                                                                                                         | (date: string, <br/>{ moment:Momemt,<br/>isDst:boolean,<br/>unix: number, <br/>utcTime: string }) => void; | null                        |
-| onOpenChange       | 弹出日历和关闭日历的回调                                                                                                                                                                 | (open: boolean) => void;                                                                                   | -                           |
-| getPopupContainer  | 获取渲染父节点, 设为false时为元素虚拟dom的原位置                                                                                                                                                | (() => HTMLElement) &#124; false                                                                           | -                           |
-| minutesInterval    | 当PickerType为datetime且可以选择到分钟时，设置分钟选项的间隔。该参数为大于0的整数或对象                                                                                                                        | number \| {start:number; end:number; step:number}                                                          | 1                           |
+| 属性名称 | 描述 | 输入 | 默认 |
+|:---------|:-----|:-----|:-----|
+| value | 日期值 | Date \| string \| number | - |
+| format | 设置日期格式，为数组时支持多格式匹配，展示以第一个为准。配置参考 [moment.js](https://momentjs.com/docs/#/parsing/string-formats/) | string \| string[] | 见[默认Format](#默认-format) |
+| placeholder | 输入框提示文字 | string | - |
+| style | 自定义输入框样式 | CSSProperties |  |
+| className | 自定义输入框className | string |  |
+| popupStyle | 自定义弹出日历样式 | CSSProperties |  |
+| popupClassName | 自定义弹出日历 className | string |  |
+| zIndex | 自定义弹出日历zIndex | number | ConfigProvider的baseZIndex |
+| disabled | 是否禁用日期组件 | boolean | false |
+| showToday | 是否展示"此刻"按钮 | boolean | true |
+| readOnly | 是否只读 | boolean | false |
+| open | 是否打开选择时间弹层（受控） | boolean | false |
+| type | 设置选择器类型 | 'date' \| 'datetime' \| 'year' \| 'month' \| 'week' | 'date' |
+| range | 日期的可选范围 [start, end]。建议通过rangeFormat来指定格式，以被组件正确识别；或者传入通用时间格式，形如 2021/08/05 04:54:03。start与end可以置为null，组件会自动填充。如果值只设置了日期，没有时分秒，组件会自动补零 | [ValueType, ValueType] | null |
+| rangeFormat | 可选范围的日期格式，配置参考 moment.js | string |  |
+| ampm | 是否提供AM/PM选择器，该值为true且type='datetime'时才会生效。AM表示凌晨00:00:00到上午11:59:59；PM表示下午12:00:00到晚上23:59:59。12:00:00 AM表示凌晨00:00:00，12:00:00 PM表示中午12:00:00。与显示格式无关 | boolean | false |
+| timezone | 设置时区，有夏令时的时区默认会有夏令时计算（如Asia/Shanghai）。[所有时区列表](https://github.com/moment/moment-timezone/blob/develop/data/packed/latest.json)。注意：目前设置时区会对所有DatePicker实例都生效 | string | - |
+| showDST | 是否展示夏令时标志 | boolean | true |
+| showFormat | 输入错误时是否展示日期格式提示 | boolean | true |
+| formatRender | 自定义格式错误提示的格式内容 | (format: string) => string |  |
+| rules | 校验规则，onBlur时触发 | [Rule](#rule)[] | - |
+| validationTipsType | 校验提示类型 | 'div' \| 'tipbox' | 'div' |
+| locale | 语言配置：zh显示上午下午，en显示AM PM | 'zh' \| 'en' |  |
+| onChange | 时间发生变化的回调，发生在用户选择时间时 | (date: string, detail?: TimeDetail) => void |  |
+| onOpenChange | 弹出日历和关闭日历的回调 | (open: boolean) => void | - |
+| onInputKeyDown | 时间输入框的键盘事件回调 | (e: React.KeyboardEvent<HTMLInputElement>) => void |  |
+| getPopupContainer | 获取渲染父节点，设为false时为元素虚拟dom的原位置 | (() => HTMLElement) \| false | - |
+| minutesInterval | 当PickerType为datetime且可以选择到分钟时，设置分钟选项的间隔。该参数为大于0的整数或对象 | number \| {start?: number; end?: number; step?: number} | 1 |
+| version | 设置组件版本，用于控制样式版本（如'aui3-1'），未设置时从ConfigProvider的context中获取 | string |  |
+| theme | 设置组件主题，未设置时从ConfigProvider的context中获取 | string |  |
+
+### RangePicker 属性
+
+| 属性名称 | 描述 | 输入 | 默认 |
+|:---------|:-----|:-----|:-----|
+| value | 日期范围值 | Array\<Date \| string \| number\> | null |
+| format | 设置日期格式（RangePicker仅支持string，不支持数组） | string | 见[默认Format](#默认-format) |
+| placeholder | 输入框提示文字 | [string, string] |  |
+| style | 自定义输入框样式 | CSSProperties |  |
+| type | 设置选择器类型 | 'date' \| 'datetime' \| 'year' \| 'month' \| 'week' | 'date' |
+| separator | 设置分隔符 | string | '~' |
+| range | 日期的可选范围 [start, end] | [ValueType, ValueType] | null |
+| rangeFormat | 可选范围的日期格式 | string |  |
+| ampm | 是否提供AM/PM选择器（需type='datetime'） | boolean | false |
+| timezone | 设置时区 | string | - |
+| showDST | 是否展示夏令时标志 | boolean | true |
+| showToday | 是否展示"此刻"按钮 | boolean | true |
+| showFormat | 输入错误时是否展示日期格式提示 | boolean | true |
+| formatRender | 自定义格式错误提示的格式内容 | (format: string) => string |  |
+| disabled | 是否禁用 | boolean | false |
+| readOnly | 是否只读 | boolean | false |
+| open | 是否打开选择时间弹层（受控） | boolean | false |
+| zIndex | 自定义弹出日历zIndex | number | ConfigProvider的baseZIndex |
+| popupStyle | 自定义弹出日历样式 | CSSProperties |  |
+| popupClassName | 自定义弹出日历 className | string |  |
+| locale | 语言配置 | 'zh' \| 'en' |  |
+| onChange | 时间发生变化的回调 | (date: string[], detail?: TimeDetail[]) => void |  |
+| onOpenChange | 弹出日历和关闭日历的回调 | (open: boolean) => void | - |
+| getPopupContainer | 获取渲染父节点 | (() => HTMLElement) \| false | - |
+| minutesInterval | 分钟选项间隔 | number \| {start?: number; end?: number; step?: number} | 1 |
+| version | 设置组件版本 | string |  |
+| theme | 设置组件主题 | string |  |
+
+### TimeDetail 类型
+
+onChange回调的第二个参数类型：
+
+| 字段 | 类型 | 描述 |
+|:-----|:-----|:-----|
+| moment | Moment | moment对象（可调用moment的API进行时间操作） |
+| isDst | boolean | 是否为夏令时 |
+| unix | number | UNIX时间戳 |
+| utcTime | string | UTC时间字符串 |
 
 ## Rule
 
-| 名称        | 说明      | 类型                          |
-|-----------|---------|-----------------------------|
-| validator | 自定义校验   | (value: Moment) => boolean; |
-| message   | 错误信息    | string                      |
-| required  | 是否为必选字段 | boolean                     |
+| 名称 | 说明 | 类型 |
+|:-----|:-----|:-----|
+| validator | 自定义校验 | (value: Moment) => boolean |
+| message | 错误信息 | string |
+| required | 是否为必选字段 | boolean |
 
 ## 方法
 
-| 方法名                | 描述     | 参数 | 返回值             |
-|--------------------|--------|----|-----------------|
-| blur()             | 移除焦点   |    |                 |
-| focus()            | 获取焦点   |    |                 |
-| validate()         | 手动校验   |    | result: boolean |
-| clearValidation()  | 清除校验   |    |                 |
-| hideValidateTips() | 隐藏校验气泡 |    |                 |
+| 方法名 | 描述 | 参数 | 返回值 |
+|:-------|:-----|:-----|:-------|
+| blur() | 移除焦点 | | |
+| focus() | 获取焦点 | | |
+| validate() | 手动校验 | | result: boolean |
+| clearValidation() | 清除校验 | | |
+| hideValidateTips() | 隐藏校验气泡 | | |
+
+## 静态方法
+
+| 方法名 | 描述 | 参数 | 返回值 |
+|:-------|:-----|:-----|:-------|
+| DatePicker.convertFormat | 将Cloudsop平台日期格式转换为moment格式（y→Y, d→D, aa→A, ZZ→Z） | (format: string) | string |
 
 ## 默认 Format
 
-| 组件       | 格式                  |
-|----------|---------------------|
+| 组件 | 格式 |
+|:-----|:-----|
 | datetime | YYYY-MM-DD HH:mm:ss |
-| date     | YYYY-MM-DD          |
-| month    | YYYY-MM             |
-| year     | YYYY                |
-| week     | YYYY-w              |
+| datetime (ampm) | YYYY-MM-DD hh:mm:ss A |
+| date | YYYY-MM-DD |
+| month | YYYY-MM |
+| year | YYYY |
+| week | YYYY-[W]w |
 
 ## 使用示例
 
@@ -278,7 +333,7 @@ ReactDOM.render(<DatePickerDstDemo />, mountNode);
 <br/>
 1. 在cloudsop平台下，不传入format时，且type=`datetime`，组件自动获取cookie中的format并转换
 <br/>
-2. 自行通过`DatePicker.convertFormat`对cookie中对的`format`进行转换
+2. 自行通过`DatePicker.convertFormat`对cookie中的`format`进行转换
 
 ```jsx
 import { DatePicker } from 'eview-ui';

@@ -23,7 +23,7 @@
 | visible            | boolean                                                      | false                                              | 控制Drawer是否可见的变量                                     |
 | onClose            | (event?: CloseEvent) => void;                                |                                                    | 关闭时的回调, 需要在此将visible设为false                     |
 | inContainer?       | (() => HTMLElement) &#124; boolean                           | false                                              | 设置挂载的父容器 <br> false - 挂在document.body上 <br> true - 挂载在父容器中(注，其容器的position必须为relative) <br> Function: () => HTMLElement - 指定父容器(注，其容器的position必须为relative) |
-| maskSetting?       | { disable: boolean, onClickClose?: boolean, show?: boolean, style?: React.CSSProperties } | { disable:false, onClickClose: false, show: true } | 遮罩层设置                                                   |
+| maskSetting?       | { disable: boolean, onClickClose?: boolean, show?: boolean, style?: React.CSSProperties } | { disable:false, onClickClose: true, show: true } | 遮罩层设置                                                   |
 | title?             | string &#124; React.ReactNode &#124; false                   |                                                    | 标题, 设置为false为无title                                   |
 | width?             | string &#124; number                                         | '20rem'                                            | Drawer主体宽度, 默认为20rem, 最小为4rem, 类型为number时，单位为px |
 | height?            | string &#124; number                                         | '20rem'                                            | Drawer主体高度, 默认为20rem, 最小为6rem, 类型为number时，单位为px |
@@ -32,12 +32,15 @@
 | footer?            | React.ReactNode &#124; false                                 |                                                    | 页脚的元素, 设置为false为无footer                            |
 | children?          | React.ReactNode                                              |                                                    | Drawer body内的元素                                          |
 | style?             | React.CSSProperties                                          |                                                    | 最外层容器样式                                               |
-| drawerStyle?       | React.ReactNode                                              |                                                    | Drawer主体样式                                               |
-| headerStyle?       | React.ReactNode                                              |                                                    | Drawer主体中header的样式                                     |
-| bodyStyle?         | React.ReactNode                                              |                                                    | Drawer主体中body的样式                                       |
-| footerStyle?       | React.ReactNode                                              |                                                    | Drawer主体中footer的样式                                     |
+| drawerStyle?       | React.CSSProperties                                          |                                                    | Drawer主体样式                                               |
+| headerStyle?       | React.CSSProperties                                          |                                                    | Drawer主体中header的样式                                     |
+| bodyStyle?         | React.CSSProperties                                          |                                                    | Drawer主体中body的样式                                       |
+| footerStyle?       | React.CSSProperties                                          |                                                    | Drawer主体中footer的样式                                     |
 | animationDuration? | number                                                       | 300                                                | 抽屉显隐动画时长，单位ms                                     |
 | closable           | bool                                                         | true                                               | 自定义抽屉是否显示关闭按钮，默认值为true，可隐藏，例如： closable={false} |
+| closeByEsc?        | boolean                                                      | true                                               | 是否能通过键盘esc关闭                                        |
+| version?           | string                                                       |                                                    | 支持通过version设置组件版本                                   |
+| theme?             | string                                                       |                                                    | 支持通过theme设置组件主题                                     |
 
 ```javascript
 export interface DrawerAPI extends DrawerStyleAPI {

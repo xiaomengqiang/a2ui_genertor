@@ -2,7 +2,7 @@
 
 > 分类：数据展示
 
-该组件默认分default和primary两种样式，支持添加图标、设置按钮文本，自定义样式。
+卡片组件，支持通过type设置resource/detail/add三种类型，支持添加图标、标题、内容和下拉菜单，自定义样式。
 
 
 
@@ -25,18 +25,20 @@
 | style             |  通过添加style的方式控制整个Card组件的样式（控制最外层div） 可控制：margin、padding 例如：style={{margin:"0px"}} | React.CSSProperties |  |
 | icon              |  支持通过icon的url,设置组件的图标，不设置则默认不显示 例如：icon='./confirm.svg' | string |  |
 | title             |  通过title设置组件标题，title默认值为null 如果不传title，则不显示title | any |  |
-| titleStyle        |  title样式定制 | React.CSSProperties |  |
+| titleStyle        |  title样式定制 | React.CSSProperties | {} |
 | content           |  支持通过content设置组件内容 例如：content =[{ <br>text: "ID", // 必填，控制组件内容区域文本提示 <br>value: "test-node", // 必填，控制文本对应的值 <br> }, ...] | array |  |
 | type              |  支持通过type设置组件类型 | enum:<br>&nbsp;'resource'<br>&nbsp;'detail'<br>&nbsp;'add'<br> | "detail" |
 | selected          |  支持通过selected设置组件选中状态，selected=true时，组件外边框变色，否则保持不变 selected属性仅支持type=detail,resource两种类型，type=add时selected不起作用 | bool | false |
-| menuTitle         |  setting the title of the dropDown menu. | string |  |
+| menuTitle         |  设置下拉菜单的标题文本 | string |  |
 | menuItemStyle     |  通过添加style的方式，设置组件下拉列表项的样式,作用于下拉的最外层div,可通过后代选择器控制下拉项的样式 | React.CSSProperties |  |
 | menuItemClassName |  通过添加class的方式，设置组件下拉列表项的样式,作用于下拉的最外层div,可通过后代选择器控制下拉项的样式 | string |  |
 | menuPosition      |  设置下拉菜单的位置 | enum:<br>&nbsp;'left'<br>&nbsp;'right'<br> | 'right' |
-| menuData          |  支持通过menuData设置子组件下拉菜单数据 例如：menuData = [ <br/>{ <br/>text: "China",  //下拉菜单项展示值 <br/>value: 1        //数据库存取值，为字符类型，点击时作为回调参数传入 <br/>},{...}]; | array |  |
-| enableAdd         |  支持通过enableAdd设置组件底部添加按钮是否显示(目前仅在type="resource"时有效) | bool | false |
-| onAdd             |  支持设置组件onAdd添加事件： <br/>1.type=resource或detail时，点击底部+号按钮添加事件，回调函数无参数； <br/>2.type=add时，组件+号点击添加事件；<br><br>**签名:**<br>`function(event: object) => void`<br>*event:* ：+号按钮onClick事件 | function |  |
-| onMenuItemClick   |  支持设置菜单子组件的onClick事件<br><br>**签名:**<br>`function(text: string) => void`<br>*text* ：菜单项的text的属性 | function |  |
+| menuData          |  支持通过menuData设置子组件下拉菜单数据 例如：menuData = [ <br/>{ <br/>text: "China",  //下拉菜单项展示值 <br/>value: 1        //菜单项存取值，点击时作为回调参数传入 <br/>},{...}]; | array |  |
+| enableAdd         |  支持通过enableAdd设置组件底部添加按钮是否显示（仅在type="resource"且title不为空时有效） | bool | false |
+| onAdd             |  支持设置组件onAdd添加事件： <br/>1.type=resource时，点击底部+号按钮添加事件； <br/>2.type=add时，组件+号点击添加事件；<br><br>**签名:**<br>`function() => void`<br>回调函数无参数 | function |  |
+| onMenuItemClick   |  支持设置菜单子组件的onClick事件<br><br>**签名:**<br>`function(text: string, value: any) => void`<br>*text* ：菜单项的text属性<br>*value* ：菜单项的value属性 | function |  |
+| version           |  aui版本 | string |  |
+| theme             |  主题 | string |  |
 
 ## 接口定义
 
@@ -61,7 +63,7 @@ interface Card {
    * 可控制：margin、padding 例如：style={{margin:"0px"}}
    *
    */
-  style: object;
+   style: React.CSSProperties;
 
   /**
    * 支持通过icon的url;设置组件的图标，不设置则默认不显示
@@ -75,9 +77,14 @@ interface Card {
    * 如果不传title，则不显示title
    *
    */
-  title: string;
+   title: any;
 
-  /**
+   /**
+    * title样式定制
+    */
+   titleStyle: React.CSSProperties;
+
+   /**
    * 支持通过content设置组件内容
    * 例如：content =[{
    * <br>text: "ID"; // 必填，控制组件内容区域文本提示
@@ -86,7 +93,7 @@ interface Card {
    * }; ...]
    *
    */
-  content: any;
+   content: Array<{ text: string; value: any }>;
 
   /**
    * 支持通过type设置组件类型
@@ -101,27 +108,26 @@ interface Card {
    */
   selected: boolean;
 
-  /**
-   * title provided for the dropDown Menu
-   *
-   */
-  menuTitle: string;
+   /**
+    * 设置下拉菜单的标题文本
+    */
+   menuTitle: string;
 
   /**
    * 支持通过menuData设置子组件下拉菜单数据
    * 例如：menuData = [
    * <br/>{
    * <br/>text: "China";  //下拉菜单项展示值
-   * <br/>value: 1        //数据库存取值，为字符类型，点击时作为回调参数传入
+    * <br/>value: 1        //菜单项存取值，点击时作为回调参数传入
    * <br/>};{...}];
    *
    */
-  menuData: any;
+   menuData: Array<{ text: string; value: any }>;
 
   /**
    * 通过添加style的方式，设置组件下拉列表项的样式;作用于下拉的最外层div;可通过后代选择器控制下拉项的样式
    */
-  menuItemStyle: object;
+   menuItemStyle: React.CSSProperties;
 
   /**
    * 通过添加class的方式，设置组件下拉列表项的样式;作用于下拉的最外层div;可通过后代选择器控制下拉项的样式
@@ -139,21 +145,21 @@ interface Card {
    */
   enableAdd: boolean;
 
-  /**
-   * 支持设置组件onAdd添加事件：
-   * <br/>1.type=resource或detail时，点击底部+号按钮添加事件；
-   * <br/>2.type=add时，组件+号点击添加事件；
-   *
-   * @param {object} event：+号按钮onClick事件
-   */
-  onAdd: () => unknown;
+   /**
+    * 支持设置组件onAdd添加事件：
+    * <br/>1.type=resource时，点击底部+号按钮添加事件（需enableAdd=true）；
+    * <br/>2.type=add时，组件+号点击添加事件；
+    * 回调函数无参数
+    */
+   onAdd: () => void;
 
-  /**
-   * 支持设置菜单子组件的onClick事件
-   *
-   * @param {object} event：菜单项onClick事件
-   */
-  onMenuItemClick: (data: string, value: string) => unknown;
+   /**
+    * 支持设置菜单子组件的onClick事件
+    *
+    * @param {string} data：菜单项的text属性
+    * @param {any} value：菜单项的value属性
+    */
+   onMenuItemClick: (data: string, value: any) => void;
 
   /**
    * 支持通过version设置组件版本.
@@ -313,10 +319,10 @@ export default class CardExample2 extends React.Component {
     });
   };
 
-  handleOptionClick = text => {
+  handleOptionClick = (text, value) => {
     this.setState({
       display: true,
-      text: 'Click the action drop-down menu item :' + text,
+      text: 'Click the action drop-down menu item : ' + text + ', value : ' + value,
     });
   };
 

@@ -20,9 +20,9 @@
 | 属性名称          | 描述                                                                                                                                       | 输入             | 默认  |
 | :---------------- |:-----------------------------------------------------------------------------------------------------------------------------------------|:---------------| :---- |
 | id                | 用户传入自定义 id 用于覆盖组件自动生成 id                                                                                                                 | string         |       |
-| data              | 手风琴数据 array<{title: ReactNode;value: string;icon?: string;description?: string;activeIcon?: string;disabled?: boolean;children?: array}> | array          |       |
-| selectedValue     | 默认被选中的项的 value，不设置，则为第一项的 value                                                                                                          | string         | null  |
-| headerText        | 手风琴标题文字                                                                                                                                  | string         |       |
+| data              | 手风琴数据 array<{title: ReactNode;value?: string;icon?: string;description?: string;activeIcon?: string;disabled?: boolean;children?: array}> | array          |       |
+| selectedValue     | 默认被选中的项的 value，不设置，则为第一项的 value                                                                                                          | string         | ''  |
+| headerText        | 手风琴标题文字                                                                                                                                  | ReactNode         |       |
 | headerIcon        | 手风琴标题图标的 url                                                                                                                             | string         |       |
 | enableTooltip     | 是否使用提示                                                                                                                                   | bool           | true  |
 | toolTipProps     | 自定义手风琴菜单的Tooltip属性(6.0.x版本支持)，需要将enableTooltip设置为true，参考Tooltip组件文档来设置                                                                   | [CustomTooltipType](/components/Tooltip/)         |   |
@@ -32,15 +32,15 @@
 | hideTitleBar      | 隐藏标题栏。                                                                                                                                   | bool           | false |
 | headerIconPosition  | 控制头部 Icon 布局，可选值有 'top'、'left'                                                                                                           | string         | top |
 | enableMultiOpen   | 是否允许同时展开多个一级菜单                                                                                                                           | bool           | false |
-| showArrow      | 是否启用菜单收缩                                                                                                                                 | bool           | false |
-| enableExpand      | 是否允许折叠                                                                                                                                   | bool           | false |
+| showArrow      | 收起态时使用图标模式展示菜单项，为 true 时不显示菜单文字只显示图标，配合 enableExpand 使用                                                                                                                 | bool           | false |
+| enableExpand      | 是否允许展开/折叠面板                                                                                                                                   | bool           | false |
 | expanded          | 默认是否展开                                                                                                                                   | bool           | true |
 | allowResize       | 是否允许拖动                                                                                                                                   | bool           | false |
-| maxResizableWidth | 最大可拖动宽度，支持 px 和 rem 单位                                                                                                                   | string         |       |
+| maxResizableWidth | 最大可拖动宽度，支持 px 和 rem 单位                                                                                                                   | string         | 16rem |
 | style             | 通过 style 控制组件最外层样式                                                                                                                       | object         |       |
 | className         | 通过 class 控制组件最外层样式                                                                                                                       | string         |       |
 | onClick           | 手风琴元素被点击后的回调函数<br><br>**签名:**<br>`function(node: object) => void`<br>_node:_ 被点击项对应 data 中的原始数据                                          | function       |       |
-| onItemRightClick  | Callback on right click on item. br><br>**Signature:**<br>`function(event: object, node: object) => void`<br>_node:_ clicked node data   | function       |       |
+| onItemRightClick  | 右键点击菜单项的回调<br><br>**签名:**<br>`function(event: MouseEvent, { data }: { data: object }) => void`<br>_data:_ 被右键点击项对应 data 中的原始数据   | function       |       |
 | onExpand          | 设置面板收起展开回调<br><br>**签名:**<br>`function(bool: flag) => void`<br>_bool:_ 面板展开时为 true，收起时为 false                                            | function       |       |
 | onResize          | 拖动回调函数`resizeData:{oldWidth: string;newWidth: string;}) => void;`<br>                                                                    | function       |       |
 
@@ -419,8 +419,8 @@ export default class AccordionDemo extends React.Component {
             data={data}
             selectedValue={selectedValue}
             headerText="Header"
-            hideIcons={true}
             hideTitleBar={hideTitleBar}
+            showArrow={true}
             headerIconPosition={headerIconPosition}
             style={{ height: "540px" }}
           />
@@ -500,7 +500,7 @@ export default class AccordionDemoNoMultiOpen extends React.Component {
     const [version, theme] = getDemoVersion();
     return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider ConfigProvider version={version} theme={theme}>
+        <ConfigProvider version={version} theme={theme}>
         <div style={{ background: "#fcfcfc", width: '100%'}}>
           <Accordion
             data={this.state.data}

@@ -36,9 +36,9 @@
 | value | 初始值 type=="range"时默认值为[最小刻度值,最小刻度值] type=="single"时默认值为[最小刻度值]                                                                               | array |  |
 | markIndexes | 需要显示刻度值的位置的对应value值的数组 markIndexes:[0,10,15] 该数组要求是递增的                                                                                       | array |  |
 | unit | 单位，默认为"",如果需要多个单位，请在labelFormat函数中转换                                                                                                         | string |  |
-| labelFormat | 数值转换函数<br><br>**签名:**<br>`function(value: number) => String`<br>*value:* 当前需要转换的数值<br> *returns* (String): formatValue 根据当前数值转换的带单位的字符串      | function |  |
+| labelFormat | 数值转换函数<br><br>**签名:**<br>`function(value: number) => { formatValue: string }`<br>*value:* 当前需要转换的数值<br> *returns* ({ formatValue: string }): 根据当前数值转换的带单位的字符串 | function |  |
 | formatter | 格式化当前组件的所有数字，保持同一个格式显示。签名:`(value: number, precision: number) => string` | function | `(value, precision) => value.toFixed(precision)` |
-| onChange | 定义组件内容改变时的事件<br><br>**签名:**<br>`function(value: string, changeValue: string) => void`<br>*value:* 当前组件中选中的项的value集合<br>*changeValue:* 当前改变的值 | function |  |
+| onChange | 定义组件内容改变时的事件<br><br>**签名:**<br>`function(value: number[], changeValue?: number[]) => void`<br>*value:* 当前组件中选中的项的value集合（数组）<br>*changeValue:* 当前改变的值 | function |  |
 | displayInput | 是否显示输入框                                                                                                                                      | bool | true |
 | type | 选择器类型 single：数值选择器，range：区间选择器                                                                                                               | enum:<br>&nbsp;"single"<br>&nbsp;"range"<br> | "single" |
 | label | 设置标题文字                                                                                                                                       | string |  |

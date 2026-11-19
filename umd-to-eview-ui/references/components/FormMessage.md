@@ -8,15 +8,53 @@ FormMessage主要用于表单提示信息提示，支持自定义组件样式，
 
 ### 属性
 
-| 属性名称 | 描述 | 输入 | 默认 |
+| 属性名称 | 描述 | 类型 | 默认值 |
 |:-----|:-----|:-----|:-----|
-| id |  默认设置动态id，支持用户自定义id | string |  |
-| className |  支持通过className设置组件样式 | string |  |
-| style |  支持通过style设置组件样式，如：style={{color:'red'}} | React.CSSProperties |  |
-| icon |  支持通过icon设置组件图标，icon为url组件图标默认符合AUI2.0规范，图片大小为16*16 | string |  |
-| iconClassName |  支持通过iconClassName设置组件图标样式 | string |  |
-| text |  支持通过text设置消息框文本内容,text支持任意类型 | any |  |
-| type |  支持通过type设置组件类型 | enum:<br>&nbsp;'error'<br>&nbsp;'success'<br>&nbsp;'default'<br> | "default" |
+| id | 默认设置动态id，支持用户自定义id | string | 动态生成 |
+| className | 支持通过className设置组件样式 | string |  |
+| style | 支持通过style设置组件样式，如：style={{color:'red'}} | CSSProperties |  |
+| icon | 支持通过icon设置组件图标，icon为url组件图标默认符合AUI2.0规范，图片大小为16*16 | string |  |
+| iconClassName | 支持通过iconClassName设置组件图标样式 | string |  |
+| text | 支持通过text设置消息框文本内容,text支持任意类型 | any |  |
+| type | 支持通过type设置组件类型 | 'error' &#124; 'success' &#124; 'default' | 'default' |
+| version | 支持通过version设置组件版本 | string |  |
+| theme | 支持通过theme设置组件主题 | string |  |
+
+```typescript
+export interface Iprops {
+  /** 默认设置动态id，支持用户自定义id */
+  id?: string;
+
+  /** 支持通过className设置组件样式 */
+  className?: string;
+
+  /** 支持通过style设置组件样式，如：style={{color:'red'}} */
+  style?: CSSProperties;
+
+  /** 支持通过icon设置组件图标，icon为url组件图标默认符合AUI2.0规范，图片大小为16*16 */
+  icon?: string;
+
+  /** 支持通过iconClassName设置组件图标样式 */
+  iconClassName?: string;
+
+  /** 支持通过text设置消息框文本内容,text支持任意类型 */
+  text?: any;
+
+  /** 支持通过type设置组件类型 */
+  type: 'error' | 'success' | 'default';
+
+  /** 支持通过version设置版本 */
+  version?: string;
+
+  /** 支持通过theme设置主题 */
+  theme?: string;
+}
+
+// defaultProps
+static defaultProps = {
+  type: 'default',
+};
+```
 
 ## 使用示例
 

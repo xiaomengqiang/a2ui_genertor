@@ -24,10 +24,10 @@
 | id | 自定义id | string | - |
 | className |  自定义class | string | - |
 | style |  设置组件样式 | React.CSSProperties | - |
-| data |**与Button组件参数一致**:<br/>设置组件的数据,数组每项对应相应button的配置 | array | - |
+| data |**与Button组件参数一致**:<br/>设置组件的数据，数组每项对应相应button的配置，每项支持Button的所有属性（text、status、onClick、leftIcon、rightIcon等） | Array\<ButtonAdapterProps\> | - |
 | itemClassName |  给每个button加上统一的class | string | - |
-| itemStyle |  给每个button加上统一样式 | React.CSSProperties | - |
-| size |  设置组件的类型 | `small`\|`normal`\|`large` | `normal`  |
+| itemStyle |  给每个button加上统一样式，会与每个item自身的style合并 | React.CSSProperties | - |
+| size |  设置按钮尺寸 | `small`\|`normal`\|`large` | `normal`  |
 
 ## 使用示例
 

@@ -25,7 +25,7 @@ Browse Button组件提供浏览元,用于触发组件选择对话框,更新和�
 | inputStyle     | 定制输入框样式                                                                                                                                                                          | object                                  |         |
 | buttonStyle    | 定制按钮样式                                                                                                                                                                           | object                                  |         | 
 | required       | 支持设置组件值是否必须，若为必须，支持非空校验                                                                                                                                                          | bool                                    | `false` |
-| hintType       | 显示提示信息                                                                                                                                                                           | enum:<br>&nbsp;"div"<br>&nbsp;"tip"<br> |         |
+| hintType       | 显示提示信息                                                                                                                                                                           | enum:<br>&nbsp;"div"<br>&nbsp;"tip"<br> | 'div'   |
 | onClick        | 定义按钮点击事件<br>`function(event: React.MouseEvent, value: string) => void`<br>*event:* 原生dom的event<br>*value:* new value                                                             | function                                |         |
 | onChange       | 定义输入框内容改变时的事件<br>`function(newValue: string, oldValue: string, event: React.ChangeEvent) => void`<br>*newValue:* new value<br>*oldValue:* previous value<br>*event:* 原生dom的event | function                                |         |
 | onKeyDown      | 定义输入框在按下键盘键时的事件<br>`function(event: React.KeyboardEvent) => void`<br>*event:* 原生dom的event                                                                                        | function                                |         |
@@ -33,8 +33,10 @@ Browse Button组件提供浏览元,用于触发组件选择对话框,更新和�
 | onKeyUp        | 定义输入框在放开键盘键时的事件<br>`function(event: React.KeyboardEvent) => void`<br>*event:* 原生dom的event                                                                                        | function                                |         |
 | onFocus        | 定义输入框聚焦时的事件<br>`function(event: React.FocusEvent) => void`<br>*event:* 原生dom的event                                                                                               | function                                |         |
 | onBlur         | 定义输入框的失去焦点时的事件<br>`function(event: React.FocusEvent) => void`<br>*event:* 原生dom的event                                                                                            | function                                |         |
-| useLatestValue | 设置文本框的useLatestValue属性，具体作用参考TextField                                                                                                                                           | boolean                                 | false   |
+| useLatestValue | 设置文本框的useLatestValue属性，具体作用参考TextField                                                                                                                                           | bool                                 | false   |
 | inputProps | 设置文本框的属性，具体作用参考TextField                                                                                                                                           | object                                 |   |
+| version        | aui版本                                                                                                                                                                           | string                                 |   |
+| theme          | 主题                                                                                                                                                                               | string                                 |   |
 
 ## 使用示例
 
@@ -74,7 +76,7 @@ export default class BrowseButtonExample extends React.Component {
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
       <ConfigProvider version={version} theme={theme}>
         <div>
-          <BrowseButton onClick={this.clickCallBack} defaultValue={"Default Value"} placeHolder={"Click here to search"}
+          <BrowseButton onClick={this.clickCallBack} placeHolder={"Click here to search"}
                         value={"d:\\"}/>
           {this.state.msg1 ? <DivMessage text={this.state.msg1} type="success"/> : ''}
         </div>
@@ -122,7 +124,7 @@ export default class BrowseButtonExample extends React.Component {
     return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
       <ConfigProvider version={version} theme={theme}>
-        <div><BrowseButton onChange={this.onChange} disabled={false} inputStyle={{width: "200px "}}/>
+        <div><BrowseButton onChange={this.onChange} inputDisabled={false} inputStyle={{width: "200px "}}/>
           {this.state.msg2 ? <DivMessage text={this.state.msg2} type="success"/> : ''}</div>
       </ConfigProvider>
     );
@@ -161,9 +163,9 @@ ReactDOM.render(<BrowseButtonExample />, mountNode);
 
 ```
 
-### 模糊事件和用户指定的样式
+### 失焦事件和用户指定的样式
 
-模糊事件和用户指定的样式
+失焦事件和用户指定的样式
 
 ```jsx
 import BrowseButton from 'eview-ui/BrowseButton';
@@ -237,7 +239,7 @@ export default class BrowseButtonExample extends React.Component {
 		return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
       <ConfigProvider version={version} theme={theme}>
-        <div><BrowseButton defaultValue={"defaultValue"} buttonStyle={buttonStyle} label={""}/></div>
+        <div><BrowseButton value={"defaultValue"} buttonStyle={buttonStyle} label={""}/></div>
       </ConfigProvider>
 		);
 	}

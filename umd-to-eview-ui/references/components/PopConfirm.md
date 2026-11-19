@@ -19,27 +19,28 @@ PopConfirm 组件，是一个气泡确认框组件，用于在用户执行某些
 
 ### 属性
 
-| 属性名称      | 描述                                                                                                                   | 输入                                                                                                                                 | 默认     |
+| 属性名称      | 描述                                                                                                                   | 类型                                                                                                                                 | 默认     |
 | :------------ | :--------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- | :------- |
-| content       | 确认认框内容                                                                                                           | string                                                                                                                               |          |
-| mode          | 确认框中文本与按钮                                                                                                     | 'text'&nbsp;或'button'                                                                                                               | 'button' |
-| title         | 确认框标题                                                                                                             | string                                                                                                                               |          |
+| title         | 确认框标题                                                                                                             | string                                                                                                                               |         |
+| content       | 确认框内容                                                                                                             | string                                                                                                                               |         |
+| mode          | 确认框底部按钮模式，'text'为文本链接模式，'Button'为按钮模式                                  | 'text' 或 'Button'                                                                                                                   | 'Button' |
 | placement     | 气泡框位置，可选 top left right bottom topLeft topRight bottomLeft bottomRight leftTop leftBottom rightTop rightBottom | string                                                                                                                               | top      |
-| confirmButton | 确认按钮配置，包括 text 与 status                                                                                      | object                                                                                                                               |          |
-| cancelButton  | 取消按钮配置，包括 text 与 status                                                                                      | object                                                                                                                               |          |
-| confirmText   | 确认文本, type 配置'text'生效                                                                                          | string                                                                                                                               |          |
-| cancelButton  | 取消文本，mode 配置’text'生效                                                                                          | string                                                                                                                               |          |
-| onConfirm     | 回调确认按钮事件                                                                                                       | function                                                                                                                             |          |
-| onCancel      | 回调取消按钮事件                                                                                                       | function                                                                                                                             |          |
-| type          | 提示框的提示类型                                                                                                       | enum:<br>&nbsp;'highRisk'<br>&nbsp;'risk'<br>&nbsp;'error'<br>&nbsp;'info'<br>&nbsp;'warn'<br>&nbsp;'confirm'<br>&nbsp;'success'<br> | 'info'   |
-| customContent | 弹窗自定义内容                                                                                                         | React.ReactNode                                                                                                                      |          |
+| confirmButton | 确认按钮配置，包括 text 与 status（mode='Button'时生效）                                                               | `{ text?: string, status?: string }`                                                                                                 | `{}`     |
+| cancelButton  | 取消按钮配置，包括 text 与 status（mode='Button'时生效）                                                               | `{ text?: string, status?: string }`                                                                                                 | `{}`     |
+| confirmText   | 确认文本（mode='text'时生效）                                                                                          | string                                                                                                                               | 国际化默认值 |
+| cancelText    | 取消文本（mode='text'时生效）                                                                                          | string                                                                                                                               | 国际化默认值 |
+| onConfirm     | 点击确认按钮/文本时的回调                                                                                              | `() => void`                                                                                                                         |         |
+| onCancel      | 点击取消按钮/文本时的回调                                                                                              | `() => void`                                                                                                                         |         |
+| type          | 提示框的提示类型                                                                                                       | enum:<br>&nbsp;'highRisk'<br>&nbsp;'risk'<br>&nbsp;'error'<br>&nbsp;'info'<br>&nbsp;'warn'<br>&nbsp;'confirm'<br>&nbsp;'success'<br> |         |
+| customContent | 弹窗自定义内容，传入时覆盖默认内容区                                                                                   | React.ReactNode                                                                                                                      |         |
+| popStyle      | 气泡框自定义样式，例如设置宽度                                                                                         | React.CSSProperties                                                                                                                  |         |
+| version       | 组件版本，用于样式适配                                                                                                 | string                                                                                                                               |         |
+| children      | 触发元素（必需）                                                                                                       | React.ReactNode                                                                                                                      |         |
 
 ## 使用示例
 
 ### 纯文本
 
-## en-US
-
 ```jsx
 import PopConfirm from 'eview-ui/PopConfirm';
 import ConfigProvider from 'eview-ui/ConfigProvider';
@@ -67,7 +68,7 @@ export default class PopConfirmDemo extends React.Component {
               text: '取消',
             }}
             popStyle={{ width: '16rem' }}
-            onConfirm={data => console.log('confirm', data)}
+            onConfirm={() => console.log('confirm')}
             onCancel={() => console.log('cancel')}
           >
             <div style={{ color: '#004EA8' }}>Button按钮</div>
@@ -79,60 +80,7 @@ export default class PopConfirmDemo extends React.Component {
             mode={'text'}
             confirmText={'文本按钮'}
             cancelText={'文本按钮'}
-            onConfirm={data => console.log('confirm', data)}
-            onCancel={() => console.log('cancel')}
-          >
-            <div style={{ color: '#004EA8' }}>文本按钮</div>
-          </PopConfirm>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<PopConfirmDemo />, mountNode);
-```
-
-```jsx
-import PopConfirm from 'eview-ui/PopConfirm';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-import LabelField from 'eview-ui/LabelField';
-
-export default class PopConfirmDemo extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <LabelField
-          text='纯文本 + 自定义宽度'
-          style={{ display: 'block', fontWeight: 'bold', paddingBottom: '1rem' }}
-        />
-        <div style={{ display: 'flex', marginLeft: '40px', justifyContent: 'center', gap: '400px' }}>
-          <PopConfirm
-            content='这是一段描述文本。可以承载复杂的内容与操作，多行文本内容效果。'
-            placement={'top'}
-            confirmButton={{
-              text: '确认',
-              status: 'primary',
-            }}
-            cancelButton={{
-              text: '取消',
-            }}
-            popStyle={{ width: '16rem' }}
-            onConfirm={data => console.log('confirm', data)}
-            onCancel={() => console.log('cancel')}
-          >
-            <div style={{ color: '#004EA8' }}>Button按钮</div>
-          </PopConfirm>
-
-          <PopConfirm
-            content='这是一段描述文本。可以承载复杂的内容与操作，多行文本内容效果。'
-            placement={'right'}
-            mode={'text'}
-            confirmText={'文本按钮'}
-            cancelText={'文本按钮'}
-            onConfirm={data => console.log('confirm', data)}
+            onConfirm={() => console.log('confirm')}
             onCancel={() => console.log('cancel')}
           >
             <div style={{ color: '#004EA8' }}>文本按钮</div>
@@ -148,8 +96,6 @@ ReactDOM.render(<PopConfirmDemo />, mountNode);
 
 ### 带标题
 
-## en-US
-
 ```jsx
 import PopConfirm from 'eview-ui/PopConfirm';
 import ConfigProvider from 'eview-ui/ConfigProvider';
@@ -167,7 +113,7 @@ export default class PopConfirmDemo extends React.Component {
             title='气泡标题'
             content='这是一段描述文本。可以承载复杂的内容与操作，多行文本内容效果。'
             placement={'right'}
-            onConfirm={data => console.log('确认', data)}
+            onConfirm={() => console.log('确认')}
             onCancel={() => console.log('取消')}
           >
             <div style={{ color: '#004EA8' }}>带标题按钮</div>
@@ -177,48 +123,7 @@ export default class PopConfirmDemo extends React.Component {
             content='这是一段描述文本。可以承载复杂的内容与操作，多行文本内容效果。'
             placement={'right'}
             mode={'text'}
-            onConfirm={data => console.log('确认', data)}
-            onCancel={() => console.log('取消')}
-          >
-            <div style={{ color: '#004EA8' }}>带标题文本按钮</div>
-          </PopConfirm>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<PopConfirmDemo />, mountNode);
-```
-
-```jsx
-import PopConfirm from 'eview-ui/PopConfirm';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-import LabelField from 'eview-ui/LabelField';
-
-export default class PopConfirmDemo extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <LabelField text='带标题' style={{ display: 'block', fontWeight: 'bold', paddingBottom: '1rem' }} />
-        <div style={{ display: 'flex', marginLeft: '40px', justifyContent: 'center', gap: '400px' }}>
-          <PopConfirm
-            title='气泡标题'
-            content='这是一段描述文本。可以承载复杂的内容与操作，多行文本内容效果。'
-            placement={'right'}
-            onConfirm={data => console.log('确认', data)}
-            onCancel={() => console.log('取消')}
-          >
-            <div style={{ color: '#004EA8' }}>带标题按钮</div>
-          </PopConfirm>
-          <PopConfirm
-            title='气泡标题'
-            content='这是一段描述文本。可以承载复杂的内容与操作，多行文本内容效果。'
-            placement={'right'}
-            mode={'text'}
-            onConfirm={data => console.log('确认', data)}
+            onConfirm={() => console.log('确认')}
             onCancel={() => console.log('取消')}
           >
             <div style={{ color: '#004EA8' }}>带标题文本按钮</div>
@@ -234,8 +139,6 @@ ReactDOM.render(<PopConfirmDemo />, mountNode);
 
 ### 带图标
 
-## en-US
-
 ```jsx
 import PopConfirm from 'eview-ui/PopConfirm';
 import ConfigProvider from 'eview-ui/ConfigProvider';
@@ -254,7 +157,7 @@ export default class PopConfirmDemo extends React.Component {
             content='这是一段描述文本。可以承载复杂的内容与操作，多行文本内容效果。'
             placement={'right'}
             type={'info'}
-            onConfirm={data => console.log('确认', data)}
+            onConfirm={() => console.log('确认')}
             onCancel={() => console.log('取消')}
           >
             <div style={{ color: '#004EA8' }}>带图标按钮</div>
@@ -265,50 +168,7 @@ export default class PopConfirmDemo extends React.Component {
             placement={'right'}
             mode={'text'}
             type={'info'}
-            onConfirm={data => console.log('确认', data)}
-            onCancel={() => console.log('取消')}
-          >
-            <div style={{ color: '#004EA8' }}>带图标文本按钮</div>
-          </PopConfirm>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<PopConfirmDemo />, mountNode);
-```
-
-```jsx
-import PopConfirm from 'eview-ui/PopConfirm';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-import LabelField from 'eview-ui/LabelField';
-
-export default class PopConfirmDemo extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <LabelField text='带图标' style={{ display: 'block', fontWeight: 'bold', paddingBottom: '1rem' }} />
-        <div style={{ display: 'flex', marginLeft: '40px', justifyContent: 'center', gap: '400px' }}>
-          <PopConfirm
-            title='气泡标题'
-            content='这是一段描述文本。可以承载复杂的内容与操作，多行文本内容效果。'
-            placement={'right'}
-            type={'info'}
-            onConfirm={data => console.log('确认', data)}
-            onCancel={() => console.log('取消')}
-          >
-            <div style={{ color: '#004EA8' }}>带图标按钮</div>
-          </PopConfirm>
-          <PopConfirm
-            title='气泡标题'
-            content='这是一段描述文本。可以承载复杂的内容与操作，多行文本内容效果。'
-            placement={'right'}
-            mode={'text'}
-            type={'info'}
-            onConfirm={data => console.log('确认', data)}
+            onConfirm={() => console.log('确认')}
             onCancel={() => console.log('取消')}
           >
             <div style={{ color: '#004EA8' }}>带图标文本按钮</div>
@@ -324,8 +184,6 @@ ReactDOM.render(<PopConfirmDemo />, mountNode);
 
 ### 提示
 
-## en-US
-
 ```jsx
 import PopConfirm from 'eview-ui/PopConfirm';
 import ConfigProvider from 'eview-ui/ConfigProvider';
@@ -343,7 +201,7 @@ export default class PopConfirmDemo extends React.Component {
             title='这是气泡确认框'
             type={'info'}
             placement={'right'}
-            onConfirm={data => console.log('确认', data)}
+            onConfirm={() => console.log('确认')}
             onCancel={() => console.log('取消')}
           >
             <div style={{ color: '#004EA8' }}>提示按钮</div>
@@ -353,48 +211,7 @@ export default class PopConfirmDemo extends React.Component {
             placement={'right'}
             mode={'text'}
             type={'info'}
-            onConfirm={data => console.log('确认', data)}
-            onCancel={() => console.log('取消')}
-          >
-            <div style={{ color: '#004EA8' }}>提示文本按钮</div>
-          </PopConfirm>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<PopConfirmDemo />, mountNode);
-```
-
-```jsx
-import PopConfirm from 'eview-ui/PopConfirm';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-import LabelField from 'eview-ui/LabelField';
-
-export default class PopConfirmDemo extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <LabelField text='提示' style={{ display: 'block', fontWeight: 'bold', paddingBottom: '1rem' }} />
-        <div style={{ display: 'flex', marginLeft: '40px', justifyContent: 'center', gap: '400px' }}>
-          <PopConfirm
-            title='这是气泡确认框'
-            type={'info'}
-            placement={'right'}
-            onConfirm={data => console.log('确认', data)}
-            onCancel={() => console.log('取消')}
-          >
-            <div style={{ color: '#004EA8' }}>提示按钮</div>
-          </PopConfirm>
-          <PopConfirm
-            title='这是气泡确认框'
-            placement={'right'}
-            mode={'text'}
-            type={'info'}
-            onConfirm={data => console.log('确认', data)}
+            onConfirm={() => console.log('确认')}
             onCancel={() => console.log('取消')}
           >
             <div style={{ color: '#004EA8' }}>提示文本按钮</div>

@@ -22,14 +22,75 @@
 |:-----|:-----|:-----|:-----|
 | visible | 控制菜单的显示 | boolean |  |
 | onVisibleChange | 菜单显示状态变更时调用 | (visible: boolean) => void; |  |
-| getPopupContainer | 获取渲染父节点, 设为false时为元素虚拟dom的原位置 | (() => HTMLElement) &#124; false |  |
-| placement | 定义popup依附的相对位置 | 'leftTop' &#124; 'left' &#124; 'leftBottom' &#124; 'rightTop' &#124; 'right' &#124; 'rightBottom' &#124; 'topLeft' &#124; 'top' &#124; 'topRight' &#124; 'bottomLeft' &#124; 'bottom' &#124; 'bottomRight' | 'bottomLeft' |
-| overlay | 菜单元素 | React.ReactNode |  |
+| getPopupContainer | 获取渲染父节点, 设为false时为元素虚拟dom的原位置 | (() => HTMLElement) &#124; false | false |
+| placement | 定义popup依附的相对位置 | PlacementPreset &#124; ((alignedRect: DOMRect, popupRect: DOMRect) => Coordinate) | 'bottomLeft' |
+| overlay | 下拉框内元素 | React.ReactNode |  |
 | overlayClassName | 下拉根元素类名 | string |  |
 | overlayStyle | 下拉根元素样式 | React.CSSProperties |  |
-| trigger | 触发下拉的行为 | ('click' &#124; 'hover' &#124; 'contextMenu')[] | ['click'] |
+| trigger | 触发下拉的行为（暂不支持hover, contextMenu） | ('click' &#124; 'hover' &#124; 'contextMenu')[] | ['click'] |
 | children | 菜单弹出触发者元素 | React.ReactElement |  |
 | mountOnBody | 是否将下拉元素挂载到body下 | boolean | false |
+
+> **PlacementPreset** 可选值：`'leftTop' | 'left' | 'leftBottom' | 'rightTop' | 'right' | 'rightBottom' | 'topLeft' | 'top' | 'topRight' | 'bottomLeft' | 'bottom' | 'bottomRight'`
+
+```typescript
+export type PlacementPreset =
+  | 'leftTop'
+  | 'left'
+  | 'leftBottom'
+  | 'rightTop'
+  | 'right'
+  | 'rightBottom'
+  | 'topLeft'
+  | 'top'
+  | 'topRight'
+  | 'bottomLeft'
+  | 'bottom'
+  | 'bottomRight';
+
+export type Placement = PlacementPreset | ((alignedRect: DOMRect, popupRect: DOMRect) => Coordinate);
+
+export interface DropdownProps {
+  /** 控制菜单的显示 */
+  visible?: boolean;
+
+  /** 菜单显示状态变更时调用 */
+  onVisibleChange?: (visible: boolean) => void;
+
+  /**
+   * 获取渲染父节点, 设为false时为元素虚拟dom的原位置
+   * @default () => document.body
+   */
+  getPopupContainer?: (() => HTMLElement) | false;
+
+  /**
+   * 定义popup依附的相对位置
+   * @default 'bottomLeft'
+   */
+  placement?: Placement;
+
+  /** 下拉框内元素 */
+  overlay: React.ReactNode;
+
+  /** 下拉根元素类名 */
+  overlayClassName?: string;
+
+  /** 下拉根元素样式 */
+  overlayStyle?: React.CSSProperties;
+
+  /**
+   * 触发下拉的行为 (暂不支持hover, contextMenu)
+   * @default ['click']
+   */
+  trigger?: Array<'click' | 'hover' | 'contextMenu'>;
+
+  /** 菜单弹出触发者元素 */
+  children: React.ReactElement;
+
+  /** 是否将下拉元素挂载到body下 */
+  mountOnBody?: boolean;
+}
+```
 
 ## 使用示例
 

@@ -26,19 +26,24 @@
 | style |  自定义组件样式 | React.CSSProperties | - |
 | title | 鼠标悬浮在按钮上的展示的提示信息内容，优先级低于冒泡提示信息 | string | - |
 | status |  设置Button的使用场景，默认default样式，特殊场景下设置该属性值为primary | `default`\|`primary`\|`risk`| `default `|
-| size |  设置组件的类型 | `small`\|`normal`\|`large` | `normal`  |
+| size |  设置按钮尺寸 | `small`\|`normal`\|`large` | `normal`  |
 | text |  Button中的文本 | string | ''  |
+| children | Button的子元素，支持自定义内容渲染 | ReactNode | - |
 | disabled |  设置Button的灰化状态 | bool | `false` |
 | onClick |  点击按钮时的回调<br>*event:* 原生dom的点击事件 <br> | function: <br>`(event: object) => void` | - |
+| onKeyDown |  按下键盘键时的回调<br>*event:* 原生dom的键盘事件 <br> | function: <br>`(event: object) => void` | - |
 | focused| 设置组件是否默认聚焦 | bool|	`false`|
 | leftIcon |  在Button中文本的左边设置图标，传入值为图标的绝对路径 | string | - |
 | rightIcon |  在Button中文本的右边设置图标，传入值为图标的绝对路径 | string | - |
-| leftIconProps |  设置leftIcon的附加属性 <br>**属性：** <br> *leftHoverIcon*: 光标悬停时的leftIcon <br>*leftIconClass*: leftIcon的自定义类  | object | null |
-| rightIconProps |  设置rightIcon的附加属性 <br>**属性：** <br> *rightHoverIcon*: 光标悬停时的rightIcon <br>  *rightIconClass*: rightIcon的自定义类 | object | null |
+| leftIconProps |  设置leftIcon的附加属性 <br>**属性：** <br> *leftHoverIcon*: 光标悬停时的leftIcon <br>*leftDisabledIcon*: 禁用时的leftIcon <br>*leftIconClass*: leftIcon的自定义类 <br>*leftIconDisabledClass*: 禁用时leftIcon的自定义类  | object | null |
+| rightIconProps |  设置rightIcon的附加属性 <br>**属性：** <br> *rightHoverIcon*: 光标悬停时的rightIcon <br>*rightDisabledIcon*: 禁用时的rightIcon <br> *rightIconClass*: rightIcon的自定义类 <br>*rightIconDisabledClass*: 禁用时rightIcon的自定义类 | object | null |
 | toolTipProps |  tip配置 *优先级高于其他tip相关配置* <br> **请使用Tooltip组件添加提示框,结构清晰,组件控制便捷** | object(具体配置见Tooltip组件文档) | null |
 | tipStyle | tip样式 | React.CSSProperties | - |
+| tipType | 提示类型（此属性与原生属性title重叠，后续慢慢废弃） | `'title'`\|`'tipbox'` | `'tipbox'` |
 | tipShow | 指定鼠标悬浮在按钮上的提示为冒泡提示，设置的值为always或overflow时生效，与tipData配合使用 | `always`\|`never`\|`overflow`| `never` |
-| tipData | tip值,默认显示text属性值  | string | text属性值 |
+| tipData | tip值，为空时默认显示text属性值  | string | '' |
+| version | aui版本 | string | - |
+| theme | 主题 | string | - |
 
 ## 使用示例
 
@@ -245,7 +250,7 @@ ReactDOM.render(<IconButtonStyle />, mountNode);
 ### 按钮尺寸
 
 按钮有大、中（默认）、小三种尺寸。
-通过设置 `size` 为 `large` `default` `small` 分别把按钮设为大、中（默认）、小尺寸。
+通过设置 `size` 为 `large` `normal` `small` 分别把按钮设为大、中（默认）、小尺寸。
 
 ```jsx
 import Button from "eview-ui/Button";
@@ -257,7 +262,7 @@ import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
 export default class IconButtonStyle extends React.Component {
   state = {
-    size: "default",
+    size: "normal",
   };
 
   render() {
@@ -282,9 +287,9 @@ export default class IconButtonStyle extends React.Component {
               style={{marginRight: "0.5rem"}}
             />
             <Radio
-              value="default"
-              label="default"
-              checked={size === "default"}
+              value="normal"
+              label="normal"
+              checked={size === "normal"}
               onChange={value => this.setState({size: value})}
               style={{marginRight: "0.5rem"}}
             />

@@ -7,7 +7,7 @@
 
 ## antd 迁移注意事项
 
-> 迁移分类：A｜本表由 build-migration-plan.cjs 解析生成迁移计划
+> 迁移分类：A｜本表由 build-migration-plan.cex 解析生成迁移计划
 
 | antd 写法 | eview 写法 | 迁移要点 |
 |-----------|-----------|----------|
@@ -17,16 +17,88 @@
 
 | 属性名称      | 描述                                                  | 输入                                   | 默认  |
 | :------------ | :---------------------------------------------------- | :------------------------------------- | :---- |
-| value         | 绑定值                                                | string                                 |       |
+| value         | 绑定值，格式为 '#rrggbb' 的十六进制颜色字符串         | string                                 |       |
 | disabled      | 是否禁用                                              | boolean                                | false |
-| id            | 定制组件 dom 元素 id，传入该值可覆盖组件自动生成的 id | string                                 |       |
 | className     | 定制组件最外层 dom 元素 className                     | string                                 |       |
-| zIndex        | 支持自定义组件弹出层的 zIndex                         | number                                 | 999   |
-| style         | 自定义样式                                            | React.CSSProperties                    | -     |
+| style         | 自定义最外层样式                                      | React.CSSProperties                    | -     |
 | popupStyle    | 自定义弹出层样式                                      | React.CSSProperties                    | -     |
-| onClick       | 定义点击组件的回调事件                                | (e: MouseEvent, color: string) => void |       |
-| onCollapse    | 组件弹出层收缩时的回调事件                            | (e: MouseEvent, color: string) => void |       |
+| zIndex        | 支持自定义组件弹出层的 zIndex                         | number                                 | 9999  |
+| version       | 设置组件版本，用于控制样式版本（如'aui3-1'），未设置时从ConfigProvider的context中获取 | string                              |       |
+| theme         | 设置组件主题，未设置时从ConfigProvider的context中获取 | string                                 |       |
+| onClick       | 定义点击组件的回调事件                                | (e: Event \| React.MouseEvent \| React.KeyboardEvent, color: string) => void |       |
+| onCollapse    | 组件弹出层收缩时的回调事件                            | (e: Event \| React.MouseEvent \| React.KeyboardEvent, color: string) => void |       |
 | onColorChange | 选择颜色或输入颜色等引起颜色变化的回调事件            | (color: string) => void                |       |
+
+## 接口定义
+
+```typescript
+type MergedEvent = Event | React.MouseEvent | React.KeyboardEvent;
+
+interface ColorPickerAPI {
+
+  /**
+   * 组件选取的颜色值，格式为 '#rrggbb' 的十六进制颜色字符串
+   */
+  value?: string;
+
+  /**
+   * 组件是否禁用
+   */
+  disabled?: boolean;
+
+  /**
+   * 组件弹出层的zIndex
+   */
+  zIndex?: number;
+
+  /**
+   * 最外层dom元素className
+   */
+  className?: string;
+
+  /**
+   * 自定义最外层样式
+   */
+  style?: React.CSSProperties;
+
+  /**
+   * 自定义弹出层样式
+   */
+  popupStyle?: React.CSSProperties;
+
+  /**
+   * 点击组件的回调事件
+   * @param e 事件对象（支持原生Event、React.MouseEvent、React.KeyboardEvent）
+   * @param color 当前选中的颜色值
+   */
+  onClick?: (e: MergedEvent, color: string) => void;
+
+  /**
+   * 弹出层收缩时的回调事件
+   * @param e 事件对象（支持原生Event、React.MouseEvent、React.KeyboardEvent）
+   * @param color 当前选中的颜色值
+   */
+  onCollapse?: (e: MergedEvent, color: string) => void;
+
+  /**
+   * 颜色变化的回调事件
+   * @param color 变化后的颜色值
+   */
+  onColorChange?: (color: string) => void;
+
+  /**
+   * 设置组件版本，用于控制样式版本（如'aui3-1'）
+   * 未设置时从ConfigProvider的context中获取
+   */
+  version?: string;
+
+  /**
+   * 设置组件主题
+   * 未设置时从ConfigProvider的context中获取
+   */
+  theme?: string;
+}
+```
 
 ## 使用示例
 
@@ -69,8 +141,7 @@ export default class CrumbsSimpleExample extends React.Component {
             当前颜色：<strong>{this.state.color}</strong>
           </div>
           <ColorPicker
-            id="color_pk"
-            zIndex={999}
+            zIndex={9999}
             value={this.state.color}
             onColorChange={color => this.handleOnColorChange(color)}
             onCollapse={this.handleOnCollapse}
@@ -84,6 +155,5 @@ export default class CrumbsSimpleExample extends React.Component {
 }
 
 ReactDOM.render(<CrumbsSimpleExample />, mountNode);
-
 ```
 

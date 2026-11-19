@@ -9,12 +9,12 @@
 
 | antd 写法 | eview 写法 | 迁移要点 |
 |-----------|-----------|----------|
-| `Form` / `Form.Item` | `FormPro` / `FormItem` | **不要迁到 `Form`**——eview-ui `Form` 是原生 `<form>` 包装（action/method，无校验；**有 Pro 版，Form 不使用**）；`FormPro` 才有完整体系：`initialValues` 同名；`onFinish`→**`onSuccess(values)`**、`onFinishFailed`→**`onFailed(errors, values)`**；**Rule 是扁平字段**（`required/integer/float/email/url/alpha/ipv4/ipv6/min/max/minLength/maxLength/pattern/equalTo` + `custom: (value, name?) => Promise`）——**不是 antd 的 `{required, message, validator}` 数组形态**，message 走 `validateMessages`；FormInstance：`validateFields()`/`getFieldValue`/`setFieldsValue`/`resetFields`/`getErrors`（经 `useForm` 或 ref）；`validateErrorType='div'/'tip'/'none'` |
+| `Form` / `Form.Item` | `FormPro` / `FormItem` | **不要迁到 `Form`**——eview-ui `Form` 是原生 `<form>` 包装（action/method，无校验；**有 Pro 版，Form 不使用**）；`FormPro` 才有完整体系：`initialValues` 同名；`onFinish`→**`onSuccess(values)`**、`onFinishFailed`→**`onFailed(errors, values)`**；**Rule 是扁平字段**（`required/integer/float/email/url/alpha/ipv4/ipv6/creditCard/notEqualTo/min/max/minLength/maxLength/rangeLength/pattern/equalTo` + `custom: (value, name?) => Promise`）——**不是 antd 的 `{required, message, validator}` 数组形态**，message 走 `validateMessages`；FormInstance：`validateFields()`/`submit()`/`getFieldValue`/`setFieldsValue`/`resetFields`/`getErrors`/`getError`（经 `useForm` 或 ref）；`validateErrorType='div'/'tip'/'none'` |
 
 ## API
 ### type
 ```
-type NamePath = string | string[];
+type NamePath = string | number | Array<string | number>;
 
 type ValidateError = string | React.ReactNode;
 
@@ -46,14 +46,14 @@ formInstance可以用来操作表单，包括获取表单字段值，更新表�
 |getErrors|`(nameList?: NamePath[]) => object`|获取一组字段的校验结果，如果nameList不传，则获取所有字段的校验结果|
 |setInitialValues|`(values: object, init?: boolean) => void`|设置表单初始值，如果init参数传入true，则在设置表单初始值的同时会更新对应的字段值|
 |resetFields|`(nameList?: NamePath[]) => void`|重置表单|
-|tipNoTrigger | 配置tooltip:是否需要trigger（当前默认为[focus]）。<br/>当validateErrorType为tip时有效。应用场景：内容为checkbox类的元素时，请设置为true。 | boolean | false |
+|submit|`() => void`|提交表单，触发校验后根据结果调用onSuccess或onFailed|
 
 
 ### Form
 
 | 属性名称 | 描述 | 类型 | 默认值 |
 |:-----|:-----|:-----|:-----|
-| component |  设置Form渲染元素，为false时，不创建任何DOM节点 | ComponentType \| false |form|
+| component |  设置Form渲染元素，为false时，不创建任何DOM节点 | React.ComponentClass \| React.FC \| string \| false | 'form' |
 | form | FormInstance实例，不提供时会自动创建 | FormInstance | - |
 | initialValues | 表单初始值 | object | {} |
 | validateMessages | 表单校验信息 | [validateMessages](#validatemessages) | |
@@ -62,15 +62,14 @@ formInstance可以用来操作表单，包括获取表单字段值，更新表�
 | onValuesChange | 表单数据更新时的回调 | (changedFields: ChangedFieldEntity[], AllNewValues: object, AllPrevValues: object) | |
 | colon | 表单中每个FormItem的colon属性的默认值，表示是否显示 label 后面的冒号 | boolean | true |
 | layout | 表单布局 | 'vertical' \| 'inline' \| 'horizontal' | horizontal |
-| labelAlign | 表单中每个FormItem的labelAlign属性的默认值，表示label标签的文本对齐方式 | string | right |
-| rules | 表单中每个FormItem的默认校验规则 | [Rule](#Rule)[] | |
+| labelAlign | 表单中每个FormItem的labelAlign属性的默认值，表示label标签的文本对齐方式 | 'left' \| 'right' | right |
 | valuePropName | 表单中每个FormItem的值属性的默认值，供FormItem进行属性劫持。例如某些组件的值的属性是text，checked等 | string | value |
 | updateTrigger | 表单中每个FormItem收集字段变更的时机 | string | onChange |
-| validateTrigger | 表单中每个FormItem进行字段校验的时机 | string | onChange |
+| validateTrigger | 表单中每个FormItem进行字段校验的时机 | string \| string[] | onChange |
 | labelCol | 表单中每个FormItem的label所占的列数，可以传一个数字，作为Col组件的cols属性，也可以直接把Col组件的所有props作为对象传入 | number \| [ColProps](/components/GridLayout-cn/#Col属性) | 自适应：当不传入该props时，label的宽度将会以所有FormItem中label最宽的为准 |
 | wrapperCol | 表单中每个FormItem的包裹的输入控件所占的列数，可以传一个数字，作为Col组件的cols属性，也可以直接把Col组件的所有props作为对象传入 | number \| [ColProps](/components/GridLayout-cn/#Col属性) | 4 |
 | validateErrorType | 表单中每个FormItem的校验提示信息的展现形式 | 'div' \| 'tip' \| 'none' | 'div' |
-| validateDivErrorClassName | 表单中每个FormItem的校验提示信息是div的展现形式时的ClassName，作用于Error信息的div | string | null |
+| validateDivErrorClassName | 表单中每个FormItem的校验提示信息是div的展现形式时的ClassName，作用于Error信息的div | string | '' |
 | getPopupContainer | 表单中每个FormItem的校验提示信息tooltip的渲染父节点   | (() => HTMLElement) \| false | 无 |
 
 ### FormItem
@@ -79,22 +78,26 @@ FormItem可以覆盖Form中的同名属性
 | 属性名称 | 描述 | 类型 | 默认值 |
 |:-------|:------|:-----|:------|
 | label | 字段标签名 | string \| React.ReactNode |
-| name | 字段名 | string \| string[] | '' |
+| name | 字段名 | string \| number \| Array<string \| number> | - |
 | htmlFor | label的htmlFor属性 | string | |
 | getValueFromEvent | 设置如何将event的值转换成字段值 | (...args: any[]) => any | |
 | style | 字段样式 | React.CSSProperties | |
 | colon | 是否显示 label 后面的冒号，可覆盖Form中设置的colon属性 | boolean | true |
-| labelAlign | label标签的文本对齐方式，可覆盖Form中设置的labelAlign属性 | string | right |
+| labelAlign | label标签的文本对齐方式，可覆盖Form中设置的labelAlign属性 | 'left' \| 'right' | right |
 | rules | 表单中每个FormItem的默认校验规则 | [Rule](#Rule)[] | |
 | layout | 表单布局, 可覆盖Form的layout属性 | 'vertical' \| 'inline' \| 'horizontal' | horizontal |
 | valuePropName | FormItem包裹的子组件的值属性，供FormItem进行属性劫持。例如某些组件的值的属性是text，checked等，可覆盖Form中设置的valuePropName属性 | string | value |
 | updateTrigger | FormItem收集字段变更的时机，可覆盖Form中设置的updateTrigger属性 | string | onChange |
-| validateTrigger | FormItem对字段值进行校验的时机，可覆盖Form中设置的validateTrigger属性 | string | onChange |
+| validateTrigger | FormItem对字段值进行校验的时机，可覆盖Form中设置的validateTrigger属性 | string \| string[] | onChange |
 | labelCol | label所占的列数，可覆盖Form中设置的labelCol属性 | number \| [ColProps](/components/GridLayout-cn/#Col属性)  | 2 |
-| wrapperCol | FormItem包裹的输入控件占的列数，可覆盖Form中设置的labelCol属性 | number \| [ColProps](/components/GridLayout-cn/#Col属性) | 4 |
+| wrapperCol | FormItem包裹的输入控件占的列数，可覆盖Form中设置的wrapperCol属性 | number \| [ColProps](/components/GridLayout-cn/#Col属性) | 4 |
 | validateErrorType | 校验提示信息的展现形式，可覆盖Form中设置的validateErrorType属性 | 'div' \| 'tip' \| 'none' | 'div' |
-| validateDivErrorClassName | 表单中每个FormItem的校验提示信息是div的展现形式时的ClassName，作用于Error信息的div，可覆盖Form中设置的validateDivErrorClassName属性 | string | null |
-| tipStyle       | 自定义组件中ToolTip的样式，详细参考ToolTip组件                                    |     CustomTooltipType     |                                                                                                                 |
+| validateDivErrorClassName | 表单中每个FormItem的校验提示信息是div的展现形式时的ClassName，作用于Error信息的div，可覆盖Form中设置的validateDivErrorClassName属性 | string | '' |
+| tipStyle | 自定义组件中ToolTip的样式，详细参考ToolTip组件 | CustomTooltipType | - |
+| tipNoTrigger | 配置tooltip是否需要trigger（当前默认为[focus]）。当validateErrorType为tip时有效。应用场景：内容为checkbox类的元素时，请设置为true | boolean | false |
+| labelTip | label的title属性，鼠标悬浮时显示提示文本 | string | - |
+| version | 增加版本设置 | string | - |
+| theme | 增加主题设置 | string | - |
 
 
 ### Rule
@@ -114,11 +117,12 @@ FormItem可以覆盖Form中的同名属性
 | pattern | RegExp | 校验字段值是否满足正则表达式                                                           |
 | equalTo | string\|number | 校验字段值是否等于给定的值                                                            |
 | notEqualTo | string\|number | 校验字段值是否不等于给定的值                                                           |
-| min | number | 校验字段值是否小于给定的最小值                                                          |
-| max | number | 校验字段值是否大于给定的最大值                                                          |
-| range | [number， number] | 校验字段值是否在给定区间内                                                            |
-| minLength | number | 检验字段值的长度是否小于给定的最小值                                                       |
-| maxLength | number | 校验字段值的长度是否大于给定的最大值                                                       |
+| min | number | 校验字段值是否不小于给定的最小值 |
+| max | number | 校验字段值是否不大于给定的最大值 |
+| range | [number, number] | 校验字段值是否在给定区间内 |
+| minLength | number | 检验字段值的长度是否不小于给定的最小值 |
+| maxLength | number | 校验字段值的长度是否不大于给定的最大值 |
+| rangeLength | [number, number] | 校验字段值的长度是否在给定区间内 |
 | custom | (value: any, name?: string) => Promise<void> | 自定义校验规则, 通过传入一个异步函数来自定义校验过程，如果校验出错，则抛出异常提示信息; 7.1.x版本支持通过抛出Error类型设置提示信息 |
 
 ### ValidateMessages
@@ -135,9 +139,9 @@ FormItem可以覆盖Form中的同名属性
 | ipv4 | ValidateMessage |
 | ipv6 | ValidateMessage |
 | creditCard | ValidateMessage |
-| enum | BasicValidateMessage \| (name: string, enum: (string \| number)[]) => BasicValidateMessage |
+| enum | BasicValidateMessage \| (name: string, enums: (string \| number)[]) => BasicValidateMessage |
 | pattern | BasicValidateMessage \| (name: string, pattern: string) => BasicValidateMessage |
-| equalTo | BasicValidateMessage \| (name: stirng, valueToEqual: number \| string) => BasicValidateMessage |
+| equalTo | BasicValidateMessage \| (name: string, valueToEqual: number \| string) => BasicValidateMessage |
 | notEqualTo | BasicValidateMessage \| (name: string, valueNotToEqual: number \| string ) => BasicValidateMessage |
 | min | BasicValidateMessage \| (name: string, min: number) => BasicValidateMessage |
 | max | BasicValidateMessage \| (name: string, max: number) => BasicValidateMessage |

@@ -28,24 +28,31 @@ Menu组件提供API功能,用户可以创建和子菜单。
 | iconUrl |  图标 | string |  |
 | status |  Button的状态 | `default`&#124;`primary`&#124;`risk`| `default `|
 | value |  项的值 | any | - |
+| selectedIndex |  默认选中的选项索引 | number | - |
 | disabled |  设置组件灰化。 | bool | false |
-| required |  设置是否必选，但它无会使用在表单中，没有什么用处，可以忽略。 | bool |  |
+| isOpen |  设置下拉菜单是否可见 | bool | false |
+| required |  设置是否必选（此属性为内部属性，不建议外部使用） | bool | false |
 | options |  设置每个数据项 例:options = [{text: "111", value: 1}, {text: "222", value: 2}, {text: "333", value: 2} 在 text, 页面显示值和, 数据库访问值 | array |  |
 | optionClassName |  设置options类名 | string | - |
 | optionStyle |  设置options的样式 例:optionStyle={{width:'350px'}}设置了下拉框的宽度. | React.CSSProperties | - |
 |position| Button Menu的位置 | `left`&#124;`right` | `left` |
-| onClick |  组件item的点击事件 | *function*:` (value: any, event: object) => void`<br>value: item <br>event: DOM原生click事件 |  |
-| onFocus |  组件聚焦时的事件 | *function*:` (event: object) => void`<br>event: DOM原生click事件 |  |
+| width |  设置ButtonMenu的宽度 | string | - |
+| onClick |  组件item的点击事件 | *function*:` (data: object, event: object) => void`<br>data: 被点击的选项对象（包含text、value等） <br>event: DOM原生click事件 |  |
+| onFocus |  组件聚焦时的事件 | *function*:` (event: React.FocusEvent) => void`<br>event: DOM原生focus事件 |  |
+| onBlur |  组件失焦时的事件 | *function*:` (value?: string \| number, event?: React.SyntheticEvent) => void`<br>value: 当前选中值 <br>event: 原生事件 |  |
+| onButtonClick |  按钮本身的点击事件（非菜单项点击） | *function*:` () => void` |  |
 | displayDirection |  弹出方向 | `auto`&#124;`up`&#124;`down` | `auto` |
 | tipShow | tip是否展示 | `always`&#124;`never` | `never` |
-| tipData | tip展示内容  | string | text属性值 |
+| tipData | tip展示内容，为空时默认显示text属性值  | string | '' |
 | label |  设置label | string |  |
 | labelClassName |  label自定义类 | string |  |
 | labelStyle |  label自定义样式 | React.CSSProperties |  |
 | labelPosition |  设置label的位置 | `before`&#124;`after` | `before` |
-| getPopupContainer | 设置弹窗的容器元素 | (() => HTMLElement) |  | 
-| isTextDropdown | 是否文本下拉按钮类型 | boolean | `false` 
-| textColor | 文本下拉按钮类型的文本颜色 | 'blue'&#124;'black' | `blue`
+| getPopupContainer | 设置弹窗的容器元素，传入函数返回容器DOM节点，传入false则不指定 | (() => HTMLElement) \| boolean | false | 
+| isTextDropdown | 是否文本下拉按钮类型 | boolean | `false` |
+| textColor | 文本下拉按钮类型的文本颜色 | 'blue'&#124;'black' | `blue` |
+| version | aui版本 | string | - |
+| theme | 主题 | string | - |
 
 ## 使用示例
 

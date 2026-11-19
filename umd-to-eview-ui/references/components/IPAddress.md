@@ -6,50 +6,57 @@ IPAddress组件实现ipv4和ipv6, mac格式的输入。
 
 ## API
 
-|方法名       |参数        |返回值        |     描述                                                                       |
-|-------------|------------|--------------|--------------------------------------------------------------------------------|
-|getValue     |            |ip输入框的文本|获取IP输入框的值,ipv4时返回“xxx.xxx.xxx.xxx”,ipv6时返回“xxx:xxx:xxx:xxx:xxx:xxx:xxx:xxx”|
-| validator | value | { result: boolean; message: string } |  自定义校验函数，要求返回值格式为：{ result: boolean; message: string }，见示例“IPV4事件处理”. |
+|方法名|参数|返回值|描述|
+|---|---|---|---|
+|getValue|无|string|获取IP输入框的值,ipv4时返回"xxx.xxx.xxx.xxx",ipv6时返回"xxx:xxx:xxx:xxx:xxx:xxx:xxx:xxx"|
+|validate|value|boolean|校验IP值是否有效，触发required和validator校验规则，返回校验结果|
+|focus|无|无|设置IP输入框聚焦|
+|blur|无|无|设置IP输入框失焦|
+|validator|value|{ result: boolean; message?: string }|自定义校验函数，要求返回值格式为：{ result: boolean; message?: string }，见示例"校验"|
 
 ### 属性
 
 | 属性名称 | 输入 | 默认 | 描述 |
 |:-----|:-----|:-----|:-----|
-| className | string |  |  定制组件class，传入该值可在组件默认样式上追加class，从而自定义组件样式 例如： className='ipInputClassName' |
+| className | string |  |  定制组件class，传入该值可在组件默认样式上追加class，从而自定义组件样式 例如：className='ipInputClassName' |
+| version | string |  | 传入该值可定制当前组件匹配的ucd规范，不传则默认aui2规范。例如：version='aui3' |
+| theme | string |  | 传入该值可定制当前组件匹配的主题模式样式，不传则默认白天模式。例如：theme='evening' |
 | type | enum:<br>&nbsp;"v4"<br>&nbsp;"v6"<br>&nbsp;"mac" | "v4" |  设置输入框类型，默认为v4 |
 | disabled | bool | false |  设置组件初始状态是否禁用，默认为否 |
-| readOnly | bool | false |  该属性直接赋给input，作为原生属性使用，仅隐藏了光标，并不能真正防止用户输入，建议使用disabled属性。<br>Set the component is read only. |
+| readOnly | bool | false |  该属性直接赋给input，作为原生属性使用，仅隐藏了光标，并不能真正防止用户输入，建议使用disabled属性 |
 | required | bool | false |  支持设置组件值是否必须，若为必须，则input前的label文字前加*，同时支持非空校验 |
 | value | string |  |  设置输入框组件默认值 |
-| delimiter | string |  |  分隔符，ipv4分隔符默认为".",ipv6分隔符默认为":" |
-| labelPosition | enum:<br>&nbsp;"before"<br>&nbsp;"after"<br> | "before" |  设置文本内容与组件子节点的位置,  before：表示文本内容在组件子节点的左边,  after：表示文本内容在组件子节点的右边 |
+| delimiter | string |  |  分隔符，ipv4分隔符默认为"."，ipv6分隔符默认为":"，mac分隔符默认为"-" |
+| labelPosition | enum:<br>&nbsp;"before"<br>&nbsp;"after"<br> | "before" |  设置文本内容与组件子节点的位置，before：表示文本内容在组件子节点的左边，after：表示文本内容在组件子节点的右边 |
 | label | string |  |  ip框名称 |
 | labelStyle | object |  |  通过style设置label的样式 |
 | labelClassName | string |  |  通过class设置label的样式 |
 | style | object |  |  设置外层样式 |
 | inputStyle | object |  |  设置input样式 |
-| onBlur | function |  |  设置输入框失焦时的回调方法，输入框的值将会传入回调方法<br><br>**签名:**<br>`function(value: string, event: object) => void`<br>*value:* 当前组件中的ip值<br>*event:* 触发失焦的事件对象 |
-| onFocus | function |  |  设置输入框聚焦时的回调方法，输入框的值将会传入回调方法<br><br>**签名:**<br>`function(value: string) => void`<br>*value:* 当前组件中的ip值<br>*event:* 触发聚焦的事件对象 |
+| inputClassName | string |  |  通过class设置input的样式 |
+| tipStyle | object |  |  校验气泡样式，当hintType为"tip"时生效 |
+| onBlur | function |  |  设置输入框失焦时的回调方法<br><br>**签名:**<br>`function(value: string, event: object) => void`<br>*value:* 当前组件中的ip值<br>*event:* 触发失焦的事件对象 |
+| onFocus | function |  |  设置输入框聚焦时的回调方法<br><br>**签名:**<br>`function(value: string, event: object) => void`<br>*value:* 当前组件中的ip值<br>*event:* 触发聚焦的事件对象 |
 | onChange | function |  |  设置输入框改变时的回调方法，输入框的值将会传入回调方法<br><br>**签名:**<br>`function(value: string) => void`<br>*value:* 当前组件中的ip值 |
-| hintType | 'div' &#124; 'tip' |   | 设置提示的类型 |
-| tipProps | object |   | 参考Tooltip组件文档来设置 |
+| hintType | 'div' &#124; 'tip' | 'div' | 设置提示的类型，'div'为在输入框下方显示提示信息，'tip'为气泡提示 |
+| tipProps | object |  | 参考Tooltip组件文档来设置，当hintType为"tip"时生效 |
+
+> **注意：** 组件支持原生HTML input属性透传（如 `maxLength`、`placeholder` 等），通过 `{...rest}` 传递给内部input元素。组件通过 `React.forwardRef` 暴露 `getValue`、`validate`、`focus`、`blur` 方法，需使用 `ref` 获取。
 
 ## 使用示例
 
 ### 基本使用
 
-`type`设置`v4`或`v6`切换格式
+`type`设置`v4`、`v6`或`mac`切换格式
 <br />
 请按demo设置`value`和`onChange`，从`value`获取值
 
 ```jsx
 import IPAddress from 'eview-ui/IPAddress';
-import LabelField from 'eview-ui/LabelField';
 import ConfigProvider from 'eview-ui/ConfigProvider';
 import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
 export default function IPAddressDemo() {
-  //初始值
   const initialIpv4 = '192.128.1.1';
   const initialIpv6 = 'FF:FF:FF:FF:FF:FF:FF:FF';
   const initialMac = 'FF-FF-FF-FF-FF-FF';
@@ -82,7 +89,6 @@ ReactDOM.render(<IPAddressDemo />, mountNode);
 
 ```jsx
 import IPAddress from 'eview-ui/IPAddress';
-import LabelField from 'eview-ui/LabelField';
 import ConfigProvider from 'eview-ui/ConfigProvider';
 import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
@@ -123,6 +129,47 @@ export default function IPAddressDemo() {
 }
 
 ReactDOM.render(<IPAddressDemo />, mountNode);
+```
+
+### API方法调用
+
+通过 `ref` 调用组件暴露的 `getValue`、`validate`、`focus`、`blur` 方法
+
+```jsx
+import IPAddress from 'eview-ui/IPAddress';
+import Button from 'eview-ui/Button';
+import ConfigProvider from 'eview-ui/ConfigProvider';
+import { getDemoVersion } from 'eview-ui/ThemeProvider';
+
+export default function IPAddressApiDemo() {
+  const ipRef = React.useRef();
+  const [ipv4, setIpv4] = React.useState('192.168.1.1');
+  const [msg, setMsg] = React.useState('');
+  const [version, theme] = getDemoVersion();
+  return (
+    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
+    <ConfigProvider version={version} theme={theme}>
+      <div>
+        <IPAddress
+          ref={ipRef}
+          type="v4"
+          value={ipv4}
+          onChange={(value) => {setIpv4(value)}}
+          required
+        />
+        <div style={{ marginTop: '0.5rem' }}>
+          <Button text="获取值" onClick={() => { setMsg('当前值: ' + ipRef.current.getValue()); }} style={{ marginRight: '5px' }}/>
+          <Button text="校验" onClick={() => { const valid = ipRef.current.validate(); setMsg('校验结果: ' + (valid ? '通过' : '未通过')); }} style={{ marginRight: '5px' }}/>
+          <Button text="聚焦" onClick={() => { ipRef.current.focus(); }} style={{ marginRight: '5px' }}/>
+          <Button text="失焦" onClick={() => { ipRef.current.blur(); }} style={{ marginRight: '5px' }}/>
+        </div>
+        {msg ? <div style={{ marginTop: '0.5rem', color: '#186FC2' }}>{msg}</div> : ''}
+      </div>
+    </ConfigProvider>
+  );
+}
+
+ReactDOM.render(<IPAddressApiDemo />, mountNode);
 ```
 
 ### 禁用

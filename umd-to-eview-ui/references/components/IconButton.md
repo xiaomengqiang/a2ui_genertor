@@ -1,37 +1,43 @@
 # IconButton 图标按钮
 
 > 分类：废弃
+>
+> **该组件已废弃，推荐使用 Button 组件替代。**
 
-该组件支持自定义样式和图标,同时支持通过iconName属性获取组件库中的已有图标。
-
-IconButton 中的提示气泡 ，在 0.0.x 版本中采用 TipBox 实现，样式对应 TipBox 的样式。在 0.1.x 版本中采用 Tooltip 实现，样式对应 Tooltip 样式。
+该组件支持自定义样式和图标，同时支持通过iconName属性获取组件库中的已有图标。组件内部基于Tooltip实现提示气泡，触发方式为`hover`和`focus`。支持键盘Enter键触发点击事件。组件默认设置`tabIndex={0}`以支持键盘无障碍访问，禁用状态下`tabIndex`不设置。
 
 ## API
 
 ### 属性
 
-| 属性名称 | 描述 | 输入 | 默认 |
+| 属性名称 | 描述 | 类型 | 默认值 |
 |-----|-----|-----|-----|
-| id |  设置组件的id | string |  |
-| className |  通过自定义class的方式给组件添加样式 | string |  |
-| style |  通过添加style的方式给组件添加样式 | object |  |
-| iconUrl |  通过传入路径设置图标按钮 | string |  |
-| hoverIconUrl |  通过传入路径设置鼠标悬浮时的按钮图标 | string |  |
-| iconName |   获取组件库中的已有图标,与iconUrl属性，二者只能用其一 | string |  |
-| iconProps |  改属性配和iconName一同使用，用来设置组件库已有图标样式，不设置为组件库默认样式 <br>{color:#39f//定制组件默认颜色 <br>hoverColor:#39f//定制组件鼠标悬浮时颜色 <br>disabledColor:#999//定制组件灰化颜色 } | object |  |
-| disabled |  设置组件的灰化状态 | bool | false |
-| onClick |  设置组件的点击事件<br><br>**Signature:**<br>`function(event: object) => void`<br>*event:* 原生dom的点击事件 | function |  |
-| tipText |  提示文本  | string |  |
-| tipData | 0.0.x版本 tipData={{disposeTimeOut:5000,arrowDirection:'left',style:{maxWidth:'218px'}}} 0.1.x 版本对应 Tooltip 的 props | object |  |
+| id | 设置组件的id | string | 自动生成（前缀`eui_icon_bt_`） |
+| className | 通过自定义class的方式给组件添加样式 | string | |
+| style | 通过添加style的方式给组件添加样式 | React.CSSProperties | |
+| iconUrl | 通过传入图片路径设置图标按钮，图标以背景图方式显示 | string | |
+| hoverIconUrl | 通过传入图片路径设置鼠标悬浮时的按钮图标，悬浮时替换为该背景图 | string | |
+| iconName | 获取组件库中的已有图标，与iconUrl属性二者只能用其一；设置后内部渲染Icon组件 | string | |
+| iconProps | 配合iconName一同使用，用来设置组件库已有图标的样式，不设置为组件库默认样式。支持传入Icon组件的所有props，如：<br/>`{ color: '#39f', hoverColor: '#39f', disabledColor: '#999', active: true, activeColor: '#ff0', focus: true, focusColor: '#0f0' }` | object | |
+| disabled | 设置组件的灰化（禁用）状态 | boolean | `false` |
+| onClick | 设置组件的点击事件<br><br>**签名：**`function(event: object) => void`<br>*event:* 原生dom的点击事件 | function | |
+| onMouseEnter | 设置组件鼠标进入事件<br><br>**签名：**`function(event: React.MouseEvent) => void` | function | |
+| onMouseLeave | 设置组件鼠标移出事件<br><br>**签名：**`function(event: React.MouseEvent) => void` | function | |
+| onFocus | 设置组件聚焦事件<br><br>**签名：**`function(event: React.FocusEvent) => void` | function | |
+| onBlur | 设置组件失焦事件<br><br>**签名：**`function(event: React.FocusEvent) => void` | function | |
+| tipText | 提示文本，作为Tooltip的content显示 | string | |
+| tipData | 提示气泡的配置项，内部传递给Tooltip组件作为props。支持Tooltip的所有属性，如`placement`、`arrowPointAtCenter`、`overlayClassName`等；同时支持`disposeTimeOut`用于自动关闭配置。例如：`tipData={{ disposeTimeOut: 5000, placement: 'top' }}` | object | |
+| zIndex | 提示气泡的z-index | number | 基础zIndex + 基础单位 |
+| version | 传入该值可定制当前组件匹配的ucd规范 | string | 取自ConfigProvider |
+| theme | 传入该值可定制当前组件的主题模式 | string | 取自ConfigProvider |
+| data-test-id | 测试标识，用于自动化测试 | string | |
+
+> **注意**：当使用`iconUrl`/`hoverIconUrl`时，图标以CSS背景图方式渲染（span元素 + backgroundImage），组件默认尺寸为1rem × 1rem；当使用`iconName`时，内部渲染Icon组件，图标尺寸由`iconProps.size`控制。
 
 ## 使用示例
 
 ### 基本属性设置
 
-## en-US
-
-
-
 ```jsx
 import IconButton from 'eview-ui/IconButton';
 import LabelField from 'eview-ui/LabelField';
@@ -58,12 +64,12 @@ export default class IconButtonDemo extends React.Component {
         <div style={divStyle}>
           <div style={{display: "inline-block", marginRight: "30px"}}>
             <LabelField style={labelStyle}>Default</LabelField>
-            <IconButton tipText="Modify" tipData={{disposeTimeOut: 5000, arrowDirection: 'none'}} iconUrl={pen_default}
+            <IconButton tipText="Modify" tipData={{disposeTimeOut: 5000, placement: 'top'}} iconUrl={pen_default}
                         hoverIconUrl={pen_hover}/>
           </div>
           <div style={{display: "inline-block"}}>
             <LabelField style={labelStyle}>Disabled</LabelField>
-            <IconButton tipText="Set" tipData={{disposeTimeOut: 5000, arrowDirection: 'none'}} disabled
+            <IconButton tipText="Set" tipData={{disposeTimeOut: 5000, placement: 'top'}} disabled
                         iconUrl={pen_disabled} hoverIconUrl={pen_hover}/>
           </div>
         </div>
@@ -73,56 +79,9 @@ export default class IconButtonDemo extends React.Component {
 }
 
 ReactDOM.render(<IconButtonDemo />, mountNode);
-
-```
-
-```jsx
-import IconButton from 'eview-ui/IconButton';
-import LabelField from 'eview-ui/LabelField';
-import pen_default from '@images/pen_default';
-import pen_hover from '@images/pen_hover';
-import pen_disabled from '@images/pen_disabled';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-
-export default class IconButtonDemo extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    const divStyle = { margin: '20px 0px 50px 20px' };
-    const labelStyle = {
-      display: 'block',
-      fontSize: '14px',
-      marginBottom: '10px',
-      paddingLeft: '0px',
-    };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={divStyle}>
-          <div style={{display: "inline-block", marginRight: "30px"}}>
-            <LabelField style={labelStyle}>Default</LabelField>
-            <IconButton tipText="Modify" tipData={{disposeTimeOut: 5000, arrowDirection: 'none'}} iconUrl={pen_default}
-                        hoverIconUrl={pen_hover}/>
-          </div>
-          <div style={{display: "inline-block"}}>
-            <LabelField style={labelStyle}>Disabled</LabelField>
-            <IconButton tipText="Set" tipData={{disposeTimeOut: 5000, arrowDirection: 'none'}} disabled
-                        iconUrl={pen_disabled} hoverIconUrl={pen_hover}/>
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<IconButtonDemo />, mountNode);
-
 ```
 
 ### 事件回调
-
-按钮有四种类型：主按钮、次按钮、虚线按钮和链接按钮。主按钮在同一个操作区域最多出现一次。
 
 ```jsx
 import IconButton from 'eview-ui/IconButton';
@@ -140,22 +99,20 @@ export default class IconButtonEvent extends React.Component {
     this.setState({ msg: "Callback events for the component's click event" });
   };
 
-
   render() {
     const [version, theme] = getDemoVersion();
     const divStyle = {margin: '20px 0px 50px 20px'};
     return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
       <ConfigProvider version={version} theme={theme}>
         <div style={divStyle}>
 
           <div style={{display: "inline-block", marginRight: "100px"}}>
-            <IconButton tipText="Display Tip" tipData={{disposeTimeOut: 5000, arrowDirection: 'none'}}
+            <IconButton tipText="Display Tip" tipData={{disposeTimeOut: 5000, placement: 'top'}}
                         iconName="operation" onClick={this.handleClick}/>
           </div>
 
           <div style={{display: "inline-block"}}>
-            <IconButton tipText="Loading Tip" tipData={{disposeTimeOut: 5000, arrowDirection: 'none'}}
+            <IconButton tipText="Loading Tip" tipData={{disposeTimeOut: 5000, placement: 'top'}}
                         iconName="loading" onClick={this.handleClick}/>
           </div>
 
@@ -167,7 +124,6 @@ export default class IconButtonEvent extends React.Component {
     );
   }
 }
-
 
 ReactDOM.render(<IconButtonEvent />, mountNode);
 ```
