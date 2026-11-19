@@ -115,6 +115,9 @@ interface SelectOption {
 // ❌ options 字段名写成 label（应为 text）
 <Select options={[{ label: '华东', value: 'east' }]} />
 
+// ❌ 选项 prop 写成 data（Select/MultipleSelect/InputSelect 用 options；SelectCard/CheckboxGroup/RadioGroup 才用 data——用错 prop 名组件收不到选项数据，下拉显示空白/无数据）
+<Select data={opts} value={region} />
+
 // ❌ 只写 value 不写 onChange，用户选了也不进 state
 <Select options={opts} value={region} />
 

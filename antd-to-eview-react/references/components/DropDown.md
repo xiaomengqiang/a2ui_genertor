@@ -143,7 +143,59 @@ export default function ConfigActions({ canPublish, isValid, execute }: Props) {
 }
 ```
 
-## 8. 反面示例
+## 8. antd placement 迁移 + 弹出面板定位缺陷修复（必读）
+
+### 8.1 placement 映射
+
+antd `Dropdown` 用 `placement` 单属性控制方向，eview-react `DropDown` 拆成 `popupDirection`（上下）+ `position`（左右）：
+
+| antd placement | eview-react 写法 | 说明 |
+|----------------|-----------------|------|
+| `topLeft` | `popupDirection="top"` | 不设 `position`（见 8.2 说明） |
+| `topRight` | `popupDirection="top" position="right"` | |
+| `bottomLeft` | `popupDirection="bottom"` | 不设 `position`（见 8.2 说明） |
+| `bottomRight` | `popupDirection="bottom" position="right"` | |
+
+antd `Dropdown` 默认 `trigger="hover"`，eview-react 默认 `trigger="click"`——**迁移时必须显式写 `trigger="hover"`**。
+
+### 8.2 弹出面板定位缺陷 + 修复
+
+> **组件库三个 CSS 问题叠加导致：hover 时弹出面板不显示 / 位置偏移 / 宽度不对**。迁移 antd `placement="topLeft"` / `placement="bottomLeft"` 时必加修复，否则弹窗不可用。
+
+**问题一：`position="left"` 导致弹窗左偏 `1rem`**。组件库 `aui3_1.css` 的 `.ev_popup.ev_dropDown_list.ev_dropDown_list_left { left: 1rem }` 会在 PopUpUtil 计算的行内 `left` 之上额外偏移，导致弹窗左边缘不和按钮左对齐。**修复：不写 `position="left"`**（antd `topLeft` / `bottomLeft` 只设 `popupDirection`，不设 `position`），PopUpUtil 会自动按按钮左边缘计算 `style.left`，不触发 `.ev_dropDown_list_left` 类。
+
+**问题二：`.ev_popup` 默认 `width: 90%` 导致弹窗过宽**。组件库 `aui3_1.css` 的 `.ev_popup { width: 90% }` 是所有 Popup 的通用宽度，DropDown 弹出面板继承后宽度为视口 90%，文字少时大量空白，且 PopUpUtil 读取 `getBoundingClientRect().width` 后按 90% 宽度计算定位导致位置偏移。**修复：用 `itemStyle={{ width: 'Xrem' }}` 指定合适宽度**——PopUpUtil 将 `itemStyle.width` 转为 `customWidth`，同时用于行内 `style.width` 覆盖 90% 和定位计算。宽度取最长菜单项文字能完整展示的值（如 `itemStyle={{ width: '11rem' }}`）。
+
+**问题三：`popupDirection="top"` 时弹窗可能不显示**。DropDown 的 `handleFolding` 调用 `getPopPosition()` 判断下方空间来设置 `state.popPosition`（'up'/'down'），但 CSS `.ev_dropDown_list.up { top: auto }` 会覆盖行内 `style.top` 导致定位失效（只在特定场景触发）。显式传 `popupDirection="top"` 可让 PopUpUtil 在 `setPopupPosition` 中正确计算行内 `top` 并添加 `.top` 类。
+
+**迁移模板（antd `placement="topLeft"` + `trigger` 默认 hover）**：
+
+```tsx
+// ❌ 直接映射 antd（弹窗不显示 / 宽度过宽 / 左偏 1rem）
+<DropDown
+  trigger="hover"
+  popupDirection="top"
+  position="left"              // ← 触发 .ev_dropDown_list_left left:1rem 偏移
+  data={EXPORT_ITEMS}
+  onItemClick={onExportMenu}
+>
+
+// ✅ 正确写法
+<DropDown
+  trigger="hover"              // antd 默认 hover，eview 默认 click，必须显式写
+  popupDirection="top"         // 向上弹出
+  // 不写 position="left"     // 避免 .ev_dropDown_list_left 的 left:1rem 偏移
+  data={EXPORT_ITEMS}
+  onItemClick={onExportMenu}
+  itemStyle={{ width: '11rem' }} // 覆盖 .ev_popup 默认 width:90%，宽度按最长菜单项文字定
+>
+  <Button leftIcon={<IconPlusIcPublicDownload />} text="导出日报" />
+</DropDown>
+```
+
+> **注意**：不要用业务 CSS 覆盖 `.ev_popup.ev_dropDown_list` 的 `width/left`——popup 默认 `mountId="body"` 挂载在 `<body>` 下，不在触发按钮所在业务组件 DOM 内，祖先选择器（如 `.action-bar .ev_dropDown_list`）无法命中。用 `itemStyle` prop 是唯一可靠方式。
+
+## 9. 反面示例
 
 ```tsx
 // ❌ antd 的 menu/items/key/label；本组件用 data 和 text/value，分组才用 label:true
@@ -166,7 +218,7 @@ const handleItemClick = (item) => { if (item.value) execute(item.value); };
 <DropDown split data={[{ text: '导出', children: formats }]} />
 ```
 
-## 9. API 速查
+## 10. API 速查
 
 未列出的默认值不推断；未核验 ref 方法，不列。菜单数据为 §5 的已核验子集。
 

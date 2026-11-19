@@ -55,7 +55,20 @@ TextArea 是多行文本域：label、必填、字数限制与统计、自定义
 - 与 TextField 同在一个表单：TextField 走 `ref.validate()`，TextArea 官方 demo 无 ref 方法 → 用 state 派生判断
 - 拉伸：`inputStyle={{ resize: 'both' }}` 可拖拽放大，`{ resize: 'none' }` 锁定（只读展示长文本时用）
 
-## 4. 反面示例
+## 4. 暗色模式 CSS 覆盖（必加）
+
+> **组件库暗色缺陷**：eview-react `aui3_1_dark.css` 对 `.aui3_1_dark .ev_textArea_area_container_num`（`maxLength` 字数统计区域）设置了 `background-color: var(--color-bg-2)`（暗色下解析为 `gray-90`），与 textarea 输入区域背景不一致，导致字数统计区域出现色块。迁移时必须在 `src/shared/TextArea/TextArea.css` 中添加覆盖，去掉该背景色：
+
+```css
+/* 修复暗色模式下字数统计区域背景色与 textarea 不一致 */
+.aui3_1_dark .ev_textArea_area_container_num {
+    background-color: transparent;
+}
+```
+
+此覆盖写在 `src/shared/TextArea/TextArea.css`（包壳层），`check-css.cjs` 自动排除 `src/shared/` 不会报 `EV_CLASSNAME` 违规。
+
+## 5. 反面示例
 
 ```tsx
 // ❌ 把 event 当第一个参数
@@ -77,7 +90,7 @@ textAreaRef.current.validate();
 <TextArea value={remark} />
 ```
 
-## 5. API 速查
+## 6. API 速查
 
 > 压缩自 `TextArea/TextArea`。
 
