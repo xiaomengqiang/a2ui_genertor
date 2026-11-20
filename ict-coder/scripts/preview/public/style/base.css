@@ -334,7 +334,7 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #dfdfdf;
+  background-color: var(--color-border-separator);
   border-radius: 4px;
   background-clip: padding-box;
 }
@@ -344,5 +344,5 @@ a {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #dededf;
+  background-color: var(--color-border-separator);
 }

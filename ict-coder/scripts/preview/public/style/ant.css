@@ -585,8 +585,15 @@ input.ant-input.ant-input-sm {
 .ant-select.ant-select-outlined:not(.ant-select-disabled).ant-select-focused {
   --ant-select-border-color: var(--color-border-focus);
 }
-.ant-select.ant-select-outlined.ant-select-disabled {
-  --ant-select-border-color: var(--color-border-disabled);
+.ant-select.ant-select-outlined.ant-select-disabled .ant-select-selector {
+  color: var(--color-text-disabled);
+  background: var(--color-fill-disabled-subtle);
+  border-color: var(--color-border-disabled);
+}
+.ant-select.ant-select-outlined.ant-select-disabled:hover .ant-select-selector {
+  color: var(--color-text-disabled);
+  background: var(--color-fill-disabled-subtle);
+  border-color: var(--color-border-disabled);
 }
 .ant-select.ant-select-outlined.ant-select-status-error {
   --ant-select-border-color: var(--color-error);
@@ -619,10 +626,6 @@ input.ant-input.ant-input-sm {
 .ant-select.ant-select-disabled {
   --ant-select-color: var(--color-text-disabled);
   color: var(--color-text-disabled);
-  background: var(--color-hover);
-}
-.ant-select.ant-select-disabled.ant-select-multiple {
-  background: var(--color-fill-disabled-subtle);
 }
 .ant-select.ant-select-disabled.ant-select-multiple .ant-select-content .ant-select-selection-item {
   background: var(--color-fill-disabled-subtle);
@@ -1028,14 +1031,14 @@ input.ant-input.ant-input-sm {
 /* TimePicker/DatePicker 组件样式（antd 5 常规属性覆盖，原 --ant-* 变量方案改写） */
 .ant-picker.ant-picker {
   color: var(--color-text-primary);
-  border-color: var(--gray-20);
+  border-color: var(--color-border);
   border-radius: var(--radius-base);
   padding-left: 0.75rem;
   padding-right: 0.75rem;
   height: 2rem;
 }
 .ant-picker.ant-picker:not(.ant-picker-disabled):hover {
-  border-color: var(--gray-90);
+  border-color: var(--color-border-hover);
 }
 .ant-picker.ant-picker:focus-within,
 .ant-picker.ant-picker.ant-picker-focused {
@@ -1043,15 +1046,20 @@ input.ant-input.ant-input-sm {
   box-shadow: 0 0 0 1px var(--brand-10);
 }
 .ant-picker.ant-picker.ant-picker-disabled {
-  color: var(--color-text-disabled) !important;
-  background-color: rgb(from var(--gray-90) r g b / 0.05);
-  border-color: var(--gray-20) !important;
+  color: var(--color-text-disabled);
+  background: var(--color-fill-disabled-subtle);
+  border-color: var(--color-border-disabled);
 }
 .ant-picker.ant-picker.ant-picker-disabled .ant-picker-input > input {
   color: var(--color-text-disabled);
 }
 .ant-picker.ant-picker.ant-picker-disabled .ant-picker-suffix {
   color: var(--color-text-disabled) !important;
+}
+.ant-picker.ant-picker.ant-picker-disabled:hover {
+  color: var(--color-text-disabled);
+  background: var(--color-fill-disabled-subtle);
+  border-color: var(--color-border-disabled);
 }
 .ant-picker.ant-picker .ant-picker-input > input {
   z-index: 1;
@@ -1198,13 +1206,6 @@ input.ant-input.ant-input-sm {
 .ant-picker-dropdown .ant-picker-now-btn {
   color: var(--color-link);
 }
-.dark .ant-picker.ant-picker {
-  color: var(--color-text-primary);
-  border-color: var(--gray-50);
-}
-.dark .ant-picker.ant-picker:not(.ant-picker-disabled):hover {
-  border-color: var(--gray-05);
-}
 .dark .ant-picker.ant-picker:focus-within,
 .dark .ant-picker.ant-picker.ant-picker-focused {
   border-color: var(--brand-40);
@@ -1217,10 +1218,6 @@ input.ant-input.ant-input-sm {
 .dark .ant-picker.ant-picker.ant-picker-focused .ant-picker-suffix,
 .dark .ant-picker.ant-picker.ant-picker-focused .ant-picker-clear {
   color: var(--gray-10);
-}
-.dark .ant-picker.ant-picker.ant-picker-disabled {
-  background-color: rgb(from var(--gray-05) r g b / 0.2);
-  border-color: var(--gray-20);
 }
 .dark .ant-picker-range .ant-picker-active-bar {
   background: rgb(from var(--brand-50) r g b / 0.4);
@@ -2795,6 +2792,7 @@ input.ant-input.ant-input-sm {
 }
 .ant-pagination.ant-pagination-simple {
   flex: none;
+  justify-content: normal;
   /* 排列顺序：prev(1) → simple-pager(2) → options 子项(3) → next(4)，
        options 为 display:contents 不生成 flex item，order 需写在其子项上 */
 }
