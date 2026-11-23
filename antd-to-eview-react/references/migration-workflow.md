@@ -327,7 +327,7 @@ advisory 模式 exit 0，但每个待核 `<Steps>` 必须在 `.migration-result.
 
 > 对应 SKILL.md 硬约束⑬。源项目是**单轨驱动**（只切 `<html>` 的 `.dark`），产物需要**双轨驱动**：① 切 `<html>` 的 `.dark`（自定义 token 四层跟随）+ ② 切 `<body>` 的 `aui3_1_dark`（eview 组件库暗色覆盖层跟随）+ ③ 入口 import `aui3_1_dark.css`（body 轨切了 class 才有对应样式）。三者配套，少任一轨黑白主题切换即坏。`umd-to-antd-vite` 步骤 3 已完成转换，但步骤 2 替换组件时可能误删/改坏，本检查兜底。
 
-脚本 `scripts/check-dark-mode.cjs`，前置判断产物是否有暗色需求（CSS 有 `.dark` 选择器 或 JS 有 `isDark`/`toggleDark`），有需求才检查三轨完整性：① html 轨 `document.documentElement.classList.toggle("dark", isDark)`；② body 轨 `document.body.classList.toggle("aui3_1_dark", isDark)`；③ CSS import `aui3_1_dark.css`。缺任一轨 → 硬 FAIL。无暗色需求 → PASS 不报。
+脚本 `scripts/check-dark-mode.cjs`，前置判断产物是否有暗色需求（CSS 有 `.dark` 选择器 或 JS 有 `isDark`/`toggleDark`），有需求才检查四项完整性：① html 轨 `document.documentElement.classList.toggle("dark", isDark)`；② body 轨 `document.body.classList.toggle("aui3_1_dark", isDark)`；③ CSS import `aui3_1_dark.css`；④ TextArea 暗色覆盖——`src/shared/TextArea/TextArea.css` 存在时须含 `.ev_textArea_area_container_num { background-color: transparent; }`（TextArea.md §4 组件库暗色缺陷修复）。缺任一项 → 硬 FAIL。无暗色需求 → PASS 不报。
 
 ```bash
 node <skill目录>/scripts/check-dark-mode.cjs <目标工程根>
@@ -405,7 +405,7 @@ node <skill目录>/scripts/check-crumbs.cjs <目标工程根>
 
 ### 4.16 Dropdown→DropDown 迁移正确性检查（硬 FAIL + advisory 必跑）
 
-> 对应 component-mapping.md Dropdown 行 + components/DropDown.md §4/§5/§8/§9。antd Dropdown→eview DropDown 是「prop 重命名（menu/items→data）+ 字段重命名（key→value，label→text）+ 回调签名改（onClick({key})→onItemClick(item,event)）+ 不支持多级子菜单 + disabled 正确拼写（非 disable）」的高错迁移。**原 PopUpMenu 方案已废弃**（多级 children 下钻改用 DropDown 一级 + `label:true` 分组），本脚本做机器兜底——拦弱模型最常漏的 prop/字段残留、误当 Select、误用受控显隐、disable 拼错、trigger 数组等硬错误，外加 onClick 用法与 value=0 真假值判断两类待核项。
+> 对应 component-mapping.md Dropdown 行 + components/DropDown.md §4/§5/§8/§9/§10。antd Dropdown→eview DropDown 是「prop 重命名（menu/items→data）+ 字段重命名（key→value，label→text）+ 回调签名改（onClick({key})→onItemClick(item,event)）+ 不支持多级子菜单 + disabled 正确拼写（非 disable）」的高错迁移。**原 PopUpMenu 方案已废弃**（多级 children 下钻改用 DropDown 一级 + `label:true` 分组），本脚本做机器兜底——拦弱模型最常漏的 prop/字段残留、误当 Select、误用受控显隐、disable 拼错、trigger 数组等硬错误，外加 onClick 用法与 value=0 真假值判断两类待核项。
 
 脚本 `scripts/check-dropdown.cjs`，对每个 `<DropDown>` 检查：
 
@@ -423,10 +423,12 @@ node <skill目录>/scripts/check-crumbs.cjs <目标工程根>
 9. `PLACEMENT_RESIDUE` — `placement=` 残留（应为 `position`+`popupDirection`）
 10. `OPEN_CONTROL_RESIDUE` — `open=`/`onOpenChange=` 残留（DropDown 展开由组件内部管理，无受控显隐 API；用 `onDropDown`/`onClosePopup` 仅作通知）
 11. `SELECT_API_RESIDUE` — `value=`/`onChange=` 残留（误当 Select，DropDown 无选值契约）
+12. `POSITION_LEFT_OFFSET` — `position="left"` 导致 1rem CSS 偏移（§8.2 问题一：组件库 `.ev_dropDown_list_left` 有 `left:1rem`；antd `topLeft`/`bottomLeft` 不写 `position` 让 PopUpUtil 自动左对齐）
 
 **advisory（exit 0，逐条回应写入 `dropdownReviews`）**：
-12. `ONCLICK_USED` — `<DropDown>` 用 `onClick=`（应用 `onItemClick(item, event)` 处理菜单项点击；`onClick` 是未记录的无参事件，不能取点击项）
-13. `VALUE_BOOLEAN_CHECK` — `onItemClick` 回调用 `if (item.value)`/`if (!item.value)` 真假值判断（`value=0` 有效会误拦，应 `item.value === undefined` 判缺失）
+13. `ONCLICK_USED` — `<DropDown>` 用 `onClick=`（应用 `onItemClick(item, event)` 处理菜单项点击；`onClick` 是未记录的无参事件，不能取点击项）
+14. `VALUE_BOOLEAN_CHECK` — `onItemClick` 回调用 `if (item.value)`/`if (!item.value)` 真假值判断（`value=0` 有效会误拦，应 `item.value === undefined` 判缺失）
+15. `TRIGGER_MISSING` — `<DropDown>` 无 `trigger=` prop（§8.1：antd 默认 hover，eview 默认 click；若 antd 源用 hover 默认值须显式写 `trigger="hover"`）
 
 ```bash
 node <skill目录>/scripts/check-dropdown.cjs <目标工程根>
@@ -522,12 +524,13 @@ node <skill目录>/scripts/check-divmessage.cjs <目标工程根>
 
 > 对应 component-mapping.md Select / Select showSearch / Select mode="multiple" / Select mode="tags" / AutoComplete 行 + components/Select.md §1 / InputSelect.md / MultipleSelect.md。eview Select **不支持搜索**（无 showSearch/searchable）：可过滤单选用 InputSelect onlySelect、多选用 MultipleSelect。步骤 2 LLM 最易错：① `Select showSearch` 误转 eview Select（残留 `showSearch`/`placeholder`，应转 InputSelect onlySelect+placeholder）；② `Select mode="multiple"` 误转 Select（残留 `mode`）；③ placeholder/defaultLabel 跨组件用错（Select 用 `defaultLabel`，InputSelect/MultipleSelect 用 `placeholder`）。本脚本做形态错配机器兜底——检测 eview Select 系组件身上"不该出现的 prop"。
 
-脚本 `scripts/check-select-form.cjs`，用 AST（@babel/parser，复用 `lib/ast-helpers.cjs`）检测（全硬 FAIL）：
+脚本 `scripts/check-select-form.cjs`，用 AST（@babel/parser，复用 `lib/ast-helpers.cjs`）+ raw text 检测（全硬 FAIL）：
 
 1. `FORM_MISMATCH` — Select 系组件残留不属于该组件的 prop：
    - `<Select>` 上 `showSearch`/`mode`/`onlySelect`/`searchable`/`placeholder`（Select 无这些 prop；`showSearch`→应转 InputSelect，`mode`→应转 MultipleSelect，`onlySelect` 属 InputSelect，`searchable` 属 MultipleSelect，`placeholder`→应为 `defaultLabel`）
    - `<InputSelect>` 上 `defaultLabel`/`mode`/`showSearch`/`searchable`（InputSelect 用 `placeholder`；`mode`/`showSearch` 应删；`searchable` 属 MultipleSelect）
    - `<MultipleSelect>` 上 `defaultLabel`/`mode`/`onlySelect`/`showSearch`（用 `placeholder`；`mode` 应删；`onlySelect` 属 InputSelect；`showSearch`→应为 `searchable`）
+2. `SELECT_OPTION_CHILDREN` — `<Select.Option>` JSX 子元素残留（eview Select 无 Option 子组件，antd `<Select><Select.Option>` → eview `options=[{text,value}]` 数组驱动；raw text 检测，不依赖 AST 解析；见 Select.md §4 反面示例）
 
 > 注：只检 JSXAttribute 标识符 prop 名；spread `{...props}` 跳过（静态无法判定）。`<Select>` 无论导入源都检（antd 残留的 showSearch/mode/placeholder 同样命中，与 check-imports 双重保险）。
 

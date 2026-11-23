@@ -21,7 +21,10 @@
  *     - <InputSelect> 上 defaultLabel / mode / showSearch / searchable
  *         （InputSelect 用 placeholder 不是 defaultLabel；mode/showSearch 应删；searchable 属 MultipleSelect）
  *     - <MultipleSelect> 上 defaultLabel / mode / onlySelect / showSearch
- *         （MultipleSelect 用 placeholder；mode 应删；onlySelect 属 InputSelect；showSearch→应为 searchable）
+ *         （用 placeholder；mode 应删；onlySelect 属 InputSelect；showSearch→应为 searchable）
+ *   SELECT_OPTION_CHILDREN  <Select.Option> JSX 子元素残留（eview Select 无 Option 子组件，
+ *                            antd <Select><Select.Option> → eview options=[{text,value}] 数组驱动；
+ *                            见 Select.md §4 反面示例）
  *
  *   注：只检 StringLiteral/标识符 prop 名（JSXAttribute.name）；spread `{...props}` 跳过（静态无法判定）。
  *       <Select> 无论导入源（@/shared/Select 或 antd 残留）都检——antd Select 残留的 showSearch/mode/
@@ -106,6 +109,19 @@ function main() {
     const raw = fs.readFileSync(file, 'utf8');
     if (!maybeHas(raw)) continue;
     const rel = path.relative(root, file);
+
+    // SELECT_OPTION_CHILDREN: <Select.Option> JSX 子元素残留（raw text，不依赖 AST 解析）
+    const optRe = /<Select\.Option\b/g;
+    let optMatch;
+    while ((optMatch = optRe.exec(raw)) !== null) {
+      const optLine = raw.slice(0, optMatch.index).split('\n').length;
+      const dk = `${rel}:${optLine}:SelectOption`;
+      if (!seen.has(dk)) {
+        seen.add(dk);
+        fails.push({ file: rel, line: optLine, code: 'SELECT_OPTION_CHILDREN',
+          detail: '<Select.Option> JSX 子元素残留——eview-react Select 无 Option 子组件，用 options=[{text,value}] 数组驱动（antd <Select><Select.Option> → eview <Select options={...}>）。见 Select.md §4' });
+      }
+    }
 
     const parsed = H.parse(parser, raw);
     if (parsed.error) {

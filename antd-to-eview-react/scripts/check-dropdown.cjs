@@ -2,7 +2,7 @@
 /**
  * check-dropdown.cjs — Dropdown→DropDown 迁移正确性检查（硬 FAIL + advisory）
  *
- * 对应 component-mapping.md Dropdown 行 + components/DropDown.md §4/§5/§8/§9。
+ * 对应 component-mapping.md Dropdown 行 + components/DropDown.md §4/§5/§8/§9/§10。
  * antd Dropdown→eview DropDown 是「prop 重命名（menu/items→data）+ 字段重命名
  * （key→value，label→text）+ 回调签名改（onClick({key})→onItemClick(item,event)）
  * + 不支持多级子菜单 + disabled 正确拼写（非 disable）」的高错迁移，文档已强约束，
@@ -30,11 +30,15 @@
  *     9. PLACEMENT_RESIDUE        placement= 残留（应为 position+popupDirection）
  *    10. OPEN_CONTROL_RESIDUE     open=/onOpenChange= 残留（DropDown 展开内部管理，无受控显隐 API）
  *    11. SELECT_API_RESIDUE       value=/onChange= 残留（误当 Select，DropDown 无选值契约）
+ *    12. POSITION_LEFT_OFFSET     position="left" 导致 1rem CSS 偏移（§8.2 问题一：组件库 .ev_dropDown_list_left
+ *                                 有 left:1rem 偏移；antd topLeft/bottomLeft 不写 position 让 PopUpUtil 自动左对齐）
  *   advisory（exit 0，需逐条回应写入 dropdownReviews）：
- *    12. ONCLICK_USED             <DropDown> 用 onClick=（应用 onItemClick(item, event) 处理菜单项点击；
- *                                 onClick 是未记录无参事件）
- *    13. VALUE_BOOLEAN_CHECK      onItemClick 回调里 if (x.value)/if (!x.value) 真假值判断
+ *    13. ONCLICK_USED             <DropDown> 用 onClick=（应用 onItemClick(item, event) 处理菜单项点击；
+ *                                 onClick 是未记录的无参事件）
+ *    14. VALUE_BOOLEAN_CHECK      onItemClick 回调里 if (x.value)/if (!x.value) 真假值判断
  *                                 （value=0 有效，会误拦；应 === undefined）
+ *    15. TRIGGER_MISSING          <DropDown> 无 trigger= prop（§8.1：antd 默认 hover，eview 默认 click；
+ *                                 若 antd 源用 hover 默认值须显式写 trigger="hover"）
  *
  * 用法：
  *   node check-dropdown.cjs <目标工程根>          # 硬 FAIL exit 1，advisory exit 0
@@ -229,6 +233,12 @@ function main() {
           detail: 'placement= 残留——DropDown 用 position（left/right/auto）+ popupDirection（top/bottom/auto），无 placement' });
       }
 
+      // 12. position="left" 导致 1rem CSS 偏移（§8.2 问题一）
+      if (/\bposition\b\s*=\s*['"]left['"]/.test(frag) || /\bposition\b\s*=\s*\{\s*['"]left['"]\s*\}/.test(frag)) {
+        fails.push({ file: rel, line, code: 'POSITION_LEFT_OFFSET',
+          detail: 'position="left" 导致弹窗左偏 1rem——组件库 .ev_dropDown_list_left 有 left:1rem CSS 偏移。antd topLeft/bottomLeft 不写 position 让 PopUpUtil 自动左对齐。见 DropDown.md §8' });
+      }
+
       // 10. open=/onOpenChange= 受控显隐残留
       if (/\bopen\b\s*=\s*\{/.test(frag) || /\bonOpenChange\b\s*=/.test(frag)) {
         fails.push({ file: rel, line, code: 'OPEN_CONTROL_RESIDUE',
@@ -244,7 +254,7 @@ function main() {
       // 12. advisory: onClick=（应用 onItemClick）
       if (/\bonClick\b\s*=/.test(frag)) {
         advisories.push({ file: rel, line, code: 'ONCLICK_USED',
-          detail: '<DropDown> 用了 onClick=——DropDown 用 onItemClick(item, event) 处理菜单项点击（首参是菜单项，item.value/item.text）；onClick 是未记录的无参事件，不能取点击项。核对是否应改为 onItemClick。见 DropDown.md §4/§9' });
+          detail: '<DropDown> 用了 onClick=——DropDown 用 onItemClick(item, event) 处理菜单项点击（首参是菜单项，item.value/item.text）；onClick 是未记录的无参事件，不能取点击项。核对是否应改为 onItemClick。见 DropDown.md §4/§10' });
       }
 
       // 13. advisory: onItemClick 回调里 if (x.value)/if (!x.value) 真假值判断（value=0 有效）
@@ -258,6 +268,12 @@ function main() {
           advisories.push({ file: rel, line: bLine, code: 'VALUE_BOOLEAN_CHECK',
             detail: `onItemClick 回调用真假值判断 "${bm[0]}"——DropDown 的 value=0 有效（如 {text:'复制',value:0}），if(item.value)/if(!item.value) 会误拦 value=0 的项。应改为 item.value === undefined 判缺失。见 DropDown.md §4` });
         }
+      }
+
+      // 15. advisory: 无 trigger= prop（antd 默认 hover，eview 默认 click）
+      if (!/\btrigger\b\s*=/.test(frag)) {
+        advisories.push({ file: rel, line, code: 'TRIGGER_MISSING',
+          detail: '<DropDown> 无 trigger= prop——antd Dropdown 默认 hover，eview-react DropDown 默认 click。若 antd 源用 hover（默认值）须显式写 trigger="hover"。见 DropDown.md §8' });
       }
     }
 
@@ -299,7 +315,7 @@ function main() {
             if (!fieldSeen.has(dk)) {
               fieldSeen.add(dk);
               fails.push({ file: rel, line: cHit.line, code: 'CHILDREN_SUBMENU_RESIDUE',
-                detail: 'data 项残留 "children:" 子菜单字段——DropDown 仅一级操作菜单，不支持 children/submenus 多级下钻。源 antd 多级菜单需拍平为一级（label:true 做分组）或拆成多个菜单。见 DropDown.md §5/§8' });
+                detail: 'data 项残留 "children:" 子菜单字段——DropDown 仅一级操作菜单，不支持 children/submenus 多级下钻。源 antd 多级菜单需拍平为一级（label:true 做分组）或拆成多个菜单。见 DropDown.md §5/§9' });
             }
           }
           // disable: 字段（应为 disabled:）
@@ -340,7 +356,7 @@ function main() {
     console.log(`\n【advisory — 需逐条回应写入 dropdownReviews】${advisories.length} 处：`);
     for (const v of advisories) console.log(`  - ${v.file}:${v.line}  [${v.code}] ${v.detail}`);
   }
-  console.log('\n  修复指引见 component-mapping.md Dropdown 行 + components/DropDown.md §4/§5/§8/§9。');
+  console.log('\n  修复指引见 component-mapping.md Dropdown 行 + components/DropDown.md §4/§5/§8/§9/§10。');
   process.exit(fails.length > 0 ? 1 : 0);
 }
 

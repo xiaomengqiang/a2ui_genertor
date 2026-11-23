@@ -16,6 +16,9 @@
  *   1. TOKEN_DARK_TOGGLE_MISSING  缺 html 轨（toggle documentElement 的 .dark）
  *   2. AUI_DARK_TOGGLE_MISSING    缺 body 轨（toggle body 的 aui3_1_dark）
  *   3. AUI_DARK_CSS_MISSING       缺 import aui3_1_dark.css
+ *   4. TEXTAREA_DARK_OVERRIDE_MISSING  src/shared/TextArea/TextArea.css 缺暗色覆盖
+ *      （TextArea.md §4：.aui3_1_dark .ev_textArea_area_container_num 背景色不一致，
+ *       需加 background-color: transparent 覆盖；仅在文件存在时检查）
  *
  * 用法：
  *   node check-dark-mode.cjs <目标工程根>          # 硬 FAIL，缺任一轨 exit 1
@@ -126,11 +129,28 @@ function main() {
   if (!bodyTrackFile) missing.push({ code: 'AUI_DARK_TOGGLE_MISSING', detail: '缺 body 轨：未找到 toggle document.body 的 aui3_1_dark class（eview 组件库暗色覆盖层不跟随）。应补 document.body.classList.toggle("aui3_1_dark", isDark)' });
   if (!cssImportFile) missing.push({ code: 'AUI_DARK_CSS_MISSING', detail: '缺 CSS import：未找到 import aui3_1_dark.css（body 轨切了 class 但无对应样式）。应在入口（如 main.jsx）补 import "@nce/eview-react/styles/aui3_1_dark.css"' });
 
+  // 4. TextArea 暗色模式字数统计区域背景色覆盖（TextArea.md §4）
+  //    仅在 src/shared/TextArea/TextArea.css 存在时检查（无 TextArea 包壳则跳过）
+  let taOverrideOk = null; // null=跳过（文件不存在），true=覆盖已加，false=缺失
+  const taCssPath = path.join(srcDir, 'shared', 'TextArea', 'TextArea.css');
+  if (fs.existsSync(taCssPath)) {
+    const taCss = stripCommentsKeepLines(fs.readFileSync(taCssPath, 'utf8'), false);
+    taOverrideOk = /ev_textArea_area_container_num/.test(taCss) && /transparent/.test(taCss);
+    if (!taOverrideOk) {
+      missing.push({ code: 'TEXTAREA_DARK_OVERRIDE_MISSING', detail: 'src/shared/TextArea/TextArea.css 缺暗色覆盖——eview-react aui3_1_dark.css 对 .aui3_1_dark .ev_textArea_area_container_num 设了 background-color: var(--color-bg-2)（暗色下 gray-90），与 textarea 背景不一致。应加 .aui3_1_dark .ev_textArea_area_container_num { background-color: transparent; }。见 TextArea.md §4' });
+    }
+  }
+
   // ---- 报告 ----
   console.log('');
   console.log(`  ① html 轨 (toggle html.dark):     ${htmlTrackFile ? '✓ ' + htmlTrackFile : '✗ 缺失'}`);
   console.log(`  ② body 轨 (toggle body.aui3_1_dark): ${bodyTrackFile ? '✓ ' + bodyTrackFile : '✗ 缺失'}`);
   console.log(`  ③ CSS import (aui3_1_dark.css):    ${cssImportFile ? '✓ ' + cssImportFile : '✗ 缺失'}`);
+  if (taOverrideOk !== null) {
+    console.log(`  ④ TextArea 暗色覆盖 (ev_textArea_area_container_num): ${taOverrideOk ? '✓ 已覆盖' : '✗ 缺失'}`);
+  } else {
+    console.log(`  ④ TextArea 暗色覆盖:               — 跳过（无 src/shared/TextArea/TextArea.css）`);
+  }
   console.log('');
 
   if (missing.length === 0) {
