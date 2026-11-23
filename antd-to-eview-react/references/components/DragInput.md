@@ -3,6 +3,7 @@
 > 资料来源：TypeDoc `DragInput/DragInput` + 官网 Slider（标题 DragInput）页示例。
 > ⚠️ **导入名是 `DragInput`**：`import DragInput from '@nce/eview-react/DragInput'`。官网页面叫 Slider，但 `Slider` 不在导出清单里，demo 全部导入 `DragInput`。
 > ⚠️ `value` **永远是数组**：单滑块 `[v]`，区间 `[min, max]`；`onChange` 第一个参数也是数组。
+> ⚠️ **内置输入框默认显示**（`displayInput` 默认 `true`）。antd `Slider` 本身不带输入框，迁移时按源用法决定是否关——源 Slider 单独使用（旁边无 `InputNumber`）→ `displayInput={false}`；源 Slider + `InputNumber` 同值组合 → 保留默认、删掉 `InputNumber`。见 §2。
 > ⚠️ demo 里用到的 `onBlur` / `onFocus` 不在 API 表中，不要依赖。
 
 ## 1. 功能定位
@@ -42,6 +43,26 @@ DragInput 是带刻度的滑动输入器：单值或区间，可显示刻度值�
   onChange={(value: number[]) => setThreshold(value)}   // value = [low, high]
 />
 ```
+
+### displayInput：按源 antd Slider 用法决定是否关
+
+DragInput 内置数字输入框**默认显示**（`displayInput` 默认 `true`）。antd `Slider` 本身不带输入框，只在和 `InputNumber` 并排组合时才出现输入框。迁移时按源用法对齐视觉，**不要无脑保留默认**：
+
+```tsx
+// 源：antd <Slider/> 单独使用（旁边无 InputNumber）→ 显式关掉内置输入框，还原无输入框形态
+<DragInput min={0} max={100} displayInput={false} value={v} onChange={(v: number[]) => setV(v)} />
+
+// 源：antd <Slider/> + <InputNumber/> 同值联动组合 → 保留默认 displayInput（true），并删掉 InputNumber
+<DragInput min={0} max={100} value={v} onChange={(v: number[]) => setV(v)} />   // InputNumber 不再单独迁移成 Spinner
+```
+
+判定规则：
+
+- 源 `Slider` 同一父容器 / 同一行内有 `InputNumber`，且二者**共用同一 value state**、`min`/`max` 一致、`onChange` 互相回写 → 视为**组合**：DragInput 走默认 `displayInput`，那个 `InputNumber` 删掉（不要又迁移成 `Spinner` 留在旁边，否则两个输入框重复）。
+- 其余情况（`Slider` 旁边没有 `InputNumber`）→ **单独使用**：DragInput 显式加 `displayInput={false}`，还原 antd Slider 无输入框的视觉。
+- 组合里 `InputNumber` 与 `Slider` 控的是**不同字段**（非同值联动）→ 不算组合：Slider 走 `displayInput={false}`，`InputNumber` 另按 `Spinner` 迁移。
+
+> 与下方「与外部输入框联动」的区别：那一节是迁移后**仍想保留一个自定义外部输入框**（用 `TextField` 而非 `Spinner`，且自己写钳制逻辑）的进阶用法；本节是迁移判定——源有没有 `InputNumber` 决定 DragInput 要不要关内置输入框。
 
 ### 与外部输入框联动：输入越界钳制（displayInput={false} 时配 TextField）
 
@@ -90,6 +111,13 @@ onChange={(value) => setBandwidth(value * 2)}     // 应为 value[0]
 
 // ❌ 外部输入框越界不钳制，滑块拿到超出 max 的值
 onChange={(text) => setBandwidth([Number(text)])}
+
+// ❌ 源 antd Slider 单独使用（无 InputNumber）却保留默认 displayInput：凭空多出一个输入框
+<DragInput min={0} max={100} value={v} onChange={(v) => setV(v)} />   // 应加 displayInput={false}
+
+// ❌ 源 Slider + InputNumber 组合，却把 InputNumber 也迁移成 Spinner 留在旁边：两个输入框重复
+<DragInput min={0} max={100} value={v} onChange={(v) => setV(v)} />
+<Spinner min={0} max={100} value={v} onChange={(n) => setV([n])} />   // 删掉，用 DragInput 内置输入框
 ```
 
 ## 5. API 速查

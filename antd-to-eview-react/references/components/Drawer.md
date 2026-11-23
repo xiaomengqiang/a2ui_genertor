@@ -2,7 +2,7 @@
 
 > 资料来源：TypeDoc `Drawer/types` + 官网 Drawer 页示例。
 > ⚠️ 显隐是 **`visible`**（Dialog 是 `isOpen`），关闭回调 `onClose(isShowDrawer)`；同 Dialog 一样**不会自动关**，业务在 `onClose` 里 `setVisible(false)`。
-> ⚠️ 没有内置按钮区：底部操作栏自己写（demo 用绝对定位的 `<div>` 放 Button）。
+> ⚠️ 没有内置按钮区：底部操作栏自己写（`<div className="app-drawer-footer">` 放 Button）。钉底样式已在 scaffold `src/styles/base.css` 预置（`position: sticky` 钉在内容区可视底部）——直接用类名，不要自带 inline `style`。
 > ⚠️ `destroyOnClose` 默认 **false**（Dialog 默认 true）：关闭后内容保留，再次打开表单是上次的值，需要重置时自己 `resetFields()`。
 
 ## 1. 功能定位
@@ -32,9 +32,9 @@ Drawer 是从页面边缘滑入的侧边面板：四个方向、可无遮罩、�
 ```tsx
 <Drawer title="编辑设备" visible={visible} width={520} destroyOnClose onClose={() => setVisible(false)}>
    {/* 表单内容：div + 输入组件拼合 */}
-   <div className="app-drawer-footer" style={{ position: 'absolute', right: 0, bottom: 0, width: '100%', padding: '0.75rem 1rem', textAlign: 'right' }}>
+   <div className="app-drawer-footer">
      <Button text="取消" disabled={saving} onClick={() => setVisible(false)} />
-     <Button status="primary" text={saving ? '保存中...' : '保存'} disabled={saving} onClick={handleSave} style={{ marginLeft: 12 }} />
+     <Button status="primary" text={saving ? '保存中...' : '保存'} disabled={saving} onClick={handleSave} />
    </div>
 </Drawer>
 ```
@@ -68,6 +68,10 @@ Drawer 是从页面边缘滑入的侧边面板：四个方向、可无遮罩、�
 
 // ❌ 以为有内置按钮区，传 buttons（那是 Dialog 的）
 <Drawer buttons={[{ text: '确定' }]} />
+
+// ❌ 自写 footer 用 position: absolute 钉底：会漂到内容末尾（滚到底才看见），不是可视底部
+// 也别自带 inline style 覆盖 .app-drawer-footer（base.css 已预置 sticky 钉底，自带 style 会盖掉）
+<div className="app-drawer-footer" style={{ position: 'absolute', bottom: 0 }} />
 
 // ❌ 忘了 destroyOnClose 默认 false：换一行编辑时表单还是上一行的值
 <Drawer visible={v}>{/* div + 输入组件，destroyOnClose 需显式开 */}</Drawer>
