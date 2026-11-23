@@ -43,7 +43,7 @@
 | `Radio.Button` | `SelectCard` | 导出名 SelectCard（不是 Segmented）；`data=[{text,value}]`；`onChange(value,event)`；禁用是 `disable`（不是 disabled）；选项带 `icon` → 并入 `text`（SelectCard `data` 无 `icon` 字段，见 SelectCard.md §选项图标） |
 | `Segmented` | `SelectCard` | 映射同 `Radio.Button`：`options` 字符串数组或 `{label,value}` 对象数组 → `data=[{text,value}]`；`defaultValue` 转为初始 `value` state；`block`→无对应（宽度走 `style`/`itemStyle`）；`disabled`→`disable`；`onChange(value)` 首参即为选中值；选项带 `icon` → 并入 `text`（SelectCard `data` 无 `icon` 字段，见 SelectCard.md §选项图标） |
 | `Switch` | `Toggle` | `checked`→`toggled`；`onChange`→`onToggle(value)`；`data=[关,开]`；`taggledChildren`（拼错）；`Switch isControlToggled` 二次确认；**`disabled` 保留不变**（Toggle 用 `disabled` 正确拼写，**不是 `disable`**——`disable` 只属于 SelectCard/FileUpload） |
-| `Slider` | `DragInput` | `value` **永远是数组**；`type="range"` 开双滑块；`markIndexes` 数组；导出名是 DragInput 不是 Slider |
+| `Slider` | `DragInput` | `value` **永远是数组**；`type="range"` 开双滑块；`markIndexes` 数组；导出名是 DragInput 不是 Slider；**`displayInput` 默认 `true`（内置输入框）**——源 Slider 单独使用（无 `InputNumber`）→ 显式 `displayInput={false}`；源 Slider + `InputNumber` 同值组合 → 保留默认并删 `InputNumber`；见 [DragInput.md](components/DragInput.md) §2 |
 | `Rate` | `Rating` | 取值是 `onClick(value)` 不是 onChange；`onMouseOver/Leave` 悬浮预览；`half`；`disabled` 只读 |
 | `DatePicker` | `DatePicker` | **不要无条件回写** `onChange` 的字符串到 `value`（官方反例）；用 `defaultValue`+`ref.getValue()` 或有效 Date 才回写；⚠️ 导入 `@/shared/DatePicker`（包壳，非 `@nce/eview-react/DatePicker`） |
 | `DatePicker.RangePicker` | `DatePicker range={...}` | **JSX 标签必须改**：`<DatePicker.RangePicker>` → `<DatePicker range={...}>`（删 `.RangePicker` 成员，eview-react **无 RangePicker 导出**，残留即坏）；**不要用 `onOkClick`**（实测不返回 `fromDateObj/toDateObj`，分两次回调只返回单日期）；改用 `onChange` 的 `target` 参数（`'from'`/`'to'`）分别收集起止日期；⚠️ 导入 `@/shared/DatePicker`（包壳）。详见 [DatePicker.md](components/DatePicker.md) § 范围选择 |
@@ -71,7 +71,7 @@
 | `Popover` | `TipBox` | `trigger="click"`；`content` 自定义 |
 | `Popconfirm` | `MessageDialog type="confirm"` | `buttons={{ok,cancel}}` 对象；`isOpen` 受控 |
 | `Image` | 手写 | 无 Reference |
-| `Carousel` | 手写 | 导出名存在但无 Reference |
+| `Carousel` | `Carousel` | 内容通过 **children** 直接放元素；prop 改名：`autoplaySpeed`→`autoplayInterval`、`speed`→`transformTime`、`dots`→`indicator`、`arrows`→`hasArrows`、`afterChange`→`onChange(index)`、`infinite`→`repeat`；`initialSlide` 无对应（默认第 0 项）；见 [Carousel.md](components/Carousel.md) |
 | `Card` | 手写或 `Panel` | 见 [handwrite-templates.md](handwrite-templates.md) §1 |
 | `Timeline` | `Timeline`（`@/shared/Timeline` 手写） | 导入 `@/shared/Timeline`（scaffold 手写 antd v6 Timeline 兼容件，非 `@nce/eview-react`）；**API 兼容 antd Timeline，调用点近零改动**——`items`/`mode`（`left`/`right`/`alternate`，`left`/`right` 已废弃等价 `start`/`end`）/`reverse`/`pending`/`pendingDot`/`color`（预设 `blue`/`red`/`green`/`gray` + 自定义色值）/`dot`/`icon`/`Timeline.Item` 子元素形态均保留 antd 写法；暗色随 `<html>.dark` + palette token（`--gray-*`/`--blue-50`/`--red-*`/`--mint-*`）自动翻转，无需另写暗色 CSS；见 [Timeline.md](components/Timeline.md) |
 | `Comment` | 手写 | 无导出 |

@@ -14,3 +14,16 @@ body.ev_no_wcag *:not([class^="eui*"]):focus {
     line-height: 0;
   }
 }
+
+/* 抽屉自写底部操作栏 */
+.app-drawer-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--color-border-2);
+  background-color: var(--color-bg-2);
+}

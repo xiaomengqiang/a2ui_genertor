@@ -46,6 +46,7 @@
 | Crumbs | [Crumbs.md](Crumbs.md) | 面包屑（Breadcrumb） |
 | DropDown | [DropDown.md](DropDown.md) | 一级操作菜单（Dropdown） |
 | Chart | [Chart.md](Chart.md) | 图表（HUI Charts / echarts） |
+| Carousel | [Carousel.md](Carousel.md) | 走马灯（Carousel） |
 
 ## 反馈
 
