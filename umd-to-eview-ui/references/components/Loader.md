@@ -170,12 +170,12 @@ interface LoadingBody {
 
 ### 全局加载示例
 
-## zh-CN
 
 
 
 
-## en-US
+
+
 
 
 
@@ -245,12 +245,12 @@ ReactDOM.render(<GlobalLoadingExample />, mountNode);
 
 ### 本地加载示例
 
-## zh-CN
 
 
 
 
-## en-US
+
+
 
 
 
@@ -416,12 +416,12 @@ ReactDOM.render(<LocalLoadingExample />, mountNode);
 
 ### 微加载示例
 
-## zh-CN
 
 
 
 
-## en-US
+
+
 
 
 

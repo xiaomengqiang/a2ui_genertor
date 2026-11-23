@@ -4,76 +4,75 @@
 
 该组件用来设置多选下拉框，并在输入框提供当前选中的列表的预览。
 
-
 ## antd 迁移注意事项
 
 > 迁移分类：A｜本表由 build-migration-plan.cjs 解析生成迁移计划
 
-| antd 写法 | eview 写法 | 迁移要点 |
-|-----------|-----------|----------|
+| antd 写法                | eview 写法       | 迁移要点                                                                                                                                                                                                                                                              |
+| ------------------------ | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Select mode="multiple"` | `MultipleSelect` | 删 `mode`；`options=[{text, value}]`；`value` 数组；**`onChange(value[], changeValue, event)`**；`placeholder` 同名保留；`searchable`（= showSearch）；`selectAll`；`getValue()`；性能：options ≤500（也可用 SelectPro `mode='multiple'`，本表主映射 MultipleSelect） |
 
 ## API
 
-| 方法名      | 描述                  | 参数  | 返回值            |
-|----------|---------------------|-----|----------------|
-| getValue | 用来获取下拉框中被选中项的value值 |     | 当前选中的项的value集合（数组） |
-| validate | 用来手动进行非空校验          |     | 校验结果，bool类型    |
-| focus    | 用来设置下拉框聚焦并打开下拉面板    |     | 无              |
+| 方法名   | 描述                              | 参数 | 返回值                          |
+| -------- | --------------------------------- | ---- | ------------------------------- |
+| getValue | 用来获取下拉框中被选中项的value值 |      | 当前选中的项的value集合（数组） |
+| validate | 用来手动进行非空校验              |      | 校验结果，bool类型              |
+| focus    | 用来设置下拉框聚焦并打开下拉面板  |      | 无                              |
 
 ### 属性
 
-| 属性名称               | 描述                                                                                                                                                                                       | 输入                                           | 默认       |
-|:-------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------|:---------|
-| id                 | 设置多选下拉组件外层容器id，未设置时自动生成（eui_ms_NNNN）                                                                                                                                                      | string                                       |          |
-| className          | 为组件外层容器增加class                                                                                                                                                                           | string                                       |          |
-| style              | 为组件外层容器设置样式                                                                                                                                                                              | object                                       |          |
-| selectClassName    | 为选择容器（.eui_multiple_select）增加class                                                                                                                                                       | string                                       |          |
-| selectStyle        | 为选择容器设置样式                                                                                                                                                                                | object                                       |          |
-| inputStyle         | 自定义样式，改变输入框样式（支持rem宽度）                                                                                                                                                                    | object                                       |          |
-| inputClassName     | 为输入框容器增加class                                                                                                                                                                            | string                                       |          |
-| options            | 设置下拉列表的选项<br>&nbsp; options : [{ text: "111", value: 1, optionStyle:{ }, optionClassName: 'customName'}, {text: "222", value: 2, disabled: true}];                                       | array                                        | []       |
-| optionStyle        | 配置下拉列表每条选项的样式                                                                                                                                                                            | object                                       |          |
-| optionClassName    | 配置下拉列表每条选项的className                                                                                                                                                                     | string                                       |          |
-| selectedIndex      | 设置默认选中的index，此处为数据属性options中对应的index，如果同时设置value，以value为准                                                                                                                                | number[]                                     |          |
-| value              | 设置当前选中的value值（受控）                                                                                                                                                                        | any[]                                        | []       |
-| disabled           | 设置组件的禁用状态                                                                                                                                                                                | bool                                         | false    |
-| label              | 设置下拉框的名称文字                                                                                                                                                                               | string                                       |          |
-| labelClassName     | 通过添加class的方式控制label的样式                                                                                                                                                                   | string                                       |          |
-| labelStyle         | 通过添加style的方式控制label的样式                                                                                                                                                                   | object                                       |          |
-| labelPosition      | 设置输入框的名称文字的位置 before代表名称文字在输入框的左边，after代表名称文字在输入框的右边                                                                                                                                     | enum:<br>&nbsp;"before"<br>&nbsp;"after"<br> | "before" |
-| required           | 支持设置组件值是否必须，若为必须，则input前面加*                                                                                                                                                              | bool                                         | false    |
-| searchable         | 是否启用搜索功能                                                                                                                                                                                 | bool                                         | false    |
-| selectAll          | 在下拉菜单中添加"All"选项                                                                                                                                                                          | bool                                         | false    |
-| selectAllSearched  | 有搜索结果时使用"Select all search results"选项替换"All"选项（searchable和selectAll为true时有效）                                                                                                              | bool                                         | false    |
-| disableToolTip     | 禁用工具提示                                                                                                                                                                                   | bool                                         | false    |
-| delimiter          | 分隔符，用于分隔输入框中已选中的选项文本                                                                                                                                                                     | string                                       | ','      |
-| enableCloseIcon    | 是否在每个选中项上显示关闭小图标（x）                                                                                                                                                                      | bool                                         | false    |
-| zIndex             | MultipleSelect Popup的z-index，可由用户覆盖                                                                                                                                                      | number                                       | 由ConfigProvider计算 |
-| toolTipPosition    | 设置自定义工具提示位置                                                                                                                                                                              | 跟Tooltip 组件的placement属性一致 `top` `left` `right` `bottom` `topLeft` `topRight` `bottomLeft` `bottomRight` `leftTop` `leftBottom` `rightTop` `rightBottom`       | 'topLeft'    |
-| popupDirection     | 设置弹出框的方向                                                                                                                                                                                 | enum:<br>&nbsp;"top"<br>&nbsp;"bottom"<br> |          |
-| dropdownClassName  | 下拉框类名                                                                                                                                                                                    | string                                       |          |
-| dropdownStyle      | 下拉框样式                                                                                                                                                                                    | object                                       |          |
-| displayItems       | 设置弹出框中最大显示条目数，0表示不限制                                                                                                                                                                     | number                                       | 0        |
-| listHeight         | 设置选择列表的高度（启用isVirtualScroll时无效）                                                                                                                                                           | number                                       |          |
-| maxLengthInput     | 搜索输入框最大字符长度                                                                                                                                                                              | number                                       | 64       |
-| placeholder        | 输入框默认文本                                                                                                                                                                                  | string                                       | ''       |
-| hintType           | 显示提示信息的方式                                                                                                                                                                                | enum:<br>&nbsp;"div"<br>&nbsp;"tip"<br>      | 'div'    |
-| tipStyle           | 通过添加tipStyle来自定义提示框的样式                                                                                                                                                                   | object                                       |          |
-| tagStyle           | 设置标签容器样式                                                                                                                                                                                 | object                                       |          |
-| alwaysValidate     | 是否一直校验，为true时每次滚动/失焦都会触发校验                                                                                                                                                                | bool                                         | false    |
-| showPopUp          | 控制弹窗初始是否显示                                                                                                                                                                               | bool                                         | true     |
-| onBlur             | 定义组件的失去焦点时的事件<br><br>**签名:**<br>`function(event: FocusEvent) => void`<br>*event:* 触发失焦的事件对象                                                                                                  | function                                     |          |
-| onChange           | 定义组件内容改变时的事件<br><br>**签名:**<br>`function(value: any[], changeValue: any, event: Event) => void`<br>*value:* 当前组件中选中的项的value集合（数组）<br>*changeValue:* 当前选择或取消的项的value（单项值，selectAll时为之前选中的value数组）<br>*event:* 触发改变的事件对象 | function                                     |          |
-| onFocus            | 定义组件聚焦时的事件<br><br>**签名:**<br>`function(event: FocusEvent) => void`<br>*event:* 触发聚焦的事件对象                                                                                                     | function                                     |          |
-| onSearchTextChange | 搜索文本改变后的回调函数，函数接受的参数为搜索框中的文本（仅在searchable设置为true时有效）<br>**签名:**<br>`function(text: string) => void`<br>*text:* 搜索框文本                                                                          | function                                     |          |
-| onOpenMultipleSelectPopup | popup弹出框状态改变时的回调<br>**签名:**<br>`function(popupShow: boolean) => void`<br>*popupShow:* 新的弹出框展示状态（true=打开，false=关闭）                                                                     | function                                     |          |
-| isVirtualScroll    | 是否启用虚拟滚动加载，注意虚拟滚动时为了避免选项显示半截，设置listHeight无效，会使用组件定制的高度                                                                                                                                     | bool                                         | false    |
-| tipTextLimit       | 仅在isVirtualScroll虚拟滚动加载场景下生效，限制tip内容的长度显示，超过会截断内容加...显示                                                                                                                                   | number                                       |          |
-| inputTextDisplayLimit | 限制输入框选择的内容显示的最大长度，超过会截断内容加...显示                                                                                                                                                          | number                                       | 1000     |
-| isManualSearch     | 支持搜索时，是否支持手动搜索模式（onSearch回调），仅适用于AUI 3.1规范                                                                                                                                               | bool                                         | false    |
-| version            | AUI版本号，通常由ConfigProvider提供，一般不需要手动设置                                                                                                                                                     | string                                       |          |
-| theme              | AUI主题名，通常由ConfigProvider提供，一般不需要手动设置                                                                                                                                                     | string                                       |          |
+| 属性名称                  | 描述                                                                                                                                                                                                                                                                                   | 输入                                                                                                                                                            | 默认                 |
+| :------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------- |
+| id                        | 设置多选下拉组件外层容器id，未设置时自动生成（eui_ms_NNNN）                                                                                                                                                                                                                            | string                                                                                                                                                          |                      |
+| className                 | 为组件外层容器增加class                                                                                                                                                                                                                                                                | string                                                                                                                                                          |                      |
+| style                     | 为组件外层容器设置样式                                                                                                                                                                                                                                                                 | object                                                                                                                                                          |                      |
+| selectClassName           | 为选择容器（.eui_multiple_select）增加class                                                                                                                                                                                                                                            | string                                                                                                                                                          |                      |
+| selectStyle               | 为选择容器设置样式                                                                                                                                                                                                                                                                     | object                                                                                                                                                          |                      |
+| inputStyle                | 自定义样式，改变输入框样式（支持rem宽度）                                                                                                                                                                                                                                              | object                                                                                                                                                          |                      |
+| inputClassName            | 为输入框容器增加class                                                                                                                                                                                                                                                                  | string                                                                                                                                                          |                      |
+| options                   | 设置下拉列表的选项<br>&nbsp; options : [{ text: "111", value: 1, optionStyle:{ }, optionClassName: 'customName'}, {text: "222", value: 2, disabled: true}];                                                                                                                            | array                                                                                                                                                           | []                   |
+| optionStyle               | 配置下拉列表每条选项的样式                                                                                                                                                                                                                                                             | object                                                                                                                                                          |                      |
+| optionClassName           | 配置下拉列表每条选项的className                                                                                                                                                                                                                                                        | string                                                                                                                                                          |                      |
+| selectedIndex             | 设置默认选中的index，此处为数据属性options中对应的index，如果同时设置value，以value为准                                                                                                                                                                                                | number[]                                                                                                                                                        |                      |
+| value                     | 设置当前选中的value值（受控）                                                                                                                                                                                                                                                          | any[]                                                                                                                                                           | []                   |
+| disabled                  | 设置组件的禁用状态                                                                                                                                                                                                                                                                     | bool                                                                                                                                                            | false                |
+| label                     | 设置下拉框的名称文字                                                                                                                                                                                                                                                                   | string                                                                                                                                                          |                      |
+| labelClassName            | 通过添加class的方式控制label的样式                                                                                                                                                                                                                                                     | string                                                                                                                                                          |                      |
+| labelStyle                | 通过添加style的方式控制label的样式                                                                                                                                                                                                                                                     | object                                                                                                                                                          |                      |
+| labelPosition             | 设置输入框的名称文字的位置 before代表名称文字在输入框的左边，after代表名称文字在输入框的右边                                                                                                                                                                                           | enum:<br>&nbsp;"before"<br>&nbsp;"after"<br>                                                                                                                    | "before"             |
+| required                  | 支持设置组件值是否必须，若为必须，则input前面加\*                                                                                                                                                                                                                                      | bool                                                                                                                                                            | false                |
+| searchable                | 是否启用搜索功能                                                                                                                                                                                                                                                                       | bool                                                                                                                                                            | false                |
+| selectAll                 | 在下拉菜单中添加"All"选项                                                                                                                                                                                                                                                              | bool                                                                                                                                                            | false                |
+| selectAllSearched         | 有搜索结果时使用"Select all search results"选项替换"All"选项（searchable和selectAll为true时有效）                                                                                                                                                                                      | bool                                                                                                                                                            | false                |
+| disableToolTip            | 禁用工具提示                                                                                                                                                                                                                                                                           | bool                                                                                                                                                            | false                |
+| delimiter                 | 分隔符，用于分隔输入框中已选中的选项文本                                                                                                                                                                                                                                               | string                                                                                                                                                          | ','                  |
+| enableCloseIcon           | 是否在每个选中项上显示关闭小图标（x）                                                                                                                                                                                                                                                  | bool                                                                                                                                                            | false                |
+| zIndex                    | MultipleSelect Popup的z-index，可由用户覆盖                                                                                                                                                                                                                                            | number                                                                                                                                                          | 由ConfigProvider计算 |
+| toolTipPosition           | 设置自定义工具提示位置                                                                                                                                                                                                                                                                 | 跟Tooltip 组件的placement属性一致 `top` `left` `right` `bottom` `topLeft` `topRight` `bottomLeft` `bottomRight` `leftTop` `leftBottom` `rightTop` `rightBottom` | 'topLeft'            |
+| popupDirection            | 设置弹出框的方向                                                                                                                                                                                                                                                                       | enum:<br>&nbsp;"top"<br>&nbsp;"bottom"<br>                                                                                                                      |                      |
+| dropdownClassName         | 下拉框类名                                                                                                                                                                                                                                                                             | string                                                                                                                                                          |                      |
+| dropdownStyle             | 下拉框样式                                                                                                                                                                                                                                                                             | object                                                                                                                                                          |                      |
+| displayItems              | 设置弹出框中最大显示条目数，0表示不限制                                                                                                                                                                                                                                                | number                                                                                                                                                          | 0                    |
+| listHeight                | 设置选择列表的高度（启用isVirtualScroll时无效）                                                                                                                                                                                                                                        | number                                                                                                                                                          |                      |
+| maxLengthInput            | 搜索输入框最大字符长度                                                                                                                                                                                                                                                                 | number                                                                                                                                                          | 64                   |
+| placeholder               | 输入框默认文本                                                                                                                                                                                                                                                                         | string                                                                                                                                                          | ''                   |
+| hintType                  | 显示提示信息的方式                                                                                                                                                                                                                                                                     | enum:<br>&nbsp;"div"<br>&nbsp;"tip"<br>                                                                                                                         | 'div'                |
+| tipStyle                  | 通过添加tipStyle来自定义提示框的样式                                                                                                                                                                                                                                                   | object                                                                                                                                                          |                      |
+| tagStyle                  | 设置标签容器样式                                                                                                                                                                                                                                                                       | object                                                                                                                                                          |                      |
+| alwaysValidate            | 是否一直校验，为true时每次滚动/失焦都会触发校验                                                                                                                                                                                                                                        | bool                                                                                                                                                            | false                |
+| showPopUp                 | 控制弹窗初始是否显示                                                                                                                                                                                                                                                                   | bool                                                                                                                                                            | true                 |
+| onBlur                    | 定义组件的失去焦点时的事件<br><br>**签名:**<br>`function(event: FocusEvent) => void`<br>_event:_ 触发失焦的事件对象                                                                                                                                                                    | function                                                                                                                                                        |                      |
+| onChange                  | 定义组件内容改变时的事件<br><br>**签名:**<br>`function(value: any[], changeValue: any, event: Event) => void`<br>_value:_ 当前组件中选中的项的value集合（数组）<br>_changeValue:_ 当前选择或取消的项的value（单项值，selectAll时为之前选中的value数组）<br>_event:_ 触发改变的事件对象 | function                                                                                                                                                        |                      |
+| onFocus                   | 定义组件聚焦时的事件<br><br>**签名:**<br>`function(event: FocusEvent) => void`<br>_event:_ 触发聚焦的事件对象                                                                                                                                                                          | function                                                                                                                                                        |                      |
+| onSearchTextChange        | 搜索文本改变后的回调函数，函数接受的参数为搜索框中的文本（仅在searchable设置为true时有效）<br>**签名:**<br>`function(text: string) => void`<br>_text:_ 搜索框文本                                                                                                                      | function                                                                                                                                                        |                      |
+| onOpenMultipleSelectPopup | popup弹出框状态改变时的回调<br>**签名:**<br>`function(popupShow: boolean) => void`<br>_popupShow:_ 新的弹出框展示状态（true=打开，false=关闭）                                                                                                                                         | function                                                                                                                                                        |                      |
+| isVirtualScroll           | 是否启用虚拟滚动加载，注意虚拟滚动时为了避免选项显示半截，设置listHeight无效，会使用组件定制的高度                                                                                                                                                                                     | bool                                                                                                                                                            | false                |
+| tipTextLimit              | 仅在isVirtualScroll虚拟滚动加载场景下生效，限制tip内容的长度显示，超过会截断内容加...显示                                                                                                                                                                                              | number                                                                                                                                                          |                      |
+| inputTextDisplayLimit     | 限制输入框选择的内容显示的最大长度，超过会截断内容加...显示                                                                                                                                                                                                                            | number                                                                                                                                                          | 1000                 |
+| isManualSearch            | 支持搜索时，是否支持手动搜索模式（onSearch回调），仅适用于AUI 3.1规范                                                                                                                                                                                                                  | bool                                                                                                                                                            | false                |
+| version                   | AUI版本号，通常由ConfigProvider提供，一般不需要手动设置                                                                                                                                                                                                                                | string                                                                                                                                                          |                      |
+| theme                     | AUI主题名，通常由ConfigProvider提供，一般不需要手动设置                                                                                                                                                                                                                                | string                                                                                                                                                          |                      |
 
 ## 接口定义
 
@@ -247,18 +246,15 @@ interface MultipleSelectPopUp {
 
 ### 基本属性设置
 
-## en-US
-
 ```jsx
-import MultipleSelect from 'eview-ui/MultipleSelect';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import MultipleSelect from "eview-ui/MultipleSelect";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class MultipleSelectDemo extends React.Component {
-
   onChange = (value, changeValue) => {
-    console.log('selected values:', value);
-    console.log('changed value:', changeValue);
+    console.log("selected values:", value);
+    console.log("changed value:", changeValue);
   };
 
   render() {
@@ -272,74 +268,94 @@ export default class MultipleSelectDemo extends React.Component {
       style: { margin: "20px" },
       inputStyle: { width: "670px" },
       isVirtualScroll: true,
-      options: [{
-        value: "1",
-        text: "The internet"
-      }, {
-        value: "2",
-        text: "Network"
-      }, {
-        value: "3",
-        text: "item 03"
-      }, {
-        value: "4",
-        text: "item 04"
-      }, {
-        value: "5",
-        text: "item 05",
-        optionStyle: { color: 'red' },
-        optionClassName: 'customName'
-      }, {
-        value: "6",
-        text: "item 06"
-      }, {
-        value: "7",
-        text: "item 07"
-      }, {
-        value: "8",
-        text: "item 08"
-      }, {
-        value: "9",
-        text: "item 09"
-      }, {
-        value: "10",
-        text: "item 10"
-      }, {
-        value: "11",
-        text: "item 11"
-      }, {
-        value: "12",
-        text: "item 12"
-      }, {
-        value: "13",
-        text: "item 13"
-      }, {
-        value: "14",
-        text: "item 14"
-      }, {
-        value: "15",
-        text: "item 15"
-      }, {
-        value: "16",
-        text: "item 16"
-      }, {
-        value: "17",
-        text: "item 17"
-      }, {
-        value: "18",
-        text: "item 18"
-      }, {
-        value: "19",
-        text: "item 19"
-      }]
+      options: [
+        {
+          value: "1",
+          text: "The internet",
+        },
+        {
+          value: "2",
+          text: "Network",
+        },
+        {
+          value: "3",
+          text: "item 03",
+        },
+        {
+          value: "4",
+          text: "item 04",
+        },
+        {
+          value: "5",
+          text: "item 05",
+          optionStyle: { color: "red" },
+          optionClassName: "customName",
+        },
+        {
+          value: "6",
+          text: "item 06",
+        },
+        {
+          value: "7",
+          text: "item 07",
+        },
+        {
+          value: "8",
+          text: "item 08",
+        },
+        {
+          value: "9",
+          text: "item 09",
+        },
+        {
+          value: "10",
+          text: "item 10",
+        },
+        {
+          value: "11",
+          text: "item 11",
+        },
+        {
+          value: "12",
+          text: "item 12",
+        },
+        {
+          value: "13",
+          text: "item 13",
+        },
+        {
+          value: "14",
+          text: "item 14",
+        },
+        {
+          value: "15",
+          text: "item 15",
+        },
+        {
+          value: "16",
+          text: "item 16",
+        },
+        {
+          value: "17",
+          text: "item 17",
+        },
+        {
+          value: "18",
+          text: "item 18",
+        },
+        {
+          value: "19",
+          text: "item 19",
+        },
+      ],
     };
 
     const moreData = [];
-    for(let i = 0; i < 10000; i++) {
-       moreData.push({
+    for (let i = 0; i < 10000; i++) {
+      moreData.push({
         value: String(i),
-        text: `new item${i}`
-       });
+        text: `new item${i}`,
+      });
     }
 
     param1.options = param1.options.concat(moreData);
@@ -351,37 +367,48 @@ export default class MultipleSelectDemo extends React.Component {
       label: "Disabled Style",
       labelStyle: { display: "block" },
       value: ["1", "2"],
-      options: [{
-        value: "1",
-        text: "The internet"
-      }, {
-        value: "2",
-        text: "Network"
-      }, {
-        value: "3",
-        text: "item 03"
-      }, {
-        value: "4",
-        text: "item 04"
-      }, {
-        value: "5",
-        text: "item 05"
-      }, {
-        value: "6",
-        text: "item 06"
-      }, {
-        value: "7",
-        text: "item 07"
-      }, {
-        value: "8",
-        text: "item 08"
-      }, {
-        value: "9",
-        text: "item 09"
-      }, {
-        value: "10",
-        text: "item 10"
-      }]
+      options: [
+        {
+          value: "1",
+          text: "The internet",
+        },
+        {
+          value: "2",
+          text: "Network",
+        },
+        {
+          value: "3",
+          text: "item 03",
+        },
+        {
+          value: "4",
+          text: "item 04",
+        },
+        {
+          value: "5",
+          text: "item 05",
+        },
+        {
+          value: "6",
+          text: "item 06",
+        },
+        {
+          value: "7",
+          text: "item 07",
+        },
+        {
+          value: "8",
+          text: "item 08",
+        },
+        {
+          value: "9",
+          text: "item 09",
+        },
+        {
+          value: "10",
+          text: "item 10",
+        },
+      ],
     };
 
     const param3 = {
@@ -393,61 +420,80 @@ export default class MultipleSelectDemo extends React.Component {
       enableCloseIcon: true,
       style: { margin: "20px" },
       inputStyle: { width: "670px" },
-      options: [{
-        value: "1",
-        text: "The internet"
-      }, {
-        value: "2",
-        text: "Network"
-      }, {
-        value: "3",
-        text: "item 03"
-      }, {
-        value: "4",
-        text: "item 04"
-      }, {
-        value: "5",
-        text: "item 05"
-      }, {
-        value: "6",
-        text: "item 06"
-      }, {
-        value: "7",
-        text: "item 07"
-      }, {
-        value: "8",
-        text: "item 08"
-      }, {
-        value: "9",
-        text: "item 09"
-      }, {
-        value: "10",
-        text: "item 10"
-      }, {
-        value: "11",
-        text: "item 11"
-      }, {
-        value: "12",
-        text: "item 12"
-      }, {
-        value: "13",
-        text: "item 13"
-      }, {
-        value: "14",
-        text: "item 14"
-      }, {
-        value: "15",
-        text: "item 15"
-      }, {
-        value: "16",
-        text: "Network444444"
-      }, {
-        value: "17",
-        text: "Networkkkkkk6666666kkk"
-      }, {
-        value: "18",
-        text: "Networkkkkkkkkk77777777kk"
-      }]
+      options: [
+        {
+          value: "1",
+          text: "The internet",
+        },
+        {
+          value: "2",
+          text: "Network",
+        },
+        {
+          value: "3",
+          text: "item 03",
+        },
+        {
+          value: "4",
+          text: "item 04",
+        },
+        {
+          value: "5",
+          text: "item 05",
+        },
+        {
+          value: "6",
+          text: "item 06",
+        },
+        {
+          value: "7",
+          text: "item 07",
+        },
+        {
+          value: "8",
+          text: "item 08",
+        },
+        {
+          value: "9",
+          text: "item 09",
+        },
+        {
+          value: "10",
+          text: "item 10",
+        },
+        {
+          value: "11",
+          text: "item 11",
+        },
+        {
+          value: "12",
+          text: "item 12",
+        },
+        {
+          value: "13",
+          text: "item 13",
+        },
+        {
+          value: "14",
+          text: "item 14",
+        },
+        {
+          value: "15",
+          text: "item 15",
+        },
+        {
+          value: "16",
+          text: "Network444444",
+        },
+        {
+          value: "17",
+          text: "Networkkkkkk6666666kkk",
+        },
+        {
+          value: "18",
+          text: "Networkkkkkkkkk77777777kk",
+        },
+      ],
     };
 
     return (
@@ -459,33 +505,29 @@ export default class MultipleSelectDemo extends React.Component {
           <MultipleSelect {...param3} />
         </div>
       </ConfigProvider>
-    )
+    );
   }
 }
 
 ReactDOM.render(<MultipleSelectDemo />, mountNode);
-
 ```
 
 ### 扩展处理
 
-## en-US
-
 ```jsx
-import MultipleSelect from 'eview-ui/MultipleSelect';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import MultipleSelect from "eview-ui/MultipleSelect";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class MultipleSelectExpandQueryDemo extends React.Component {
-
   state = {
     value: [],
-    options:[]
+    options: [],
   };
 
   onChange = (value, changeValue) => {
     this.setState({
-      value: value
+      value: value,
     });
   };
 
@@ -493,9 +535,11 @@ export default class MultipleSelectExpandQueryDemo extends React.Component {
     console.log("Popup state:", popupOpened);
     if (popupOpened) {
       this.setState({
-        options: [{ value: "1", text: "The internet" },
-                  { value: "2", text: "Network1" },
-                  { value: "3", text: "Network2" }]
+        options: [
+          { value: "1", text: "The internet" },
+          { value: "2", text: "Network1" },
+          { value: "3", text: "Network2" },
+        ],
       });
     }
   };
@@ -533,7 +577,11 @@ export default class MultipleSelectExpandQueryDemo extends React.Component {
       label: "Multi-select expand dropdown box",
       value: this.state.value,
       required: true,
-      style: { marginBottom: "20px", marginRight: "20px", verticalAlign: "top" },
+      style: {
+        marginBottom: "20px",
+        marginRight: "20px",
+        verticalAlign: "top",
+      },
       options: this.state.options,
     };
 
@@ -542,31 +590,32 @@ export default class MultipleSelectExpandQueryDemo extends React.Component {
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
       <ConfigProvider version={version} theme={theme}>
         <div style={{ marginLeft: "20px", display: "inline-block" }}>
-          <MultipleSelect ref={(select) => { this.select = select }} {...param} />
+          <MultipleSelect
+            ref={(select) => {
+              this.select = select;
+            }}
+            {...param}
+          />
         </div>
       </ConfigProvider>
-    )
+    );
   }
 }
 
 ReactDOM.render(<MultipleSelectExpandQueryDemo />, mountNode);
-
 ```
 
 ### 事件处理
 
-## en-US
-
 ```jsx
-import MultipleSelect from 'eview-ui/MultipleSelect';
-import DivMessage from 'eview-ui/DivMessage';
-import Button from 'eview-ui/Button';
-import ButtonGroup from 'eview-ui/ButtonGroup';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import MultipleSelect from "eview-ui/MultipleSelect";
+import DivMessage from "eview-ui/DivMessage";
+import Button from "eview-ui/Button";
+import ButtonGroup from "eview-ui/ButtonGroup";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class MultipleSelectEventDemo extends React.Component {
-
   state = {
     msg: "",
     value: [],
@@ -574,8 +623,9 @@ export default class MultipleSelectEventDemo extends React.Component {
 
   onChange = (value, changeValue) => {
     this.setState({
-      msg: "Changed value: " + changeValue + ", All selected: " + value.join(","),
-      value: value
+      msg:
+        "Changed value: " + changeValue + ", All selected: " + value.join(","),
+      value: value,
     });
   };
 
@@ -599,14 +649,14 @@ export default class MultipleSelectEventDemo extends React.Component {
     let value = this.select.getValue();
     this.setState({
       msg: "Selected values: " + value.join(","),
-      value: value
+      value: value,
     });
   };
 
   validate = () => {
     let result = this.select.validate();
     this.setState({
-      msg: "Validate result: " + result
+      msg: "Validate result: " + result,
     });
   };
 
@@ -616,7 +666,7 @@ export default class MultipleSelectEventDemo extends React.Component {
       onChange: this.onChange,
       onBlur: this.onBlur,
       onFocus: this.onFocus,
-      delimiter: ';',
+      delimiter: ";",
       disabled: false,
       label: "Multi-select drop-down box",
       value: this.state.value,
@@ -624,7 +674,11 @@ export default class MultipleSelectEventDemo extends React.Component {
       isVirtualScroll: true,
       tipTextLimit: 1000,
       inputTextDisplayLimit: 1000,
-      style: { marginBottom: "20px", marginRight: "20px", verticalAlign: "top" },
+      style: {
+        marginBottom: "20px",
+        marginRight: "20px",
+        verticalAlign: "top",
+      },
       options: [
         { value: "1", text: "The internet" },
         { value: "2", text: "Network" },
@@ -644,66 +698,77 @@ export default class MultipleSelectEventDemo extends React.Component {
         { value: "16", text: "The internet44444444" },
         { value: "17", text: "The internet6666666" },
         { value: "18", text: "The internet99999999" },
-      ]
+      ],
     };
 
     const moreData = [];
-    for(let i = 0; i < 10000; i++) {
-       moreData.push({
+    for (let i = 0; i < 10000; i++) {
+      moreData.push({
         value: String(i),
-        text: `new item${i}`
-       });
+        text: `new item${i}`,
+      });
     }
 
     param.options = param.options.concat(moreData);
 
-    let msg = this.state.msg ? <DivMessage style={{ marginTop: "20px", width: "100%" }} text={this.state.msg} type="success" /> : "";
+    let msg = this.state.msg ? (
+      <DivMessage
+        style={{ marginTop: "20px", width: "100%" }}
+        text={this.state.msg}
+        type="success"
+      />
+    ) : (
+      ""
+    );
     const [version, theme] = getDemoVersion();
     let data = [
-      { text: 'Check', onClick: this.validate },
-      { text: 'getValue', onClick: this.getValue },
-      { text: 'Focus', onClick: this.focus },
-      { text: 'Clear', onClick: this.clear },
+      { text: "Check", onClick: this.validate },
+      { text: "getValue", onClick: this.getValue },
+      { text: "Focus", onClick: this.focus },
+      { text: "Clear", onClick: this.clear },
     ];
     return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
       <ConfigProvider version={version} theme={theme}>
         <div style={{ marginLeft: "20px", display: "inline-block" }}>
-          <MultipleSelect ref={(select) => { this.select = select }} {...param} selectAll/>
-          <ButtonGroup data={data}/>
+          <MultipleSelect
+            ref={(select) => {
+              this.select = select;
+            }}
+            {...param}
+            selectAll
+          />
+          <ButtonGroup data={data} />
           {msg}
         </div>
       </ConfigProvider>
-    )
+    );
   }
 }
 
 ReactDOM.render(<MultipleSelectEventDemo />, mountNode);
-
 ```
 
 ### 可搜索选择框
 
-## en-US
-
 ```jsx
-import MultipleSelect from 'eview-ui/MultipleSelect';
-import DivMessage from 'eview-ui/DivMessage';
-import Button from 'eview-ui/Button';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import MultipleSelect from "eview-ui/MultipleSelect";
+import DivMessage from "eview-ui/DivMessage";
+import Button from "eview-ui/Button";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class MultipleSelectSearchableDemo extends React.Component {
-
   state = {
     msg: "",
-    value: []
+    value: [],
   };
 
   onChange = (value, changeValue) => {
     this.setState({
-      msg: "Changed value: " + changeValue + ", All selected: " + value.join(","),
-      value: value
+      msg:
+        "Changed value: " + changeValue + ", All selected: " + value.join(","),
+      value: value,
     });
   };
 
@@ -723,14 +788,14 @@ export default class MultipleSelectSearchableDemo extends React.Component {
     let value = this.select.getValue();
     this.setState({
       msg: "Selected values: " + value.join(","),
-      value: value
+      value: value,
     });
   };
 
   validate = () => {
     let result = this.select.validate();
     this.setState({
-      msg: "Validate result: " + result
+      msg: "Validate result: " + result,
     });
   };
 
@@ -753,7 +818,11 @@ export default class MultipleSelectSearchableDemo extends React.Component {
       selectAllSearched: true,
       required: true,
       isVirtualScroll: true,
-      style: { marginBottom: "20px", marginRight: "20px", verticalAlign: "top" },
+      style: {
+        marginBottom: "20px",
+        marginRight: "20px",
+        verticalAlign: "top",
+      },
       options: [
         { value: "1", text: "The internet" },
         { value: "2", text: "Network" },
@@ -769,25 +838,36 @@ export default class MultipleSelectSearchableDemo extends React.Component {
         { value: "12", text: "item 12" },
         { value: "13", text: "item 13" },
         { value: "14", text: "item 14" },
-        { value: "15", text: "item 15" }
-      ]
+        { value: "15", text: "item 15" },
+      ],
     };
 
-    let msg = this.state.msg ? <DivMessage style={{ marginTop: "20px", width: "100%" }} text={this.state.msg} type="success" /> : "";
+    let msg = this.state.msg ? (
+      <DivMessage
+        style={{ marginTop: "20px", width: "100%" }}
+        text={this.state.msg}
+        type="success"
+      />
+    ) : (
+      ""
+    );
     const [version, theme] = getDemoVersion();
 
     return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
       <ConfigProvider version={version} theme={theme}>
         <div style={{ marginLeft: "20px", display: "inline-block" }}>
-          <MultipleSelect ref={(select) => { this.select = select }} {...param} />
+          <MultipleSelect
+            ref={(select) => {
+              this.select = select;
+            }}
+            {...param}
+          />
         </div>
       </ConfigProvider>
-    )
+    );
   }
 }
 
 ReactDOM.render(<MultipleSelectSearchableDemo />, mountNode);
-
 ```
-

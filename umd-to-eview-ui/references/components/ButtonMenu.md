@@ -6,53 +6,52 @@ Menu组件提供API功能,用户可以创建和子菜单。
 <br>
 注意：文本下拉按钮类型仅适用于ICT3.1规范。
 
-
 ## antd 迁移注意事项
 
 > 迁移分类：A｜本表由 build-migration-plan.cjs 解析生成迁移计划
 
-| antd 写法 | eview 写法 | 迁移要点 |
-|-----------|-----------|----------|
+| antd 写法         | eview 写法   | 迁移要点                                                                         |
+| ----------------- | ------------ | -------------------------------------------------------------------------------- |
 | `Dropdown.Button` | `ButtonMenu` | `text` + `options=[{text, value, iconUrl?, disable?}]` + `onClick(value, event)` |
 
 ## API
 
 ### 属性
 
-| 属性名称 | 描述 | 输入 | 默认 |
-|-----|-----|-----|-----|
-| id | 自定义id | string | - |
-| className |  自定义class | string | - |
-| style |  自定义组件样式 | React.CSSProperties | - |
-| text |  Button中的文本 | string |  |
-| iconUrl |  图标 | string |  |
-| status |  Button的状态 | `default`&#124;`primary`&#124;`risk`| `default `|
-| value |  项的值 | any | - |
-| selectedIndex |  默认选中的选项索引 | number | - |
-| disabled |  设置组件灰化。 | bool | false |
-| isOpen |  设置下拉菜单是否可见 | bool | false |
-| required |  设置是否必选（此属性为内部属性，不建议外部使用） | bool | false |
-| options |  设置每个数据项 例:options = [{text: "111", value: 1}, {text: "222", value: 2}, {text: "333", value: 2} 在 text, 页面显示值和, 数据库访问值 | array |  |
-| optionClassName |  设置options类名 | string | - |
-| optionStyle |  设置options的样式 例:optionStyle={{width:'350px'}}设置了下拉框的宽度. | React.CSSProperties | - |
-|position| Button Menu的位置 | `left`&#124;`right` | `left` |
-| width |  设置ButtonMenu的宽度 | string | - |
-| onClick |  组件item的点击事件 | *function*:` (data: object, event: object) => void`<br>data: 被点击的选项对象（包含text、value等） <br>event: DOM原生click事件 |  |
-| onFocus |  组件聚焦时的事件 | *function*:` (event: React.FocusEvent) => void`<br>event: DOM原生focus事件 |  |
-| onBlur |  组件失焦时的事件 | *function*:` (value?: string \| number, event?: React.SyntheticEvent) => void`<br>value: 当前选中值 <br>event: 原生事件 |  |
-| onButtonClick |  按钮本身的点击事件（非菜单项点击） | *function*:` () => void` |  |
-| displayDirection |  弹出方向 | `auto`&#124;`up`&#124;`down` | `auto` |
-| tipShow | tip是否展示 | `always`&#124;`never` | `never` |
-| tipData | tip展示内容，为空时默认显示text属性值  | string | '' |
-| label |  设置label | string |  |
-| labelClassName |  label自定义类 | string |  |
-| labelStyle |  label自定义样式 | React.CSSProperties |  |
-| labelPosition |  设置label的位置 | `before`&#124;`after` | `before` |
-| getPopupContainer | 设置弹窗的容器元素，传入函数返回容器DOM节点，传入false则不指定 | (() => HTMLElement) \| boolean | false | 
-| isTextDropdown | 是否文本下拉按钮类型 | boolean | `false` |
-| textColor | 文本下拉按钮类型的文本颜色 | 'blue'&#124;'black' | `blue` |
-| version | aui版本 | string | - |
-| theme | 主题 | string | - |
+| 属性名称          | 描述                                                                                                                                       | 输入                                                                                                                           | 默认       |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| id                | 自定义id                                                                                                                                   | string                                                                                                                         | -          |
+| className         | 自定义class                                                                                                                                | string                                                                                                                         | -          |
+| style             | 自定义组件样式                                                                                                                             | React.CSSProperties                                                                                                            | -          |
+| text              | Button中的文本                                                                                                                             | string                                                                                                                         |            |
+| iconUrl           | 图标                                                                                                                                       | string                                                                                                                         |            |
+| status            | Button的状态                                                                                                                               | `default`&#124;`primary`&#124;`risk`                                                                                           | `default ` |
+| value             | 项的值                                                                                                                                     | any                                                                                                                            | -          |
+| selectedIndex     | 默认选中的选项索引                                                                                                                         | number                                                                                                                         | -          |
+| disabled          | 设置组件灰化。                                                                                                                             | bool                                                                                                                           | false      |
+| isOpen            | 设置下拉菜单是否可见                                                                                                                       | bool                                                                                                                           | false      |
+| required          | 设置是否必选（此属性为内部属性，不建议外部使用）                                                                                           | bool                                                                                                                           | false      |
+| options           | 设置每个数据项 例:options = [{text: "111", value: 1}, {text: "222", value: 2}, {text: "333", value: 2} 在 text, 页面显示值和, 数据库访问值 | array                                                                                                                          |            |
+| optionClassName   | 设置options类名                                                                                                                            | string                                                                                                                         | -          |
+| optionStyle       | 设置options的样式 例:optionStyle={{width:'350px'}}设置了下拉框的宽度.                                                                      | React.CSSProperties                                                                                                            | -          |
+| position          | Button Menu的位置                                                                                                                          | `left`&#124;`right`                                                                                                            | `left`     |
+| width             | 设置ButtonMenu的宽度                                                                                                                       | string                                                                                                                         | -          |
+| onClick           | 组件item的点击事件                                                                                                                         | _function_:` (data: object, event: object) => void`<br>data: 被点击的选项对象（包含text、value等） <br>event: DOM原生click事件 |            |
+| onFocus           | 组件聚焦时的事件                                                                                                                           | _function_:` (event: React.FocusEvent) => void`<br>event: DOM原生focus事件                                                     |            |
+| onBlur            | 组件失焦时的事件                                                                                                                           | _function_:` (value?: string \| number, event?: React.SyntheticEvent) => void`<br>value: 当前选中值 <br>event: 原生事件        |            |
+| onButtonClick     | 按钮本身的点击事件（非菜单项点击）                                                                                                         | _function_:` () => void`                                                                                                       |            |
+| displayDirection  | 弹出方向                                                                                                                                   | `auto`&#124;`up`&#124;`down`                                                                                                   | `auto`     |
+| tipShow           | tip是否展示                                                                                                                                | `always`&#124;`never`                                                                                                          | `never`    |
+| tipData           | tip展示内容，为空时默认显示text属性值                                                                                                      | string                                                                                                                         | ''         |
+| label             | 设置label                                                                                                                                  | string                                                                                                                         |            |
+| labelClassName    | label自定义类                                                                                                                              | string                                                                                                                         |            |
+| labelStyle        | label自定义样式                                                                                                                            | React.CSSProperties                                                                                                            |            |
+| labelPosition     | 设置label的位置                                                                                                                            | `before`&#124;`after`                                                                                                          | `before`   |
+| getPopupContainer | 设置弹窗的容器元素，传入函数返回容器DOM节点，传入false则不指定                                                                             | (() => HTMLElement) \| boolean                                                                                                 | false      |
+| isTextDropdown    | 是否文本下拉按钮类型                                                                                                                       | boolean                                                                                                                        | `false`    |
+| textColor         | 文本下拉按钮类型的文本颜色                                                                                                                 | 'blue'&#124;'black'                                                                                                            | `blue`     |
+| version           | aui版本                                                                                                                                    | string                                                                                                                         | -          |
+| theme             | 主题                                                                                                                                       | string                                                                                                                         | -          |
 
 ## 使用示例
 
@@ -66,8 +65,8 @@ import createDefault from "@images/create_default";
 import deleteDefault from "@images/delete_default";
 import exportDefault from "@images/export_default";
 import createIcon from "@images/create_icon";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class ButtonMenuExample extends React.Component {
   render() {
@@ -86,7 +85,7 @@ export default class ButtonMenuExample extends React.Component {
       { text: "Delete1", value: 6, iconUrl: deleteDefault },
       { text: "Create2", value: 7, iconUrl: createDefault },
       { text: "Export2", value: 8, iconUrl: exportDefault },
-      { text: "Delete2", value: 9, iconUrl: deleteDefault }
+      { text: "Delete2", value: 9, iconUrl: deleteDefault },
     ];
 
     let optionsButton2 = [
@@ -97,7 +96,7 @@ export default class ButtonMenuExample extends React.Component {
       {
         text: "Create1Create1Create1Create1Create1Create1Create1Create1",
         value: 5,
-        iconUrl: exportDefault
+        iconUrl: exportDefault,
       },
       { text: "Delete1", value: 6, iconUrl: deleteDefault },
       { text: "Create2", value: 7, iconUrl: createDefault },
@@ -105,24 +104,24 @@ export default class ButtonMenuExample extends React.Component {
       {
         text: "Create1Create1Create1Create1CreateCreate1Create1Create11",
         value: 9,
-        iconUrl: deleteDefault
+        iconUrl: deleteDefault,
       },
       {
         text: "Create1Create1Create1Create1Create1Create1Create1",
         value: 10,
-        iconUrl: createDefault
+        iconUrl: createDefault,
       },
       {
         text: "Create1Create1CreateCreate1Create1Create1Create11Create1Create1",
         value: 11,
-        iconUrl: exportDefault
+        iconUrl: exportDefault,
       },
-      { text: "Create1", value: 12, iconUrl: deleteDefault }
+      { text: "Create1", value: 12, iconUrl: deleteDefault },
     ];
 
     let textOptions = [
       { text: "Create", value: 1 },
-      { text: "Modify I am Big Text", value: 2 }
+      { text: "Modify I am Big Text", value: 2 },
     ];
 
     let options1 = [{ text: "Create", value: 1 }];
@@ -142,8 +141,8 @@ export default class ButtonMenuExample extends React.Component {
               selectedIndex={1}
               style={style1}
             />
-            <br/>
-            <br/>
+            <br />
+            <br />
             <ButtonMenu
               text="Operation"
               options={textOptions}
@@ -152,8 +151,8 @@ export default class ButtonMenuExample extends React.Component {
               value={1}
               style={style2}
             />
-            <br/>
-            <br/>
+            <br />
+            <br />
             <ButtonMenu
               text="Operation"
               iconUrl={createIcon}
@@ -183,8 +182,8 @@ import ButtonMenu from "eview-ui/ButtonMenu";
 import createDefault from "@images/create_default";
 import deleteDefault from "@images/delete_default";
 import exportDefault from "@images/export_default";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class ButtonMenuExample extends React.Component {
   render() {
@@ -202,9 +201,8 @@ export default class ButtonMenuExample extends React.Component {
       { text: "Delete1", value: 6 },
       { text: "Create2", value: 7 },
       { text: "Export2", value: 8 },
-      { text: "Delete2", value: 9 }
+      { text: "Delete2", value: 9 },
     ];
-
 
     return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
@@ -221,7 +219,7 @@ export default class ButtonMenuExample extends React.Component {
               selectedIndex={1}
               style={style1}
               isTextDropdown
-              width={'12rem'}
+              width={"12rem"}
             />
           </div>
         </div>
@@ -238,13 +236,13 @@ ReactDOM.render(<ButtonMenuExample />, mountNode);
 按钮菜单事件
 
 ```jsx
-import ButtonMenu from 'eview-ui/ButtonMenu';
-import createDefault from '@images/create_default';
-import deleteDefault from '@images/delete_default';
-import exportDefault from '@images/export_default';
-import DivMessage from 'eview-ui/DivMessage';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import ButtonMenu from "eview-ui/ButtonMenu";
+import createDefault from "@images/create_default";
+import deleteDefault from "@images/delete_default";
+import exportDefault from "@images/export_default";
+import DivMessage from "eview-ui/DivMessage";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class ButtonMenuExample extends React.Component {
   constructor(props) {
@@ -254,27 +252,49 @@ export default class ButtonMenuExample extends React.Component {
   }
 
   state = {
-    msg: '',
+    msg: "",
   };
 
   handleChange = (data, event) => {
     this.setState({
-      msg: 'OnClick event callback: Selected option Text : ' + data.text + ' and Value : ' + data.value,
+      msg:
+        "OnClick event callback: Selected option Text : " +
+        data.text +
+        " and Value : " +
+        data.value,
     });
   };
 
-  handleFocus = e => {
-    this.setState({ msg: 'OnFocus event callback: Selected option Text : ' + e.target.value });
+  handleFocus = (e) => {
+    this.setState({
+      msg: "OnFocus event callback: Selected option Text : " + e.target.value,
+    });
   };
 
   render() {
     const [version, theme] = getDemoVersion();
-    let style = { marginLeft: '20px', width: '310px' };
-    let labelStyle = { paddingLeft: '0px' };
+    let style = { marginLeft: "20px", width: "310px" };
+    let labelStyle = { paddingLeft: "0px" };
     let options = [
-      { text: 'Create', value: 1, iconUrl: createDefault, title: 'Create a Drive' },
-      { text: 'Export', value: 2, disable: true, iconUrl: exportDefault, title: 'Export a Drive' },
-      { text: 'Delete', value: 3, iconUrl: deleteDefault, title: 'Delete a Drive' },
+      {
+        text: "Create",
+        value: 1,
+        iconUrl: createDefault,
+        title: "Create a Drive",
+      },
+      {
+        text: "Export",
+        value: 2,
+        disable: true,
+        iconUrl: exportDefault,
+        title: "Export a Drive",
+      },
+      {
+        text: "Delete",
+        value: 3,
+        iconUrl: deleteDefault,
+        title: "Delete a Drive",
+      },
     ];
 
     return (
@@ -292,17 +312,21 @@ export default class ButtonMenuExample extends React.Component {
               style={style}
               onClick={this.handleChange}
               onFocus={this.handleFocus}
-              tipShow={'always'}
-              tipData={'Operation drive'}
+              tipShow={"always"}
+              tipData={"Operation drive"}
             />
             {this.state.msg ? (
               <DivMessage
                 text={this.state.msg}
                 type="success"
-                style={{marginTop: '10px', width: '420px', marginLeft: '93px'}}
+                style={{
+                  marginTop: "10px",
+                  width: "420px",
+                  marginLeft: "93px",
+                }}
               />
             ) : (
-              ''
+              ""
             )}
           </div>
         </div>
@@ -319,15 +343,15 @@ ReactDOM.render(<ButtonMenuExample />, mountNode);
 通过设置 `displayDirection` 为 `up` `down` 控制 popup 弹出位置。
 
 ```jsx
-import ButtonMenu from 'eview-ui/ButtonMenu';
-import createDefault from '@images/create_default';
-import deleteDefault from '@images/delete_default';
-import exportDefault from '@images/export_default';
-import DivMessage from 'eview-ui/DivMessage';
-import LabelField from 'eview-ui/LabelField';
-import Radio from 'eview-ui/Radio';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import ButtonMenu from "eview-ui/ButtonMenu";
+import createDefault from "@images/create_default";
+import deleteDefault from "@images/delete_default";
+import exportDefault from "@images/export_default";
+import DivMessage from "eview-ui/DivMessage";
+import LabelField from "eview-ui/LabelField";
+import Radio from "eview-ui/Radio";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class ButtonMenuExample extends React.Component {
   constructor(props) {
@@ -335,33 +359,33 @@ export default class ButtonMenuExample extends React.Component {
   }
 
   state = {
-    msg: '',
+    msg: "",
   };
 
   render() {
     const [version, theme] = getDemoVersion();
 
-    let style = { marginLeft: '20px', width: '310px' };
-    let labelStyle = { paddingLeft: '0px' };
+    let style = { marginLeft: "20px", width: "310px" };
+    let labelStyle = { paddingLeft: "0px" };
     let options = [
       {
-        text: 'Create',
+        text: "Create",
         value: 1,
         iconUrl: createDefault,
-        title: 'Create a Drive',
+        title: "Create a Drive",
       },
       {
-        text: 'Export',
+        text: "Export",
         value: 2,
         disable: true,
         iconUrl: exportDefault,
-        title: 'Export a Drive',
+        title: "Export a Drive",
       },
       {
-        text: 'Delete',
+        text: "Delete",
         value: 3,
         iconUrl: deleteDefault,
-        title: 'Delete a Drive',
+        title: "Delete a Drive",
       },
     ];
 
@@ -379,8 +403,8 @@ export default class ButtonMenuExample extends React.Component {
               displayDirection="up"
               style={style}
             />
-            <br/>
-            <br/>
+            <br />
+            <br />
 
             <ButtonMenu
               text="Down Button"
@@ -408,15 +432,15 @@ ReactDOM.render(<ButtonMenuExample />, mountNode);
 通过设置 `labelPosition` 为 `before` `after` 控制 label 位置。
 
 ```jsx
-import ButtonMenu from 'eview-ui/ButtonMenu';
-import createDefault from '@images/create_default';
-import deleteDefault from '@images/delete_default';
-import exportDefault from '@images/export_default';
-import DivMessage from 'eview-ui/DivMessage';
-import LabelField from 'eview-ui/LabelField';
-import Radio from 'eview-ui/Radio';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import ButtonMenu from "eview-ui/ButtonMenu";
+import createDefault from "@images/create_default";
+import deleteDefault from "@images/delete_default";
+import exportDefault from "@images/export_default";
+import DivMessage from "eview-ui/DivMessage";
+import LabelField from "eview-ui/LabelField";
+import Radio from "eview-ui/Radio";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class ButtonMenuExample extends React.Component {
   constructor(props) {
@@ -424,32 +448,32 @@ export default class ButtonMenuExample extends React.Component {
   }
 
   state = {
-    labelPos: 'before',
-    iconPos: 'left',
+    labelPos: "before",
+    iconPos: "left",
   };
 
   render() {
     const [version, theme] = getDemoVersion();
-    let labelStyle = { paddingLeft: '0px' };
+    let labelStyle = { paddingLeft: "0px" };
     let options = [
       {
-        text: 'Create',
+        text: "Create",
         value: 1,
         iconUrl: createDefault,
-        title: 'Create a Drive',
+        title: "Create a Drive",
       },
       {
-        text: 'Export',
+        text: "Export",
         value: 2,
         disable: true,
         iconUrl: exportDefault,
-        title: 'Export a Drive',
+        title: "Export a Drive",
       },
       {
-        text: 'Delete',
+        text: "Delete",
         value: 3,
         iconUrl: deleteDefault,
-        title: 'Delete a Drive',
+        title: "Delete a Drive",
       },
     ];
     const { iconPos, labelPos } = this.state;
@@ -457,36 +481,36 @@ export default class ButtonMenuExample extends React.Component {
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
       <ConfigProvider version={version} theme={theme}>
         <div id="evu_ButtonMenu_example">
-          <div style={{marginBottom: '1rem', display: 'flex'}}>
-            <LabelField text="label位置:"/>
+          <div style={{ marginBottom: "1rem", display: "flex" }}>
+            <LabelField text="label位置:" />
             <Radio
               value="before"
               label="before"
-              checked={labelPos === 'before'}
-              onChange={value => this.setState({labelPos: value})}
-              style={{marginRight: '0.5rem'}}
+              checked={labelPos === "before"}
+              onChange={(value) => this.setState({ labelPos: value })}
+              style={{ marginRight: "0.5rem" }}
             />
             <Radio
               value="after"
               label="after"
-              checked={labelPos === 'after'}
-              onChange={value => this.setState({labelPos: value})}
+              checked={labelPos === "after"}
+              onChange={(value) => this.setState({ labelPos: value })}
             />
           </div>
-          <div style={{marginBottom: '1rem', display: 'flex'}}>
-            <LabelField text="icon位置:"/>
+          <div style={{ marginBottom: "1rem", display: "flex" }}>
+            <LabelField text="icon位置:" />
             <Radio
               value="left"
               label="left"
-              checked={iconPos === 'left'}
-              onChange={value => this.setState({iconPos: value})}
-              style={{marginRight: '0.5rem'}}
+              checked={iconPos === "left"}
+              onChange={(value) => this.setState({ iconPos: value })}
+              style={{ marginRight: "0.5rem" }}
             />
             <Radio
               value="right"
               label="right"
-              checked={iconPos === 'right'}
-              onChange={value => this.setState({iconPos: value})}
+              checked={iconPos === "right"}
+              onChange={(value) => this.setState({ iconPos: value })}
             />
           </div>
           <div>
@@ -508,4 +532,3 @@ export default class ButtonMenuExample extends React.Component {
 
 ReactDOM.render(<ButtonMenuExample />, mountNode);
 ```
-

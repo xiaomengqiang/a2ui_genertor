@@ -4,45 +4,44 @@
 
 手风琴控件提供展示页面和功能的导航菜单。
 
-
 ## antd 迁移注意事项
 
 > 迁移分类：A｜本表由 build-migration-plan.cjs 解析生成迁移计划
 
-| antd 写法 | eview 写法 | 迁移要点 |
-|-----------|-----------|----------|
+| antd 写法                      | eview 写法                | 迁移要点                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Menu`（侧边导航，items 数组） | `Accordion`（**主映射**） | `items`→**`data=[{title, value, icon?, children?}]`**（`label`→`title`、`key`→`value`、`icon` 是 url 字符串——**保留 `<Icon>` shim 时 icon 字段不用**，图标走 customRender? 无——图标省略）；`selectedKeys`→**`selectedValue`（单 string）**；`onClick({key})`→**`onClick(node)`**（node 是 data 项原始对象，取 `node.value`）；`openKeys`→`defaultOpenKeys`；`mode="inline"` 收起态→`expanded`/`onExpand(flag)`；`enableMultiOpen`（嵌套菜单多开，默认 false）；`forceShowTip='title'` 溢出提示；单层平铺菜单：`data` 无 children + `enableExpand={false}` |
 
 ## API
 
 ### 属性
 
-| 属性名称          | 描述                                                                                                                                       | 输入             | 默认  |
-| :---------------- |:-----------------------------------------------------------------------------------------------------------------------------------------|:---------------| :---- |
-| id                | 用户传入自定义 id 用于覆盖组件自动生成 id                                                                                                                 | string         |       |
-| data              | 手风琴数据 array<{title: ReactNode;value?: string;icon?: string;description?: string;activeIcon?: string;disabled?: boolean;children?: array}> | array          |       |
-| selectedValue     | 默认被选中的项的 value，不设置，则为第一项的 value                                                                                                          | string         | ''  |
-| headerText        | 手风琴标题文字                                                                                                                                  | ReactNode         |       |
-| headerIcon        | 手风琴标题图标的 url                                                                                                                             | string         |       |
-| enableTooltip     | 是否使用提示                                                                                                                                   | bool           | true  |
-| toolTipProps     | 自定义手风琴菜单的Tooltip属性(6.0.x版本支持)，需要将enableTooltip设置为true，参考Tooltip组件文档来设置                                                                   | [CustomTooltipType](/components/Tooltip/)         |   |
-| forceShowTip      | 强制展示tip，设置为 'title'，使用浏览器默认的title属性。此时会忽略enableTooltip属性；enableTooltip只会在有溢出时才展示。                                                        | string \| bool | false  |
-| defaultOpenKeys    | 默认展示项的key                                                                                                                                | string[]       |  |
-| disabledItemKeys   | 禁用项的key                                                                                                                                  | string[]       |  |
-| hideTitleBar      | 隐藏标题栏。                                                                                                                                   | bool           | false |
-| headerIconPosition  | 控制头部 Icon 布局，可选值有 'top'、'left'                                                                                                           | string         | top |
-| enableMultiOpen   | 是否允许同时展开多个一级菜单                                                                                                                           | bool           | false |
-| showArrow      | 收起态时使用图标模式展示菜单项，为 true 时不显示菜单文字只显示图标，配合 enableExpand 使用                                                                                                                 | bool           | false |
-| enableExpand      | 是否允许展开/折叠面板                                                                                                                                   | bool           | false |
-| expanded          | 默认是否展开                                                                                                                                   | bool           | true |
-| allowResize       | 是否允许拖动                                                                                                                                   | bool           | false |
-| maxResizableWidth | 最大可拖动宽度，支持 px 和 rem 单位                                                                                                                   | string         | 16rem |
-| style             | 通过 style 控制组件最外层样式                                                                                                                       | object         |       |
-| className         | 通过 class 控制组件最外层样式                                                                                                                       | string         |       |
-| onClick           | 手风琴元素被点击后的回调函数<br><br>**签名:**<br>`function(node: object) => void`<br>_node:_ 被点击项对应 data 中的原始数据                                          | function       |       |
-| onItemRightClick  | 右键点击菜单项的回调<br><br>**签名:**<br>`function(event: MouseEvent, { data }: { data: object }) => void`<br>_data:_ 被右键点击项对应 data 中的原始数据   | function       |       |
-| onExpand          | 设置面板收起展开回调<br><br>**签名:**<br>`function(bool: flag) => void`<br>_bool:_ 面板展开时为 true，收起时为 false                                            | function       |       |
-| onResize          | 拖动回调函数`resizeData:{oldWidth: string;newWidth: string;}) => void;`<br>                                                                    | function       |       |
+| 属性名称           | 描述                                                                                                                                                     | 输入                                      | 默认  |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------- | :---- |
+| id                 | 用户传入自定义 id 用于覆盖组件自动生成 id                                                                                                                | string                                    |       |
+| data               | 手风琴数据 array<{title: ReactNode;value?: string;icon?: string;description?: string;activeIcon?: string;disabled?: boolean;children?: array}>           | array                                     |       |
+| selectedValue      | 默认被选中的项的 value，不设置，则为第一项的 value                                                                                                       | string                                    | ''    |
+| headerText         | 手风琴标题文字                                                                                                                                           | ReactNode                                 |       |
+| headerIcon         | 手风琴标题图标的 url                                                                                                                                     | string                                    |       |
+| enableTooltip      | 是否使用提示                                                                                                                                             | bool                                      | true  |
+| toolTipProps       | 自定义手风琴菜单的Tooltip属性(6.0.x版本支持)，需要将enableTooltip设置为true，参考Tooltip组件文档来设置                                                   | [CustomTooltipType](/components/Tooltip/) |       |
+| forceShowTip       | 强制展示tip，设置为 'title'，使用浏览器默认的title属性。此时会忽略enableTooltip属性；enableTooltip只会在有溢出时才展示。                                 | string \| bool                            | false |
+| defaultOpenKeys    | 默认展示项的key                                                                                                                                          | string[]                                  |       |
+| disabledItemKeys   | 禁用项的key                                                                                                                                              | string[]                                  |       |
+| hideTitleBar       | 隐藏标题栏。                                                                                                                                             | bool                                      | false |
+| headerIconPosition | 控制头部 Icon 布局，可选值有 'top'、'left'                                                                                                               | string                                    | top   |
+| enableMultiOpen    | 是否允许同时展开多个一级菜单                                                                                                                             | bool                                      | false |
+| showArrow          | 收起态时使用图标模式展示菜单项，为 true 时不显示菜单文字只显示图标，配合 enableExpand 使用                                                               | bool                                      | false |
+| enableExpand       | 是否允许展开/折叠面板                                                                                                                                    | bool                                      | false |
+| expanded           | 默认是否展开                                                                                                                                             | bool                                      | true  |
+| allowResize        | 是否允许拖动                                                                                                                                             | bool                                      | false |
+| maxResizableWidth  | 最大可拖动宽度，支持 px 和 rem 单位                                                                                                                      | string                                    | 16rem |
+| style              | 通过 style 控制组件最外层样式                                                                                                                            | object                                    |       |
+| className          | 通过 class 控制组件最外层样式                                                                                                                            | string                                    |       |
+| onClick            | 手风琴元素被点击后的回调函数<br><br>**签名:**<br>`function(node: object) => void`<br>_node:_ 被点击项对应 data 中的原始数据                              | function                                  |       |
+| onItemRightClick   | 右键点击菜单项的回调<br><br>**签名:**<br>`function(event: MouseEvent, { data }: { data: object }) => void`<br>_data:_ 被右键点击项对应 data 中的原始数据 | function                                  |       |
+| onExpand           | 设置面板收起展开回调<br><br>**签名:**<br>`function(bool: flag) => void`<br>_bool:_ 面板展开时为 true，收起时为 false                                     | function                                  |       |
+| onResize           | 拖动回调函数`resizeData:{oldWidth: string;newWidth: string;}) => void;`<br>                                                                              | function                                  |       |
 
 ## 使用示例
 
@@ -56,17 +55,17 @@ import DivMessage from "eview-ui/DivMessage";
 import { Row, Col } from "eview-ui/GridLayout";
 import LabelField from "eview-ui/LabelField";
 import huawei from "@images/huawei";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class AccordionDemo extends React.Component {
   // static init state here
   state = {
-    msg: '',
+    msg: "",
     data: [
       {
         title: "Navigation One",
-        value: "1"
+        value: "1",
       },
       {
         title: "Navigation Two",
@@ -78,35 +77,35 @@ export default class AccordionDemo extends React.Component {
             children: [
               {
                 title: "Sub Option1",
-                value: "subOpt1"
+                value: "subOpt1",
               },
               {
                 title: "Sub Option2",
-                value: "subOpt2"
+                value: "subOpt2",
               },
               {
                 title: "Sub Option3",
-                value: "subOpt3"
+                value: "subOpt3",
               },
               {
                 title: "Sub Option4",
-                value: "subOpt4"
-              }
-            ]
+                value: "subOpt4",
+              },
+            ],
           },
           {
             title: "Option2",
-            value: "opt2"
+            value: "opt2",
           },
           {
             title: "Option3",
-            value: "opt3"
+            value: "opt3",
           },
           {
             title: "Option4",
-            value: "opt4"
-          }
-        ]
+            value: "opt4",
+          },
+        ],
       },
       {
         title: "Navigation Tree",
@@ -114,24 +113,24 @@ export default class AccordionDemo extends React.Component {
         children: [
           {
             title: "Security Rule",
-            value: "Security Rule"
+            value: "Security Rule",
           },
           {
             title: "Traffic Rule",
-            value: "Traffic Rule"
+            value: "Traffic Rule",
           },
           {
             title: "Application Group",
-            value: "Application Group"
+            value: "Application Group",
           },
           {
             title: "URL Filter",
-            value: "URL Filter"
-          }
-        ]
-      }
+            value: "URL Filter",
+          },
+        ],
+      },
     ],
-    selectedValue: "subOpt1"
+    selectedValue: "subOpt1",
   };
   handleClick = (node) => {
     if (!node.children || node.children?.length === 0) {
@@ -160,7 +159,15 @@ export default class AccordionDemo extends React.Component {
             headerIcon={huawei}
             style={{ height: "540px" }}
           />
-          {this.state.msg ? <DivMessage text={this.state.msg} type="success" style={{ marginTop: "10px", width: "280px" }} /> : ''}
+          {this.state.msg ? (
+            <DivMessage
+              text={this.state.msg}
+              type="success"
+              style={{ marginTop: "10px", width: "280px" }}
+            />
+          ) : (
+            ""
+          )}
         </div>
       </ConfigProvider>
     );
@@ -187,8 +194,8 @@ import navMsg from "@images/nav_msg";
 import navMsgActive from "@images/nav_msg_active";
 import navHeart from "@images/nav_heart";
 import navHeartActive from "@images/nav_heart_active";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 export default class AccordionDemo extends React.Component {
   // static init state here
   state = {
@@ -198,7 +205,7 @@ export default class AccordionDemo extends React.Component {
         title: "Overview",
         value: "over_view",
         icon: navForm,
-        activeIcon: navFormActive
+        activeIcon: navFormActive,
       },
       {
         title: "Easy Configuration",
@@ -209,22 +216,22 @@ export default class AccordionDemo extends React.Component {
           {
             title: "Thriller",
             description:
-              "唱片同名歌曲，创造了多个单曲格莱美大奖记录，一举奠定了流行音乐天王地位。"
+              "唱片同名歌曲，创造了多个单曲格莱美大奖记录，一举奠定了流行音乐天王地位。",
           },
           {
             title: "The Girl Is Mine",
-            description: "热辣火热的舞蹈和动感心动的声响完美的结合"
+            description: "热辣火热的舞蹈和动感心动的声响完美的结合",
           },
           {
             title: "Beat It",
             description: "经典中的经典，几乎无人不知",
-            value: "beat-it"
+            value: "beat-it",
           },
           {
             title: "Billie Jean",
-            description: "传说来自天王的一个亲身经历"
-          }
-        ]
+            description: "传说来自天王的一个亲身经历",
+          },
+        ],
       },
       {
         title: "Advanced Configuration",
@@ -234,26 +241,26 @@ export default class AccordionDemo extends React.Component {
         children: [
           {
             title: "Security Rule",
-            value: "Security Rule"
+            value: "Security Rule",
           },
           {
-            title: "Traffic Rule"
+            title: "Traffic Rule",
           },
           {
-            title: "Application Group"
+            title: "Application Group",
           },
           {
             title: "URL Filter",
-            value: "URL Filter"
-          }
-        ]
-      }
+            value: "URL Filter",
+          },
+        ],
+      },
     ],
-    selectedValue: "URL Filter"
+    selectedValue: "URL Filter",
   };
 
   render() {
-    const { expandMethod } = this.state
+    const { expandMethod } = this.state;
     const [version, theme] = getDemoVersion();
     return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
@@ -264,14 +271,14 @@ export default class AccordionDemo extends React.Component {
             value="expand"
             label="缩小"
             checked={expandMethod === "expand"}
-            onChange={value => this.setState({ expandMethod: value })}
+            onChange={(value) => this.setState({ expandMethod: value })}
             style={{ marginRight: "0.5rem" }}
           />
           <Radio
             value="arrow"
             label="收起"
             checked={expandMethod === "arrow"}
-            onChange={value => this.setState({ expandMethod: value })}
+            onChange={(value) => this.setState({ expandMethod: value })}
           />
         </div>
         <div style={{ background: "#fcfcfc", width: "100%" }}>
@@ -309,8 +316,8 @@ import navMsg from "@images/nav_msg";
 import navMsgActive from "@images/nav_msg_active";
 import navHeart from "@images/nav_heart";
 import navHeartActive from "@images/nav_heart_active";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class AccordionDemo extends React.Component {
   // static init state here
@@ -322,7 +329,7 @@ export default class AccordionDemo extends React.Component {
         title: "Overview",
         value: "over_view",
         icon: navForm,
-        activeIcon: navFormActive
+        activeIcon: navFormActive,
       },
       {
         title: "Easy Configuration",
@@ -333,22 +340,22 @@ export default class AccordionDemo extends React.Component {
           {
             title: "Thriller",
             description:
-              "唱片同名歌曲，创造了多个单曲格莱美大奖记录，一举奠定了流行音乐天王地位。"
+              "唱片同名歌曲，创造了多个单曲格莱美大奖记录，一举奠定了流行音乐天王地位。",
           },
           {
             title: "The Girl Is Mine",
-            description: "热辣火热的舞蹈和动感心动的声响完美的结合"
+            description: "热辣火热的舞蹈和动感心动的声响完美的结合",
           },
           {
             title: "Beat It",
             description: "经典中的经典，几乎无人不知",
-            value: "beat-it"
+            value: "beat-it",
           },
           {
             title: "Billie Jean",
-            description: "传说来自天王的一个亲身经历"
-          }
-        ]
+            description: "传说来自天王的一个亲身经历",
+          },
+        ],
       },
       {
         title: "Advanced Configuration",
@@ -358,31 +365,27 @@ export default class AccordionDemo extends React.Component {
         children: [
           {
             title: "Security Rule",
-            value: "Security Rule"
+            value: "Security Rule",
           },
           {
-            title: "Traffic Rule"
+            title: "Traffic Rule",
           },
           {
-            title: "Application Group"
+            title: "Application Group",
           },
           {
             title: "URL Filter",
-            value: "URL Filter"
-          }
-        ]
-      }
+            value: "URL Filter",
+          },
+        ],
+      },
     ],
-    selectedValue: "URL Filter"
+    selectedValue: "URL Filter",
   };
 
   render() {
-    const {
-      data,
-      selectedValue,
-      hideTitleBar,
-      headerIconPosition
-    } = this.state;
+    const { data, selectedValue, hideTitleBar, headerIconPosition } =
+      this.state;
     const [version, theme] = getDemoVersion();
     return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
@@ -391,7 +394,7 @@ export default class AccordionDemo extends React.Component {
           <LabelField text="是否需要头部" />
           <Toggle
             toggled={hideTitleBar}
-            onToggle={value => {
+            onToggle={(value) => {
               this.setState({ hideTitleBar: !hideTitleBar });
             }}
           />
@@ -402,14 +405,18 @@ export default class AccordionDemo extends React.Component {
                 value="top"
                 label="top"
                 checked={headerIconPosition === "top"}
-                onChange={value => this.setState({ headerIconPosition: value })}
+                onChange={(value) =>
+                  this.setState({ headerIconPosition: value })
+                }
                 style={{ marginRight: "0.5rem" }}
               />
               <Radio
                 value="left"
                 label="left"
                 checked={headerIconPosition === "left"}
-                onChange={value => this.setState({ headerIconPosition: value })}
+                onChange={(value) =>
+                  this.setState({ headerIconPosition: value })
+                }
               />
             </span>
           )}
@@ -435,88 +442,88 @@ ReactDOM.render(<AccordionDemo />, mountNode);
 
 ### 单个展开
 
-设置```enableMultiOpen```为```false```，可设置菜单只展开单个
+设置`enableMultiOpen`为`false`，可设置菜单只展开单个
 
 ```jsx
-import Accordion from 'eview-ui/Accordion';
-import huawei from '@images/huawei';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import Accordion from "eview-ui/Accordion";
+import huawei from "@images/huawei";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class AccordionDemoNoMultiOpen extends React.Component {
   // static init state here
   state = {
     data: [
       {
-        title: 'All',
-        value: 'over_view',
+        title: "All",
+        value: "over_view",
       },
       {
-        title: 'Star',
-        value: 'hero-since-child',
+        title: "Star",
+        value: "hero-since-child",
       },
       {
-        title: 'Off The Wall',
-        children: [{
-          title: "Don't Stop Till You Get Enough",
-        },
-        {
-          title: 'Rock with You',
-        },
-        {
-          title: 'Off The Wall',
-          value: 'off-the-wall',
-        }
-        ],
-      },
-      {
-        title: 'Thriller',
-        description: '巅峰中的巅峰',
-        value: 'thriller',
+        title: "Off The Wall",
         children: [
           {
-            title: 'Thriller',
-            description: '唱片同名歌曲，创造了多个单曲格莱美大奖记录，一举奠定了流行音乐天王地位。',
+            title: "Don't Stop Till You Get Enough",
           },
           {
-            title: 'The Girl Is Mine',
-            description: '热辣火热的舞蹈和动感心动的声响完美的结合',
+            title: "Rock with You",
           },
           {
-            title: 'Beat It',
-            description: '经典中的经典，几乎无人不知',
+            title: "Off The Wall",
+            value: "off-the-wall",
           },
-          {
-            title: 'Billie Jean',
-            description: '传说来自天王的一个亲身经历',
-          }
         ],
-      }
+      },
+      {
+        title: "Thriller",
+        description: "巅峰中的巅峰",
+        value: "thriller",
+        children: [
+          {
+            title: "Thriller",
+            description:
+              "唱片同名歌曲，创造了多个单曲格莱美大奖记录，一举奠定了流行音乐天王地位。",
+          },
+          {
+            title: "The Girl Is Mine",
+            description: "热辣火热的舞蹈和动感心动的声响完美的结合",
+          },
+          {
+            title: "Beat It",
+            description: "经典中的经典，几乎无人不知",
+          },
+          {
+            title: "Billie Jean",
+            description: "传说来自天王的一个亲身经历",
+          },
+        ],
+      },
     ],
-    selectedValue: 'off-the-wall',
+    selectedValue: "off-the-wall",
   };
 
   render() {
     const [version, theme] = getDemoVersion();
     return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-        <ConfigProvider version={version} theme={theme}>
-        <div style={{ background: "#fcfcfc", width: '100%'}}>
+      <ConfigProvider version={version} theme={theme}>
+        <div style={{ background: "#fcfcfc", width: "100%" }}>
           <Accordion
             data={this.state.data}
             selectedValue={this.state.selectedValue}
             headerIcon={huawei}
-            enableMultiOpen={false} />
+            enableMultiOpen={false}
+          />
         </div>
       </ConfigProvider>
-
     );
   }
 }
 
-
 ReactDOM.render(<AccordionDemoNoMultiOpen />, mountNode);
-
 ```
 
 ### 允许拖动
@@ -528,8 +535,8 @@ import Accordion from "eview-ui/Accordion";
 import DivMessage from "eview-ui/DivMessage";
 import { Row, Col } from "eview-ui/GridLayout";
 import LabelField from "eview-ui/LabelField";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 export default class AccordionDemo extends React.Component {
   // static init state here
   state = {
@@ -545,22 +552,22 @@ export default class AccordionDemo extends React.Component {
           {
             title: "Thriller",
             description:
-              "唱片同名歌曲，创造了多个单曲格莱美大奖记录，一举奠定了流行音乐天王地位。"
+              "唱片同名歌曲，创造了多个单曲格莱美大奖记录，一举奠定了流行音乐天王地位。",
           },
           {
             title: "The Girl Is Mine",
-            description: "热辣火热的舞蹈和动感心动的声响完美的结合"
+            description: "热辣火热的舞蹈和动感心动的声响完美的结合",
           },
           {
             title: "Beat It",
             description: "经典中的经典，几乎无人不知",
-            value: "beat-it"
+            value: "beat-it",
           },
           {
             title: "Billie Jean",
-            description: "传说来自天王的一个亲身经历"
-          }
-        ]
+            description: "传说来自天王的一个亲身经历",
+          },
+        ],
       },
       {
         title: "Advanced Configuration",
@@ -568,22 +575,22 @@ export default class AccordionDemo extends React.Component {
         children: [
           {
             title: "Security Rule",
-            value: "Security Rule"
+            value: "Security Rule",
           },
           {
-            title: "Traffic Rule"
+            title: "Traffic Rule",
           },
           {
-            title: "Application Group"
+            title: "Application Group",
           },
           {
             title: "URL Filter",
-            value: "URL Filter"
-          }
-        ]
-      }
+            value: "URL Filter",
+          },
+        ],
+      },
     ],
-    selectedValue: "URL Filter"
+    selectedValue: "URL Filter",
   };
 
   render() {
@@ -608,4 +615,3 @@ export default class AccordionDemo extends React.Component {
 
 ReactDOM.render(<AccordionDemo />, mountNode);
 ```
-

@@ -18,46 +18,44 @@ Paging为分页功能提供了基础支持。
 
 一旦设置了onPageChange回调函数，组件将以完全受控式运行，按钮的默认行为将被禁用。
 
-
 ## antd 迁移注意事项
 
 > 迁移分类：A｜本表由 build-migration-plan.cjs 解析生成迁移计划
 
-| antd 写法 | eview 写法 | 迁移要点 |
-|-----------|-----------|----------|
-| `Pagination` | `Paging` | `total`→**`recordCount`（必须传）**；`current`→`currentPage`；`pageSize`/`pageSizeOptions` 同名；`showTotal`→`recordCountDisp`（string 替代展示）；`onChange(page, pageSize)`→**`onPageChange(currentPage)` + `onPageSizeChange(pageSize)` 分开两个**；`hideConfig=['totalRecord','pageSize','gotoPage']` 隐藏分区；`simple`→`type='simple'`；**`onPageChange` 一旦设置即完全受控**（默认翻页行为被禁用——受控时必须接回调维护 currentPage） |
+| antd 写法    | eview 写法 | 迁移要点                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Pagination` | `Paging`   | `total`→**`recordCount`（必须传）**；`current`→`currentPage`；`pageSize`/`pageSizeOptions` 同名；`showTotal`→`recordCountDisp`（string 替代展示）；`onChange(page, pageSize)`→**`onPageChange(currentPage)` + `onPageSizeChange(pageSize)` 分开两个**；`hideConfig=['totalRecord','pageSize','gotoPage']` 隐藏分区；`simple`→`type='simple'`；**`onPageChange` 一旦设置即完全受控**（默认翻页行为被禁用——受控时必须接回调维护 currentPage） |
 
 ## API
 
 ### 属性
 
-| 属性名称 | 描述 | 输入 | 默认 |
-|:-----|:-----|:-----|:-----|
-| recordCount | 总记录条数，必须 | number |  |
-| recordCountDisp | 自定义总记录数的显示，会替代recordCount作为展示内容（页数计算仍基于recordCount） | string |  |
-| pageSize | 单页大小，切换分页下拉框会改变 | number | 10 |
-| currentPage | 当前页码，点击分页会切换 | number | 1 |
-| pageSizeOptions | 分页大小选项，决定下拉框中的可选项 | number[] | [10, 20, 50, 100] |
-| type | 分页类型：数字列表、下拉框或精简模式 | enum:<br>&nbsp;"list"<br>&nbsp;"select"<br>&nbsp;"simple"<br> | 'list' |
-| onPageChange | 点击切换页码的时候触发的回调函数<br><br>**签名:**<br>`function(currentPage: number) => void`<br>*currentPage:* 页码 | function |  |
-| onPageSizeChange | 分页大小切换事件回调<br><br>**签名:**<br>`function(pageSize: number) => void`<br>*pageSize:* 分页尺寸 | function |  |
-| onInputChange | 跳转输入框值变更后的回调函数<br><br>**签名:**<br>`function(value: string) => void`<br>*value:* 输入框文本 | function |  |
-| popupDirection | 弹出方向，定义分页页面大小选择控件的弹窗方向 | enum:<br>&nbsp;'top'<br>&nbsp;'bottom'<br> |  |
-| splitPagination | 如果为true，则将分页切换器浮动到右侧 | bool | false |
-| className | 为组件外层容器增加class | string |  |
-| style | 为组件外层容器设置样式 | object |  |
-| id | 组件外层容器id，未设置时自动生成（eui_Paging_NNNN） | string | 自动生成 |
-| selectWidth | 自定义Select下拉菜单的宽度 | string | '7rem' |
-| selectProps | Select子组件的props，详情请查阅Select的API | object |  |
-| hideConfig | 支持的配置项：`['totalRecord', 'pageSize', 'gotoPage']`，其中totalRecord表示总数，pageSize表示页大小，gotoPage表示跳转页码，可根据实际需要配置其中一项或多项隐藏。默认不配置表示全部展示。注意：type配置为select时，由于原始不支持'pageSize'与'gotoPage'，配置了无效 | array |  |
-| version | AUI版本号，通常由ConfigProvider自动提供，一般不需要手动设置 | string | 由ConfigProvider提供 |
-| theme | AUI主题名，通常由ConfigProvider自动提供，一般不需要手动设置 | string | 由ConfigProvider提供 |
+| 属性名称         | 描述                                                                                                                                                                                                                                                                 | 输入                                                          | 默认                 |
+| :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------ | :------------------- |
+| recordCount      | 总记录条数，必须                                                                                                                                                                                                                                                     | number                                                        |                      |
+| recordCountDisp  | 自定义总记录数的显示，会替代recordCount作为展示内容（页数计算仍基于recordCount）                                                                                                                                                                                     | string                                                        |                      |
+| pageSize         | 单页大小，切换分页下拉框会改变                                                                                                                                                                                                                                       | number                                                        | 10                   |
+| currentPage      | 当前页码，点击分页会切换                                                                                                                                                                                                                                             | number                                                        | 1                    |
+| pageSizeOptions  | 分页大小选项，决定下拉框中的可选项                                                                                                                                                                                                                                   | number[]                                                      | [10, 20, 50, 100]    |
+| type             | 分页类型：数字列表、下拉框或精简模式                                                                                                                                                                                                                                 | enum:<br>&nbsp;"list"<br>&nbsp;"select"<br>&nbsp;"simple"<br> | 'list'               |
+| onPageChange     | 点击切换页码的时候触发的回调函数<br><br>**签名:**<br>`function(currentPage: number) => void`<br>_currentPage:_ 页码                                                                                                                                                  | function                                                      |                      |
+| onPageSizeChange | 分页大小切换事件回调<br><br>**签名:**<br>`function(pageSize: number) => void`<br>_pageSize:_ 分页尺寸                                                                                                                                                                | function                                                      |                      |
+| onInputChange    | 跳转输入框值变更后的回调函数<br><br>**签名:**<br>`function(value: string) => void`<br>_value:_ 输入框文本                                                                                                                                                            | function                                                      |                      |
+| popupDirection   | 弹出方向，定义分页页面大小选择控件的弹窗方向                                                                                                                                                                                                                         | enum:<br>&nbsp;'top'<br>&nbsp;'bottom'<br>                    |                      |
+| splitPagination  | 如果为true，则将分页切换器浮动到右侧                                                                                                                                                                                                                                 | bool                                                          | false                |
+| className        | 为组件外层容器增加class                                                                                                                                                                                                                                              | string                                                        |                      |
+| style            | 为组件外层容器设置样式                                                                                                                                                                                                                                               | object                                                        |                      |
+| id               | 组件外层容器id，未设置时自动生成（eui_Paging_NNNN）                                                                                                                                                                                                                  | string                                                        | 自动生成             |
+| selectWidth      | 自定义Select下拉菜单的宽度                                                                                                                                                                                                                                           | string                                                        | '7rem'               |
+| selectProps      | Select子组件的props，详情请查阅Select的API                                                                                                                                                                                                                           | object                                                        |                      |
+| hideConfig       | 支持的配置项：`['totalRecord', 'pageSize', 'gotoPage']`，其中totalRecord表示总数，pageSize表示页大小，gotoPage表示跳转页码，可根据实际需要配置其中一项或多项隐藏。默认不配置表示全部展示。注意：type配置为select时，由于原始不支持'pageSize'与'gotoPage'，配置了无效 | array                                                         |                      |
+| version          | AUI版本号，通常由ConfigProvider自动提供，一般不需要手动设置                                                                                                                                                                                                          | string                                                        | 由ConfigProvider提供 |
+| theme            | AUI主题名，通常由ConfigProvider自动提供，一般不需要手动设置                                                                                                                                                                                                          | string                                                        | 由ConfigProvider提供 |
 
 ## 接口定义
 
 ```typescript
 export interface PaginationProps {
-
   id?: string;
 
   style?: object;
@@ -76,7 +74,7 @@ export interface PaginationProps {
 
   pageSizeOptions?: number[];
 
-  type?: 'list' | 'select' | 'simple';
+  type?: "list" | "select" | "simple";
 
   onPageChange?: (currentPage: number) => void;
 
@@ -84,13 +82,13 @@ export interface PaginationProps {
 
   onInputChange?: (value: string) => void;
 
-  popupDirection?: 'top' | 'bottom';
+  popupDirection?: "top" | "bottom";
 
   selectWidth?: string;
 
   selectProps?: any;
 
-  hideConfig?: ('totalRecord' | 'pageSize' | 'gotoPage')[];
+  hideConfig?: ("totalRecord" | "pageSize" | "gotoPage")[];
 
   version?: string;
 
@@ -102,13 +100,11 @@ export interface PaginationProps {
 
 ### 基本属性设置
 
-## en-US
-
 ```jsx
 import Paging from "eview-ui/Paging";
 import LabelField from "eview-ui/LabelField";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class PagingBasic extends React.Component {
   constructor(props) {
@@ -128,30 +124,30 @@ export default class PagingBasic extends React.Component {
     };
   }
 
-  handlePageSizeChange = pageSize => {
+  handlePageSizeChange = (pageSize) => {
     this.setState({ pageSize });
   };
 
-  handlePageChangeForSelectType = curPageForSelectType => {
+  handlePageChangeForSelectType = (curPageForSelectType) => {
     this.setState({ curPageForSelectType });
   };
 
-  handlePageChangeForTextType = curPageForTextType => {
+  handlePageChangeForTextType = (curPageForTextType) => {
     this.setState({ curPageForTextType });
   };
 
-  handlePageSizeChangeForCustomType = pageSizeForCustomType => {
+  handlePageSizeChangeForCustomType = (pageSizeForCustomType) => {
     this.setState({ pageSizeForCustomType });
   };
 
   render() {
-    let labelStyle = { display: 'block', paddingLeft: '0px' };
+    let labelStyle = { display: "block", paddingLeft: "0px" };
     const [version, theme] = getDemoVersion();
     return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
       <ConfigProvider version={version} theme={theme}>
         <div>
-          <LabelField text="Default Type:" style={labelStyle}/>
+          <LabelField text="Default Type:" style={labelStyle} />
           <Paging
             recordCount={this.state.total}
             pageSize={this.state.pageSize}
@@ -159,8 +155,8 @@ export default class PagingBasic extends React.Component {
             onPageSizeChange={this.handlePageSizeChange}
             pageSizeOptions={[10, 30, 90]}
           />
-          <br/> <br/>
-          <LabelField text="Select Type:" style={labelStyle}/>
+          <br /> <br />
+          <LabelField text="Select Type:" style={labelStyle} />
           <Paging
             type={"select"}
             recordCount={this.state.total}
@@ -169,8 +165,11 @@ export default class PagingBasic extends React.Component {
             onPageChange={this.handlePageChangeForSelectType}
             pageSizeOptions={[10, 30, 90]}
           />
-          <br/> <br/>
-          <LabelField text="Simple Type: 精简分页器（配置hideConfig为['totalRecord', 'pageSize', 'gotoPage']）" style={labelStyle}/>
+          <br /> <br />
+          <LabelField
+            text="Simple Type: 精简分页器（配置hideConfig为['totalRecord', 'pageSize', 'gotoPage']）"
+            style={labelStyle}
+          />
           <Paging
             type={"simple"}
             recordCount={this.state.total}
@@ -178,10 +177,10 @@ export default class PagingBasic extends React.Component {
             currentPage={this.state.curPageForTextType}
             onPageChange={this.handlePageChangeForTextType}
             pageSizeOptions={[10, 30, 90]}
-            hideConfig={['totalRecord', 'pageSize', 'gotoPage']}
+            hideConfig={["totalRecord", "pageSize", "gotoPage"]}
           />
-          <br/> <br/>
-          <LabelField text="Simple Type: 复杂分页器" style={labelStyle}/>
+          <br /> <br />
+          <LabelField text="Simple Type: 复杂分页器" style={labelStyle} />
           <Paging
             type={"simple"}
             recordCount={this.state.total}
@@ -190,8 +189,8 @@ export default class PagingBasic extends React.Component {
             onPageChange={this.handlePageChangeForTextType}
             pageSizeOptions={[10, 30, 90]}
           />
-          <br/> <br/>
-          <LabelField text="Custom Total Record Count" style={labelStyle}/>
+          <br /> <br />
+          <LabelField text="Custom Total Record Count" style={labelStyle} />
           <Paging
             recordCount={this.state.total}
             recordCountDisp={"100+"}
@@ -212,27 +211,24 @@ ReactDOM.render(<PagingBasic />, mountNode);
 
 ### 事件处理
 
-## en-US
-
 ```jsx
-import Paging from 'eview-ui/Paging';
-import DivMessage from 'eview-ui/DivMessage';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import Paging from "eview-ui/Paging";
+import DivMessage from "eview-ui/DivMessage";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class PagingAction extends React.Component {
-
   state = {
     msg: null,
     pageSize: 10,
     currentPage: 1,
-    recordCount: 10000
+    recordCount: 10000,
   };
 
   handlePageChange = (currentPage) => {
     this.setState({
       msg: "onPageChange Callback, currentPage: " + currentPage,
-      currentPage
+      currentPage,
     });
   };
 
@@ -259,8 +255,13 @@ export default class PagingAction extends React.Component {
             pageSizeOptions={[10, 30, 90]}
           />
 
-          {this.state.msg &&
-            <DivMessage text={this.state.msg} type="success" style={{marginTop: '10px', width: '100%'}}/>}
+          {this.state.msg && (
+            <DivMessage
+              text={this.state.msg}
+              type="success"
+              style={{ marginTop: "10px", width: "100%" }}
+            />
+          )}
         </div>
       </ConfigProvider>
     );
@@ -272,17 +273,14 @@ ReactDOM.render(<PagingAction />, mountNode);
 
 ### 拆分样式
 
-## en-US
-
 ```jsx
-import Paging from 'eview-ui/Paging';
-import LabelField from 'eview-ui/LabelField';
-import Button from 'eview-ui/Button';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import Paging from "eview-ui/Paging";
+import LabelField from "eview-ui/LabelField";
+import Button from "eview-ui/Button";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class PagingSplitStyle extends React.Component {
-
   state = {
     total: 100,
     pageSize: 10,
@@ -292,36 +290,36 @@ export default class PagingSplitStyle extends React.Component {
 
     pageSizeForCustomType: 10,
 
-    pagingStyle: {}
+    pagingStyle: {},
   };
 
-  handlePageSizeChange = pageSize => {
-    this.setState({pageSize});
+  handlePageSizeChange = (pageSize) => {
+    this.setState({ pageSize });
   };
 
-  handlePageChangeForSelectType = curPageForSelectType => {
-    this.setState({curPageForSelectType});
+  handlePageChangeForSelectType = (curPageForSelectType) => {
+    this.setState({ curPageForSelectType });
   };
 
-  handlePageSizeChangeForCustomType = pageSizeForCustomType => {
-    this.setState({pageSizeForCustomType});
+  handlePageSizeChangeForCustomType = (pageSizeForCustomType) => {
+    this.setState({ pageSizeForCustomType });
   };
 
   handleChangeWidth = () => {
     this.setState({
-      pagingStyle: { width: "50rem" }
+      pagingStyle: { width: "50rem" },
     });
   };
 
   render() {
-    let labelStyle = {display: "block", paddingLeft: "0px"};
+    let labelStyle = { display: "block", paddingLeft: "0px" };
     const [version, theme] = getDemoVersion();
 
     return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
       <ConfigProvider version={version} theme={theme}>
         <div>
-          <LabelField text="Default Type:" style={labelStyle}/>
+          <LabelField text="Default Type:" style={labelStyle} />
           <Paging
             recordCount={this.state.total}
             pageSize={this.state.pageSize}
@@ -331,10 +329,10 @@ export default class PagingSplitStyle extends React.Component {
             style={this.state.pagingStyle}
             splitPagination
           />
-          <br/> <br/>
-          <LabelField text="Select Type:" style={labelStyle}/>
+          <br /> <br />
+          <LabelField text="Select Type:" style={labelStyle} />
           <Paging
-            type={'select'}
+            type={"select"}
             recordCount={this.state.total}
             pageSize={this.state.pageSizeForSelectType}
             currentPage={this.state.curPageForSelectType}
@@ -343,11 +341,11 @@ export default class PagingSplitStyle extends React.Component {
             style={this.state.pagingStyle}
             splitPagination
           />
-          <br/> <br/>
-          <LabelField text="Custom Total Record Count" style={labelStyle}/>
+          <br /> <br />
+          <LabelField text="Custom Total Record Count" style={labelStyle} />
           <Paging
             recordCount={this.state.total}
-            recordCountDisp={'100+'}
+            recordCountDisp={"100+"}
             pageSize={this.state.pageSizeForCustomType}
             currentPage={4}
             onPageSizeChange={this.handlePageSizeChangeForCustomType}
@@ -355,8 +353,7 @@ export default class PagingSplitStyle extends React.Component {
             style={this.state.pagingStyle}
             splitPagination
           />
-
-          <br/> <br/>
+          <br /> <br />
           <Button text="change width" onClick={this.handleChangeWidth}></Button>
         </div>
       </ConfigProvider>
@@ -366,4 +363,3 @@ export default class PagingSplitStyle extends React.Component {
 
 ReactDOM.render(<PagingSplitStyle />, mountNode);
 ```
-

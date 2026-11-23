@@ -8,17 +8,17 @@ FormMessage主要用于表单提示信息提示，支持自定义组件样式，
 
 ### 属性
 
-| 属性名称 | 描述 | 类型 | 默认值 |
-|:-----|:-----|:-----|:-----|
-| id | 默认设置动态id，支持用户自定义id | string | 动态生成 |
-| className | 支持通过className设置组件样式 | string |  |
-| style | 支持通过style设置组件样式，如：style={{color:'red'}} | CSSProperties |  |
-| icon | 支持通过icon设置组件图标，icon为url组件图标默认符合AUI2.0规范，图片大小为16*16 | string |  |
-| iconClassName | 支持通过iconClassName设置组件图标样式 | string |  |
-| text | 支持通过text设置消息框文本内容,text支持任意类型 | any |  |
-| type | 支持通过type设置组件类型 | 'error' &#124; 'success' &#124; 'default' | 'default' |
-| version | 支持通过version设置组件版本 | string |  |
-| theme | 支持通过theme设置组件主题 | string |  |
+| 属性名称      | 描述                                                                            | 类型                                      | 默认值    |
+| :------------ | :------------------------------------------------------------------------------ | :---------------------------------------- | :-------- |
+| id            | 默认设置动态id，支持用户自定义id                                                | string                                    | 动态生成  |
+| className     | 支持通过className设置组件样式                                                   | string                                    |           |
+| style         | 支持通过style设置组件样式，如：style={{color:'red'}}                            | CSSProperties                             |           |
+| icon          | 支持通过icon设置组件图标，icon为url组件图标默认符合AUI2.0规范，图片大小为16\*16 | string                                    |           |
+| iconClassName | 支持通过iconClassName设置组件图标样式                                           | string                                    |           |
+| text          | 支持通过text设置消息框文本内容,text支持任意类型                                 | any                                       |           |
+| type          | 支持通过type设置组件类型                                                        | 'error' &#124; 'success' &#124; 'default' | 'default' |
+| version       | 支持通过version设置组件版本                                                     | string                                    |           |
+| theme         | 支持通过theme设置组件主题                                                       | string                                    |           |
 
 ```typescript
 export interface Iprops {
@@ -60,15 +60,11 @@ static defaultProps = {
 
 ### 基本属性设置
 
-## en-US
-
-
-
 ```jsx
-import FormMessage from 'eview-ui/FormMessage';
-import imgPicture from '@images/filter.png';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import FormMessage from "eview-ui/FormMessage";
+import imgPicture from "@images/filter.png";
+import ConfigProvider from "eview-ui/ConfigProvider";
+import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class FormMessageExample extends React.Component {
   render() {
@@ -77,54 +73,35 @@ export default class FormMessageExample extends React.Component {
     return (
       // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
       <ConfigProvider version={version} theme={theme}>
-        <div style={{marginLeft: "10px"}}>
+        <div style={{ marginLeft: "10px" }}>
           <div>
-            <FormMessage type="default" text="Default style" style={{width: "200px"}}/>
+            <FormMessage
+              type="default"
+              text="Default style"
+              style={{ width: "200px" }}
+            />
           </div>
           <div>
-            <FormMessage type="success" text="Success" style={{width: "200px"}}/>
+            <FormMessage
+              type="success"
+              text="Success"
+              style={{ width: "200px" }}
+            />
           </div>
           <div>
-            <FormMessage type="error" text="Failure" style={{width: "200px"}}/>
+            <FormMessage
+              type="error"
+              text="Failure"
+              style={{ width: "200px" }}
+            />
           </div>
           <div>
-            <FormMessage type="error" text="Support custom icons" style={{width: "200px"}} icon={imgPicture}/>
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<FormMessageExample />, mountNode);
-
-```
-
-```jsx
-import FormMessage from 'eview-ui/FormMessage';
-import imgPicture from '@images/filter.png';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-
-export default class FormMessageExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{marginLeft: "10px"}}>
-          <div>
-            <FormMessage type="default" text="Default style" style={{width: "200px"}}/>
-          </div>
-          <div>
-            <FormMessage type="success" text="Success" style={{width: "200px"}}/>
-          </div>
-          <div>
-            <FormMessage type="error" text="Failure" style={{width: "200px"}}/>
-          </div>
-          <div>
-            <FormMessage type="error" text="Support custom icons" style={{width: "200px"}} icon={imgPicture}/>
+            <FormMessage
+              type="error"
+              text="Support custom icons"
+              style={{ width: "200px" }}
+              icon={imgPicture}
+            />
           </div>
         </div>
       </ConfigProvider>
@@ -133,6 +110,4 @@ export default class FormMessageExample extends React.Component {
 }
 
 ReactDOM.render(<FormMessageExample />, mountNode);
-
 ```
-
