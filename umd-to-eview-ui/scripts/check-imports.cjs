@@ -10,6 +10,8 @@
  *   2. ANTD_SUBPATH         残留 `from 'antd/...'` 子路径
  *   3. ICONS_RESIDUAL       残留 `from '@ant-design/icons'`
  *   4. EVIEWREACT_RESIDUAL  残留 `from '@nce/eview-react'`（混入 eview-react 旧骨架）
+ *                          ——例外：`@nce/eview-react/Chart` 是 Chart 组件的合法导入
+ *                          （@cloudsop/eview-ui 无 Chart 组件，走 @nce/eview-react/Chart，见硬约束 9）
  *   4b. EVUI_UNSCOPED_IMPORT 裸包名导入 `from 'eview-ui/...'`（真实包名是 @cloudsop/eview-ui，
  *                          裸形态来自官方组件文档示例抄写——文档里是简写包名，解析必失败）
  *   5. EVUI_ROOT_IMPORT     `import { X } from '@cloudsop/eview-ui'` 根包具名导入（应子路径默认导入：
@@ -116,11 +118,13 @@ function main() {
       if (/\bfrom\s+['"]@ant-design\/icons['"]/.test(line)) {
         violations.push({ file: rel, line: ln, code: 'ICONS_RESIDUAL', detail: line.trim() });
       }
-      // 4. @nce/eview-react 残留（混入 eview-react 旧骨架）
-      if (/\bfrom\s+['"]@nce\/eview-react(\/[^'"]*)?['"]/.test(line)) {
+      // 4. @nce/eview-react 残留（混入 eview-react 旧骨架）——例外：@nce/eview-react/Chart 是 Chart
+      //    组件的合法导入（@cloudsop/eview-ui 无 Chart，走 @nce/eview-react/Chart，见硬约束 9）
+      const evrMatch = line.match(/\bfrom\s+['"]@nce\/eview-react(\/[^'"]*)?['"]/);
+      if (evrMatch && evrMatch[1] !== '/Chart') {
         violations.push({
           file: rel, line: ln, code: 'EVIEWREACT_RESIDUAL',
-          detail: line.trim() + ' —— 混入 eview-react 旧骨架：@nce/eview-react 不在本 skill 依赖（含 src/shared 转发包壳），应删除',
+          detail: line.trim() + ' —— 混入 eview-react 旧骨架：@nce/eview-react 不在本 skill 依赖（含 src/shared 转发包壳），应删除（唯一例外：@nce/eview-react/Chart，见硬约束 9）',
         });
       }
       // 4b. 裸包名导入（from 'eview-ui/...'）——真实包名是 @cloudsop/eview-ui（scoped），

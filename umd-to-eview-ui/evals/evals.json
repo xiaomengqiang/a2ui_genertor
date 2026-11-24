@@ -152,8 +152,8 @@
     },
     {
       "id": 10,
-      "name": "图标转换与图表保留策略",
-      "description": "图标转 @/shared/SvgIcon（name/size/color → 图标组件/图标字符串）、图表保留源 Chart 封装（eview-ui 无对应）",
+      "name": "图标转换与图表迁移策略",
+      "description": "图标转 @/shared/SvgIcon（name/size/color → 图标组件/图标字符串）、图表迁移到 @nce/eview-react/Chart（删源 chart.jsx + option 补 a2ui/theme）",
       "input": "<Icon name> 调用点 + eview-ui 组件 icon prop 位 + <Chart> 调用点（步骤 2 预扫 iconCallSites/chartCallSites）",
       "assertions": [
         "独立 <Icon name=\"...\"> 调用点转 <SvgIcon src={name} size={n} color={...}/>（name→src，size/color 不变）",
@@ -164,7 +164,10 @@
         "ReactNode 型 icon prop（Menu.SubMenu.icon/Menu.MenuItem.icon/PopUpMenu.icon）用 <SvgIcon>（NOT 塞字符串）",
         "Button 带图标用 leftIcon/rightIcon + getIconBase64（NOT children 塞 <SvgIcon>）",
         "命名冲突：@/shared/SvgIcon 的 SvgIcon（允许）≠ eview-ui 内置 SvgIcon（废弃，禁用）",
-        "Chart 封装保留原样（NOT 补 a2ui/theme——eview-ui 无此约束）",
+        "Chart 删除源 assets/shared/chart.jsx 共享封装（sharedFilesToRemove 列出者）+ import 改 import Chart from '@nce/eview-react/Chart'（NOT 残留 assets/shared/chart.jsx / components/chart 旧路径、NOT 残留 setSimpleOption(）",
+        "每个 <Chart option> 显式补 a2ui: true 与 theme（源套壳 setSimpleOption 前自动注入的行为不随包导入生效）",
+        "theme: isDark ? 'hdesign-dark' : 'hdesign-light'（isDark 来自 useApp()——context.jsx 的 AppProvider，步骤 3 已保留；NOT 静态字符串）",
+        "onChartRendered(chart) 的 chart 即 echarts 实例，直接 .on()/.setOption()（NOT 回调内再调 chart.getEchartsInstance()——该方法只在组件 ref 上）",
         "vite.config.js icon-plus proxy 保留（@/shared/SvgIcon 运行时依赖）"
       ]
     },

@@ -10,7 +10,7 @@
     },
     "dependencies": {
         "@cloudsop/eview-ui": "^7.1.37",
-        "@hui/icon-plus": "1.0.0-agent.1",
+        "@nce/eview-react": "latest",
         "@hui/design-token": "latest",
         "dayjs": "^1.11.10",
         "lodash": "^4.17.21",

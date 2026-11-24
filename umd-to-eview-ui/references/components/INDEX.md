@@ -56,6 +56,7 @@
 | CardGrid | [CardGrid.md](CardGrid.md) | 卡片网格（Card.Grid） |
 | TimeLine | [TimeLine.md](TimeLine.md) | 时间线（Timeline，导出名大写 L） |
 | ProgressBar | [ProgressBar.md](ProgressBar.md) | 进度条（Progress，percent→current） |
+| Chart | [Chart.md](Chart.md) | 图表（HUI Charts / echarts；源 `assets/shared/chart.jsx` 套壳 → `@nce/eview-react/Chart`，option 必含 `a2ui:true`+`theme`） |
 | LabelField | —（见表单组） | Descriptions 键值行 |
 | Split | [Split.md](Split.md) | 可拖拽分栏（非 Space 对应物） |
 | ScrollBar | [ScrollBar.md](ScrollBar.md) | 滚动条容器 |

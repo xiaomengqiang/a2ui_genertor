@@ -1,0 +1,151 @@
+# 图表（Chart）功能逻辑规格
+
+> **资料来源**（eview-react 官方资料，不随 skill 打包）：`@nce/eview-react/Chart`；契约与源项目的 `<Chart>` 一致（`name` + `option`）。完整 API 以官方 TypeDoc 为准。
+>
+> ⚠️ 迁移时改 import 路径（`./assets/shared/chart.jsx` → `@nce/eview-react/Chart`）+ option 补 `a2ui: true` 与 `theme`（补偿源套壳的自动注入，见下条）。无需 UMD `<script>` 注入或自写封装。**`@nce/eview-react/Chart` 是本 skill 唯一从 `@nce/eview-react` 包导入的组件**——其余组件统一 `@cloudsop/eview-ui/X`，仅 Chart 因 `@cloudsop/eview-ui` 无对应组件而走 `@nce/eview-react/Chart`（两者封装同一套 HUI Charts，option 契约一致）。
+> ⚠️ **所有图表 option 必须显式携带 `a2ui: true` 与 `theme`**：源项目 Chart 套壳（ict-coder 的 `assets/shared/chart.jsx`，含 `src/components/chart/` 变体）自动 watch `<html>.dark` + 在 `setSimpleOption` 前注入 `{ theme, a2ui: true, ...option }` + 暗色切换自动 re-render（ict-coder Chart.md: "Dark mode is automatic"）；改 `@nce/eview-react/Chart` 包导入后**自动行为整体丢失**——漏写则 a2ui 视觉规范失效、暗色切换图表主题不跟随。
+> ⚠️ **`theme` 必须响应式引用 `useApp().isDark`**：`isDark` 来自源项目的 `src/context.jsx`（AppProvider + useApp，步骤 3 已保留），写法 `const { isDark } = useApp()` + `theme: isDark ? 'hdesign-dark' : 'hdesign-light'`。option 的 theme **必须引用 isDark 变量**（不能写静态字符串如 `'hdesign-light'`）——暗色切换时组件 re-render → option 重建（含新 theme）→ 图表按新主题重建。推荐 `const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' }` 聚合后展开进各 option（chartBase 引用 isDark 即响应式）。
+> ⚠️ 源项目的 `assets/shared/chart.jsx` 共享封装（及其 `src/components/chart/` 变体）已废弃，改用 `@nce/eview-react/Chart` 原生组件——步骤 7 删除源封装文件，import 改包导入。
+
+## 1. 功能定位
+
+`@nce/eview-react/Chart` 是 HUI Charts（封装 echarts）的 React 组件，用于柱状图 / 折线图 / 饼图 / 仪表盘等。`name` 指定图表类型，`option` 原样透传给底层 HUI Charts 的 `setSimpleOption`。
+
+| 想要的效果 | 用什么 | 不要用 |
+|-----------|--------|--------|
+| 柱状 / 折线 / 饼图等 | `<Chart name="BarChart" option={...} />` | 直接操作 echarts 或保留源 `assets/shared/chart.jsx` 自写封装 |
+
+## 2. 典型场景
+
+- 数据看板：柱状图展示设备数量、折线图展示趋势
+- 仪表盘：GaugeChart 展示健康度 / 使用率
+- 占比分布：PieChart
+
+## 3. 状态声明
+
+```tsx
+// 图表本身无状态；option 由业务 data 派生
+const [option, setOption] = useState({ /* echarts option */ });
+```
+
+## 4. 事件与交互逻辑
+
+```tsx
+import Chart from '@nce/eview-react/Chart';
+
+<Chart
+  name="BarChart"
+  option={{
+    a2ui: true,                                        // 必含：a2ui 视觉规范标识
+    theme: isDark ? 'hdesign-dark' : 'hdesign-light',  // 必含：随全局暗色状态派生（如 useApp().isDark）
+    xAxis: { data: ['Mon', 'Tue', 'Wed'] },
+    series: [{ type: 'bar', data: [10, 20, 15] }],
+  }}
+/>
+```
+
+事件绑定走 `onChartRendered`，**参数即 echarts 实例，直接 `.on()` 绑定交互，不要二次 `getEchartsInstance()`**：
+
+```tsx
+<Chart
+  name="PieChart"
+  option={{ ...chartBase, data }}
+  onChartRendered={(echartsInstance) => {
+    if (!echartsInstance) return;
+    echartsInstance.on('click', (params) => {
+      if (!params || !params.name) return;
+      onSliceClick(params.name);
+    });
+  }}
+/>
+```
+
+## 5. 数据结构
+
+```tsx
+interface ChartProps {
+  name: string;    // 图表类型（见 §9）
+  option: object;  // echarts 风格配置项，原样透传；**必须含 a2ui: true 与 theme（随暗色派生）**
+  className?: string;
+  style?: React.CSSProperties;
+  onChartRendered?: (chart: any) => void;  // 渲染完成回调，chart参数即底层 echarts 实例，直接 .on()/.setOption()，禁止再调 getEchartsInstance()
+}
+```
+
+## 6. 联动说明
+
+- 暗色模式：**`theme` 由业务 option 携带**（`isDark ? 'hdesign-dark' : 'hdesign-light'`，`isDark` 来自 `useApp()`——context.jsx 的 AppProvider，步骤 3 已保留）。暗色切换 → isDark 变 → 组件 re-render → option 重建（含新 theme）→ 图表按新主题重建；组件**不会自动注入** theme，也**不会自动 watch `.dark`**（源套壳的自动行为已丢失）。**禁止写静态 theme 字符串**（如 `'hdesign-light'`），暗色切换时图表不跟随。注意：此处的 `hdesign-dark`/`hdesign-light` 是 HUI Charts 图表 option 的主题名，与 eview-ui `ConfigProvider` 的 `theme={isDark ? 'evening' : 'lightday'}`（组件库主题轨）是两套主题系统，勿混用。
+- 容器尺寸变化（侧栏折叠 / 窗口缩放 / 响应式）：ResizeObserver 自动 resize
+- **`onChartRendered(chart)` 的 `chart` 参数就是 echarts 实例本身**：直接 `chart.on('click', ...)` / `chart.setOption(...)`，**禁止**在回调内再调 `chart.getEchartsInstance()`——该方法只存在于组件 ref 上，回调参数没有
+- ref 方法（只在组件 ref 上调用，如 `chartRef.current.getEchartsInstance()`）：`getEchartsInstance()` 取底层 echarts 实例；`resizeHandler()` 手动触发 resize
+
+## 7. 完整代码示例
+
+```tsx
+import Chart from '@nce/eview-react/Chart';
+
+// a2ui + theme 是每个图表 option 的必含标识；isDark 来自 useApp()（context.jsx 的 AppProvider，步骤 3 已保留），
+// chartBase 引用 isDark → 暗色切换时组件 re-render → chartBase 含新 theme → option 重建 → 图表跟随
+export default function DeviceChart({ data }) {
+  const { isDark } = useApp();
+  const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' };
+  return (
+    <div style={{ width: '100%', height: 320 }}>
+      <Chart
+        name="BarChart"
+        option={{
+          ...chartBase,
+          xAxis: { data: data.map((d) => d.name) },
+          series: [{ type: 'bar', data: data.map((d) => d.value) }],
+        }}
+      />
+    </div>
+  );
+}
+```
+
+## 8. 反面示例
+
+```tsx
+// ❌ 保留源 UMD 封装 assets/shared/chart.jsx（已废弃——改用 @nce/eview-react/Chart 原生组件）
+import Chart from './assets/shared/chart.jsx';
+
+// ❌ import 路径用源项目的资产目录旧路径
+import Chart from '../components/chart';
+
+// ❌ 直接操作 window.echarts 绕过组件
+const chart = echarts.init(dom);
+```
+
+```tsx
+// ❌ option 缺 a2ui: true 与 theme：源 Chart 封装的注入行为不随包导入自动生效，
+//    图表 a2ui 视觉规范失效、暗色切换后主题不跟随（每个图表都必须显式携带，见 SKILL.md 硬约束 9）
+<Chart name="BarChart" option={{ xAxis: { data: [...] }, series: [{ type: 'bar', data: [...] }] }} />
+```
+
+```tsx
+// ❌ theme 写静态字符串：暗色切换时图表主题不跟随（必须 theme: isDark ? 'hdesign-dark' : 'hdesign-light'）
+<Chart name="BarChart" option={{ a2ui: true, theme: 'hdesign-light', xAxis: {...}, series: [...] }} />
+```
+
+```tsx
+// ❌ onChartRendered 参数已是 echarts 实例，再调 getEchartsInstance() 取不到值；
+//    getEchartsInstance() 是组件 ref 上的方法（chartRef.current.getEchartsInstance()），回调参数上没有
+const handleChartRendered = (chart) => {
+  const echartsInstance = chart.getEchartsInstance(); // ❌
+  echartsInstance.on('click', ...);
+};
+```
+
+## 9. API 速查
+
+| API | 类型 / 默认值 | 说明 |
+|-----|--------------|------|
+| `name` | `string` | 图表类型：`BarChart` / `LineChart` / `PieChart` / `GaugeChart` / `HillChart` / `JadeJueChart` / `ProcessChart` |
+| `option` | `object` | echarts 风格配置项，原样透传给 HUICharts `setSimpleOption`；**必含 `a2ui: true` 与 `theme`（随暗色派生 `hdesign-dark`/`hdesign-light`）** |
+| `className` / `style` | `string` / `CSSProperties` | 容器样式（wrapper 默认 `width:100%; height:100%`） |
+| `onChartRendered` | `(echartsInstance) => void` | 渲染完成回调，参数即底层 echarts 实例，直接用（如 `echartsInstance.on('click', ...)`）；**禁止**在回调内再调 `chart.getEchartsInstance()`（该方法只在组件 ref 上） |
+| ref `getEchartsInstance()` | `() => echartsInstance \| null` | 取底层 echarts 实例 |
+| ref `resizeHandler()` | `() => void` | 手动触发 resize |
+
+> 上述 API 基于源项目的 `<Chart>` 契约与源封装的行为对齐；`@nce/eview-react/Chart` 原生组件的完整 prop 列表以官方 TypeDoc 为准，未列出的 props 一律不写。

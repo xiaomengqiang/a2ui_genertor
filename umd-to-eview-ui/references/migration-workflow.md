@@ -11,7 +11,7 @@
 
 读以下字段：
 - `antdComponents`（keys = 迁移清单）
-- `iconCallSites`（图标调用点——转 `@/shared/SvgIcon`，见 §5.3）/ `chartCallSites`（图表调用点——仍保留不迁，仅确认存在与 import 路径正确性）
+- `iconCallSites`（图标调用点——转 `@/shared/SvgIcon`，见 §5.3）/ `chartCallSites`（图表调用点——A 类迁移到 `@nce/eview-react/Chart`，option 必含 `a2ui:true`+`theme`，见 §5.3）
 - `ipInputCallSites`（ict-coder 内置 IPInput 手写共享件调用点——A 类注入迁移行）
 - `verification.relativeImports`（应为 `PASS`——步骤 4 已修正路径）
 - `sourceCssColors` / `sourceCssTokens`（步骤 8 色值/token 检查的对照快照）
@@ -32,14 +32,14 @@ node <本 skill 目录>/scripts/build-migration-plan.cjs <目标工程根>
   "keyDiffs": "注意事项表原文差异摘要", "ref": "components/Button.md", "files": ["src/views/AppShell.jsx"] }
 ```
 
-类别：**A** = 有对应（改导入 + props，见 §7.1）；**B** = 无对应（手写，见 §7.2）；**P** = 特殊处理（Icon 调用点转 `@/shared/SvgIcon` / Chart 保留不迁，见 §5.3）。
+类别：**A** = 有对应（改导入 + props，见 §7.1）；**B** = 无对应（手写，见 §7.2）；**P** = 特殊处理（Icon 调用点转 `@/shared/SvgIcon`，见 §5.3）。
 
-后续步骤直接读 `migrationPlanEui` 作为分类评估清单，**无需手动通读各组件 md 的注意事项区块**；A 类组件按 `ref` 读 `components/<Name>.md`（迁移注意事项与完整 API 同文件），B 类按 `ref` 读 [handwrite-templates.md](handwrite-templates.md)，P 类按 keyDiffs 处理（Icon 转 `@/shared/SvgIcon`、Chart 保留不动）。
+后续步骤直接读 `migrationPlanEui` 作为分类评估清单，**无需手动通读各组件 md 的注意事项区块**；A 类组件按 `ref` 读 `components/<Name>.md`（迁移注意事项与完整 API 同文件），B 类按 `ref` 读 [handwrite-templates.md](handwrite-templates.md)，P 类按 keyDiffs 处理（Icon 转 `@/shared/SvgIcon`）；Chart 走 A 类（ref 读 [components/Chart.md](components/Chart.md)，option 必含 `a2ui:true`+`theme`）。
 
 ### 5.3 图标与图表：转换与保留策略
 
 - **图标**：`iconCallSites` 列出的调用点按 keyDiffs 转 `@/shared/SvgIcon`——源 `<Icon name>` 调用点转 `<SvgIcon src=.../>`（interactiveProps 原样透传）；eview-ui 组件 string 型 icon prop（`leftIcon`/`rightIcon`/`icon`/`iconUrl`/`iconLeaf` 等，收图片路径/base64）用 `getIconBase64(src,{color,size})` 异步取 base64 data URL 传入；ReactNode 型 icon prop（`Menu.SubMenu.icon`/`MenuItem.icon`/`PopUpMenu.icon`）用 `<SvgIcon>`。不转 eview-ui `Icon`/`SvgIcon`/`svg-icons`/`IconButton`（禁用）。步骤 8 `check-imports.cjs` 校验路径合规（无 `@/shared/Icon` 残留、无 eview-ui 图标组件导入）。
-- **图表**：`chartCallSites` 列出的 `<Chart>` 调用点**零改动**（含其共享封装 import）；不补 `a2ui`/`theme`；暗色跟随由源逻辑自理。
+- **图表**：`chartCallSites` 列出的 `<Chart>` 调用点迁移到 `@nce/eview-react/Chart`（A 类，`migrationPlanEui` 的 `sharedFilesToRemove` 列出待删源共享件）——① 删除源 `assets/shared/chart.jsx` 共享封装（含 `src/components/chart/` 变体），import 改 `import Chart from '@nce/eview-react/Chart'`；② 每个 `<Chart option>` 显式补 `a2ui: true` 与 `theme`（源套壳在 `setSimpleOption` 前自动注入这两项 + watch `.dark` 自动 re-render，改包导入后整体丢失；禁止残留 `setSimpleOption(`）；③ `theme: isDark ? 'hdesign-dark' : 'hdesign-light'`（`isDark` 来自 `useApp()`——context.jsx 的 AppProvider，步骤 3 已保留；禁止静态字符串），推荐 `const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' }` 聚合后展开进各 option；④ `onChartRendered(chart)` 的 `chart` 即 echarts 实例，直接 `.on()/.setOption()`，禁止回调内再调 `getEchartsInstance()`。`hdesign-dark`/`hdesign-light` 是 HUI Charts 图表主题名，与 ConfigProvider `theme`（evening/lightday）两套系统勿混。详见 [components/Chart.md](components/Chart.md) 与硬约束 9；步骤 8 `check-chart-options.cjs` 机器验证（§4.12）。
 
 ### 5.4 eview-ui 样式接入（已确认）
 
@@ -217,13 +217,14 @@ export const ThemeProvider = ({ children }) => {
     "visibility": "PASS/FAIL",
     "wizards": "PASS/FAIL",
     "crumbs": "PASS/FAIL",
+    "chart-options": "PASS/ADVISORY_ANNOTATED/FAIL",
     "table-defaults": "PASS/ADVISORY_ANNOTATED/FAIL",
     "css": "PASS/ADVISORY_ANNOTATED/FAIL",
     "token-drift": "PASS/ADVISORY_ANNOTATED/FAIL",
     "menu": "PASS/ADVISORY_ANNOTATED/FAIL",
     "npm-install": "PASS/FAIL/SKIP"
   },
-  "advisoryReviews": { "tableDefaults": [], "css": [], "tokenDrift": [], "menu": [], "wizards": [] },
+  "advisoryReviews": { "tableDefaults": [], "css": [], "tokenDrift": [], "menu": [], "wizards": [], "chartOptions": [] },
   "notes": "覆盖范围与 SKIP 原因说明"
 }
 ```
@@ -232,13 +233,14 @@ export const ThemeProvider = ({ children }) => {
 
 | 脚本 | 检查 | 级别 |
 |------|------|------|
-| `check-imports.cjs` | `from 'antd'`/`@ant-design/icons`/`@nce/eview-react` 残留；eview-ui 导入规范（默认导入形态 + 4 特例）；`@/shared/Icon` 残留 + eview-ui Icon/SvgIcon/svg-icons/IconButton 禁用 + `@/shared/SvgIcon` 接入 | 硬 FAIL |
+| `check-imports.cjs` | `from 'antd'`/`@ant-design/icons`/`@nce/eview-react` 残留（**例外：`@nce/eview-react/Chart` 白名单放行**，见硬约束 9）；eview-ui 导入规范（默认导入形态 + 4 特例）；`@/shared/Icon` 残留 + eview-ui Icon/SvgIcon/svg-icons/IconButton 禁用 + `@/shared/SvgIcon` 接入 | 硬 FAIL |
 | `check-select-options.cjs` | options/data 项 `label` 残留（Select/MultipleSelect/InputSelect/SelectPro/SelectCard/CheckboxGroup/RadioGroup/CategoryInput/CategorySearch/Popup/ButtonMenu——eview-ui 全家 `text`） | 硬 FAIL |
 | `check-provider.cjs` | ConfigProvider 存在 + `locale="zh"` + `version="aui3-1"` + `theme` 响应式派生（含 `isDark`/`evening`/`lightday`） | 硬 FAIL |
 | `check-dark-mode.cjs` | 黑白主题双轨：html `.dark` 轨 + ConfigProvider theme 轨（响应式）+ `aui3_1_dark` 旧轨已删 | 硬 FAIL |
 | `check-visibility.cjs` | 显隐 prop 张冠李戴：Dialog/MessageDialog/Loader 用了 `visible=`/`display=`；Drawer/Tooltip 用了 `isOpen=`/`display=`；DivMessage 用了 `isOpen=`/`visible=` | 硬 FAIL |
 | `check-wizards.cjs` | Steps 残留形态（`current=`、`items=`、`Steps.Step`、`<Steps`）；Wizards `currentStep` 是数字下标直接量（疑似传了 index 非 data[].value） | 硬 FAIL |
 | `check-crumbs.cjs` | Breadcrumb 残留（`items=`/`<Breadcrumb`/`separator=` 正确英文残留——eview-ui 是 `seprator`）；Crumbs data 项 `href`/`path` 残留（应为 `url`） | 硬 FAIL |
+| `check-chart-options.cjs` | 残留 `setSimpleOption(`（源 Chart 封装未替换为 `@nce/eview-react/Chart`）；每个 `<Chart option>` 缺 `a2ui: true`/`theme`（内联/变量/`...chartBase` 展开）；`theme` 静态字符串（非 `isDark` 派生） | `setSimpleOption` 残留 + option 缺 a2ui/theme 硬 FAIL；静态 theme / option 外部变量 advisory（须回应） |
 | `check-table-defaults.cjs` | TablePro 反向坑：`dataSource=` 残留（应 `dataset`）、`rowSelection=` antd 形态残留（应 `selection` 对象）、`columnResizable` 默认 true 未显式处理 | `dataSource` 硬 FAIL；其余 advisory（须逐条回应） |
 | `check-css.cjs` | 色值漂移（对照 `.umd-conversion.json` 的 `sourceCssColors` 快照，按文件+出现顺序配对）+ `.ev_` 类名 | advisory（须回应） |
 | `check-token-drift.cjs` | token 定义值漂移（对照 `sourceCssTokens`，硬 FAIL）+ 业务 CSS 引用未定义 token（advisory） | 硬 FAIL + advisory |
@@ -257,7 +259,7 @@ export const ThemeProvider = ({ children }) => {
 1. **GBK 乱码抽查**：抽看几个含中文的 jsx（src/views/、src/components/）确认中文正常；发现乱码用 read+write/edit 重做对应文件（禁 PowerShell 写文件）
 2. **痕迹 grep**（输出应为空）：`grep -rn "\.ant-" src/`（antd CSS 选择器残留）、`grep -rn "\./assets/uploads/" src/`（旧图片路径残留）
 3. **结构完整性**：src/main.jsx / src/app.jsx / package.json / vite.config.js / index.html 存在；src/styles/{base,light,theme,dark}.css 齐全；public/uploads/ 有文件（仅当 `.umd-conversion.json` 的 uploadsAssets.copiedCount > 0）
-4. **图标/图表抽查**：图标——`@/shared/SvgIcon` 接入合规（无 `@/shared/Icon` 残留、无 eview-ui Icon/SvgIcon/svg-icons/IconButton 导入）；图表——源 chart 封装 import 保持原样（零改动）
+4. **图标/图表抽查**：图标——`@/shared/SvgIcon` 接入合规（无 `@/shared/Icon` 残留、无 eview-ui Icon/SvgIcon/svg-icons/IconButton 导入）；图表——`<Chart>` import 为 `@nce/eview-react/Chart`（无 `assets/shared/chart.jsx` 残留 import、无 `setSimpleOption(` 残留），每个 `<Chart option>` 含 `a2ui: true` + `theme`（`isDark` 派生 `hdesign-dark`/`hdesign-light`，非静态字符串）
 5. **待内网确认项**（仅剩 .npmrc scope 源——样式接入路径已确认 `@cloudsop/eview-ui/style/aui3.1.less`）的执行结果向用户汇报
 
 ### 向用户汇报
@@ -266,7 +268,7 @@ export const ThemeProvider = ({ children }) => {
 
 ## §4 验证脚本判定细则
 
-- **§4.1 check-imports**：业务代码（跳过 `src/shared/`、`src/shared/SvgIcon/`、`node_modules`）出现 `from 'antd'`、`from 'antd/...'`、`from '@ant-design/icons'`、`from '@nce/eview-react'` 任一 → FAIL。**旧版 Pro 组件导入**（`eview-ui/Select`、`eview-ui/Table`、`eview-ui/Dialog`、`eview-ui/MessageDialog`、`eview-ui/Form` 精确路径，不含 *Pro 后缀）→ FAIL（LEGACY_PRO_USED——有 Pro 版一律用 Pro 版）。裸包名导入（`from 'eview-ui/...'`）→ FAIL（EVUI_UNSCOPED_IMPORT）。eview-ui 导入非默认形态（`import { X } from '@cloudsop/eview-ui'`）→ FAIL（特例 4 组件白名单：Tab 的 TabItem、GridLayout 的 Row/Col、Panel 解构、RangePicker 解构）。**图标路径**：`@/shared/Icon` 或 `assets/shared/icon` 残留 → FAIL（SHIM_PATH_RESIDUE——应 `@/shared/SvgIcon`）；`eview-ui/Icon`、`eview-ui/SvgIcon`、`eview-ui/svg-icons`、`eview-ui/IconButton` → FAIL（EVUI_ICON_FORBIDDEN——图标统一 `@/shared/SvgIcon`）。
+- **§4.1 check-imports**：业务代码（跳过 `src/shared/`、`src/shared/SvgIcon/`、`node_modules`）出现 `from 'antd'`、`from 'antd/...'`、`from '@ant-design/icons'`、`from '@nce/eview-react'`（**例外：`@nce/eview-react/Chart` 白名单放行**——`@cloudsop/eview-ui` 无 Chart，走 `@nce/eview-react/Chart`，见硬约束 9）任一 → FAIL。**旧版 Pro 组件导入**（`eview-ui/Select`、`eview-ui/Table`、`eview-ui/Dialog`、`eview-ui/MessageDialog`、`eview-ui/Form` 精确路径，不含 *Pro 后缀）→ FAIL（LEGACY_PRO_USED——有 Pro 版一律用 Pro 版）。裸包名导入（`from 'eview-ui/...'`）→ FAIL（EVUI_UNSCOPED_IMPORT）。eview-ui 导入非默认形态（`import { X } from '@cloudsop/eview-ui'`）→ FAIL（特例 4 组件白名单：Tab 的 TabItem、GridLayout 的 Row/Col、Panel 解构、RangePicker 解构）。**图标路径**：`@/shared/Icon` 或 `assets/shared/icon` 残留 → FAIL（SHIM_PATH_RESIDUE——应 `@/shared/SvgIcon`）；`eview-ui/Icon`、`eview-ui/SvgIcon`、`eview-ui/svg-icons`、`eview-ui/IconButton` → FAIL（EVUI_ICON_FORBIDDEN——图标统一 `@/shared/SvgIcon`）。
 - **§4.2 check-select-options**：AST 扫描 `.map`/`Array.from`/spread/shorthand/计算键等动态形态里 `label:` 字段残留 → FAIL（拦 LLM 漏改 `label`→`text` 致下拉项文字空白）。
 - **§4.3 check-provider**：全工程无 `<ConfigProvider` → FAIL；有但 `locale` 不是 `"zh"`（或缺）→ FAIL；`version` 非 `aui3-1`（或缺）→ FAIL；`theme` 是静态字符串（无 `isDark`/三元/派生）或缺失 → FAIL。listenTheme 不作要求（实测 theme 单独驱动组件暗色）。
 - **§4.4 check-dark-mode**：检测暗色需求（CSS 有 `.dark` 选择器或 JS 有 `isDark`/`toggleDark`）后验证**双轨**：html 轨（`documentElement` 切 `.dark`）缺 → FAIL；theme 轨（`<ConfigProvider` 的 `theme={…}` 动态派生）缺 → FAIL；`aui3_1_dark` 残留 → FAIL（混入 eview-react 旧骨架）；@nce CSS import 残留 → FAIL。body `data-theme` / `eviewui_aui3_1_*` 类轨**不检查**（组件库内部管理，手写属多余但不算错）。
@@ -277,3 +279,4 @@ export const ThemeProvider = ({ children }) => {
 - **§4.9 check-css**：对照快照按文件+出现顺序配对，COLOR_DRIFT（改值）/COLOR_ADDED/COLOR_DROPPED → advisory 须回应；`.ev_` 前缀类名 → advisory。自动排除 `src/styles/`（token 层）。
 - **§4.10 check-token-drift**：`sourceCssTokens` 快照里的 token 定义值漂移 → **硬 FAIL**；业务 CSS 引用未定义 token → advisory。
 - **§4.11 check-menu**：`<Menu`（eview-ui）无 `selectable` → advisory；`items={...}` 数组 prop → advisory（eview-ui Menu 无 items，必是残留或笔误）；Accordion `data` 项 `label:`/`key:` 字段 → advisory。
+- **§4.12 check-chart-options**：对应硬约束 9 + [Chart.md](components/Chart.md)。源 Chart 套壳（ict-coder `assets/shared/chart.jsx`）自动 watch `<html>.dark` + 在 `setSimpleOption` 前注入 `theme` + `a2ui: true` + 暗色切换自动 re-render；改 `@nce/eview-react/Chart` 包导入后自动行为整体丢失。检查三类：① 残留 `setSimpleOption(`（源封装未替换为 `@nce/eview-react/Chart` 包导入）→ 硬 FAIL；② 每个 `<Chart option={X}>` 的 X 是否含 `a2ui: true` 与 `theme`——支持内联对象、变量定义（追同文件 `const X={...}`/`useMemo`）、`...chartBase` 聚合展开三种写法，缺则硬 FAIL（CHART_OPTION_MISSING），追不到的外部变量/不可解析 → advisory（CHART_OPTION_EXTERNAL/UNPARSEABLE，须回应）；③ **STATIC_THEME**：`theme` 值是静态字符串字面量（如 `'hdesign-light'`，非 `isDark` 动态派生）→ advisory（暗色切换时图表主题不跟随，应改 `theme: isDark ? 'hdesign-dark' : 'hdesign-light'`，`isDark` 来自 `useApp()`；须回应）。有硬 FAIL → exit 1。推荐 `const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' }` 聚合后展开进各 option（chartBase 引用 isDark 即响应式）。`chartOptions` advisory 项不计 FAIL，但须在 `advisoryReviews.chartOptions` 逐条写明「已修复 / 有意保留（理由）」；空回应视同未检查（FAIL）。

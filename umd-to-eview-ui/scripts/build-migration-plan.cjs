@@ -11,7 +11,8 @@
 // 类别说明：
 //   A = 有对应（改导入 + props，注意事项见各组件 md）
 //   B = 无对应（handwrite-templates.md 手写，索引表在其头部）
-//   P = 特殊处理（Icon 调用点转 @/shared/SvgIcon / Chart 保留源封装不动——由下方 2b/2c 按计数注入，与 md 无关）
+//   P = 特殊处理（Icon 调用点转 @/shared/SvgIcon——由下方 2b 按计数注入，与 md 无关）；
+//   Chart 走 A 类（→ @nce/eview-react/Chart，由下方 2c 按计数注入 + sharedFilesToRemove，与 md 无关）
 //
 // 区块标记：组件 md 注意事项区块内 `> 迁移分类：A`（缺省 A）；Icon.md 标 P（跳过解析）。
 // 导入特例（SPECIAL_IMPORTS）与 ref 特例（SPECIAL_REFS）维持脚本内硬编码。
@@ -260,21 +261,23 @@ if (iconCallSitesArr.length) {
   console.log(`[build-migration-plan(eui)] 注入 Icon 转换行（P 类→@/shared/SvgIcon）: ${iconFiles.length} 个调用文件`);
 }
 
-// ========== 2c. P 类注入：Chart（保留不迁） ==========
-// 触发：chartCallSites.callSites 非空
+// ========== 2c. A 类注入：ict-coder Chart 共享件 → @nce/eview-react/Chart ==========
+// 触发：chartCallSites.callSites 非空（源 assets/shared/chart.jsx 套壳 → @nce/eview-react/Chart）
 const chartInfo = handoff.chartCallSites;
 if (chartInfo && chartInfo.callSites && chartInfo.callSites.length) {
   const chartFiles = [...new Set(chartInfo.callSites.map(c => c.file))];
+  const chartSharedFiles = chartInfo.sharedFiles || [];
   migrationPlanEui.push({
-    antd: 'Chart（源封装）',
-    category: 'P',
-    eview: 'Chart（保留源封装）',
-    importPath: null,
-    keyDiffs: '保留不动——eview-ui 无 Chart 组件，源项目 chart.jsx 封装及其 import 原样保留；不需要补 a2ui: true / theme（eview-ui 无此约束，勿凭空添加）；暗色下图表主题跟随由源项目逻辑自理',
-    ref: null,
+    antd: 'Chart',
+    category: 'A',
+    eview: 'Chart',
+    importPath: '@nce/eview-react/Chart',
+    keyDiffs: 'ict-coder 手写 Chart 共享件迁移到 @nce/eview-react/Chart：① 删除手写共享件（' + (chartSharedFiles.join(', ') || '见上游 sharedFiles') + '），import 改 import Chart from "@nce/eview-react/Chart"；② 源 Chart 套壳在 setSimpleOption 前自动注入 { theme, a2ui: true } + watch <html>.dark 自动 re-render，改包导入后自动行为整体丢失——每个 <Chart option> 必须显式补 a2ui: true 与 theme（禁止残留 setSimpleOption(）；③ theme 从全局暗色派生：theme: isDark ? "hdesign-dark" : "hdesign-light"（isDark 来自 useApp()——context.jsx 的 AppProvider，步骤 3 已保留；禁止写静态字符串），推荐 const chartBase = { a2ui: true, theme: isDark ? "hdesign-dark" : "hdesign-light" } 聚合后展开进各 option；④ onChartRendered(chart) 的 chart 参数即底层 echarts 实例，直接 chart.on("click",...) / chart.setOption(...)，禁止在回调内再调 chart.getEchartsInstance()（该方法只在组件 ref 上：chartRef.current.getEchartsInstance()）；⑤ name 指定图表类型（BarChart/LineChart/PieChart/GaugeChart 等），option 原样透传给 HUI Charts；⑥ 这里的 hdesign-dark/hdesign-light 是 HUI Charts 图表 option 主题名，与 ConfigProvider theme（evening/lightday）是两套主题系统，勿混用。方法见 components/Chart.md（硬约束 9 + 步骤 8 check-chart-options.cjs 机器验证）',
+    ref: 'components/Chart.md',
     files: chartFiles,
+    sharedFilesToRemove: chartSharedFiles,
   });
-  console.log(`[build-migration-plan(eui)] 注入 Chart 保留行（P 类）: ${chartFiles.length} 个调用文件`);
+  console.log(`[build-migration-plan(eui)] 注入 Chart 迁移行（A 类→ @nce/eview-react/Chart）: ${chartFiles.length} 个调用文件`);
 }
 
 // ========== 2d. A 类注入：ict-coder IpInput 手写件 → eview-ui IPInput ==========

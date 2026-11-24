@@ -21,8 +21,8 @@ description: >-
 | **4. import 验证** | 跑 `check-relative-imports.cjs` 静态检查；结果写入 `.conversion-result.json`，FAIL 循环修复（≤5 轮）；通过后更新 `.umd-conversion.json` 的 `verification` 字段 | `verification.relativeImports=PASS` | 子 agent1（步骤 3 续做） |
 | **5. 生成迁移计划** | 跑 `build-migration-plan.cjs`：读 `.umd-conversion.json` 的 `antdComponents` + 各组件 md 的「antd 迁移注意事项」区块（`components/*.md` 三列表）与 `handwrite-templates.md` 的 B 类索引表，对每组件分类（A 有对应 / B 手写 / P 保留）+ eview-ui 替换名 + importPath + 完整 keyDiffs（注意事项表原文）+ ref 指引 + 涉及文件，写入 `migrationPlanEui` 字段；同时写入 `globalRefEui`（拼写异常 + 回调签名 + 显隐 prop 三张速查表）。**始终执行**——不依赖步骤 4 PASS，`antdComponents` 在步骤 2 已就绪 | 迁移计划 + 速查表就绪 | 主 agent 跑脚本 |
 | **6. 黑白主题接线核对** | 核对步骤 3 的接线结果：main.jsx 结构（`IntlProvider > AppProvider > ThemeProvider > App`）、useTheme.jsx（ThemeProvider 消费 `useApp().isDark`；`ConfigProvider locale="zh" version="aui3-1" theme={isDark ? 'evening' : 'lightday'}`；全工程**只有一个** ConfigProvider）；**不要再新加 ConfigProvider**（scaffold 已预制）。样式接入已确认（main.jsx 的 `@cloudsop/eview-ui/style/aui3.1.less`），无需处理 | 接线核对完成 | 主 agent |
-| **7. 逐组件替换** | 主 agent 先提取精简计划文件（node 一行，见下文步骤 7）再派发；按 `migrationPlanEui` 逐组件替换（A 类改 props/导入，B 类手写，P 类不动）；图标与 Chart **保留不动**（见硬约束 8/9）；scenario C 的 i18n 决策（keep i18next vs 迁 react-intl）由子 agent 按 i18n-migration.md §3 规则自决 | 组件代码全部替换 | 派发 general 子 agent2 |
-| **8. 终验证（机器兜底门禁）** | 必跑 12 个 check 脚本（7 硬 FAIL + 4 advisory 须回应 + npm install 外网 SKIP）；结果写入 `.eview-ui-migration-result.json`，FAIL 循环修复（≤5 轮，修复续接步骤 7 子 agent） | PASS + advisory 回应 | 主 agent（跑脚本判定） |
+| **7. 逐组件替换** | 主 agent 先提取精简计划文件（node 一行，见下文步骤 7）再派发；按 `migrationPlanEui` 逐组件替换（A 类改 props/导入，B 类手写，P 类不动）；图标保留不动（见硬约束 8）；Chart 迁移到 `@nce/eview-react/Chart`（A 类，option 必含 `a2ui:true`+`theme`，见硬约束 9）；scenario C 的 i18n 决策（keep i18next vs 迁 react-intl）由子 agent 按 i18n-migration.md §3 规则自决 | 组件代码全部替换 | 派发 general 子 agent2 |
+| **8. 终验证（机器兜底门禁）** | 必跑 13 个 check 脚本（8 硬 FAIL + 4 advisory 须回应 + npm install 外网 SKIP）；结果写入 `.eview-ui-migration-result.json`，FAIL 循环修复（≤5 轮，修复续接步骤 7 子 agent） | PASS + advisory 回应 | 主 agent（跑脚本判定） |
 
 > 步骤 5-8 的详细展开（含组件模式转换详解、验证脚本判定细则）见 [references/migration-workflow.md](references/migration-workflow.md)。
 > 派发子 agent（步骤 3/4/7）时，把任务描述模板原文复制进 dispatch prompt，并在末尾附加通用约束：
@@ -34,7 +34,7 @@ description: >-
 
 骨架由本 skill 的 `scaffold/` 目录维护，步骤 1 一键拷贝，内含：
 
-- **package.json**：`@cloudsop/eview-ui ^7.1.37` + `@hui/design-token` + `@hui/icon-plus` + react/react-dom/react-intl/dayjs/lodash；`.npmrc` 配 @cloudsop scope 源
+- **package.json**：`@cloudsop/eview-ui ^7.1.37` + `@nce/eview-react latest`（仅 Chart 组件用——`@cloudsop/eview-ui` 无 Chart，走 `@nce/eview-react/Chart`，见硬约束 9）+ `@hui/design-token` + react/react-dom/react-intl/dayjs/lodash；`.npmrc` 配 @cloudsop scope 源（@nce 同源）
 - **index.html**：body 预置 `eviewui_aui3_1_default` 类 + `data-theme="default"`（默认样式）
 - **main.jsx**：`IntlProvider`（业务 i18n）+ 四层 CSS import + eview-ui 全局样式 import 已落实（`import '@cloudsop/eview-ui/style/aui3.1.less'`，less 由 vite.config.js 预处理）+ `ThemeProvider` 包住 App（步骤 3 在其外再包 `AppProvider`）
 - **src/theme/useTheme.jsx**：黑白主题切换预制件——`ThemeProvider`（自持 isDark 演示态 + `ConfigProvider locale="zh" version="aui3-1" theme` 派生 + html `.dark` useEffect；步骤 3 改为消费 `useApp().isDark`）+ `useTheme` 演示 hook（步骤 3 删）
@@ -111,7 +111,7 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
           - src/theme/useTheme.jsx：把 ThemeProvider 的自持演示 state（useState + toggleTheme）删掉，改为 `const { isDark } = useApp();`（消费 context.jsx 的 AppProvider）；保留 html `.dark` useEffect 与 ConfigProvider（`locale="zh" version="aui3-1" theme={isDark ? 'evening' : 'lightday'}`）；`useTheme` 演示 hook 一并删除（业务组件统一用 useApp）
           - app.jsx：源项目里 AppProvider 的包裹层上提到 main.jsx（app.jsx 只留业务树）；源项目自写的暗色 useEffect（html/body 切换逻辑）全删，统一由 ThemeProvider 管理
            - 暗色机制（实测）：html `.dark` 轨（自定义 token 四层）+ ConfigProvider `theme` 轨（组件库内部切换，version="aui3-1"）；**不要**手写 body `data-theme` / `eviewui_aui3_1_*` 类切换，**不要**加 listenTheme
-   - 把源项目 assets/shared/ 下的共享件（.umd-conversion.json 的 chartCallSites.sharedFiles / ipInputCallSites.sharedFiles 列出者，连同伴随 css）按原相对路径拷入 <目标工程根>/assets/shared/，业务代码 import 路径不动——chart.jsx 由步骤 7 P 类原样保留；ip-input.jsx 由步骤 7 删除并替换为 @cloudsop/eview-ui/IPInput；src/components/chart|ip-input/ 变体随 src/ 搬入已就位，无需另拷
+   - 把源项目 assets/shared/ 下的共享件（.umd-conversion.json 的 chartCallSites.sharedFiles / ipInputCallSites.sharedFiles 列出者，连同伴随 css）按原相对路径拷入 <目标工程根>/assets/shared/，业务代码 import 路径不动——chart.jsx 与 ip-input.jsx 均由步骤 7 删除并替换（Chart → @nce/eview-react/Chart、IPInput → @cloudsop/eview-ui/IPInput）；src/components/chart|ip-input/ 变体随 src/ 搬入已就位，无需另拷
 2. 修正所有相对导入路径：
    - ./src/context.jsx → ./context.jsx
    - ./src/views/X.jsx → ./views/X.jsx
@@ -169,9 +169,9 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 ```
 
-脚本读 `.umd-conversion.json` 的 `antdComponents` + 各组件文档的「antd 迁移注意事项」区块（`references/components/<Name>.md` 的三列表）与 `handwrite-templates.md` 头部的 B 类索引表，对每个 antd 组件生成迁移行：**A**（有对应：eview 替换名 + importPath + 完整 keyDiffs + `components/<Name>.md` ref）/ **B**（无对应：手写模板 ref）/ **P**（特殊处理：Icon 调用点转 `@/shared/SvgIcon` / Chart 仍保留不迁）；`iconCallSites`/`chartCallSites`/`ipInputCallSites` 非空时自动注入 Icon 转换行、Chart 保留行与 IPInput 迁移行；同时写入 `globalRefEui`（拼写异常 + antd→eview 重命名 + 回调签名 + 显隐 prop 速查表内联，人读版在 `components/INDEX.md` 文末）。
+脚本读 `.umd-conversion.json` 的 `antdComponents` + 各组件文档的「antd 迁移注意事项」区块（`references/components/<Name>.md` 的三列表）与 `handwrite-templates.md` 头部的 B 类索引表，对每个 antd 组件生成迁移行：**A**（有对应：eview 替换名 + importPath + 完整 keyDiffs + `components/<Name>.md` ref）/ **B**（无对应：手写模板 ref）/ **P**（特殊处理：Icon 调用点转 `@/shared/SvgIcon`）；`iconCallSites`/`chartCallSites`/`ipInputCallSites` 非空时自动注入 Icon 转换行（P 类）、Chart 迁移行与 IPInput 迁移行（均 A 类 + `sharedFilesToRemove` 标注待删源共享件）；同时写入 `globalRefEui`（拼写异常 + antd→eview 重命名 + 回调签名 + 显隐 prop 速查表内联，人读版在 `components/INDEX.md` 文末）。
 
-步骤 7 的子 agent 直接读提取的 `.migration-plan-eui.json`（无需手动通读各组件 md 的注意事项区块）：A 类按 `ref` 读 `components/<Name>.md`（迁移注意事项与完整 API 同文件），B 类按 ref 读 `handwrite-templates.md`，P 类按 keyDiffs 处理（Icon 调用点转 `@/shared/SvgIcon`、Chart 保留不动）。
+步骤 7 的子 agent 直接读提取的 `.migration-plan-eui.json`（无需手动通读各组件 md 的注意事项区块）：A 类按 `ref` 读 `components/<Name>.md`（迁移注意事项与完整 API 同文件），B 类按 ref 读 `handwrite-templates.md`，P 类按 keyDiffs 处理（Icon 调用点转 `@/shared/SvgIcon`）；Chart 走 A 类（ref 读 `components/Chart.md`，option 必含 `a2ui:true`+`theme`）。
 
 ## 步骤 6：黑白主题接线核对
 
@@ -207,7 +207,8 @@ node -e "const j=require('./.umd-conversion.json');require('fs').writeFileSync('
 1. 读 <目标工程根>/.migration-plan-eui.json（migrationPlanEui/globalRefEui/i18nScenario 三字段），按涉及文件逐组件替换：
    - A 类（有对应）：导入改用 importPath；按 keyDiffs 逐项改 props/回调/数据格式（拼写异常/回调签名/显隐 prop 查 globalRefEui 三张速查表）；按 ref 读 components/<Name>.md 查完整 API（keyDiffs 是差异摘要，非完整 API）；API 表查不到的 props 一律不写（宁缺勿编）
    - B 类（无对应）：读 handwrite-templates.md 取模板手写补位；样式用源项目 CSS 变量；加 // TODO(eview-ui) 注释
-   - P 类（特殊处理）：Icon 调用点按 keyDiffs 转 `@/shared/SvgIcon`（`<SvgIcon src=.../>` / `getIconBase64`，见硬约束 8）；Chart 封装零改动，import 保持
+   - P 类（特殊处理）：Icon 调用点按 keyDiffs 转 `@/shared/SvgIcon`（`<SvgIcon src=.../>` / `getIconBase64`，见硬约束 8）
+   - Chart（A 类）：删除源 `assets/shared/chart.jsx` 共享件（`migrationPlanEui` 的 `sharedFilesToRemove` 列出者）+ import 改 `@nce/eview-react/Chart`；每个 `<Chart option>` 显式补 `a2ui: true` 与 `theme: isDark ? 'hdesign-dark' : 'hdesign-light'`（`isDark` 来自 `useApp()`——context.jsx 的 AppProvider，步骤 3 已保留；禁止写静态 theme 字符串、禁止残留 `setSimpleOption(`）；推荐 `const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' }` 聚合后展开进各 option；`onChartRendered(chart)` 的 `chart` 即 echarts 实例，直接 `.on()/.setOption()`，禁止回调内再调 `getEchartsInstance()`（见硬约束 9 + components/Chart.md）
    - 替换顺序：叶子组件 → 容器组件 → 布局骨架
 2. i18nScenario.scenario 为 C（源用 i18next）时：读 <skill目录>/references/i18n-migration.md §3 场景 C，按决策规则选定 keep i18next 或迁 react-intl 并执行
 3. 每替换完一个组件立即 grep -rn "from 'antd'" src/ 检查残留数递减；全部完成后 antd 与 @ant-design/icons 残留须为 0
@@ -225,7 +226,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 
 **测试结果文件**（主 agent 判定依据）：`<目标工程根>/.eview-ui-migration-result.json`。
 
-**必跑脚本**（`node <skill目录>/scripts/check-X.cjs <目标工程根>`）：`check-imports.cjs`（硬 FAIL）；`check-select-options.cjs`（硬 FAIL）；`check-provider.cjs`（硬 FAIL）；`check-dark-mode.cjs`（硬 FAIL）；`check-visibility.cjs`（硬 FAIL）；`check-wizards.cjs`（硬 FAIL）；`check-crumbs.cjs`（硬 FAIL）；`check-table-defaults.cjs`（advisory 须逐条回应）；`check-css.cjs`（advisory 须回应）；`check-token-drift.cjs`（token 值漂移硬 FAIL + advisory 须回应）；`check-menu.cjs`（advisory 须回应）；`npm install`（timeout=30000，内网源超时/失败记 SKIP 不判 FAIL）。
+**必跑脚本**（`node <skill目录>/scripts/check-X.cjs <目标工程根>`）：`check-imports.cjs`（硬 FAIL）；`check-select-options.cjs`（硬 FAIL）；`check-provider.cjs`（硬 FAIL）；`check-dark-mode.cjs`（硬 FAIL）；`check-visibility.cjs`（硬 FAIL）；`check-wizards.cjs`（硬 FAIL）；`check-crumbs.cjs`（硬 FAIL）；`check-chart-options.cjs`（硬 FAIL：残留 `setSimpleOption(` + `<Chart option>` 缺 `a2ui`/`theme`；advisory：静态 theme / option 外部变量）；`check-table-defaults.cjs`（advisory 须逐条回应）；`check-css.cjs`（advisory 须回应）；`check-token-drift.cjs`（token 值漂移硬 FAIL + advisory 须回应）；`check-menu.cjs`（advisory 须回应）；`npm install`（timeout=30000，内网源超时/失败记 SKIP 不判 FAIL）。
 
 **跳过**：`check-relative-imports.cjs`（步骤 4 已跑，读 `verification.relativeImports=PASS`）。
 
@@ -255,7 +256,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 
 8. **图标统一 `@/shared/SvgIcon`（图标核心模块，已随 scaffold 提供）**：实现代码已随 scaffold 提供（`src/shared/SvgIcon/`，含 `SvgIcon.jsx` + `core/` fetch/color/transform 引擎）。运行时通过 icon-plus 图标 API 接口取 SVG，该接口只能在内网访问（外网环境图标不渲染，不判 FAIL——属预期行为；校验只看 SvgIcon/getIconBase64 是否正确转换，不校验图标是否实际渲染）。源 antd 图标以 name/size/color 三参给出，`@/shared/SvgIcon` 接收这三参转换为 eview-ui 所需的图标组件或图标字符串。源 `<Icon name="...">` 调用点转 `<SvgIcon src={name} size={n} color={...}/>`（**interactiveProps 原样透传**）；eview-ui 组件 **string 型** icon prop（`leftIcon`/`rightIcon`/`icon`/`iconUrl`/`iconLeaf` 等，收图片路径/base64 data URL）用 `getIconBase64(src,{color,size})` 异步取 base64 data URL 传入（async 预载：useEffect+useState，**不可同步赋值**）；**ReactNode 型** icon prop（`Menu.SubMenu.icon`/`Menu.MenuItem.icon`/`PopUpMenu.icon`）用 `<SvgIcon>`。**禁** eview-ui `Icon`（名体系不同、无 catalog 匹配依据）、`SvgIcon`（废弃）、`eview-ui/svg-icons/*`（废弃）、`IconButton`（废弃）、`@/shared/Icon` 旧路径。方法集中见 [components/Icon.md](references/components/Icon.md)。
 
-9. **图表保留源封装，不迁移**：eview-ui **无 Chart 组件**——保留源项目 `chart.jsx` 封装与其 import 原样；**不需要**补 `a2ui: true`/`theme`（eview-ui 无此约束，勿凭空添加）；暗色下图表主题跟随由源项目逻辑自理。
+9. **图表迁移到 `@nce/eview-react/Chart`，option 必含 `a2ui: true` 与 `theme`**：源项目 Chart 封装（`assets/shared/chart.jsx`，含 `src/components/chart/` 变体）在 `setSimpleOption` 前统一注入这两项 + watch `<html>.dark` 自动 re-render，改 `@nce/eview-react/Chart` 包导入后**自动行为整体丢失**——漏写则图表 a2ui 视觉规范失效、暗色切换后主题不跟随。迁移做法：① 删除源 `chart.jsx` 共享封装（`migrationPlanEui` 的 `sharedFilesToRemove` 列出者），import 改 `import Chart from '@nce/eview-react/Chart'`——**这是本 skill 唯一从 `@nce/eview-react` 包导入的组件**（其余组件统一 `@cloudsop/eview-ui/X`；`@cloudsop/eview-ui` 无 Chart，走同源 HUI Charts 的 `@nce/eview-react/Chart`），`check-imports.cjs` 对 `@nce/eview-react/Chart` 白名单放行、其余 `@nce/eview-react/*` 导入仍 FAIL；② 每个 `<Chart option>` 显式补 `a2ui: true` 与 `theme`（禁止残留 `setSimpleOption(`）；③ `theme` 从全局暗色状态派生（`isDark ? 'hdesign-dark' : 'hdesign-light'`，`isDark` 来自 `useApp()`——context.jsx 的 AppProvider，步骤 3 已保留；**禁止写静态字符串**），推荐 `const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' }` 聚合后展开进各 option；④ `onChartRendered(chart)` 的 `chart` 即底层 echarts 实例，直接 `.on()/.setOption()`，**禁止**回调内再调 `chart.getEchartsInstance()`（该方法只在组件 ref 上：`chartRef.current.getEchartsInstance()`）。注意：`hdesign-dark`/`hdesign-light` 是 HUI Charts 图表 option 主题名，与 `ConfigProvider` 的 `theme={isDark ? 'evening' : 'lightday'}`（组件库主题轨）是两套主题系统，勿混用。见 [components/Chart.md](references/components/Chart.md)。**机器验证**：步骤 8 `check-chart-options.cjs` 自动扫残留 `setSimpleOption(` + 每个 `<Chart option>` 是否含 `a2ui`/`theme`（支持内联/变量/`...chartBase` 展开）+ 静态 theme advisory，exit≠0 即 FAIL——见 [§4.12](references/migration-workflow.md)。
 
 10. **黑白主题双轨**（实测机制，缺任一轨切换不完整）：
     ① html 轨：`document.documentElement.classList.toggle('dark', isDark)`（自定义 token 四层跟随，scaffold 的 ThemeProvider 已内置）；
@@ -310,3 +311,5 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 - **拼写陷阱**：`separator`（正确英文）残留 = Crumbs 未迁移；`disabled` 全局替换成 `disable` = 误伤 Button/Select 等正确拼写组件
 - **DivMessage 渲染在父组件树**：通知触发父组件重渲染致输入组件失焦（TextField/Select 等输入组件的已知焦点竞争问题）——浮层抽离独立组件
 - **图标塞进 leftIcon/icon prop**：string 型 prop（收图片路径/base64）要传 `getIconBase64` 取的 base64 data URL 字符串——塞 ReactNode（`<SvgIcon>`）不渲染；反之 ReactNode 型 prop（Menu.SubMenu.icon 等）要传 `<SvgIcon>`——塞字符串不渲染
+- **图表 option 漏 `a2ui: true`/`theme`**：源 Chart 封装（`assets/shared/chart.jsx`）的 `setSimpleOption` 前注入行为不随包导入自动生效，所有图表 option 必须显式携带两项（`theme` 随 `isDark` 派生 `hdesign-dark`/`hdesign-light`）；残留 `setSimpleOption(` = 源封装未替换——见 [components/Chart.md](references/components/Chart.md)
+- **onChartRendered 回调内二次调 `getEchartsInstance()`**：回调参数已是 echarts 实例，禁止再调 `getEchartsInstance()`（该方法只在组件 ref 上）；详见 [Chart.md](references/components/Chart.md) §4/§8
