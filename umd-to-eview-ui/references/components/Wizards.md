@@ -51,7 +51,7 @@
 | onStepClick       | 步骤选中事件,可以设置点击选中                                                                        | onStepClick:(index)=>{} |      |
 | status            | 步骤状态，可选字段，目前仅支持 error，表示错误状态。                                                 | string                  |      |
 | iconName          | 使用 icon 图标库已有的图标，参考 icon 组件                                                           | string                  |      |
-| customIcon        | 使用本地的 icon, customIcon 与 iconName 同时使用时 customIcon 生效。                                 | string                  |      |
+| customIcon        | 使用本地的 icon, customIcon 与 iconName 同时使用时 customIcon 生效                                 | string                  |      |
 | customDescription | 支持自定义辅助文本（仅自定义步骤条，配置自定义函数）, 同时配置description，仅customDescription生效。 | () => ReactNode         |      |
 
 ## 使用示例

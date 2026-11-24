@@ -71,7 +71,7 @@ interface SelectItemEvent extends ClickItemEvent {
 | -------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ----- |
 | popupClassName | 子菜单弹出框样式                                                       | string                                                                                       |       |
 | key            | 键, 唯一标识                                                           | React.Key                                                                                    |       |
-| icon           | 图标元素                                                               | React.ReactElement                                                                           |       |
+| icon           | 图标元素                                                                   | React.ReactElement                                                                           |       |
 | title          | 子菜单标题文字或子元素                                                 | React.ReactNode                                                                              |       |
 | disabled       | 是否禁用                                                               | boolean                                                                                      | false |
 | onTitleClick   | 点击子菜单标题                                                         | (event?: { key?: React.Key; domEvent: React.MouseEvent<HTMLLIElement, MouseEvent> }) => void |       |

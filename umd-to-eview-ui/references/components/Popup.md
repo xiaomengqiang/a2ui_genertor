@@ -20,7 +20,7 @@
 | iconStyle |  通过添加style的方式自定义组件下拉项中图标样式 | object |  |
 | display |  设置组件是否显示 | bool | false |
 | enablHorzScroll |  设置弹出窗口的横向滚动条（注意：源码属性名拼写为 enablHorzScroll，非 enableHorzScroll） | bool | false |
-| data | 设置传入数据，数组中每项对象支持以下字段：<br>**text**: 页面展示值（string 或 function）<br>**value**: 数据库存取值（any）<br>**icon**: 下拉项中的图标URL（可选）<br>**iconActive**: 下拉项被选中时的图标URL（可选）<br>**tipData**: tooltip 展示值（可选）<br>**disabled**: 是否灰化（可选，bool）<br>**customClassName**: 下拉列表项的自定义样式类名（可选）<br>**label**: 是否为分组标签（可选，bool）<br>**style**: 单项自定义行内样式（可选） | array | [] |
+| data | 设置传入数据，数组中每项对象支持以下字段：<br>**text**: 页面展示值（string 或 function）<br>**value**: 数据库存取值（any）<br>**icon**: 下拉项中的图标URL（可选）<br>**iconActive**: 下拉项被选中时的图标URL（可选；同 icon）<br>**tipData**: tooltip 展示值（可选）<br>**disabled**: 是否灰化（可选，bool）<br>**customClassName**: 下拉列表项的自定义样式类名（可选）<br>**label**: 是否为分组标签（可选，bool）<br>**style**: 单项自定义行内样式（可选） | array | [] |
 | value |  通过value设置组件的选中项 | any |  |
 | popupDirection |  定义弹出方向。属性值auto表示弹出方向将根据屏幕可视区域是否有足够空间显示完整下拉菜单自动选择 | enum:<br>&nbsp;'top'<br>&nbsp;'bottom'<br>&nbsp;'auto' | 'bottom' |
 | popupWidth | 设置弹出框宽度（0表示自动） | number | 0 |
@@ -131,7 +131,7 @@ export type PopUpProps = Partial<PopUp>;
 ```jsx
 import Popup from 'eview-ui/Popup';
 import Button from 'eview-ui/Button';
-import Icon from 'eview-ui/Icon';
+import { getIconBase64 } from "@/shared/SvgIcon";
 import ConfigProvider from 'eview-ui/ConfigProvider';
 import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
@@ -144,38 +144,22 @@ export default class DropDownExample extends React.Component {
     iconsSvg: {},
   };
 
-  getIconToBase64Svg = ({ key, iconName = key, color }) => {
-    const [version, theme] = getDemoVersion();
-
-    return new Promise((resolve) => {
-      const tempDiv = document.createElement('div');
-      const renderIcon = <Icon version={version} theme={theme} name={key} color={color}/>;
-      ReactDOM.render(renderIcon, tempDiv, () => {
-        const innerHTMLSvg = tempDiv.innerHTML;
-        ReactDOM.unmountComponentAtNode(tempDiv);
-        resolve({ [iconName]: `data:image/svg+xml;base64,${btoa(innerHTMLSvg)}` });
-      });
-    });
-  };
-
   componentDidMount() {
-    const iconNames = [
-      { key: 'plus' },
-      { key: 'plus', iconName: 'plusActive', color: '#2E86DE' },
-      { key: 'del' },
-      { key: 'del', iconName: 'delActive', color: '#2E86DE' },
-      { key: 'back', iconName: 'exportImg' },
-      { key: 'back', iconName: 'exportImgActive', color: '#2E86DE' },
-    ];
-
-    Promise.allSettled(iconNames.map((icon) => this.getIconToBase64Svg(icon)))
-      .then((results) => {
-        const iconsSvg = results
-          .filter((result) => result.status === 'fulfilled')
-          .map((result) => result.value)
-          .reduce((acc, curr) => ({ ...acc, ...curr }), {});
-        this.setState({ iconsSvg });
-      });
+    let alive = true;
+    // data[].icon/iconActive 收 string（base64 data URL），用 getIconBase64 异步预载
+    Promise.all([
+      getIconBase64("plus", { size: 16 }).then(url => ["plus", url]),
+      getIconBase64("plus", { size: 16, color: "#2E86DE" }).then(url => ["plusActive", url]),
+      getIconBase64("del", { size: 16 }).then(url => ["del", url]),
+      getIconBase64("del", { size: 16, color: "#2E86DE" }).then(url => ["delActive", url]),
+      getIconBase64("back", { size: 16 }).then(url => ["exportImg", url]),
+      getIconBase64("back", { size: 16, color: "#2E86DE" }).then(url => ["exportImgActive", url]),
+    ]).then(entries => {
+      if (!alive) return;
+      const iconsSvg = Object.fromEntries(entries.filter(([, url]) => url));
+      this.setState({ iconsSvg });
+    });
+    return () => { alive = false; };
   }
 
   handleClick1 = () => {

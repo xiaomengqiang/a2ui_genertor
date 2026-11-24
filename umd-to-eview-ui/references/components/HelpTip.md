@@ -51,7 +51,7 @@ HelpTip继承自Tooltip组件，以下属性也可使用：
 ### 基本用法
 
 ```jsx
-import Icon from 'eview-ui/Icon'
+import { SvgIcon } from '@/shared/SvgIcon'
 import HelpTip from "eview-ui/HelpTip";
 import ConfigProvider from 'eview-ui/ConfigProvider';
 import { getDemoVersion } from 'eview-ui/ThemeProvider';
@@ -88,7 +88,7 @@ export default class HelpTipExample extends React.Component {
                                                                                    tipStyle={style} /></span>
           <span>设置箭头方向向右，通过tipContent设置提示框内容，提示框内的内容可以是任意的React节点<HelpTip
             arrowDirection='right' position={[0, 10]}
-            tipContent={<div><Icon name='error' /> <span>help tip box support html</span>
+            tipContent={<div><SvgIcon src="error" size={16} /> <span>help tip box support html</span>
             </div>} /></span>
           <span style={{ fontSize: '0.75rem' }}>通过iconSize设置icon大小，箭头将自动对齐到图标中间位置<HelpTip
             iconSize={['0.75rem', '0.75rem']} position={[0, 10]} arrowDirection='left'

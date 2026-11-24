@@ -39,7 +39,7 @@
 import Tag from "eview-ui/Tag";
 import ConfigProvider from "eview-ui/ConfigProvider";
 import { getDemoVersion } from "eview-ui/ThemeProvider";
-import Icon from "eview-ui/Icon";
+import { SvgIcon } from "@/shared/SvgIcon";
 
 class TagExample extends React.Component {
   state = {
@@ -66,7 +66,7 @@ class TagExample extends React.Component {
                 marginRight: "0.125rem",
               }}
             >
-              <Icon size={[12, 12]} name="calender" hoverColor="#191919" />
+              <SvgIcon src="calender" size={12} hoverColor="#191919" />
             </span>
             Tag
           </Tag>
@@ -139,7 +139,6 @@ ReactDOM.render(<TagExample />, mountNode);
 import Tag from "eview-ui/Tag";
 import ConfigProvider from "eview-ui/ConfigProvider";
 import { getDemoVersion } from "eview-ui/ThemeProvider";
-import Icon from "eview-ui/Icon";
 
 class TagExample extends React.Component {
   state = {

@@ -89,7 +89,7 @@ index.page.html (~2000 行)
 
 ## 5. 图标组件的处理
 
-### 5.1 源项目 icon 组件结构
+### 5.1 源项目 icon 组件结构（背景，不搬入）
 
 源项目的 icon 组件（通常 `assets/shared/icon.jsx` 或 `icons.js`）做三件事：
 
@@ -97,9 +97,11 @@ index.page.html (~2000 行)
 2. **运行时 fetch icon-plus 在线**：`fetch(getConfig)` 探测 → `fetch(getIconInfo?keyword=xxx)` 查名 → `fetch(getIcon?url=xxx&style=xxx&color=xxx&fileType=svg)` 取 SVG → `dangerouslySetInnerHTML` 注入
 3. **缓存 + 状态管理**：`plusState`、`iconInfoMap`、`svgCache`
 
-### 5.2 转换时保留原版
+> 本 skill **不搬入**源 icon.jsx——其 fetch/color/transform 能力已由 scaffold 自带的 `@/shared/SvgIcon` 模块（`src/shared/SvgIcon/`，含 `SvgIcon.jsx` + `core/` 引擎）提供并增强（getIconBase64/getIconSvg 三件套）。源 `<Icon name>` 调用点由步骤 7 转 `<SvgIcon src=.../>` / `getIconBase64`（见硬约束 8 与 [components/Icon.md](components/Icon.md)）。
 
-本 skill **不剥离 Lucide 兜底**（步骤 7 的 P 类保留策略——`<Icon>` 调用点零改动，禁止改用 eview-ui Icon/IconButton）。搬入源项目的 `icon.jsx` 内容到 `src/shared/Icon/Icon.jsx`（`export function Icon`→`export default function Icon`，scaffold 的 `index.jsx` 桶 `export { default } from './Icon.jsx'` 已就位），保留三层结构；shim 最终路径 `src/shared/Icon`（默认导出）。
+### 5.2 转换时用 @/shared/SvgIcon 替换
+
+源 `<Icon name size color>` 调用点**不保留原 shim**（零改动保留策略已废弃）——由步骤 7 的 P 类按 keyDiffs 转 `@/shared/SvgIcon`：独立调用点与 ReactNode 型 icon prop → `<SvgIcon src={name} size color/>`（interactiveProps 原样透传）；string 型 icon prop → `getIconBase64(src,{color,size})` 异步取 base64 data URL（useEffect+useState 预载）。禁止改用 eview-ui 的 `Icon`/`SvgIcon`/`svg-icons`/`IconButton`（均废弃/禁用）。
 
 ### 5.3 vite.config.js 的 icon-plus proxy
 

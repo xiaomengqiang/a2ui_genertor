@@ -379,7 +379,7 @@ if (i18nInfo.antdLocaleImports.length) console.log(`[extract-umd] antd locale �
 if (i18nInfo.antdLocaleFiles.length) console.log(`[extract-umd] 自写 antd locale 文件(dayjs 注册): ${i18nInfo.antdLocaleFiles.join(', ')}`);
 if (i18nInfo.businessLocaleFiles.length) console.log(`[extract-umd] 业务语言包文件: ${i18nInfo.businessLocaleFiles.length} 个`);
 
-// ========== 4.6 扫描 <Icon name> 调用点（供步骤 5 迁移计划 P 类注入 + 图标保留策略预定位） ==========
+// ========== 4.6 扫描 <Icon name> 调用点（供步骤 5 迁移计划 P 类注入 + 步骤 7 转 @/shared/SvgIcon 预定位） ==========
 
 function scanIconCallSites() {
   const callSites = [];
@@ -390,8 +390,8 @@ function scanIconCallSites() {
     scanTargets.push({ fullPath: sourceFile, relFile: path.basename(sourceFile) });
   }
 
-  // 交互 props 名清单（对应本 skill 硬约束 9：图标保留源 shim，<Icon> 调用点零改动）
-  // 命中即记进 iconCallSites.interactiveProps，供迁移时核对交互 props 未丢失
+  // 交互 props 名清单（供步骤 7 转 <SvgIcon> 时搬迁 interactiveProps 到 SvgIcon，不丢失交互能力）
+  // 命中即记进 iconCallSites.interactiveProps（含 tagText 完整标签文本），供迁移时逐 prop 搬迁
   const INTERACTIVE_PROP_RE = /\b(onClick|onDoubleClick|onMouseDown|onMouseUp|onMouseEnter|onMouseLeave|onMouseMove|onMouseOver|onMouseOut|onKeyDown|onKeyPress|onKeyUp|onFocus|onBlur|onTouchStart|onTouchEnd|onTouchMove|onPress|title|aria-[A-Za-z-]+|role|tabIndex|style|className|class|id|data-[A-Za-z-]+)\b/;
 
   for (const { fullPath, relFile } of scanTargets) {
@@ -441,6 +441,7 @@ function scanIconCallSites() {
         line: lineNum,
         name: nameValue,
         type: nameType,
+        tagText, // 完整原始 <Icon .../> 标签文本，供步骤 7 按 keyDiffs 改写为 <SvgIcon src=.../>
       };
       // 仅当有交互 props 时记录（避免普通静态图标站点膨胀交接文件）
       if (interactiveProps.length) {

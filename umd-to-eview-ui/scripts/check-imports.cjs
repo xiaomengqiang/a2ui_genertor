@@ -2,7 +2,7 @@
 /**
  * check-imports.cjs — umd-to-eview-ui 导入路径硬约束检查（strict，发现违规直接 FAIL）
  *
- * 对应 SKILL.md「eview-ui 硬约束」导入路径 + 图标保留 + Pro 版规范（旧版导入拦截）。
+ * 对应 SKILL.md「eview-ui 硬约束」导入路径 + 图标（@/shared/SvgIcon）+ Pro 版规范（旧版导入拦截）。
  * 导入路径是迁移的核心且 100% 静态可判，故全量硬 FAIL，不做 advisory。
  *
  * 检查项：
@@ -17,9 +17,11 @@
  *                          GridLayout 的 Row/Col——根包具名不在白名单内）
  *   6. PANEL_NO_DESTRUCT    `import ... from '@cloudsop/eview-ui/Panel'` 默认导入后同文件无
  *                          `const { Panel` 解构（默认导出不是 Panel 组件，直接用必炸）
- *   7. SHIM_PATH_RESIDUE    Icon shim 旧路径（`assets/shared/icon`）残留（应 `@/shared/Icon`）
- *   8. EVUI_ICON_FORBIDDEN  图标策略违例：导入 eview-ui/Icon、
- *                          eview-ui/IconButton（废弃）——图标保留源 shim
+ *   7. SHIM_PATH_RESIDUE    Icon 旧路径残留（`assets/shared/icon` 或 `@/shared/Icon`）
+ *                          ——应 `import { SvgIcon, ... } from '@/shared/SvgIcon'`
+ *   8. EVUI_ICON_FORBIDDEN  图标策略违例：导入 eview-ui/Icon（名体系不同）、
+ *                          eview-ui/SvgIcon、eview-ui/svg-icons（废弃）、
+ *                          eview-ui/IconButton（废弃）——图标统一 @/shared/SvgIcon
  *   9. TAB_DATA_PROP        `<Tab>` 上挂了 data（禁止）—— eview-ui Tab 同样是 TabItem
  *                          children 驱动，data 是 Select 系/Wizards 等的 prop
  *   10. LEGACY_PRO_USED     旧版组件导入（有 Pro 版的组件一律用 Pro 版）：
@@ -40,8 +42,8 @@ const path = require('path');
 const EXTS = new Set(['.js', '.jsx', '.ts', '.tsx']);
 
 // 扫描整个工程根（含根目录配置文件 + src/ 子树）。跳过 node_modules / .开头目录 /
-// dist / build；并跳过 src/shared（保留区：Icon shim 实现文件，可能有合法的
-// icon-plus 运行时依赖，不属于业务替换范围）。
+// dist / build；并跳过 src/shared/SvgIcon（图标核心模块：内部有 icon-plus 运行时 fetch，
+// 非业务 import 违规对象）。src/shared 下其余目录（如 Cascader 手写件）正常扫描。
 function walk(dir, root, out) {
   let entries;
   try {
@@ -55,7 +57,7 @@ function walk(dir, root, out) {
     const full = path.join(dir, ent.name);
     if (ent.isDirectory()) {
       const rel = path.relative(root, full).replace(/\\/g, '/');
-      if (rel === 'src/shared') continue;
+      if (rel === 'src/shared/SvgIcon') continue;
       walk(full, root, out);
     } else if (EXTS.has(path.extname(ent.name))) out.push(full);
   }
@@ -144,18 +146,19 @@ function main() {
           detail: line.trim() + ' —— 统一子路径默认导入：import X from "@cloudsop/eview-ui/X"（具名仅限子路径 TabItem/Row/Col）',
         });
       }
-      // 7. Icon shim 旧路径残留
-      if (/\bfrom\s+['"][^'"]*assets\/shared\/icon['"]/.test(line)) {
+      // 7. Icon 旧路径残留（assets/shared/icon 或 @/shared/Icon）
+      if (/\bfrom\s+['"][^'"]*(?:assets\/shared\/icon|@\/shared\/Icon)['"]/.test(line)) {
         violations.push({
           file: rel, line: ln, code: 'SHIM_PATH_RESIDUE',
-          detail: line.trim() + ' —— 应改为 import Icon from "@/shared/Icon"',
+          detail: line.trim() + ' —— 应改为 import { SvgIcon, getIconBase64 } from "@/shared/SvgIcon"',
         });
       }
-      // 8. 图标策略违例（eview-ui Icon / IconButton 废弃）
-      if (/\bfrom\s+['"](?:@cloudsop\/)?eview-ui\/(Icon|IconButton)['"]/.test(line)) {
+      // 8. 图标策略违例（eview-ui Icon 名体系不同 / SvgIcon / svg-icons / IconButton 废弃）
+      if (/\bfrom\s+['"](?:@cloudsop\/)?eview-ui\/(?:Icon|SvgIcon|IconButton)(?:['"]|\/)/.test(line) ||
+          /\bfrom\s+['"](?:@cloudsop\/)?eview-ui\/svg-icons/.test(line)) {
         violations.push({
           file: rel, line: ln, code: 'EVUI_ICON_FORBIDDEN',
-          detail: line.trim() + ' —— 图标保留源 shim（@/shared/Icon）；eview-ui Icon 名体系不同，IconButton 已废弃',
+          detail: line.trim() + ' —— 图标统一用 @/shared/SvgIcon；eview-ui Icon（名体系不同）、SvgIcon/svg-icons（废弃）、IconButton（废弃）均禁用',
         });
       }
     }
@@ -189,7 +192,7 @@ function main() {
 
   // ---- 报告 ----
   console.log('[check-imports] eview-ui 导入路径硬约束检查报告');
-  console.log(`  扫描范围: ${root}（${files.length} 个文件，已跳过 node_modules/dist/build/.开头 + src/shared）`);
+  console.log(`  扫描范围: ${root}（${files.length} 个文件，已跳过 node_modules/dist/build/.开头 + src/shared/SvgIcon）`);
 
   if (violations.length === 0) {
     console.log('\n结论: PASS — 未发现导入路径违规。');
@@ -207,8 +210,8 @@ function main() {
     EVUI_UNSCOPED_IMPORT: '裸包名导入（真实包名 @cloudsop/eview-ui）',
     EVUI_ROOT_IMPORT: 'eview-ui 根包具名导入（应子路径默认导入）',
     PANEL_NO_DESTRUCT: 'Panel 默认导入未解构',
-    SHIM_PATH_RESIDUE: 'Icon shim 旧路径残留',
-    EVUI_ICON_FORBIDDEN: '图标策略违例（导入 eview-ui Icon/IconButton）',
+    SHIM_PATH_RESIDUE: 'Icon 旧路径残留（assets/shared/icon 或 @/shared/Icon）',
+    EVUI_ICON_FORBIDDEN: '图标策略违例（导入 eview-ui Icon/SvgIcon/svg-icons/IconButton）',
     TAB_DATA_PROP: 'Tab 挂 data（应 TabItem children 驱动）',
     LEGACY_PRO_USED: '旧版 Pro 组件导入（有 Pro 版一律用 Pro 版）',
   };
@@ -223,7 +226,7 @@ function main() {
     console.log('');
   }
   console.log('结论: FAIL — 导入路径硬约束违规，必须修复后重跑。');
-  console.log('  修复指引见 SKILL.md「eview-ui 硬约束」导入路径 / 图标保留 / Pro 版规范。');
+  console.log('  修复指引见 SKILL.md「eview-ui 硬约束」导入路径 / 图标（@/shared/SvgIcon） / Pro 版规范。');
   process.exit(1);
 }
 

@@ -48,7 +48,7 @@ TabItem是Tab的子标签和Tab标签一起使用。
 | title        | tab的标题内容                                                               | string   |       |
 | closable     | 页签是否可关闭                                                              | boolean  | false |
 | disabled     | 该属性用于设置页签的使能状态。                                              | boolean  | false |
-| icon         | 页签项的图标。并在此处设置图标的绝对路径。                                  | string   |       |
+| icon         | 页签项的图标。并在此处设置图标的绝对路径                                  | string   |       |
 | setEditing   | 该属性用于启用或禁用页签的编辑。                                            | boolean  | false |
 | tabItemStyle | 设置页签标题的样式（比如字体大小、颜色）                                    | object   |       |
 | tips         | 提示内容                                                                    | string   |       |

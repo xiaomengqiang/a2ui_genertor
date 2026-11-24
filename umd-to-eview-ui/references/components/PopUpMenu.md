@@ -42,7 +42,7 @@ PopUpMenu组件提供弹出菜单功能，支持多级子菜单、图标、自�
 | serialno | 选项序列号（必填且唯一） | string \| number |  |
 | value | 选项值（未设置时使用serialno） | any |  |
 | cls | 选项类名 | string |  |
-| iconUrl | 图标URL（注：没有图标不要传入字符串；建议使用icon替代） | string | undefined |
+| iconUrl | 图标URL（注：没有图标不要传入字符串；建议使用icon替代）；废弃 | string | undefined |
 | icon | 图标节点（推荐使用，替代iconUrl） | React.ReactNode |  |
 | keyCode | 快捷键码（注：不设快捷键不要传入数字） | number | undefined |
 | disable | 是否禁用 | boolean | false |

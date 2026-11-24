@@ -11,7 +11,7 @@
 | antd 写法                         | eview 写法               | 迁移要点                                                                                                                                                                                                                                                                                                                            |
 | --------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Button`（纯文字）                | `Button`                 | 文字用 `text` prop（**不用 children**，文档 API 只有 text）；`type`→`status`（`default`/`primary`/`risk`）；`size` 三档是 `small`/`normal`/`large`（**antd `middle`→`normal`**）；无 `loading`/`htmlType`/`danger`（`danger`→`status="risk"`）；处理中用 `disabled`+文案切换；`onClick(event)` 原生事件（同 antd）                  |
-| `Button icon={<Icon/>}`（带图标） | `Button` + children 组合 | **不要迁 `leftIcon`/`rightIcon`**——eview-ui 的 leftIcon/rightIcon 接收**图标 url 字符串**，不是 ReactNode，与保留的 `<Icon>` shim 类型不匹配。改用 children：`<Button onClick={...}><Icon name="x" size={14}/>{文字}</Button>`（Button 底层是原生 button，children 可渲染）；纯文字部分仍优先 `text` prop，带图标时文字跟在 Icon 后 |
+| `Button icon={<Icon/>}`（带图标） | `Button` + `leftIcon`/`rightIcon` | `leftIcon`/`rightIcon` 收 **string**（图标路径 / base64 data URL）——用 `getIconBase64(src,{color,size})` 异步取 base64 data URL 传入（useEffect+useState 预载，见 [Icon.md](./Icon.md)）；`leftIconProps.{leftHoverIcon,leftDisabledIcon}`、`rightIconProps.*` 同理。源 `<Icon name>` 不要塞进 leftIcon/rightIcon（ReactNode，不渲染） |
 
 ## API
 
@@ -31,8 +31,8 @@
 | onClick        | 点击按钮时的回调<br>_event:_ 原生dom的点击事件 <br>                                                                                                                                                                               | function: <br>`(event: object) => void` | -          |
 | onKeyDown      | 按下键盘键时的回调<br>_event:_ 原生dom的键盘事件 <br>                                                                                                                                                                             | function: <br>`(event: object) => void` | -          |
 | focused        | 设置组件是否默认聚焦                                                                                                                                                                                                              | bool                                    | `false`    |
-| leftIcon       | 在Button中文本的左边设置图标，传入值为图标的绝对路径                                                                                                                                                                              | string                                  | -          |
-| rightIcon      | 在Button中文本的右边设置图标，传入值为图标的绝对路径                                                                                                                                                                              | string                                  | -          |
+| leftIcon       | 在Button中文本的左边设置图标，传入值为图标的绝对路径或 base64 data URL                                                                                                      | string                                  | -          |
+| rightIcon      | 在Button中文本的右边设置图标，传入值为图标的绝对路径或 base64 data URL                                                                                                      | string                                  | -          |
 | leftIconProps  | 设置leftIcon的附加属性 <br>**属性：** <br> _leftHoverIcon_: 光标悬停时的leftIcon <br>_leftDisabledIcon_: 禁用时的leftIcon <br>_leftIconClass_: leftIcon的自定义类 <br>_leftIconDisabledClass_: 禁用时leftIcon的自定义类           | object                                  | null       |
 | rightIconProps | 设置rightIcon的附加属性 <br>**属性：** <br> _rightHoverIcon_: 光标悬停时的rightIcon <br>_rightDisabledIcon_: 禁用时的rightIcon <br> _rightIconClass_: rightIcon的自定义类 <br>_rightIconDisabledClass_: 禁用时rightIcon的自定义类 | object                                  | null       |
 | toolTipProps   | tip配置 _优先级高于其他tip相关配置_ <br> **请使用Tooltip组件添加提示框,结构清晰,组件控制便捷**                                                                                                                                    | object(具体配置见Tooltip组件文档)       | null       |
@@ -158,44 +158,25 @@ ReactDOM.render(<IconButtonStyle />, mountNode);
 
 ```jsx
 import Button from "eview-ui/Button";
-import Icon from "eview-ui/Icon";
+import { getIconBase64 } from "@/shared/SvgIcon";
 import ConfigProvider from "eview-ui/ConfigProvider";
 import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class IconButtonStyle extends React.Component {
   state = { iconsSvg: {} };
 
-  getIconToBase64Svg = ({ key, iconName = key, color }) => {
-    const [version, theme] = getDemoVersion();
-
-    return new Promise((resolve) => {
-      const tempDiv = document.createElement("div");
-      const renderIcon = (
-        <Icon version={version} theme={theme} name={key} color={color} />
-      );
-      ReactDOM.render(renderIcon, tempDiv, () => {
-        const innerHTMLSvg = tempDiv.innerHTML;
-        ReactDOM.unmountComponentAtNode(tempDiv);
-        resolve({
-          [iconName]: `data:image/svg+xml;base64,${btoa(innerHTMLSvg)}`,
-        });
-      });
-    });
-  };
-
   componentDidMount() {
-    const iconNames = [{ key: "plus" }, { key: "del" }];
-
-    Promise.allSettled(
-      iconNames.map((icon) => this.getIconToBase64Svg(icon)),
-    ).then((results) => {
-      const iconsSvg = results
-        .filter((result) => result.status === "fulfilled") // 过滤出成功的 Promise
-        .map((result) => result.value)
-        .reduce((acc, curr) => ({ ...acc, ...curr }), {});
-
+    let alive = true;
+    // leftIcon/rightIcon 收 string（base64 data URL），用 getIconBase64 异步预载
+    Promise.all([
+      getIconBase64("plus", { size: 16 }).then(url => ["plus", url]),
+      getIconBase64("del", { size: 16 }).then(url => ["del", url]),
+    ]).then(entries => {
+      if (!alive) return;
+      const iconsSvg = Object.fromEntries(entries.filter(([, url]) => url));
       this.setState({ iconsSvg });
     });
+    return () => { alive = false; };
   }
 
   render() {
@@ -271,7 +252,6 @@ ReactDOM.render(<IconButtonStyle />, mountNode);
 import Button from "eview-ui/Button";
 import LabelField from "eview-ui/LabelField";
 import Radio from "eview-ui/Radio";
-import Icon from "eview-ui/Icon";
 import ConfigProvider from "eview-ui/ConfigProvider";
 import { getDemoVersion } from "eview-ui/ThemeProvider";
 

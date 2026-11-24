@@ -93,7 +93,7 @@
       "input": "ict-coder 产物：index.page.html + assets/style/ 四层 CSS + src/ 双份代码 + antd 5",
       "assertions": [
         "跑 init-scaffold.cjs 搭骨架（eview-ui 形态：@cloudsop/eview-ui 依赖 + .npmrc scope + less 配置，无 @nce/eview-react 残留）",
-        "scaffold src/shared 仅含 Icon（图标 shim）与 Cascader（手写件），无转发包壳目录",
+        "scaffold src/shared 含 SvgIcon（图标核心模块，实现代码随 scaffold 提供）与 Cascader（手写件），无 Icon 旧 shim、无转发包壳目录",
         "scaffold src/theme/useTheme.jsx 存在（ThemeProvider 黑白主题预制件）",
         "index.html body 预置 eviewui_aui3_1_default 类 + data-theme=default（亮态首帧防闪）",
         "跑 extract-umd.cjs：base/light/theme/dark 四层 CSS 拷入 src/styles/（ant.css 跳过）",
@@ -152,17 +152,20 @@
     },
     {
       "id": 10,
-      "name": "图标与图表保留策略",
-      "description": "图标保留源 Icon shim、图表保留源 Chart 封装（eview-ui 无对应）",
-      "input": "<Icon name> 调用点 + <Chart> 调用点（步骤 2 预扫 iconCallSites/chartCallSites）",
+      "name": "图标转换与图表保留策略",
+      "description": "图标转 @/shared/SvgIcon（name/size/color → 图标组件/图标字符串）、图表保留源 Chart 封装（eview-ui 无对应）",
+      "input": "<Icon name> 调用点 + eview-ui 组件 icon prop 位 + <Chart> 调用点（步骤 2 预扫 iconCallSites/chartCallSites）",
       "assertions": [
-        "Icon 调用点零改动（<Icon name=\"...\"> 原样）",
-        "import Icon from '@/shared/Icon'（NOT assets/shared/icon 旧路径）",
-        "NOT 导入 eview-ui/Icon、eview-ui/IconButton（废弃）",
-        "NOT 把 Icon shim 塞进 eview-ui 组件的 leftIcon/rightIcon/icon（url 字符串 prop）",
-        "Button 带图标用 children 组合：<Button><Icon name=\"x\" size={14}/>{文字}</Button>",
+        "独立 <Icon name=\"...\"> 调用点转 <SvgIcon src={name} size={n} color={...}/>（name→src，size/color 不变）",
+        "interactiveProps（onClick/title/aria-*/role/tabIndex/style/className/id/data-*）原样透传到 <SvgIcon>（iconCallSites[].interactiveProps 是搬迁依据）",
+        "import { SvgIcon, getIconBase64 } from '@/shared/SvgIcon'（NOT @/shared/Icon 旧 shim、NOT assets/shared/icon 旧路径）",
+        "NOT 导入 eview-ui/Icon、eview-ui/SvgIcon、eview-ui/svg-icons、eview-ui/IconButton（均废弃/禁用）",
+        "string 型 icon prop（leftIcon/rightIcon/icon/iconUrl/iconLeaf/options[].icon 等，收路径/base64）用 getIconBase64(src,{color,size}) 异步取 base64 data URL 传入（useEffect+useState 预载，NOT 同步赋值、NOT 塞 ReactNode）",
+        "ReactNode 型 icon prop（Menu.SubMenu.icon/Menu.MenuItem.icon/PopUpMenu.icon）用 <SvgIcon>（NOT 塞字符串）",
+        "Button 带图标用 leftIcon/rightIcon + getIconBase64（NOT children 塞 <SvgIcon>）",
+        "命名冲突：@/shared/SvgIcon 的 SvgIcon（允许）≠ eview-ui 内置 SvgIcon（废弃，禁用）",
         "Chart 封装保留原样（NOT 补 a2ui/theme——eview-ui 无此约束）",
-        "vite.config.js icon-plus proxy 保留"
+        "vite.config.js icon-plus proxy 保留（@/shared/SvgIcon 运行时依赖）"
       ]
     },
     {

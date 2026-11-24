@@ -11,7 +11,7 @@
 // 类别说明：
 //   A = 有对应（改导入 + props，注意事项见各组件 md）
 //   B = 无对应（handwrite-templates.md 手写，索引表在其头部）
-//   P = 保留（保留源封装不动：Icon shim / Chart——由下方 2b/2c 殉计数注入，与 md 无关）
+//   P = 特殊处理（Icon 调用点转 @/shared/SvgIcon / Chart 保留源封装不动——由下方 2b/2c 按计数注入，与 md 无关）
 //
 // 区块标记：组件 md 注意事项区块内 `> 迁移分类：A`（缺省 A）；Icon.md 标 P（跳过解析）。
 // 导入特例（SPECIAL_IMPORTS）与 ref 特例（SPECIAL_REFS）维持脚本内硬编码。
@@ -242,22 +242,22 @@ for (const [antdName, files] of Object.entries(antdComponents)) {
   });
 }
 
-// ========== 2b. P 类注入：Icon shim（保留不迁） ==========
-// 触发：iconCallSites.callSites 非空（上游 extract-umd.cjs 预扫）
+// ========== 2b. P 类注入：Icon 调用点（转 @/shared/SvgIcon） ==========
+// 触发：iconCallSites 非空（上游 extract-umd.cjs 预扫，含 tagText 供 step 7 改写）
 const iconInfo = handoff.iconCallSites;
 const iconCallSitesArr = Array.isArray(iconInfo) ? iconInfo : ((iconInfo && iconInfo.callSites) || []);
 if (iconCallSitesArr.length) {
   const iconFiles = [...new Set(iconCallSitesArr.map(c => c.file))];
   migrationPlanEui.push({
-    antd: 'Icon（源 shim）',
+    antd: 'Icon（源调用点）',
     category: 'P',
-    eview: 'Icon（保留源 shim）',
-    importPath: '@/shared/Icon',
-    keyDiffs: '保留不动——import Icon from "@/shared/Icon" 与 <Icon name="..."> 调用点零改动；禁止改用 eview-ui Icon/IconButton（废弃）；禁止把 Icon shim 塞进 eview-ui 组件的 leftIcon/rightIcon/icon（url 字符串 prop，类型不匹配）；Button 带图标用 children 组合：<Button><Icon name="x" size={14}/>{文字}</Button>。步骤 3 仅 check-imports.cjs 校验路径',
-    ref: 'components/Icon.md',
+    eview: 'SvgIcon（@/shared/SvgIcon）',
+    importPath: '@/shared/SvgIcon',
+    keyDiffs: '源 <Icon name="x" size color/> 转换为 @/shared/SvgIcon：① prop 改名 name→src（<SvgIcon src={name} size={n} color={...}/>）；② interactiveProps 搬迁——读 iconCallSites[].tagText 逐 prop（onClick/title/aria-*/role/tabIndex/style/className/id/data-*）原样透传到 <SvgIcon>；③ ReactNode 型 icon prop 位（Menu.SubMenu.icon / Menu.MenuItem.icon / PopUpMenu.icon / 独立 <Icon> 调用点）直接传 <SvgIcon src={name} .../>；④ string 型 icon prop 位（leftIcon/rightIcon/icon/iconUrl/iconLeaf/options[].icon 等收图片路径/base64 的 prop）用 getIconBase64(src,{color,size}) 异步取 base64 data URL 传入（useEffect+useState 预载，不可同步赋值）；⑤ type 默认 lined（可选 filled/lined-twotone/filled-twotone/round-bg/square-bg），color 经 transform 烘焙进 SVG；⑥ 禁 eview-ui/Icon、eview-ui/SvgIcon、eview-ui/svg-icons、eview-ui/IconButton、@/shared/Icon。方法见 components/Icon.md',
+    ref: null,
     files: iconFiles,
   });
-  console.log(`[build-migration-plan(eui)] 注入 Icon 保留行（P 类）: ${iconFiles.length} 个调用文件`);
+  console.log(`[build-migration-plan(eui)] 注入 Icon 转换行（P 类→@/shared/SvgIcon）: ${iconFiles.length} 个调用文件`);
 }
 
 // ========== 2c. P 类注入：Chart（保留不迁） ==========

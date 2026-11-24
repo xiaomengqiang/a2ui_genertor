@@ -316,7 +316,7 @@ ReactDOM.render(
 
 ```jsx
 import Tooltip from "eview-ui/Tooltip";
-import Icon from "eview-ui/Icon";
+import { SvgIcon } from "@/shared/SvgIcon";
 import ConfigProvider from "eview-ui/ConfigProvider";
 import { getDemoVersion } from "eview-ui/ThemeProvider";
 
@@ -331,7 +331,7 @@ ReactDOM.render(
       placement="topLeft"
       trigger={["hover", "focus"]}
     >
-      <Icon name="help" tabIndex={0}></Icon>
+      <SvgIcon src="help" size={16} tabIndex={0} />
     </Tooltip>
   </ConfigProvider>,
   mountNode,

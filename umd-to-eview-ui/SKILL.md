@@ -40,7 +40,7 @@ description: >-
 - **src/theme/useTheme.jsx**：黑白主题切换预制件——`ThemeProvider`（自持 isDark 演示态 + `ConfigProvider locale="zh" version="aui3-1" theme` 派生 + html `.dark` useEffect；步骤 3 改为消费 `useApp().isDark`）+ `useTheme` 演示 hook（步骤 3 删）
 - **app.jsx**：`useTheme()` 消费者空壳（含演示切换按钮；步骤 3 被源项目业务树替换）
 - **vite.config.js**：`@`→`./src` 别名 + icon-plus proxy/transform + **less 预处理配置**（`javascriptEnabled: true` + `paths: [node_modules]` + TildeFileManager 插件处理 `~` 前缀导入；less 无需显式 devDep，由 @cloudsop/eview-ui 传递依赖提供）
-- **src/shared/Icon/**：图标 shim（folder + 默认导出，两路线通用）
+- **src/shared/SvgIcon/**：图标核心模块，**实现代码已随 scaffold 提供**（`SvgIcon.jsx` + `core/` fetch/color/transform 引擎）。运行时通过 icon-plus **图标 API 接口**取 SVG——该接口只能在内网访问（外网环境图标不渲染，属预期行为，不判 FAIL）。用法见硬约束 8 与 [components/Icon.md](references/components/Icon.md)；check-imports 跳过 `src/shared/SvgIcon` 目录
 - **src/shared/Cascader/**：纯手写 antd 兼容件
 - **src/styles/**：四层 CSS 占位（base.css 占位 + light/theme/dark 空壳，步骤 2 覆盖/追加）
 - **public/font/**：HarmonyOS Sans SC 四字重
@@ -102,7 +102,7 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 1. 把源项目 src/ 下的独立文件（或 _extracted/ 下的提取文件）搬入 <目标工程根>/src/
    - 保持目录结构（src/views/、src/components/ 等）
    - **保留 src/context.jsx**（ict-coder 产物的 Layer 1 全局状态，含 `AppProvider` + `useApp` hook + isDark/dark toggle）：整文件搬入 <目标工程根>/src/context.jsx，**不改 AppProvider/useApp 的导出契约**——业务组件与暗色切换都依赖 `useApp().isDark`。若 context.jsx 里有 antd ConfigProvider 嵌套则删掉；AppProvider 内部的 isDark state + toggleDark 保留
-   - 搬入源项目 icon.jsx 内容到 src/shared/Icon/Icon.jsx（`export function Icon`→`export default function Icon`，scaffold 的 index.jsx 桶 `export { default } from './Icon.jsx'` 已就位）；业务代码 `import { Icon } from ".../assets/shared/icon.jsx"` → `import Icon from "@/shared/Icon"`（默认导入，`@` 别名已由 vite.config.js 预配）
+   - 源项目 `<Icon name>` 调用点**不搬入 shim**：`@/shared/SvgIcon` 已作为图标核心模块预置在 scaffold（`src/shared/SvgIcon/`，见硬约束 8）；源 `<Icon>` 调用点由步骤 7 按 keyDiffs 转 `<SvgIcon src=.../>`（@/shared/SvgIcon）；源 `assets/shared/icon.jsx` 不拷入
     - app.jsx 用源项目的版本替换 scaffold 的空壳 app.jsx，同时做黑白主题接线：
        a. 删除 antd ConfigProvider（含 locale + theme.darkAlgorithm）——eview-ui 的黑白主题切换已由 scaffold 的 ThemeProvider 预制（src/theme/useTheme.jsx，ConfigProvider 就在里面），本步骤只做接线（见 c），**不要再另写 ConfigProvider**
        b. **isDark 仍从 useApp() 取**（`const { isDark, toggleDark } = useApp()`，来自 context.jsx 的 AppProvider）——业务组件与暗色切换 UI 的契约不变，保留源项目的暗色切换 UI（toggleDark 调用点）
@@ -169,9 +169,9 @@ node <skill目录>/scripts/extract-umd.cjs <源UMD文件路径> <目标工程根
 node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 ```
 
-脚本读 `.umd-conversion.json` 的 `antdComponents` + 各组件文档的「antd 迁移注意事项」区块（`references/components/<Name>.md` 的三列表）与 `handwrite-templates.md` 头部的 B 类索引表，对每个 antd 组件生成迁移行：**A**（有对应：eview 替换名 + importPath + 完整 keyDiffs + `components/<Name>.md` ref）/ **B**（无对应：手写模板 ref）/ **P**（保留不迁：Icon shim / Chart）；`iconCallSites`/`chartCallSites`/`ipInputCallSites` 非空时自动注入 P 类保留行与 IPInput 迁移行；同时写入 `globalRefEui`（拼写异常 + antd→eview 重命名 + 回调签名 + 显隐 prop 速查表内联，人读版在 `components/INDEX.md` 文末）。
+脚本读 `.umd-conversion.json` 的 `antdComponents` + 各组件文档的「antd 迁移注意事项」区块（`references/components/<Name>.md` 的三列表）与 `handwrite-templates.md` 头部的 B 类索引表，对每个 antd 组件生成迁移行：**A**（有对应：eview 替换名 + importPath + 完整 keyDiffs + `components/<Name>.md` ref）/ **B**（无对应：手写模板 ref）/ **P**（特殊处理：Icon 调用点转 `@/shared/SvgIcon` / Chart 仍保留不迁）；`iconCallSites`/`chartCallSites`/`ipInputCallSites` 非空时自动注入 Icon 转换行、Chart 保留行与 IPInput 迁移行；同时写入 `globalRefEui`（拼写异常 + antd→eview 重命名 + 回调签名 + 显隐 prop 速查表内联，人读版在 `components/INDEX.md` 文末）。
 
-步骤 7 的子 agent 直接读提取的 `.migration-plan-eui.json`（无需手动通读各组件 md 的注意事项区块）：A 类按 `ref` 读 `components/<Name>.md`（迁移注意事项与完整 API 同文件），B 类按 ref 读 `handwrite-templates.md`，P 类不动。
+步骤 7 的子 agent 直接读提取的 `.migration-plan-eui.json`（无需手动通读各组件 md 的注意事项区块）：A 类按 `ref` 读 `components/<Name>.md`（迁移注意事项与完整 API 同文件），B 类按 ref 读 `handwrite-templates.md`，P 类按 keyDiffs 处理（Icon 调用点转 `@/shared/SvgIcon`、Chart 保留不动）。
 
 ## 步骤 6：黑白主题接线核对
 
@@ -207,7 +207,7 @@ node -e "const j=require('./.umd-conversion.json');require('fs').writeFileSync('
 1. 读 <目标工程根>/.migration-plan-eui.json（migrationPlanEui/globalRefEui/i18nScenario 三字段），按涉及文件逐组件替换：
    - A 类（有对应）：导入改用 importPath；按 keyDiffs 逐项改 props/回调/数据格式（拼写异常/回调签名/显隐 prop 查 globalRefEui 三张速查表）；按 ref 读 components/<Name>.md 查完整 API（keyDiffs 是差异摘要，非完整 API）；API 表查不到的 props 一律不写（宁缺勿编）
    - B 类（无对应）：读 handwrite-templates.md 取模板手写补位；样式用源项目 CSS 变量；加 // TODO(eview-ui) 注释
-   - P 类（保留不动）：Icon shim 与 Chart 封装零改动，import Icon from '@/shared/Icon' 路径保持
+   - P 类（特殊处理）：Icon 调用点按 keyDiffs 转 `@/shared/SvgIcon`（`<SvgIcon src=.../>` / `getIconBase64`，见硬约束 8）；Chart 封装零改动，import 保持
    - 替换顺序：叶子组件 → 容器组件 → 布局骨架
 2. i18nScenario.scenario 为 C（源用 i18next）时：读 <skill目录>/references/i18n-migration.md §3 场景 C，按决策规则选定 keep i18next 或迁 react-intl 并执行
 3. 每替换完一个组件立即 grep -rn "from 'antd'" src/ 检查残留数递减；全部完成后 antd 与 @ant-design/icons 残留须为 0
@@ -253,7 +253,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 
 7. **CSS 色值不漂移 + token 不漂移**：原项目 CSS 写死色值**允许**（忠实保留），但不能擅自改值；类名用业务前缀。**机器验证**：步骤 8 `check-css.cjs` + `check-token-drift.cjs` 对照 `.umd-conversion.json` 的 `sourceCssColors`/`sourceCssTokens` 快照。
 
-8. **图标保留源 shim，不迁移**：`<Icon name="...">`（icon-plus 在线 + Lucide）调用点**零改动**，`import Icon from '@/shared/Icon'` 路径保持；**禁止**改用 eview-ui `Icon`（name 体系不同、无 catalog 匹配依据）、`IconButton`（废弃）。eview-ui 组件的 `leftIcon`/`rightIcon`/`icon` 类 prop 接收**图标 url 字符串**，与 Icon shim（ReactNode）类型不匹配——**不要把 Icon shim 塞进这些 prop**；带图标场景用 children 组合（如 `<Button><Icon name="x"/>{文字}</Button>`）。
+8. **图标统一 `@/shared/SvgIcon`（图标核心模块，已随 scaffold 提供）**：实现代码已随 scaffold 提供（`src/shared/SvgIcon/`，含 `SvgIcon.jsx` + `core/` fetch/color/transform 引擎）。运行时通过 icon-plus 图标 API 接口取 SVG，该接口只能在内网访问（外网环境图标不渲染，不判 FAIL——属预期行为；校验只看 SvgIcon/getIconBase64 是否正确转换，不校验图标是否实际渲染）。源 antd 图标以 name/size/color 三参给出，`@/shared/SvgIcon` 接收这三参转换为 eview-ui 所需的图标组件或图标字符串。源 `<Icon name="...">` 调用点转 `<SvgIcon src={name} size={n} color={...}/>`（**interactiveProps 原样透传**）；eview-ui 组件 **string 型** icon prop（`leftIcon`/`rightIcon`/`icon`/`iconUrl`/`iconLeaf` 等，收图片路径/base64 data URL）用 `getIconBase64(src,{color,size})` 异步取 base64 data URL 传入（async 预载：useEffect+useState，**不可同步赋值**）；**ReactNode 型** icon prop（`Menu.SubMenu.icon`/`Menu.MenuItem.icon`/`PopUpMenu.icon`）用 `<SvgIcon>`。**禁** eview-ui `Icon`（名体系不同、无 catalog 匹配依据）、`SvgIcon`（废弃）、`eview-ui/svg-icons/*`（废弃）、`IconButton`（废弃）、`@/shared/Icon` 旧路径。方法集中见 [components/Icon.md](references/components/Icon.md)。
 
 9. **图表保留源封装，不迁移**：eview-ui **无 Chart 组件**——保留源项目 `chart.jsx` 封装与其 import 原样；**不需要**补 `a2ui: true`/`theme`（eview-ui 无此约束，勿凭空添加）；暗色下图表主题跟随由源项目逻辑自理。
 
@@ -264,7 +264,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 
 11. **拼写异常照抄原文**：`seprator`（Crumbs）、`disable`（**仅 SelectCard/FileUpload/PopUpMenu 项**——其余组件用正确拼写 `disabled`，**不要全局替换**）、`placeHolder`（FileUpload/BrowseButton）、`upLoadErrorMessage`、`disposeTimeOut`、`disabelCheckAssociated`、`enablHorzScroll` 等。完整表见 [components/INDEX.md](references/components/INDEX.md) 文末「属性拼写异常」表。**机器验证**：`check-crumbs.cjs`（separator 正确英文残留即 FAIL）。
 
-12. **按钮/文字类组件内容用 prop 不用 children**：`Button text`、`TextButton text`、`DivMessage text`、`LabelField text`（Button 带 Icon 时例外走 children 组合，见硬约束 8）；`MessageDialog content/detail` 结构区分。
+12. **按钮/文字类组件内容用 prop 不用 children**：`Button text`、`TextButton text`、`DivMessage text`、`LabelField text`（Button 带图标用 `leftIcon`/`rightIcon` string 型 prop + `getIconBase64`，见硬约束 8）；`MessageDialog content/detail` 结构区分。
 
 13. **有 Pro 版的组件一律用 Pro 版**：antd 组件只映射到 `SelectPro`（`placeholder` 同名、`onChange(value, options)` 两参、`mode` single/singleSearch/multiple/multiSearch）、`DialogPro`（**无 buttons prop——footer 自写**）、`MessageDialogPro`（受控 + 静态方法双形态）、`TablePro`（dataIndex/rowKey/selection 同构 antd）、`FormPro`（Rule 扁平化）。旧版组件（`Select`/`Table`/`Dialog`/`MessageDialog`/`Form`）**导入即违规**——注意官方组件文档示例里旧版与 Pro 混用，抄文档时认准 Pro。**机器验证**：步骤 8 `check-imports.cjs` 的 LEGACY_PRO_USED（exit≠0 即 FAIL）。
 
@@ -274,7 +274,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 2. **Provider 体系由 scaffold 定型**：main.jsx 已预设 react-intl `IntlProvider`（业务 i18n）+ `ThemeProvider`（黑白主题）；步骤 3 删除 app.jsx 的 antd `ConfigProvider`（含 `zhCN` locale + `theme.darkAlgorithm`），不在业务代码另加 Provider；eview-ui `ConfigProvider` 已由 scaffold 的 ThemeProvider 预制，步骤 3 只做 AppProvider 接线（步骤 6 核对）
 3. **CSS 四层分类对齐 ict-coder**：`base.css`（基础色阶+@font-face+reset+scrollbar）、`light.css`（语义层 :root `--color-*`）、`theme.css`（角色层 :root `--primary`/`--surface`/`--font-body-*`）、`dark.css`（`.dark` 暗色覆盖）四文件对齐 ict 的 base/light/theme/dark 分类；`ant.css` 不搬
 4. **相对导入不能有 `./src/...`**：`src/app.jsx` 导入同级用 `./context.jsx`，导入视图用 `./views/X.jsx`；`src/views/X.jsx` 导入上层数据用 `../data.js`
-5. **图标组件保留源项目原版**：搬入源项目 `icon.jsx` 到 `src/shared/Icon/`，不剥离 Lucide、不换 icon+ 静态 import（替换是步骤 7 的 P 类保留策略——本就不迁移）
+5. **图标用 `@/shared/SvgIcon`**：源 `<Icon name>` 调用点不搬入旧 shim，由步骤 7 P 类按 keyDiffs 转 `<SvgIcon src=.../>`（图标组件）或 `getIconBase64`（图标字符串）；`@/shared/Icon` 旧路径禁用（check-imports 校验）；eview-ui `Icon`/`SvgIcon`/`IconButton`/`svg-icons` 均禁用（见硬约束 8）
 
 ## 命名异常速查
 
@@ -309,4 +309,4 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 - **Spinner 混收无效值**：`onChange` 只在有效值触发，无效输入走 `onError`——漏接 onError 输入静默丢失
 - **拼写陷阱**：`separator`（正确英文）残留 = Crumbs 未迁移；`disabled` 全局替换成 `disable` = 误伤 Button/Select 等正确拼写组件
 - **DivMessage 渲染在父组件树**：通知触发父组件重渲染致输入组件失焦（TextField/Select 等输入组件的已知焦点竞争问题）——浮层抽离独立组件
-- **图标塞进 leftIcon/icon prop**：url 字符串 prop 塞 ReactNode——不渲染
+- **图标塞进 leftIcon/icon prop**：string 型 prop（收图片路径/base64）要传 `getIconBase64` 取的 base64 data URL 字符串——塞 ReactNode（`<SvgIcon>`）不渲染；反之 ReactNode 型 prop（Menu.SubMenu.icon 等）要传 `<SvgIcon>`——塞字符串不渲染

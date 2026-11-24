@@ -22,7 +22,7 @@
 | data               | 手风琴数据 array<{title: ReactNode;value?: string;icon?: string;description?: string;activeIcon?: string;disabled?: boolean;children?: array}>           | array                                     |       |
 | selectedValue      | 默认被选中的项的 value，不设置，则为第一项的 value                                                                                                       | string                                    | ''    |
 | headerText         | 手风琴标题文字                                                                                                                                           | ReactNode                                 |       |
-| headerIcon         | 手风琴标题图标的 url                                                                                                                                     | string                                    |       |
+| headerIcon         | 手风琴标题图标的 url                                                                     | string                                    |       |
 | enableTooltip      | 是否使用提示                                                                                                                                             | bool                                      | true  |
 | toolTipProps       | 自定义手风琴菜单的Tooltip属性(6.0.x版本支持)，需要将enableTooltip设置为true，参考Tooltip组件文档来设置                                                   | [CustomTooltipType](/components/Tooltip/) |       |
 | forceShowTip       | 强制展示tip，设置为 'title'，使用浏览器默认的title属性。此时会忽略enableTooltip属性；enableTooltip只会在有溢出时才展示。                                 | string \| bool                            | false |

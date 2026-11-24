@@ -234,41 +234,25 @@ ReactDOM.render(<SelectCardChangeData />, mountNode);
 
 ```jsx
 import SelectCard from "eview-ui/SelectCard";
-import Icon from "eview-ui/Icon";
+import { getIconBase64 } from "@/shared/SvgIcon";
 import ConfigProvider from "eview-ui/ConfigProvider";
 import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 export default class SelectCardIconExample extends React.Component {
   state = { iconsSvg: {} };
 
-  getIconToBase64Svg = ({ key, iconName = key, color }) => {
-    const [version, theme] = getDemoVersion();
-    return new Promise((resolve) => {
-      const tempDiv = document.createElement("div");
-      const renderIcon = (
-        <Icon version={version} theme={theme} name={key} color={color} />
-      );
-      ReactDOM.render(renderIcon, tempDiv, () => {
-        const innerHTMLSvg = tempDiv.innerHTML;
-        ReactDOM.unmountComponentAtNode(tempDiv);
-        resolve({
-          [iconName]: `data:image/svg+xml;base64,${btoa(innerHTMLSvg)}`,
-        });
-      });
-    });
-  };
-
   componentDidMount() {
-    const iconNames = [{ key: "plus" }, { key: "del" }];
-    Promise.allSettled(
-      iconNames.map((icon) => this.getIconToBase64Svg(icon)),
-    ).then((results) => {
-      const iconsSvg = results
-        .filter((result) => result.status === "fulfilled")
-        .map((result) => result.value)
-        .reduce((acc, curr) => ({ ...acc, ...curr }), {});
+    let alive = true;
+    // leftIcon/rightIcon 收 string（base64 data URL），用 getIconBase64 异步预载
+    Promise.all([
+      getIconBase64("plus", { size: 16 }).then(url => ["plus", url]),
+      getIconBase64("del", { size: 16 }).then(url => ["del", url]),
+    ]).then(entries => {
+      if (!alive) return;
+      const iconsSvg = Object.fromEntries(entries.filter(([, url]) => url));
       this.setState({ iconsSvg });
     });
+    return () => { alive = false; };
   }
 
   render() {

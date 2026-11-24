@@ -15,8 +15,8 @@
 | id | 设置组件的id | string | 自动生成（前缀`eui_icon_bt_`） |
 | className | 通过自定义class的方式给组件添加样式 | string | |
 | style | 通过添加style的方式给组件添加样式 | React.CSSProperties | |
-| iconUrl | 通过传入图片路径设置图标按钮，图标以背景图方式显示 | string | |
-| hoverIconUrl | 通过传入图片路径设置鼠标悬浮时的按钮图标，悬浮时替换为该背景图 | string | |
+| iconUrl | 通过传入图片路径设置图标按钮，图标以背景图方式显示（废弃，建议用 iconName） | string | |
+| hoverIconUrl | 通过传入图片路径设置鼠标悬浮时的按钮图标，悬浮时替换为该背景图（同 iconUrl，废弃，建议用 iconName） | string | |
 | iconName | 获取组件库中的已有图标，与iconUrl属性二者只能用其一；设置后内部渲染Icon组件 | string | |
 | iconProps | 配合iconName一同使用，用来设置组件库已有图标的样式，不设置为组件库默认样式。支持传入Icon组件的所有props，如：<br/>`{ color: '#39f', hoverColor: '#39f', disabledColor: '#999', active: true, activeColor: '#ff0', focus: true, focusColor: '#0f0' }` | object | |
 | disabled | 设置组件的灰化（禁用）状态 | boolean | `false` |

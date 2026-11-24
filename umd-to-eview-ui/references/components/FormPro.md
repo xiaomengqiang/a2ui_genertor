@@ -683,7 +683,7 @@ FormItem会劫持子组件的value和onChange属性（你也可以通过给FormI
 import Form from 'eview-ui/FormPro';
 import TextField from 'eview-ui/TextField';
 import Tooltip from 'eview-ui/Tooltip';
-import Icon from 'eview-ui/Icon';
+import { SvgIcon } from "@/shared/SvgIcon";
 import ConfigProvider from 'eview-ui/ConfigProvider';
 import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
@@ -716,7 +716,7 @@ const Label = (props) => {
                 {props.label}
             </span>
             <Tooltip content={props.hint} trigger='click'>
-                <Icon style={{ marginLeft: '2px' }} name='help' size={['0.875rem', '0.875rem']}/>
+                <SvgIcon src="help" size={14} style={{ marginLeft: '2px' }}/>
             </Tooltip>
         </div>
     );

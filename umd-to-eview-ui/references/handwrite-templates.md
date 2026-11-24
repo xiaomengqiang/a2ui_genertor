@@ -3,7 +3,7 @@
 > 以下 antd 组件在 eview-ui 中无直接对应（78 个组件文档确认），按模板手写。
 > 模板中的 CSS 变量沿用源项目的原始 token 体系（保留策略），不写死色值（token 变量随 `.dark` 轨自动翻转暗色）。
 > 类名用业务前缀 `app-`，不用 `ev_`/`evu_`（组件库前缀）。
-> 图标一律用保留的 `<Icon name>` shim（`import Icon from '@/shared/Icon'`），**不要**用 eview-ui 的 url 字符串 icon prop。
+> 图标一律用 `@/shared/SvgIcon`（`<SvgIcon src={name} size={n}/>`，见 [components/Icon.md](components/Icon.md)）；**不要**用 eview-ui 的图标组件（Icon/SvgIcon/svg-icons/IconButton 均禁用）也不要用 `@/shared/Icon` 旧 shim。
 > 以下示例用 `var(--*)` 表示源项目 token——具体变量名按源项目实际使用替换。
 
 
@@ -176,7 +176,7 @@ function AppBadge({ count, max = 99, dot = false, children, offset = [0, 0] }) {
 
 ```tsx
 // TODO(eview-ui): Empty 无对应，手写空状态
-import Icon from '@/shared/Icon';
+import { SvgIcon } from '@/shared/SvgIcon';
 
 function AppEmpty({ description = '暂无数据', icon = 'inbox' }) {
     return (
@@ -186,7 +186,7 @@ function AppEmpty({ description = '暂无数据', icon = 'inbox' }) {
             padding: '32px 16px',
             color: 'var(--on-surface-variant, #999)',
         }}>
-            <Icon name={icon} size={48} />
+            <SvgIcon src={icon} size={48} />
             <p style={{ marginTop: '12px', marginBottom: 0, fontSize: '14px' }}>{description}</p>
         </div>
     );
@@ -289,7 +289,7 @@ function AppDivider({ type = 'horizontal', dashed = false }) {
 // <div style={{ position: 'sticky', top: 0, zIndex: 10 }}>吸附内容</div>
 
 // TODO(eview-ui): BackTop 无对应，手写
-import Icon from '@/shared/Icon';
+import { SvgIcon } from '@/shared/SvgIcon';
 
 function AppBackTop({ visible, onClick }) {
     if (!visible) return null;
@@ -303,7 +303,7 @@ function AppBackTop({ visible, onClick }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: 'var(--shadow-card, 0 2px 8px rgba(0,0,0,0.15))',
         }}>
-            <Icon name="arrow_up" size={18} />
+            <SvgIcon src="arrow_up" size={18} />
         </button>
     );
 }
@@ -313,7 +313,7 @@ function AppBackTop({ visible, onClick }) {
 
 ```tsx
 // TODO(eview-ui): Result 无对应，手写（Empty 场景可参考 AppEmpty）
-import Icon from '@/shared/Icon';
+import { SvgIcon } from '@/shared/SvgIcon';
 
 function AppResult({ status = 'success', title, subTitle, extra }) {
     const iconMap = { success: 'check_circle', error: 'x_circle', warn: 'alert_circle', info: 'info' };
@@ -322,7 +322,7 @@ function AppResult({ status = 'success', title, subTitle, extra }) {
             display: 'flex', flexDirection: 'column',
             alignItems: 'center', padding: '48px 16px',
         }}>
-            <Icon name={iconMap[status] ?? 'info'} size={56} />
+            <SvgIcon src={iconMap[status] ?? 'info'} size={56} />
             <h2 style={{ margin: '16px 0 8px', fontSize: '20px' }}>{title}</h2>
             {subTitle && <p style={{ color: 'var(--on-surface-variant, #777)', margin: 0 }}>{subTitle}</p>}
             {extra && <div style={{ marginTop: '24px' }}>{extra}</div>}

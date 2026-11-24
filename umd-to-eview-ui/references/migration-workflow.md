@@ -11,7 +11,7 @@
 
 读以下字段：
 - `antdComponents`（keys = 迁移清单）
-- `iconCallSites` / `chartCallSites`（图标/图表调用点——本 skill **保留不迁**，仅用于确认它们的存在与 import 路径正确性）
+- `iconCallSites`（图标调用点——转 `@/shared/SvgIcon`，见 §5.3）/ `chartCallSites`（图表调用点——仍保留不迁，仅确认存在与 import 路径正确性）
 - `ipInputCallSites`（ict-coder 内置 IPInput 手写共享件调用点——A 类注入迁移行）
 - `verification.relativeImports`（应为 `PASS`——步骤 4 已修正路径）
 - `sourceCssColors` / `sourceCssTokens`（步骤 8 色值/token 检查的对照快照）
@@ -32,13 +32,13 @@ node <本 skill 目录>/scripts/build-migration-plan.cjs <目标工程根>
   "keyDiffs": "注意事项表原文差异摘要", "ref": "components/Button.md", "files": ["src/views/AppShell.jsx"] }
 ```
 
-类别：**A** = 有对应（改导入 + props，见 §7.1）；**B** = 无对应（手写，见 §7.2）；**P** = 保留不迁（Icon shim / Chart，见 §5.3——调用点零改动，仅校验 import 路径）。
+类别：**A** = 有对应（改导入 + props，见 §7.1）；**B** = 无对应（手写，见 §7.2）；**P** = 特殊处理（Icon 调用点转 `@/shared/SvgIcon` / Chart 保留不迁，见 §5.3）。
 
-后续步骤直接读 `migrationPlanEui` 作为分类评估清单，**无需手动通读各组件 md 的注意事项区块**；A 类组件按 `ref` 读 `components/<Name>.md`（迁移注意事项与完整 API 同文件），B 类按 `ref` 读 [handwrite-templates.md](handwrite-templates.md)，P 类不动。
+后续步骤直接读 `migrationPlanEui` 作为分类评估清单，**无需手动通读各组件 md 的注意事项区块**；A 类组件按 `ref` 读 `components/<Name>.md`（迁移注意事项与完整 API 同文件），B 类按 `ref` 读 [handwrite-templates.md](handwrite-templates.md)，P 类按 keyDiffs 处理（Icon 转 `@/shared/SvgIcon`、Chart 保留不动）。
 
-### 5.3 图标与图表：保留策略
+### 5.3 图标与图表：转换与保留策略
 
-- **图标**：`iconCallSites` 列出的调用点**零改动**。`import Icon from '@/shared/Icon'` 保持；不转 eview-ui `Icon`/`IconButton`；不往 eview-ui 组件的 `leftIcon`/`rightIcon`/`icon`（url 字符串 prop）塞 ReactNode。步骤 8 仅 `check-imports.cjs` 校验路径。
+- **图标**：`iconCallSites` 列出的调用点按 keyDiffs 转 `@/shared/SvgIcon`——源 `<Icon name>` 调用点转 `<SvgIcon src=.../>`（interactiveProps 原样透传）；eview-ui 组件 string 型 icon prop（`leftIcon`/`rightIcon`/`icon`/`iconUrl`/`iconLeaf` 等，收图片路径/base64）用 `getIconBase64(src,{color,size})` 异步取 base64 data URL 传入；ReactNode 型 icon prop（`Menu.SubMenu.icon`/`MenuItem.icon`/`PopUpMenu.icon`）用 `<SvgIcon>`。不转 eview-ui `Icon`/`SvgIcon`/`svg-icons`/`IconButton`（禁用）。步骤 8 `check-imports.cjs` 校验路径合规（无 `@/shared/Icon` 残留、无 eview-ui 图标组件导入）。
 - **图表**：`chartCallSites` 列出的 `<Chart>` 调用点**零改动**（含其共享封装 import）；不补 `a2ui`/`theme`；暗色跟随由源逻辑自理。
 
 ### 5.4 eview-ui 样式接入（已确认）
@@ -232,7 +232,7 @@ export const ThemeProvider = ({ children }) => {
 
 | 脚本 | 检查 | 级别 |
 |------|------|------|
-| `check-imports.cjs` | `from 'antd'`/`@ant-design/icons`/`@nce/eview-react` 残留；eview-ui 导入规范（默认导入形态 + 4 特例）；`@/shared/Icon` shim 路径 | 硬 FAIL |
+| `check-imports.cjs` | `from 'antd'`/`@ant-design/icons`/`@nce/eview-react` 残留；eview-ui 导入规范（默认导入形态 + 4 特例）；`@/shared/Icon` 残留 + eview-ui Icon/SvgIcon/svg-icons/IconButton 禁用 + `@/shared/SvgIcon` 接入 | 硬 FAIL |
 | `check-select-options.cjs` | options/data 项 `label` 残留（Select/MultipleSelect/InputSelect/SelectPro/SelectCard/CheckboxGroup/RadioGroup/CategoryInput/CategorySearch/Popup/ButtonMenu——eview-ui 全家 `text`） | 硬 FAIL |
 | `check-provider.cjs` | ConfigProvider 存在 + `locale="zh"` + `version="aui3-1"` + `theme` 响应式派生（含 `isDark`/`evening`/`lightday`） | 硬 FAIL |
 | `check-dark-mode.cjs` | 黑白主题双轨：html `.dark` 轨 + ConfigProvider theme 轨（响应式）+ `aui3_1_dark` 旧轨已删 | 硬 FAIL |
@@ -257,7 +257,7 @@ export const ThemeProvider = ({ children }) => {
 1. **GBK 乱码抽查**：抽看几个含中文的 jsx（src/views/、src/components/）确认中文正常；发现乱码用 read+write/edit 重做对应文件（禁 PowerShell 写文件）
 2. **痕迹 grep**（输出应为空）：`grep -rn "\.ant-" src/`（antd CSS 选择器残留）、`grep -rn "\./assets/uploads/" src/`（旧图片路径残留）
 3. **结构完整性**：src/main.jsx / src/app.jsx / package.json / vite.config.js / index.html 存在；src/styles/{base,light,theme,dark}.css 齐全；public/uploads/ 有文件（仅当 `.umd-conversion.json` 的 uploadsAssets.copiedCount > 0）
-4. **图标/图表零改动抽查**：`@/shared/Icon` shim 路径与源 chart 封装 import 保持原样
+4. **图标/图表抽查**：图标——`@/shared/SvgIcon` 接入合规（无 `@/shared/Icon` 残留、无 eview-ui Icon/SvgIcon/svg-icons/IconButton 导入）；图表——源 chart 封装 import 保持原样（零改动）
 5. **待内网确认项**（仅剩 .npmrc scope 源——样式接入路径已确认 `@cloudsop/eview-ui/style/aui3.1.less`）的执行结果向用户汇报
 
 ### 向用户汇报
@@ -266,7 +266,7 @@ export const ThemeProvider = ({ children }) => {
 
 ## §4 验证脚本判定细则
 
-- **§4.1 check-imports**：业务代码（跳过 `src/shared/`、`node_modules`）出现 `from 'antd'`、`from 'antd/...'`、`from '@ant-design/icons'`、`from '@nce/eview-react'` 任一 → FAIL。**旧版 Pro 组件导入**（`eview-ui/Select`、`eview-ui/Table`、`eview-ui/Dialog`、`eview-ui/MessageDialog`、`eview-ui/Form` 精确路径，不含 *Pro 后缀）→ FAIL（LEGACY_PRO_USED——有 Pro 版一律用 Pro 版）。裸包名导入（`from 'eview-ui/...'`）→ FAIL（EVUI_UNSCOPED_IMPORT）。eview-ui 导入非默认形态（`import { X } from '@cloudsop/eview-ui'`）→ FAIL（特例 4 组件白名单：Tab 的 TabItem、GridLayout 的 Row/Col、Panel 解构、RangePicker 解构）。`import Icon from '@/shared/Icon'` 路径变体（`assets/shared/icon`）→ FAIL。
+- **§4.1 check-imports**：业务代码（跳过 `src/shared/`、`src/shared/SvgIcon/`、`node_modules`）出现 `from 'antd'`、`from 'antd/...'`、`from '@ant-design/icons'`、`from '@nce/eview-react'` 任一 → FAIL。**旧版 Pro 组件导入**（`eview-ui/Select`、`eview-ui/Table`、`eview-ui/Dialog`、`eview-ui/MessageDialog`、`eview-ui/Form` 精确路径，不含 *Pro 后缀）→ FAIL（LEGACY_PRO_USED——有 Pro 版一律用 Pro 版）。裸包名导入（`from 'eview-ui/...'`）→ FAIL（EVUI_UNSCOPED_IMPORT）。eview-ui 导入非默认形态（`import { X } from '@cloudsop/eview-ui'`）→ FAIL（特例 4 组件白名单：Tab 的 TabItem、GridLayout 的 Row/Col、Panel 解构、RangePicker 解构）。**图标路径**：`@/shared/Icon` 或 `assets/shared/icon` 残留 → FAIL（SHIM_PATH_RESIDUE——应 `@/shared/SvgIcon`）；`eview-ui/Icon`、`eview-ui/SvgIcon`、`eview-ui/svg-icons`、`eview-ui/IconButton` → FAIL（EVUI_ICON_FORBIDDEN——图标统一 `@/shared/SvgIcon`）。
 - **§4.2 check-select-options**：AST 扫描 `.map`/`Array.from`/spread/shorthand/计算键等动态形态里 `label:` 字段残留 → FAIL（拦 LLM 漏改 `label`→`text` 致下拉项文字空白）。
 - **§4.3 check-provider**：全工程无 `<ConfigProvider` → FAIL；有但 `locale` 不是 `"zh"`（或缺）→ FAIL；`version` 非 `aui3-1`（或缺）→ FAIL；`theme` 是静态字符串（无 `isDark`/三元/派生）或缺失 → FAIL。listenTheme 不作要求（实测 theme 单独驱动组件暗色）。
 - **§4.4 check-dark-mode**：检测暗色需求（CSS 有 `.dark` 选择器或 JS 有 `isDark`/`toggleDark`）后验证**双轨**：html 轨（`documentElement` 切 `.dark`）缺 → FAIL；theme 轨（`<ConfigProvider` 的 `theme={…}` 动态派生）缺 → FAIL；`aui3_1_dark` 残留 → FAIL（混入 eview-react 旧骨架）；@nce CSS import 残留 → FAIL。body `data-theme` / `eviewui_aui3_1_*` 类轨**不检查**（组件库内部管理，手写属多余但不算错）。
