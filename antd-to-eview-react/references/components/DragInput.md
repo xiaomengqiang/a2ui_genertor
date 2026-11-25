@@ -83,7 +83,7 @@ const clamp = (n: number) => Math.min(Math.max(n, MIN), MAX);
 ### 刻度文字格式化
 
 ```tsx
-<DragInput labelFormat={(value?: number) => ({ formatValue: `${value} GB` })} … />
+<DragInput labelFormat={(value?: number) => ( `${value} GB` )} … />
 ```
 
 ## 3. 联动说明
@@ -133,7 +133,7 @@ onChange={(text) => setBandwidth([Number(text)])}
 | `onChange` | `(value: number[], changeValue?: number[]) => void` | 整组值 + 本次改变的值 |
 | `markIndexes` | `number[]` | 需要显示刻度值的位置 |
 | `unit` | `string` | 刻度单位；多单位用 `labelFormat` |
-| `labelFormat` | `(value?) => { formatValue: string }` | 刻度文字格式化 |
+| `labelFormat` | `(value?) =>  string` | 刻度文字格式化 |
 | `displayInput` | `boolean`，默认 `true` | 是否显示内置输入框 |
 | `label` / `labelPosition` | `string` / `'before' \| 'after'`（默认 before） | 标题及位置 |
 | `disabled` | `boolean`，默认 `false` | 禁用 |
