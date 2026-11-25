@@ -13,9 +13,11 @@
  *      （RadioGroup 必须默认导入：import RadioGroup from '@nce/eview-react/RadioGroup'，
  *       @nce/eview-react/Radio 只导出 Radio 本身，不导出 RadioGroup）
  *   5. SHELL_WRONG_PATH 包壳组件从 @nce/eview-react/<X> 导入（须从 @/shared/<X> 导入）
- *   6. TOGGLE_DISABLE_PROP  `<Toggle>` 上用了 disable（应为 disabled）—— Toggle 用 disabled 正确拼写，
+ *   6. NONSHELL_FROM_SHARED 非包壳组件误从 @/shared/<X> 导入（@/shared/<X> 仅包壳 + Icon shim 合法；
+ *      典型 SelectCard 被 AI 当 Select 系包壳泛化成 @/shared/SelectCard，@/shared/SelectCard 不存在）
+ *   7. TOGGLE_DISABLE_PROP  `<Toggle>` 上用了 disable（应为 disabled）—— Toggle 用 disabled 正确拼写，
  *      disable 只属于 SelectCard/FileUpload
- *   7. TAB_DATA_PROP  `<Tab>` 上挂了 data（禁止）—— Tab 是 children 驱动（TabItem），
+ *   8. TAB_DATA_PROP  `<Tab>` 上挂了 data（禁止）—— Tab 是 children 驱动（TabItem），
  *      data 是 Select/SelectCard/RadioGroup/Steps 等的 prop
  *
  * 用法：
@@ -36,6 +38,11 @@ const SHELL_COMPONENTS = [
   'TextArea', 'DatePicker', 'Spinner', 'Cascader', 'TreeSelector',
   'IPInput', 'TimePicker', 'Crumbs', 'Accordion', 'Timeline',
 ];
+
+// @/shared/<X> 合法导入清单 = 包壳组件 + Icon shim（方案A 运行时 fetch shim，scaffold 预置，
+// 非「包壳组件」但确为 @/shared/ 真实路径）。其余 @/shared/<X> 导入即误用（典型：SelectCard
+// 被 AI 当 Select 系包壳泛化成 @/shared/SelectCard，但 @/shared/SelectCard 不存在，运行时 404）。
+const SHARED_ALLOWED = new Set([...SHELL_COMPONENTS, 'Icon']);
 
 // 扫描整个工程根（含根目录配置文件 + src/ 子树）。跳过 node_modules / .开头目录 /
 // dist / build 等产物目录；并精确跳过 src/shared（包壳组件的实现文件，scaffold 预置，
@@ -134,6 +141,17 @@ function main() {
           });
         }
       }
+      // 8. 非包壳组件从 @/shared/<X> 导入（正向盲区）：@/shared/<X> 仅包壳组件 + Icon shim 合法，
+      //    其余（如 SelectCard）从 @/shared/ 导入即误用——@/shared/<X> 不存在，运行时 404。
+      //    典型回归：AI 把 Select 系命名的 SelectCard 当包壳泛化成 @/shared/SelectCard
+      //    （Select 系包壳仅 Select/MultipleSelect/InputSelect 三者，SelectCard 虽以 Select 开头但非包壳）。
+      const sharedMatch = line.match(/\bfrom\s+['"]@\/shared\/([A-Za-z][\w-]*)['"]/);
+      if (sharedMatch && !SHARED_ALLOWED.has(sharedMatch[1])) {
+        violations.push({
+          file: rel, line: ln, code: 'NONSHELL_FROM_SHARED',
+          detail: `@/shared/${sharedMatch[1]} 非法（非包壳组件 + 非 Icon shim）——${sharedMatch[1]} 应从 @nce/eview-react/${sharedMatch[1]} 导入，@/shared/${sharedMatch[1]} 不存在（运行时 404）`,
+        });
+      }
     }
 
     // 6. Toggle 上的 disable prop（应为 disabled）—— eview Toggle 用 disabled 正确拼写，
@@ -193,6 +211,7 @@ function main() {
     ICONS_RESIDUAL: '残留 @ant-design/icons（应由 match-icons.cjs 转 @hui/icon-plus）',
     RADIOGROUP_WRONG_IMPORT: 'RadioGroup 错误地从 Radio 包具名导入',
     SHELL_WRONG_PATH: '包壳组件未从 @/shared 导入',
+    NONSHELL_FROM_SHARED: '非包壳组件误从 @/shared 导入（如 @/shared/SelectCard）',
     TOGGLE_DISABLE_PROP: 'Toggle 用 disable（应为 disabled）',
     TAB_DATA_PROP: 'Tab 挂 data（应 TabItem children 驱动）',
   };
