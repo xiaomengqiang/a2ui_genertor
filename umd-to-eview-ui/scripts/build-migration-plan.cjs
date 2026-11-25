@@ -5,7 +5,8 @@
 //   - references/components/<Name>.md 的 `## antd 迁移注意事项` 三列表（antd 写法/eview 写法/迁移要点）→ A 类
 //   - references/handwrite-templates.md 的 `## antd → 手写模板索引` 表（antd 写法/模板 §N/迁移要点）→ B 类
 // 生成 migrationPlanEui（分类 A/B/P + importPath + keyDiffs + ref）+ globalRefEui
-// （拼写异常 + 回调签名 + 显隐 prop 三张速查表，内联省后续步骤读表——人读版在 components/INDEX.md 文末）。
+// （拼写异常 + 回调签名 + 显隐 prop 三张速查表，内联省后续步骤读表——人读版在 components/INDEX.md 文末）
+// + importRewrites（逐文件导入改写清单：addImports/deleteOnlyNames/compoundFlags，供步骤 7 子 agent 照单应用）。
 // 写回 .umd-conversion.json 的独立字段。
 //
 // 类别说明：
@@ -299,6 +300,101 @@ if (ipInputInfo && ipInputInfo.callSites && ipInputInfo.callSites.length) {
   console.log(`[build-migration-plan(eui)] 注入 IpInput 迁移行（→ eview-ui/IPInput）: ${ipFiles.length} 个调用文件`);
 }
 
+// ========== 2e. importRewrites：逐文件导入改写清单（供步骤 7 子 agent 照单应用） ==========
+// 解决「子 agent 漏拆花括号 import / 漏重命名 JSX / 漏删 B 类 antd 导入」：机器给逐文件该加哪些默认导入、
+// 该删哪些名（B 类手写不需 eview-ui 导入）、哪些 compound（按 import 名定不了子用法，只 flag）。
+// 数据源：antdComponents（name→files，extract-umd 已填）+ icon/chart/ipInput 文件集。
+// compound 名（Input/Checkbox/Radio/Modal/DatePicker/Tabs/Collapse/Menu）按 import 名定不了实际子用法
+// （如 <Input.TextArea> 要 TextArea 非 Input 的 TextField），不入 addImports，入 compoundFlags 让子 agent
+// 按实际 JSX 用法 + references/component-mapping.md 成员拆解行定。
+
+const COMPOUND_ANTD = new Set(['Input', 'Checkbox', 'Radio', 'Modal', 'DatePicker', 'Tabs', 'TabPane', 'Collapse', 'Menu']);
+
+// 反转 antdComponents → file → [antdName,...]
+const fileToAntdNames = {};
+for (const [antdName, files] of Object.entries(antdComponents)) {
+  if (SKIP_COMPONENTS.has(antdName)) continue;
+  for (const f of files) {
+    (fileToAntdNames[f] = fileToAntdNames[f] || []).push(antdName);
+  }
+}
+
+// icon/chart/ipInput 文件集（这些文件可能无 antd 组件导入，但仍需改写 @ant-design/icons / 加 SvgIcon/Chart/IPInput）
+const iconFiles = new Set(iconCallSitesArr.map(c => c.file));
+const chartFilesSet = new Set(chartInfo && chartInfo.callSites ? chartInfo.callSites.map(c => c.file) : []);
+const ipInputFilesSet = new Set(ipInputInfo && ipInputInfo.callSites ? ipInputInfo.callSites.map(c => c.file) : []);
+
+// migrationPlanEui 按 antd 名建索引（取首个匹配行；compound 名的 primary 行已在 §2 选定）
+const planByAntd = {};
+for (const row of migrationPlanEui) {
+  if (row.antd && !planByAntd[row.antd]) planByAntd[row.antd] = row;
+}
+
+const importRewrites = [];
+const allFiles = new Set([
+  ...Object.keys(fileToAntdNames),
+  ...iconFiles,
+  ...chartFilesSet,
+  ...ipInputFilesSet,
+]);
+for (const file of allFiles) {
+  const addImportsMap = {}; // eview -> importPath（去重）
+  const deleteOnlyNames = [];
+  const compoundFlags = [];
+  const unknownNames = [];
+
+  for (const antdName of (fileToAntdNames[file] || [])) {
+    if (COMPOUND_ANTD.has(antdName)) {
+      compoundFlags.push({
+        antd: antdName,
+        reason: 'compound：按文件实际 JSX 子用法查 references/component-mapping.md 成员拆解行定导入（如 <Input.TextArea>→TextArea，非 Input 的 TextField）',
+      });
+      continue;
+    }
+    const row = planByAntd[antdName];
+    if (!row || row.category === 'unknown') {
+      unknownNames.push(antdName);
+      continue;
+    }
+    if (row.category === 'B') {
+      deleteOnlyNames.push(antdName); // 手写件不需 eview-ui 导入，ant 导入整行删
+      continue;
+    }
+    // A / P 类叶子
+    if (row.importPath && row.eview && row.eview !== '手写') {
+      addImportsMap[row.eview] = row.importPath;
+    }
+  }
+
+  // icon 文件：加 SvgIcon + 标记删 @ant-design/icons
+  let removeIconsImport = false;
+  if (iconFiles.has(file)) {
+    addImportsMap['SvgIcon'] = '@/shared/SvgIcon';
+    removeIconsImport = true;
+  }
+  // chart 文件：加 Chart（本 skill 唯一 @nce/eview-react 包导入）
+  if (chartFilesSet.has(file)) {
+    addImportsMap['Chart'] = '@nce/eview-react/Chart';
+  }
+  // ipInput 文件：加 IPInput
+  if (ipInputFilesSet.has(file)) {
+    addImportsMap['IPInput'] = '@cloudsop/eview-ui/IPInput';
+  }
+
+  const addImports = Object.entries(addImportsMap).map(([eview, importPath]) => ({ eview, importPath }));
+
+  importRewrites.push({
+    file,
+    addImports,
+    deleteOnlyNames,
+    compoundFlags,
+    unknownNames,
+    removeIconsImport,
+  });
+}
+
+console.log(`[build-migration-plan(eui)] importRewrites：${importRewrites.length} 个文件（A 类 addImports / B 类 deleteOnly / compound flags / icon-chart-ipInput 注入）`);
+
 // ========== 3. globalRefEui（三张速查表内联，省下游读表；人读版在 components/INDEX.md 文末） ==========
 
 const globalRefEui = {
@@ -385,6 +481,7 @@ const globalRefEui = {
 
 handoff.migrationPlanEui = migrationPlanEui;
 handoff.globalRefEui = globalRefEui;
+handoff.importRewrites = importRewrites;
 
 fs.writeFileSync(handoffPath, JSON.stringify(handoff, null, 2) + '\n', 'utf8');
 
@@ -403,5 +500,6 @@ if (unmatched.length) {
   console.log(`  未匹配: ${unmatched.join(', ')}`);
 }
 console.log(`  globalRefEui: ${globalRefEui.spellingAnomalies.length} 条拼写异常, ${globalRefEui.callbackSignatures.length} 条回调签名, 显隐速查 6 组`);
-console.log(`  写入字段: migrationPlanEui + globalRefEui`);
+console.log(`  importRewrites: ${importRewrites.length} 个文件（逐文件导入改写清单：addImports/deleteOnlyNames/compoundFlags）`);
+console.log(`  写入字段: migrationPlanEui + globalRefEui + importRewrites`);
 console.log(`  交接文件: ${handoffPath}`);

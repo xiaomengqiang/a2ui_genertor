@@ -101,17 +101,29 @@ export const ThemeProvider = ({ children }) => {
 
 ### 7.1 A 类（有对应）：改导入 + props
 
+> **导入改写先做、逐文件**：读 `.migration-plan-eui.json` 的 `importRewrites[file]`——`addImports` 逐条加默认导入（4 特例 Tab/Panel/GridLayout/RangePicker 照 importPath 原文）；`compoundFlags`（Input/Checkbox/Radio/Modal/DatePicker/Tabs/Collapse/Menu）按文件**实际 JSX 子用法**查 [component-mapping.md](component-mapping.md)「成员拆解」行定；删该文件所有 `from 'antd'`/`from 'antd/...'` 行；JSX 标签与成员访问同步重命名（`<Select>`→`<SelectPro>` 等，全表见 component-mapping.md）——导入名与 JSX 名必须一致。完整流程见 SKILL.md 步骤 7 任务模板「导入改写」段。
+
 对每个 A 类组件，执行：
-1. 改导入：用 `migrationPlanEui` 的 `importPath`（4 个特例看 [components/INDEX.md](components/INDEX.md) 导入规范）
+1. 改导入：优先用 `importRewrites[file].addImports`（机器逐文件清单）；无清单时退回 `migrationPlanEui` 的 `importPath`（4 个特例看 [components/INDEX.md](components/INDEX.md) 导入规范）。**花括号 import 拆解示例**（A + B + compound 三态）：
+   ```jsx
+   // 源
+   import { Button, Select, Space, Input } from 'antd';
+   // 改写（Select→SelectPro；Space 手写删导入；Input compound 按用法 Input.TextArea→TextArea）
+   import Button from '@cloudsop/eview-ui/Button';
+   import SelectPro from '@cloudsop/eview-ui/SelectPro';
+   import TextArea from '@cloudsop/eview-ui/TextArea';
+   // Space 手写：<div style={{display:'flex',gap:'0.75rem'}}>（无 eview-ui 导入，ant 名整行删）
+   ```
 2. 改 props/回调/数据格式：按 `keyDiffs` 逐项替换；拼写异常查 `globalRefEui.spellingAnomalies`，回调签名查 `globalRefEui.callbackSignatures`，显隐 prop 查 `globalRefEui.visibilityProps`
 3. 按 `ref` 读 `components/<Name>.md` 查完整 API（keyDiffs 是差异摘要，非完整 API；注意事项区块与 API 同文件）
 4. **API 表查不到的 props 一律不写**（宁缺勿编）
 
 ### 7.2 B 类（无对应）：手写补位
 
-1. 读 [handwrite-templates.md](handwrite-templates.md) 取模板（Space/Divider/Badge/Empty/Cascader/Statistic/Avatar/复杂 Layout）
-2. 样式用源项目 CSS 变量（token 层保留）
-3. 加 `// TODO(eview-ui)` 注释，最终回复列出手写清单
+1. **删 antd 导入**：`importRewrites[file].deleteOnlyNames` 列出的 antd 名从 import 行删（手写件不需 eview-ui 导入；若整行 import 只剩 B 类名，整行删）
+2. 读 [handwrite-templates.md](handwrite-templates.md) 取模板（Space/Divider/Badge/Empty/Cascader/Statistic/Avatar/复杂 Layout）
+3. 样式用源项目 CSS 变量（token 层保留）
+4. 加 `// TODO(eview-ui)` 注释，最终回复列出手写清单
 
 ### 7.3 模式转换组件详解（高频坑，替换时对照）
 

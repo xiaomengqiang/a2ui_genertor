@@ -191,10 +191,10 @@ node <skill目录>/scripts/build-migration-plan.cjs <目标工程根>
 **派发前主 agent 提取精简计划**（在目标工程根执行；避免子 agent 读 `.umd-conversion.json` 全量——含 sourceCssTokens 等无关快照）：
 
 ```bash
-node -e "const j=require('./.umd-conversion.json');require('fs').writeFileSync('.migration-plan-eui.json',JSON.stringify({migrationPlanEui:j.migrationPlanEui,globalRefEui:j.globalRefEui,i18nScenario:j.i18nScenario},null,2))"
+node -e "const j=require('./.umd-conversion.json');require('fs').writeFileSync('.migration-plan-eui.json',JSON.stringify({migrationPlanEui:j.migrationPlanEui,globalRefEui:j.globalRefEui,importRewrites:j.importRewrites,i18nScenario:j.i18nScenario},null,2))"
 ```
 
-产物 `.migration-plan-eui.json` 含三字段：`migrationPlanEui`（每组件分类 A/B/P + importPath + keyDiffs + ref + 涉及文件）、`globalRefEui`（拼写/回调/显隐三张速查表）、`i18nScenario`。
+产物 `.migration-plan-eui.json` 含四字段：`migrationPlanEui`（每组件分类 A/B/P + importPath + keyDiffs + ref + 涉及文件）、`importRewrites`（**逐文件导入改写清单**：`addImports`（该加的默认导入 eview→importPath）/ `deleteOnlyNames`（B 类手写，ant 导入整行删，不加 eview 导入）/ `compoundFlags`（Input/Checkbox/Radio/Modal/DatePicker/Tabs/Collapse/Menu——按 import 名定不了子用法，须按文件实际 JSX 用法查 component-mapping.md 成员拆解行定）/ `unknownNames` / `removeIconsImport`）、`globalRefEui`（拼写/回调/显隐三张速查表）、`i18nScenario`。
 
 **任务描述模板：**
 
@@ -204,16 +204,24 @@ node -e "const j=require('./.umd-conversion.json');require('fs').writeFileSync('
 目标工程根：<目标工程根>
 
 操作：
-1. 读 <目标工程根>/.migration-plan-eui.json（migrationPlanEui/globalRefEui/i18nScenario 三字段），按涉及文件逐组件替换：
-   - A 类（有对应）：导入改用 importPath；按 keyDiffs 逐项改 props/回调/数据格式（拼写异常/回调签名/显隐 prop 查 globalRefEui 三张速查表）；按 ref 读 components/<Name>.md 查完整 API（keyDiffs 是差异摘要，非完整 API）；API 表查不到的 props 一律不写（宁缺勿编）
-   - B 类（无对应）：读 handwrite-templates.md 取模板手写补位；样式用源项目 CSS 变量；加 // TODO(eview-ui) 注释
+1. 读 <目标工程根>/.migration-plan-eui.json（migrationPlanEui/importRewrites/globalRefEui/i18nScenario 四字段），按涉及文件逐组件替换：
+   - **导入改写（先做，逐文件）**：读 `importRewrites[file]`：
+     • 按 `addImports` 逐条加默认导入（`import <eview> from '<importPath>'`；4 个特例 Tab/Panel/GridLayout/RangePicker 照 importPath 原文——TabItem 具名/Panel 解构/Row-Col 具名/RangePicker 解构）
+     • `deleteOnlyNames`（B 类手写）对应的 antd 名从 import 行删——手写件不需 eview-ui 导入
+     • `compoundFlags`（Input/Checkbox/Radio/Modal/DatePicker/Tabs/Collapse/Menu）：按文件**实际 JSX 子用法**查 <skill目录>/references/component-mapping.md「成员拆解」行定导入（如 `<Input.TextArea>`→`TextArea`，非 Input 的 `TextField`；`<Modal.confirm>`→`MessageDialogPro`）
+     • `unknownNames`：人工评估（查 component-mapping.md / INDEX.md，无对应则手写并删该 antd 名）
+     • `removeIconsImport: true` 的文件：删 `from '@ant-design/icons'` 行，调用点按 P 类转 `@/shared/SvgIcon`
+     • 删该文件**所有** `from 'antd'` / `from 'antd/...'` 行
+     • **JSX 标签与成员访问同步重命名**（`<Select>`→`<SelectPro>`、`<Modal>`→`<DialogPro>`、`Input.TextArea`→`<TextArea>` 等，全表见 component-mapping.md）——导入名与 JSX 名必须一致，否则未定义
+   - A 类（有对应）：导入按上面 importRewrites 改完后，按 keyDiffs 逐项改 props/回调/数据格式（拼写异常/回调签名/显隐 prop 查 globalRefEui 三张速查表）；按 ref 读 components/<Name>.md 查完整 API（keyDiffs 是差异摘要，非完整 API）；API 表查不到的 props 一律不写（宁缺勿编）
+   - B 类（无对应）：删 antd 导入（见 importRewrites.deleteOnlyNames），读 handwrite-templates.md 取模板手写补位；样式用源项目 CSS 变量；加 // TODO(eview-ui) 注释
    - P 类（特殊处理）：Icon 调用点按 keyDiffs 转 `@/shared/SvgIcon`（`<SvgIcon src=.../>` / `getIconBase64`，见硬约束 8）
    - Chart（A 类）：删除源 `assets/shared/chart.jsx` 共享件（`migrationPlanEui` 的 `sharedFilesToRemove` 列出者）+ import 改 `@nce/eview-react/Chart`；每个 `<Chart option>` 显式补 `a2ui: true` 与 `theme: isDark ? 'hdesign-dark' : 'hdesign-light'`（`isDark` 来自 `useApp()`——context.jsx 的 AppProvider，步骤 3 已保留；禁止写静态 theme 字符串、禁止残留 `setSimpleOption(`）；推荐 `const chartBase = { a2ui: true, theme: isDark ? 'hdesign-dark' : 'hdesign-light' }` 聚合后展开进各 option；`onChartRendered(chart)` 的 `chart` 即 echarts 实例，直接 `.on()/.setOption()`，禁止回调内再调 `getEchartsInstance()`（见硬约束 9 + components/Chart.md）
    - 替换顺序：叶子组件 → 容器组件 → 布局骨架
 2. i18nScenario.scenario 为 C（源用 i18next）时：读 <skill目录>/references/i18n-migration.md §3 场景 C，按决策规则选定 keep i18next 或迁 react-intl 并执行
-3. 每替换完一个组件立即 grep -rn "from 'antd'" src/ 检查残留数递减；全部完成后 antd 与 @ant-design/icons 残留须为 0
+3. 每替换完一个组件立即 grep -rn "from 'antd'" src/ 检查残留数递减；全部完成后 `from 'antd'` / `from 'antd/...'` / `from '@ant-design/icons'` 残留须为 0
 
-读 <skill目录>/references/migration-workflow.md 的「步骤 7」整节（7.1 A 类流程 / 7.2 B 类流程 / 7.3 模式转换详解——高频坑对照）。
+读 <skill目录>/references/migration-workflow.md 的「步骤 7」整节（7.1 A 类流程 / 7.2 B 类流程 / 7.3 模式转换详解——高频坑对照）+ <skill目录>/references/component-mapping.md（antd→eview-ui 聚合名表 + 成员拆解行，解 compoundFlags 与 JSX 重命名用）。
 B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref 读 <skill目录>/references/components/<Name>.md。
 本任务描述已自包含：除上面列出的文件与目标工程外，**不要读** skill 目录的其他文件（SKILL.md、scaffold/、scripts/ 均为主 agent 材料——硬约束已物化进计划文件与 migration-workflow.md 步骤 7 节）。
 
@@ -236,7 +244,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 
 ## 组件映射
 
-> 完整映射（有对应 / 组合替代 / 无对应需手写）：每个 eview-ui 组件文档 `components/<Name>.md` 内的「antd 迁移注意事项」表（antd 写法→eview 写法 + 迁移要点）+ `handwrite-templates.md` 头部的「antd → 手写模板索引」表；导入特例（Panel 解构 / Tab TabItem / GridLayout Row/Col / RangePicker 解构）见 [components/INDEX.md](references/components/INDEX.md) 导入规范；无对应组件手写模板见 [handwrite-templates.md](references/handwrite-templates.md)；三张横切速查表（拼写异常 / 回调签名 / 显隐 prop）见 [components/INDEX.md](references/components/INDEX.md) 文末。
+> 完整映射（有对应 / 组合替代 / 无对应需手写）：[component-mapping.md](references/component-mapping.md)（antd→eview-ui 聚合名表 + 导入路径 + 成员拆解行——步骤 7 改导入与 JSX 重命名的首选速查）；逐组件完整 API 见 `components/<Name>.md` 的「antd 迁移注意事项」表；B 类手写见 `handwrite-templates.md` 头部「antd → 手写模板索引」表；导入特例（Panel 解构 / Tab TabItem / GridLayout Row/Col / RangePicker 解构）见 [components/INDEX.md](references/components/INDEX.md) 导入规范；三张横切速查表（拼写异常 / 回调签名 / 显隐 prop）见 [components/INDEX.md](references/components/INDEX.md) 文末。机器版映射在 `.migration-plan-eui.json` 的 `migrationPlanEui` + `importRewrites`。
 
 ## eview-ui 硬约束（迁移全程必须遵守）
 
@@ -265,7 +273,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 
 11. **拼写异常照抄原文**：`seprator`（Crumbs）、`disable`（**仅 SelectCard/FileUpload/PopUpMenu 项**——其余组件用正确拼写 `disabled`，**不要全局替换**）、`placeHolder`（FileUpload/BrowseButton）、`upLoadErrorMessage`、`disposeTimeOut`、`disabelCheckAssociated`、`enablHorzScroll` 等。完整表见 [components/INDEX.md](references/components/INDEX.md) 文末「属性拼写异常」表。**机器验证**：`check-crumbs.cjs`（separator 正确英文残留即 FAIL）。
 
-12. **按钮/文字类组件内容用 prop 不用 children**：`Button text`、`TextButton text`、`DivMessage text`、`LabelField text`（Button 带图标用 `leftIcon`/`rightIcon` string 型 prop + `getIconBase64`，见硬约束 8）；`MessageDialog content/detail` 结构区分。
+12. **按钮/文字类组件内容用 prop 不用 children**：`Button text`（**`string`\|`ReactNode`，支持富文本；Button 不支持 children**）、`TextButton text`（同 Button，不支持 children）、`DivMessage text`、`LabelField text`（Button 带图标用 `leftIcon`/`rightIcon` string 型 prop + `getIconBase64`，见硬约束 8）；`MessageDialog content/detail` 结构区分。
 
 13. **有 Pro 版的组件一律用 Pro 版**：antd 组件只映射到 `SelectPro`（`placeholder` 同名、`onChange(value, options)` 两参、`mode` single/singleSearch/multiple/multiSearch）、`DialogPro`（**无 buttons prop——footer 自写**）、`MessageDialogPro`（受控 + 静态方法双形态）、`TablePro`（dataIndex/rowKey/selection 同构 antd）、`FormPro`（Rule 扁平化）。旧版组件（`Select`/`Table`/`Dialog`/`MessageDialog`/`Form`）**导入即违规**——注意官方组件文档示例里旧版与 Pro 混用，抄文档时认准 Pro。**机器验证**：步骤 8 `check-imports.cjs` 的 LEGACY_PRO_USED（exit≠0 即 FAIL）。
 
