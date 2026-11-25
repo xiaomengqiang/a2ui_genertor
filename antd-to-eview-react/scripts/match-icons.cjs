@@ -297,7 +297,7 @@ function pickBestGuess(levelHits) {
   return sorted[0].h;
 }
 
-// 孤儿名：residual 且无任何 level 命中（level==='UNMATCHED'）且无候选（score 全 0）——catalog 无贴切对应。
+// 孤儿名：residual 且无任何 level 命中（level==='UNMATCHED'）且无候选（score 全 0）——catalog 无对应。
 // --apply 自动落占位 IconPlusIcPublicTransverseRectangleTemplate（catalog 实有条目），不交 LLM 拼名（防臆造
 // 诸如 IconPlusIcPublicAlarm / IconPlusIcIctBuilding2 等非实有名）；后续由人工/SEMANTIC_MAP 升级。
 function isOrphan(match) {
@@ -1157,7 +1157,7 @@ function getPropSpan(tag, prop) {
 // ─── 报告 ───────────────────────────────────────────────────────────────────
 
 function fmtCandidates(cands) {
-  if (!cands || !cands.length) return '（无候选，请 LLM 据 catalog 语义补）';
+  if (!cands || !cands.length) return '（无候选，交人工按 catalog 选）';
   return cands.map((c) => `${c.componentName}(s${c.score})`).join(' | ');
 }
 
@@ -1188,7 +1188,7 @@ function reportConsole(scan, byName) {
     console.log(`      候选: ${fmtCandidates(candidates)}`);
   }
   // 孤儿名：catalog 无任何匹配（无候选、无 level 命中），--apply 自动落占位（catalog 实有名），
-  // 不交 LLM 拼名（防臆造非实有 IconPlusIc 名）；待人工/SEMANTIC_MAP 升级为更贴切图标。
+  // 不交 LLM 拼名（防臆造非实有 IconPlusIc 名）；待人工升级。
   if (autoPlaceholder.length) {
     console.log('');
     console.log(`◇ 孤儿名（catalog 无匹配，--apply 自动落占位 ${PLACEHOLDER.componentName}，待人工/SEMANTIC_MAP 升级）: ${autoPlaceholder.length} 个`);
@@ -1759,7 +1759,7 @@ function safeRenderSite(tag) {
   }
 }
 
-// 加载 LLM 维护的决策日志（--apply-decisions 用）。格式：[{ keyword, requestUrl, iconPlusName }]（iconPlusName = response.icons[0].name 的原始分隔符形式，如 ic-public-search；requestUrl 供审计，loader 仅消费 keyword/iconPlusName；不记 candidates[]/selectedBecause——防 LLM 做语义偏移分析耗 token，旧日志仍含此二字段时前向兼容、被忽略）。
+// 加载 LLM 维护的决策日志（--apply-decisions 用）。格式：[{ keyword, requestUrl, iconPlusName }]（iconPlusName = response.icons[0].name 的原始分隔符形式，如 ic-public-search；requestUrl 供审计，loader 仅消费 keyword/iconPlusName；不记 candidates[]/selectedBecause——防 LLM 做 top-K 对比耗 token，旧日志仍含此二字段时前向兼容、被忽略）。
 // 返回 { byRaw, byLower, count }（归一化由 normalizeIconPlusName 完成，见该函数头注；catalog 零参与）。
 function loadDecisions(decisionsPath) {
   if (!decisionsPath) {
@@ -1879,7 +1879,7 @@ function writeLeavesJson(leavesData, outPath) {
     totalLeafSites: leavesData.leaves.length,
     leaves: uniq,
     untraced: leavesData.untraced,
-    note: '每个唯一 sourceKeyword 调一次 getIconInfo——请求参数固定 keyword=<源名>&topK=2&source_id=6（禁止改 topK/source_id、禁止加额外参数）；结果写入 icon-b-decisions.json（每条 {keyword,requestUrl,iconPlusName}，不记 candidates[]/selectedBecause 防语义偏移分析耗 token，旧日志含此二字段时前向兼容），iconPlusName=response.icons[0].name 原始分隔符形式如 ic-public-search，脚本 loadDecisions 自动归一化为 IconPlusIcPublicSearch）；untraced 段按 Icon.md 跨边界 recipe 手工。',
+    note: '每个唯一 sourceKeyword 调一次 getIconInfo——请求参数固定 keyword=<源名>&topK=2&source_id=6（禁止改 topK/source_id、禁止加额外参数）；结果写入 icon-b-decisions.json（每条 {keyword,requestUrl,iconPlusName}，不记 candidates[]/selectedBecause 防 top-K 对比耗 token，旧日志含此二字段时前向兼容），iconPlusName=response.icons[0].name 原始分隔符形式如 ic-public-search，脚本 loadDecisions 自动归一化为 IconPlusIcPublicSearch）；untraced 段按 Icon.md 跨边界 recipe 手工。',
   };
   fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
   return { uniqueKeywordCount: uniq.length, totalLeafSites: leavesData.leaves.length, untracedCount: leavesData.untraced.length };
