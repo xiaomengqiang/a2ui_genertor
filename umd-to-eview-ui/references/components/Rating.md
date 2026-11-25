@@ -37,71 +37,9 @@
 
 ```jsx
 import Rating from "eview-ui/Rating";
-import LabelField from "eview-ui/LabelField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class RatingExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    const divStyle = { margin: "20px 0px 50px 20px" };
-    const labelStyle = {
-      display: "block",
-      fontSize: "14px",
-      marginBottom: "10px",
-      paddingLeft: "0px",
-    };
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_rating_example">
-          <div style={divStyle}>
-            <LabelField style={labelStyle}>Default Size</LabelField>
-            <Rating
-              value={3}
-              starCount={5}
-              disabled={false}
-              half={false}
-              iconName="star"
-            ></Rating>
-          </div>
-          <div style={divStyle}>
-            <LabelField style={labelStyle}>Basic Rating</LabelField>
-            <Rating
-              value={3}
-              starCount={5}
-              disabled={false}
-              half={false}
-              iconName="star"
-              size={32}
-            ></Rating>
-          </div>
-          <div style={divStyle}>
-            <LabelField style={labelStyle}>Half Rating</LabelField>
-            <Rating
-              value={3}
-              starCount={5}
-              disabled={false}
-              half={true}
-              iconName="star"
-              size={32}
-            ></Rating>
-          </div>
-          <div style={divStyle}>
-            <LabelField style={labelStyle}>Disabled Rating</LabelField>
-            <Rating
-              value={3}
-              starCount={5}
-              disabled={true}
-              half={false}
-              iconName="star"
-              size={24}
-            ></Rating>
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<RatingExample />, mountNode);
+<Rating value={3} starCount={5} half={false} iconName="star" />
+<Rating value={3} starCount={5} half={false} iconName="star" size={32} />
+<Rating value={3} starCount={5} half={true} iconName="star" size={32} /> {/* 半星评分 */}
+<Rating value={3} starCount={5} half={false} iconName="star" size={24} disabled={true} />
 ```

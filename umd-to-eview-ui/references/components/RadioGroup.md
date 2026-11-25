@@ -44,31 +44,14 @@ This component is used to define a set of radio boxes that can customize the sel
 
 ```jsx
 import RadioGroup from "eview-ui/RadioGroup";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class RadioGroupExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      { value: 1, text: "MALE", description: "MALE" },
-      { value: 2, text: "FEMALE", description: "FEMALE" },
-      { value: 3, text: "NONE", description: "NONE" },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_RadioGroup_example">
-          <div>
-            <RadioGroup label="单选组" data={data} />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+const data = [
+  { value: 1, text: "MALE", description: "MALE" },
+  { value: 2, text: "FEMALE", description: "FEMALE" },
+  { value: 3, text: "NONE", description: "NONE" },
+];
 
-ReactDOM.render(<RadioGroupExample />, mountNode);
+<RadioGroup label="单选组" data={data} />
 ```
 
 ### 自定义单选组
@@ -77,60 +60,25 @@ ReactDOM.render(<RadioGroupExample />, mountNode);
 
 ```jsx
 import RadioGroup from "eview-ui/RadioGroup";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class RadioGroupExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      {
-        value: 1,
-        text: "Each cell requires only one SAC, if no SAC is set for a cell, one SAC is automatically created for the operator (expect ICR ) with the minimum ID.",
-        description:
-          "Each cell requires only one SAC,\n if no SAC is set for a cell,\n one SAC is automatically created for the operator (expect ICR ) with the minimum ID.",
-      },
-      {
-        value: 2,
-        text: "SACs are automatically created for all operators in the operators group of cells.",
-        description:
-          "SACs are automatically created for all \n operators in the operators group of cells.",
-      },
-      {
-        value: 3,
-        text: "Manually plan SACs for cells and create the SACs.",
-        description: "Manually plan SACs for cells and create the SACs.",
-      },
-    ];
-    let data2 = [
-      { value: 1, text: "MALE" },
-      { value: 2, text: "FEMALE" },
-      { value: 3, text: "NONE" },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_RadioGroup_example">
-          <div>
-            <RadioGroup
-              label="自定义纵向展示"
-              rowSpacing="50px"
-              rows={"1:1|2:2|3:3"}
-              data={data}
-            />
-          </div>
-          <div style={{ marginTop: "3rem" }}>
-            <RadioGroup
-              label="自定义横向间距"
-              colSpacing="100px"
-              data={data2}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+// 自定义纵向展示：rows 格式 "起始:数量|..."，rowSpacing 控制行间距
+const data = [
+  { value: 1, text: "说明文字", description: "说明文字" },
+  { value: 2, text: "说明文字", description: "说明文字" },
+  { value: 3, text: "说明文字", description: "说明文字" },
+];
+<RadioGroup
+  label="自定义纵向展示"
+  rowSpacing="50px"
+  rows={"1:1|2:2|3:3"}
+  data={data}
+/>
 
-ReactDOM.render(<RadioGroupExample />, mountNode);
+// 自定义横向间距：colSpacing 控制列间距
+const data2 = [
+  { value: 1, text: "MALE" },
+  { value: 2, text: "FEMALE" },
+  { value: 3, text: "NONE" },
+];
+<RadioGroup label="自定义横向间距" colSpacing="100px" data={data2} />
 ```

@@ -48,380 +48,89 @@ IPInput组件实现ipv4和ipv6, mac格式的输入。
 
 ```jsx
 import IPInput from 'eview-ui/IPInput';
-import LabelField from 'eview-ui/LabelField';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class IPInputDemo extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
+// type: "v4"（默认）/ "v6" / "mac"；value 大写；required 加 * 并支持非空校验
+<IPInput label="ipv4" value="10.80.52.211" required />
+<IPInput label="ipv6" type="v6" value="10:80:52:211:0000:0000:0000:0000" />
+<IPInput label="MAC" type="mac" value="3D-F2-C9-A6-B3-4F" />
 
-    const outerStyle = {
-      display: "block", marginBottom: "20px"
-    };
+// disabled：禁用态
+<IPInput label="ipv4" value="10.80.52.212" disabled />
+<IPInput label="ipv6" type="v6" value="10:80:52:211:0000:0000:0000:0000" disabled />
+<IPInput label="MAC" type="mac" value="3D-F2-C9-A6-B3-4F" disabled />
 
-    const param1 = {
-      label: "ipv4",
-      labelStyle: { marginRight: "20px" },
-      style: outerStyle,
-      disabled: false,
-      value: "10.80.52.211",
-      required: true
-    };
-
-    const param2 = {
-      label: "ipv6",
-      labelStyle: { marginRight: "20px" },
-      style: outerStyle,
-      value: "10:80:52:211:0000:0000:0000:0000",
-      type: "v6"
-    };
-
-    const param3 = {
-      label: "MAC",
-      labelStyle: { marginRight: "20px" },
-      style: outerStyle,
-      type: "mac",
-      value: "3D-F2-C9-A6-B3-4F"
-    };
-
-    const param4 = {
-      label: "ipv4",
-      labelStyle: { marginRight: "20px" },
-      style: outerStyle,
-      disabled: true,
-      value: "10.80.52.212"
-    };
-
-    const param5 = {
-      label: "ipv6",
-      labelStyle: { marginRight: "20px" },
-      style: outerStyle,
-      disabled: true,
-      type: "v6",
-      value: "10:80:52:211:0000:0000:0000:0000"
-    };
-
-    const param6 = {
-      label: "MAC",
-      labelStyle: { marginRight: "20px" },
-      style: outerStyle,
-      disabled: true,
-      type: "mac",
-      value: "3D-F2-C9-A6-B3-4F",
-    };
-
-    const param7 = {
-      label: "ipv4",
-      labelStyle: { marginRight: "20px" },
-      style: outerStyle,
-      readOnly: true,
-      value: "10.80.52.212"
-    };
-
-    const param8 = {
-      label: "ipv6",
-      labelStyle: { marginRight: "20px" },
-      style: outerStyle,
-      readOnly: true,
-      type: "v6",
-      value: "10:80:52:211:0000:0000:0000:0000"
-    };
-
-    const param9 = {
-      label: "MAC",
-      labelStyle: { marginRight: "20px" },
-      style: outerStyle,
-      readOnly: true,
-      type: "mac",
-      value: "3D-F2-C9-A6-B3-4F",
-    };
-
-    const titleProps = {
-      display: "block",
-      fontSize: "14px",
-      marginBottom: "10px",
-      paddingLeft: 0
-    };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px" }}>
-
-          <LabelField text={"Default Style"} style={titleProps} />
-          <IPInput {...param1} />
-          <IPInput {...param2} />
-          <IPInput {...param3} />
-
-          <LabelField text={"Disabled Style"} style={titleProps} />
-          <IPInput {...param4} />
-          <IPInput {...param5} />
-          <IPInput {...param6} />
-
-          <LabelField text={"Read Only"} style={titleProps} />
-          <IPInput {...param7} />
-          <IPInput {...param8} />
-          <IPInput {...param9} />
-
-        </div>
-      </ConfigProvider>
-    )
-  }
-}
-
-ReactDOM.render(<IPInputDemo />, mountNode);
+// readOnly：仅隐藏光标（建议用 disabled）
+<IPInput label="ipv4" value="10.80.52.212" readOnly />
+<IPInput label="ipv6" type="v6" value="10:80:52:211:0000:0000:0000:0000" readOnly />
+<IPInput label="MAC" type="mac" value="3D-F2-C9-A6-B3-4F" readOnly />
 ```
 
 ### IPV4事件处理
 
 ```jsx
 import IPInput from 'eview-ui/IPInput';
-import DivMessage from 'eview-ui/DivMessage';
-import Button from 'eview-ui/Button';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class IPInputEventDemo extends React.Component {
-  state = {
-    msg: '',
-    value: '10.8.52.211',
-  };
-
-  componentDidMount() {
-    this.ipInput.validate();
-  }
-
-  handleClick = () => {
-    const value = this.ipInput.getValue();
-    this.setState({
-      msg: 'value is: ' + value,
-      value,
-    });
-  };
-
-  validator = value => {
-    // 你的ip校验逻辑.
-    // ...
-
+<IPInput
+  label="ipv4 Input box:"
+  labelPosition="before"
+  value="10.8.52.211"
+  onChange={(value, event) => {
+    // value 是当前 ip 值（大写），event 是原生事件；取 value 更新受控值
+  }}
+  onBlur={(value, event) => {
+    // 失焦回调，value 同上
+  }}
+  onFocus={(value, event) => {
+    // 聚焦回调，value 同上
+  }}
+  validator={(value) => {
+    // 自定义校验，返回 { result: boolean, message: string }
     return { result: false, message: 'check failed.' };
-  };
-
-  onChange = (value, event) => {
-    this.setState({
-      msg: 'Trigger the change event, ip: ' + value,
-      value: value,
-    });
-  };
-  onBlur = (value, event) => {
-    this.setState({
-      msg: 'Trigger the blur event, ip: ' + value,
-      value: value,
-    });
-  };
-  onFocus = (value, event) => {
-    this.setState({
-      msg: 'Trigger the focus event, ip: ' + value,
-      value: value,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    const param = {
-      label: 'ipv4 Input box:',
-      labelStyle: { paddingLeft: '0' },
-      style: { marginRight: '20px' },
-      labelPosition: 'before',
-      onChange: this.onChange,
-      onBlur: this.onBlur,
-      onFocus: this.onFocus,
-      disabled: false,
-      value: this.state.value,
-      validator: this.validator,
-    };
-    let msg = this.state.msg ? <DivMessage text={this.state.msg} type="success" style={{ width: '660px' }} /> : '';
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: '20px', display: 'inline-block' }}>
-          <IPInput
-            {...param}
-            ref={ipInput => {
-              this.ipInput = ipInput;
-            }}
-          />
-          <Button text={'Value'} onClick={this.handleClick} />
-          <br />
-          <br />
-          {msg}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<IPInputEventDemo />, mountNode);
+  }}
+/>
 ```
 
 ### IPV6事件处理
 
 ```jsx
 import IPInput from 'eview-ui/IPInput';
-import DivMessage from 'eview-ui/DivMessage';
-import Button from 'eview-ui/Button';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class IPV6InputEventDemo extends React.Component {
-  state = {
-    msg: '',
-    value: '10:80:52:211:0000:0000:0000:0000',
-  };
-
-  handleClick = () => {
-    const value = this.ipInput.getValue();
-    this.setState({
-      msg: 'value is: ' + value,
-      value,
-    });
-  };
-
-  onChange = (value, event) => {
-    this.setState({
-      msg: 'Trigger the change event, ip: ' + value,
-      value: value,
-    });
-  };
-  onBlur = (value, event) => {
-    this.setState({
-      msg: 'Trigger the blur event, ip: ' + value,
-      value: value,
-    });
-  };
-  onFocus = (value, event) => {
-    this.setState({
-      msg: 'Trigger the focus event, ip: ' + value,
-      value: value,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const param = {
-      label: 'ipv6 Input box:',
-      type: 'v6',
-      labelStyle: { paddingLeft: '0' },
-      style: { marginRight: '20px' },
-      labelPosition: 'before',
-      onChange: this.onChange,
-      onBlur: this.onBlur,
-      onFocus: this.onFocus,
-      disabled: false,
-      value: this.state.value,
-    };
-    let msg = this.state.msg ? <DivMessage text={this.state.msg} type="success" style={{ width: '660px' }} /> : '';
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: '20px', display: 'inline-block' }}>
-          <IPInput
-            {...param}
-            ref={ipInput => {
-              this.ipInput = ipInput;
-            }}
-          />
-          <Button text={'Value'} onClick={this.handleClick} />
-          <br />
-          <br />
-          {msg}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<IPV6InputEventDemo />, mountNode);
+<IPInput
+  label="ipv6 Input box:"
+  type="v6"
+  labelPosition="before"
+  value="10:80:52:211:0000:0000:0000:0000"
+  onChange={(value, event) => {
+    // value 是当前 ip 值（大写），event 是原生事件；取 value 更新受控值
+  }}
+  onBlur={(value, event) => {
+    // 失焦回调，value 同上
+  }}
+  onFocus={(value, event) => {
+    // 聚焦回调，value 同上
+  }}
+/>
 ```
 
 ### Mac事件处理
 
 ```jsx
 import IPInput from 'eview-ui/IPInput';
-import DivMessage from 'eview-ui/DivMessage';
-import Button from 'eview-ui/Button';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class MacInputEventDemo extends React.Component {
-  state = {
-    msg: '',
-    value: '3D-F2-C9-A6-B3-4F',
-  };
-
-  handleClick = () => {
-    const value = this.ipInput.getValue();
-    this.setState({
-      msg: 'value is: ' + value,
-      value,
-    });
-  };
-
-  onChange = (value, event) => {
-    this.setState({
-      msg: 'Trigger the change event, mac: ' + value,
-      value: value,
-    });
-  };
-  onBlur = (value, event) => {
-    this.setState({
-      msg: 'Trigger the blur event, mac: ' + value,
-      value: value,
-    });
-  };
-  onFocus = (value, event) => {
-    this.setState({
-      msg: 'Trigger the focus event, mac: ' + value,
-      value: value,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const param = {
-      label: 'MAC Input box:',
-      type: 'mac',
-      labelStyle: { paddingLeft: '0' },
-      style: { marginRight: '20px' },
-      labelPosition: 'before',
-      onChange: this.onChange,
-      onBlur: this.onBlur,
-      onFocus: this.onFocus,
-      disabled: false,
-      value: this.state.value,
-    };
-    let msg = this.state.msg ? <DivMessage text={this.state.msg} type="success" style={{ width: '660px' }} /> : '';
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: '20px', display: 'inline-block' }}>
-          <IPInput
-            {...param}
-            ref={ipInput => {
-              this.ipInput = ipInput;
-            }}
-          />
-          <Button text={'Value'} onClick={this.handleClick} />
-          <br />
-          <br />
-          {msg}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<MacInputEventDemo />, mountNode);
+<IPInput
+  label="MAC Input box:"
+  type="mac"
+  labelPosition="before"
+  value="3D-F2-C9-A6-B3-4F"
+  onChange={(value, event) => {
+    // value 是当前 mac 值（大写），event 是原生事件；取 value 更新受控值
+  }}
+  onBlur={(value, event) => {
+    // 失焦回调，value 同上
+  }}
+  onFocus={(value, event) => {
+    // 聚焦回调，value 同上
+  }}
+/>
 ```
 

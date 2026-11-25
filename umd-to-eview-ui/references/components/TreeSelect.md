@@ -33,75 +33,36 @@
 
 ```jsx
 import TreeSelect from "eview-ui/TreeSelect";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TreeSelectDemo extends React.Component {
-  onChange = (selectNode) => {};
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const treeData = [
+const treeData = [
+  {
+    text: "Root Node",
+    id: 1,
+    children: [
       {
-        text: "Root Node",
-        id: 1,
+        text: "Subnet0",
+        id: 11,
         children: [
-          {
-            text: "Subnet0",
-            id: 11,
-            children: [
-              {
-                text: "NE_1",
-                id: 21,
-                children: [
-                  { text: "NE_1", id: 31 },
-                  { text: "NE_2", id: 32 },
-                ],
-              },
-              { text: "NE_2", id: 22 },
-            ],
-          },
-          {
-            text: "NE_3",
-            id: 12,
-            children: [
-              { text: "NE_1", id: 23 },
-              { text: "NE_2", id: 24 },
-            ],
-          },
+          { text: "NE_1", id: 21 },
+          { text: "NE_2", id: 22 },
         ],
       },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <TreeSelect
-            treeProps={{
-              data: treeData,
-              onCheck: (keys) => {
-                console.log(keys);
-              },
-            }}
-            selectBoxProps={{
-              onClick: () => {
-                console.log("click box");
-              },
-            }}
-            popupStyle={{
-              height: "200px",
-            }}
-            tagRenderer={(keys) =>
-              keys.reduce((pre, cur) => {
-                return `${pre} ${cur}`;
-              }, "")
-            }
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+      { text: "NE_3", id: 12 },
+    ],
+  },
+];
 
-ReactDOM.render(<TreeSelectDemo />, mountNode);
+<TreeSelect
+  treeProps={{
+    data: treeData,
+    onCheck: (keys) => {
+      // keys: string[] 勾选节点 id 数组
+    },
+  }}
+  selectBoxProps={{
+    onClick: () => {},
+  }}
+  popupStyle={{ height: "200px" }}
+  tagRenderer={(keys) => keys.join(" ")} // keys: string[] 选中值数组
+/>
 ```

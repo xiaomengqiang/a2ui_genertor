@@ -100,62 +100,26 @@ export interface DropdownProps {
 import Dropdown from "eview-ui/Dropdown";
 import Menu from "eview-ui/Menu";
 import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
+// overlay 接收 ReactNode；antd v5 menu={{items}} 数组形态需改为 children JSX
 const menu = (
   <Menu>
-    <Menu.Item key="1" disabled>
-      菜单项
-    </Menu.Item>
+    <Menu.Item key="1" disabled>菜单项</Menu.Item>
     <Menu.Item key="2">菜单项</Menu.Item>
     <Menu.Divider />
     <Menu.SubMenu title="打开">
-      <Menu.SubMenu title="打开" disabled>
+      <Menu.Item key="3">菜单项</Menu.Item>
+      <Menu.SubMenu title="打开">
+        <Menu.Item key="4">菜单项</Menu.Item>
         <Menu.Item key="5">菜单项</Menu.Item>
-        <Menu.SubMenu key="6" title="打开">
-          <Menu.Item key="7">菜单项</Menu.Item>
-          <Menu.Item key="8">菜单项</Menu.Item>
-        </Menu.SubMenu>
-        <Menu.Item key="9">菜单项</Menu.Item>
-        <Menu.SubMenu title="打开">
-          <Menu.Item>菜单项</Menu.Item>
-          <Menu.Item key="12">菜单项</Menu.Item>
-        </Menu.SubMenu>
-      </Menu.SubMenu>
-      <Menu.Item key="13">菜单项</Menu.Item>
-      <Menu.Item key="14">菜单项</Menu.Item>
-      <Menu.SubMenu key="15" title="打开15">
-        <Menu.Item key="16">菜单项</Menu.Item>
-        <Menu.SubMenu key="17" title="打开17">
-          <Menu.Item key="18">菜单项</Menu.Item>
-          <Menu.Item key="19">菜单项</Menu.Item>
-        </Menu.SubMenu>
-        <Menu.Item key="20">菜单项</Menu.Item>
-        <Menu.SubMenu key="21" title="打开21">
-          <Menu.Item key="22">菜单项</Menu.Item>
-          <Menu.Item key="23">菜单项</Menu.Item>
-        </Menu.SubMenu>
       </Menu.SubMenu>
     </Menu.SubMenu>
-    <Menu.Item key="24">菜单项</Menu.Item>
-    <Menu.Item key="25">菜单项</Menu.Item>
   </Menu>
 );
 
-function DropdownDemo() {
-  const [version, theme] = getDemoVersion();
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <Dropdown overlay={menu}>
-        <Button text={"open"}></Button>
-      </Dropdown>
-    </ConfigProvider>
-  );
-}
-
-ReactDOM.render(<DropdownDemo />, mountNode);
+<Dropdown overlay={menu}>
+  <Button text="open" />
+</Dropdown>;
 ```
 
 ### 支持12种方向弹出
@@ -164,22 +128,13 @@ ReactDOM.render(<DropdownDemo />, mountNode);
 import Dropdown from "eview-ui/Dropdown";
 import Menu from "eview-ui/Menu";
 import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
+// placement 支持 12 个方向值
 const PLACEMENTS = [
-  "leftTop",
-  "left",
-  "leftBottom",
-  "rightTop",
-  "right",
-  "rightBottom",
-  "topLeft",
-  "top",
-  "topRight",
-  "bottomLeft",
-  "bottom",
-  "bottomRight",
+  "leftTop", "left", "leftBottom",
+  "rightTop", "right", "rightBottom",
+  "topLeft", "top", "topRight",
+  "bottomLeft", "bottom", "bottomRight",
 ];
 
 const menu = (
@@ -188,47 +143,18 @@ const menu = (
     <Menu.Item>菜单项</Menu.Item>
     <Menu.Divider />
     <Menu.SubMenu title="打开">
-      <Menu.SubMenu title="打开" disabled>
-        <Menu.Item>菜单项</Menu.Item>
-        <Menu.SubMenu title="打开">
-          <Menu.Item>菜单项</Menu.Item>
-          <Menu.Item>菜单项</Menu.Item>
-        </Menu.SubMenu>
-        <Menu.Item>菜单项</Menu.Item>
-        <Menu.SubMenu title="打开">
-          <Menu.Item>菜单项</Menu.Item>
-          <Menu.Item>菜单项</Menu.Item>
-        </Menu.SubMenu>
-      </Menu.SubMenu>
       <Menu.Item>菜单项</Menu.Item>
-      <Menu.Item>菜单项</Menu.Item>
-      <Menu.SubMenu title="打开15">
+      <Menu.SubMenu title="打开">
         <Menu.Item>菜单项</Menu.Item>
-        <Menu.SubMenu title="打开17">
-          <Menu.Item>菜单项</Menu.Item>
-          <Menu.Item>菜单项</Menu.Item>
-        </Menu.SubMenu>
         <Menu.Item>菜单项</Menu.Item>
-        <Menu.SubMenu title="打开21">
-          <Menu.Item>菜单项</Menu.Item>
-          <Menu.Item>菜单项</Menu.Item>
-        </Menu.SubMenu>
       </Menu.SubMenu>
     </Menu.SubMenu>
-    <Menu.Item>菜单项</Menu.Item>
-    <Menu.Item>菜单项</Menu.Item>
   </Menu>
 );
-const [version, theme] = getDemoVersion();
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    {PLACEMENTS.map((placement) => (
-      <Dropdown overlay={menu} placement={placement}>
-        <Button style={{ width: 150, margin: 10 }} text={placement} />
-      </Dropdown>
-    ))}
-  </ConfigProvider>,
-  mountNode,
-);
+
+{PLACEMENTS.map((placement) => (
+  <Dropdown key={placement} overlay={menu} placement={placement}>
+    <Button style={{ width: 150, margin: 10 }} text={placement} />
+  </Dropdown>
+))};
 ```

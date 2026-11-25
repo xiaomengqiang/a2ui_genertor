@@ -36,56 +36,22 @@
 
 ```jsx
 import ButtonGroup from "eview-ui/ButtonGroup";
-import LabelField from "eview-ui/LabelField";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ButtonGroupExample extends React.Component {
-  state = {
-    msg: "",
-  };
+// data 数组驱动：每项支持 Button 的所有属性
+const data = [
+  {
+    text: "Button 1",
+    onClick: (e) => {
+      // e: 原生点击事件
+    },
+  },
+  {
+    text: "Button 2",
+    onClick: (e) => {},
+  },
+];
 
-  handleClick = (e) => {
-    this.setState({
-      msg: "Clicked Button text: " + e.currentTarget.textContent,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const labelStyle = {
-      display: "block",
-      fontSize: "14px",
-      marginBottom: "10px",
-    };
-
-    let data = [
-      { text: "Button 1", onClick: this.handleClick },
-      { text: "Button 2", onClick: this.handleClick },
-    ];
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px" }}>
-          <ButtonGroup data={data} />
-
-          <br />
-          {this.state.msg && (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "350px" }}
-            />
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ButtonGroupExample />, mountNode);
+<ButtonGroup data={data} />
 ```
 
 ### 自定义按钮组
@@ -94,26 +60,10 @@ ReactDOM.render(<ButtonGroupExample />, mountNode);
 
 ```jsx
 import ButtonGroup from "eview-ui/ButtonGroup";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ButtonGroupExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px" }}>
-          <ButtonGroup
-            itemStyle={{ marginRight: "50px", color: "#0067d1" }}
-            data={[{ text: "Button 1" }, { text: "Button 2" }]}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ButtonGroupExample />, mountNode);
+// itemStyle 给每个 button 加统一样式，会与每个 item 自身 style 合并
+<ButtonGroup
+  itemStyle={{ marginRight: "50px", color: "#0067d1" }}
+  data={[{ text: "Button 1" }, { text: "Button 2" }]}
+/>
 ```

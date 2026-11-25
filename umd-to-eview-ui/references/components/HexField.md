@@ -48,100 +48,47 @@
 
 ```jsx
 import HexField from 'eview-ui/HexField';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class HexFieldExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    const labelStyle = { display: 'block', paddingLeft: '0px' };
-    const divStyle = { margin: '10px 20px', display: 'inline-block' };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_hexField_example">
-          <div style={divStyle}>
-            <HexField style={{ width: '50%' }} label="Default style" placeholder="Hex field..." labelStyle={labelStyle} />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<HexFieldExample />, mountNode);
+<HexField
+  style={{ width: '50%' }}
+  label="Default style"
+  placeholder="Hex field..."
+  labelStyle={{ display: 'block', paddingLeft: '0px' }}
+/>
 ```
 
 ### 必填与校验
 
 ```jsx
 import HexField from 'eview-ui/HexField';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class HexFieldValidatorExample extends React.Component {
-  constructor(props) {
-    super(props);
-    this.hexRef = React.createRef();
-  }
-
-  customValidator(value, id, type) {
+<HexField
+  label="必填Hex"
+  required
+  placeholder="请输入十六进制值"
+  labelStyle={{ display: 'block', paddingLeft: '0px' }}
+  errorLabelStyle={{ color: 'red' }}
+  validator={(value, id, type) => {
+    // value: 输入值, id: 组件 id, type: 'onChange' | 'onBlur'
     if (value.length > 8) {
       return { result: false, message: '输入值不能超过8位' };
     }
     return { result: true, message: '' };
-  }
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const labelStyle = { display: 'block', paddingLeft: '0px' };
-
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <HexField
-            ref={this.hexRef}
-            label="必填Hex"
-            required
-            placeholder="请输入十六进制值"
-            labelStyle={labelStyle}
-            validator={this.customValidator}
-            errorLabelStyle={{ color: 'red' }}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<HexFieldValidatorExample />, mountNode);
+  }}
+  ref={(node) => {
+    // node.validate() 手动触发非空校验, node.getValue() 取值, node.focus() 聚焦
+  }}
+/>
 ```
 
 ### 禁用、字数限制与输入标准
 
 ```jsx
 import HexField from 'eview-ui/HexField';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class HexFieldMoreExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <HexField label="禁用状态" value="0A 1F" disabled />
-          <HexField label="最大长度" placeholder="最多输入12位" maxLength={12} />
-          <HexField label="输入标准" placeholder="如 00 1A FF" ruleText="Hex (0-9, A-F)" />
-          <HexField label="标签在后" placeholder="Hex value" labelPosition="after" />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<HexFieldMoreExample />, mountNode);
+<HexField label="禁用状态" value="0A 1F" disabled />
+<HexField label="最大长度" placeholder="最多输入12位" maxLength={12} />
+<HexField label="输入标准" placeholder="如 00 1A FF" ruleText="Hex (0-9, A-F)" />
+<HexField label="标签在后" placeholder="Hex value" labelPosition="after" />
 ```
 

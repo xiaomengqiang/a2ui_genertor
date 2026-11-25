@@ -43,189 +43,62 @@
 
 ```jsx
 import SelectCard from "eview-ui/SelectCard";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class SelectCardExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      { value: 1, text: "100MB" },
-      { value: 2, text: "200MB" },
-      { value: 3, text: "500MB" },
-      { value: 4, text: "800MB" },
-      { value: 5, text: "1GB" },
-    ];
-    let data1 = [
-      { value: 1, text: "Day" },
-      { value: 2, text: "Month" },
-      { value: 3, text: "Year" },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="eui_SelectCard_example" style={{ marginLeft: "20px" }}>
-          <SelectCard label="Default" data={data} value={2} required={true} />
-          <SelectCard
-            label="Small"
-            data={data1}
-            value={1}
-            type="small"
-            style={{ marginTop: "20px" }}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+// type: "default"（默认大尺寸）/ "small"
+<SelectCard label="Default" data={[
+  { value: 1, text: "100MB" },
+  { value: 2, text: "200MB" },
+  { value: 3, text: "500MB" },
+]} value={2} required />
 
-ReactDOM.render(<SelectCardExample />, mountNode);
+<SelectCard label="Small" data={[
+  { value: 1, text: "Day" },
+  { value: 2, text: "Month" },
+  { value: 3, text: "Year" },
+]} value={1} type="small" />
 ```
 
 ### 事件处理
 
 ```jsx
 import SelectCard from "eview-ui/SelectCard";
-import Button from "eview-ui/Button";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class SelectEventExample extends React.Component {
-  state = {
-    msg: "",
-    selectedValue: undefined,
-  };
+const data = [
+  { value: 1, text: "100MB" },
+  { value: 2, text: "200MB" },
+  { value: 3, text: "500MB" },
+  { value: 4, text: "800MB" },
+  { value: 5, text: "1GB" },
+];
 
-  handleChange = (value) => {
-    this.setState({
-      msg: "onChange event callback: The currently selected item is：" + value,
-      selectedValue: value,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      { value: 1, text: "100MB" },
-      { value: 2, text: "200MB" },
-      { value: 3, text: "500MB" },
-      { value: 4, text: "800MB" },
-      { value: 5, text: "1GB" },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="eui_SelectCard_example" style={{ marginLeft: "20px" }}>
-          <SelectCard
-            data={data}
-            onChange={this.handleChange}
-            value={this.state.selectedValue}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "600px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<SelectEventExample />, mountNode);
+// onChange 首参 value 即选中值（非 event）；取 value 更新受控 value
+<SelectCard
+  data={data}
+  value={undefined}
+  onChange={(value) => {
+    // value 是当前选中的选项值
+  }}
+/>
 ```
 
 ### 改变数据
 
 ```jsx
 import SelectCard from "eview-ui/SelectCard";
-import Button from "eview-ui/Button";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class SelectCardChangeData extends React.Component {
-  state = {
-    msg: "",
-    data: [
-      { value: 1, text: "100MB" },
-      { value: 2, text: "200MB" },
-      { value: 3, text: "500MB" },
-      { value: 4, text: "800MB" },
-      { value: 5, text: "1GB" },
-    ],
-  };
-
-  handleButtonChangeOption = () => {
-    this.setState({
-      data: [
-        { value: 1, text: "100MB" },
-        { value: 2, text: "200MB" },
-      ],
-      msg: "",
-    });
-  };
-
-  handleButtonGetValue = () => {
-    this.setState({
-      msg:
-        "getValue API: The currently selected item is：" +
-        this.SelectCard.getValue(),
-    });
-  };
-
-  handleChange = (value) => {
-    this.setState({
-      msg: "onChange event callback: The currently selected item is：" + value,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="eui_SelectCard_example" style={{ marginLeft: "20px" }}>
-          <Button
-            text="Change Option"
-            style={{ marginLeft: "5px" }}
-            onClick={this.handleButtonChangeOption}
-          ></Button>
-          <Button
-            text="getValue"
-            style={{ marginLeft: "5px" }}
-            onClick={this.handleButtonGetValue}
-          ></Button>{" "}
-          <br />
-          <br />
-          <SelectCard
-            data={this.state.data}
-            onChange={this.handleChange}
-            ref={(SelectCard) => {
-              this.SelectCard = SelectCard;
-            }}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "600px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<SelectCardChangeData />, mountNode);
+// 动态改变 data；getValue() 通过 ref 获取选中值
+<SelectCard
+  data={[
+    { value: 1, text: "100MB" },
+    { value: 2, text: "200MB" },
+  ]}
+  onChange={(value) => {
+    // 取 value 更新受控值
+  }}
+  ref={(selectCard) => {
+    // selectCard.getValue() 返回选中项的 value
+  }}
+/>
 ```
 
 ### 带图标的单选块
@@ -234,66 +107,26 @@ ReactDOM.render(<SelectCardChangeData />, mountNode);
 
 ```jsx
 import SelectCard from "eview-ui/SelectCard";
-import { getIconBase64 } from "@/shared/SvgIcon";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class SelectCardIconExample extends React.Component {
-  state = { iconsSvg: {} };
+// leftIcon/rightIcon 收 base64 data URL 字符串，可用 getIconBase64 异步预载
+const plusIcon = "data:image/svg+xml;base64,..."; // 图标 url
+const delIcon = "data:image/svg+xml;base64,..."; // 图标 url
 
-  componentDidMount() {
-    let alive = true;
-    // leftIcon/rightIcon 收 string（base64 data URL），用 getIconBase64 异步预载
-    Promise.all([
-      getIconBase64("plus", { size: 16 }).then(url => ["plus", url]),
-      getIconBase64("del", { size: 16 }).then(url => ["del", url]),
-    ]).then(entries => {
-      if (!alive) return;
-      const iconsSvg = Object.fromEntries(entries.filter(([, url]) => url));
-      this.setState({ iconsSvg });
-    });
-    return () => { alive = false; };
-  }
+const data = [
+  { value: 1, text: "100MB" },
+  { value: 2, text: "200MB" },
+  { value: 3, text: "500MB" },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    const { iconsSvg } = this.state;
-    const data = [
-      { value: 1, text: "100MB" },
-      { value: 2, text: "200MB" },
-      { value: 3, text: "500MB" },
-    ];
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div id="eui_SelectCard_icon_example" style={{ marginLeft: "20px" }}>
-          <SelectCard
-            label="Left Icon"
-            data={data}
-            value={1}
-            leftIcon={iconsSvg.plus}
-          />
-          <SelectCard
-            label="Right Icon"
-            data={data}
-            value={2}
-            rightIcon={iconsSvg.del}
-            style={{ marginTop: "20px" }}
-          />
-          <SelectCard
-            label="Both Icons"
-            data={data}
-            value={3}
-            leftIcon={iconsSvg.plus}
-            rightIcon={iconsSvg.del}
-            leftIconProps={{ leftIconClass: "my-icon-class" }}
-            rightIconProps={{ rightIconClass: "my-icon-class" }}
-            style={{ marginTop: "20px" }}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<SelectCardIconExample />, mountNode);
+<SelectCard label="Left Icon" data={data} value={1} leftIcon={plusIcon} />
+<SelectCard label="Right Icon" data={data} value={2} rightIcon={delIcon} />
+<SelectCard
+  label="Both Icons"
+  data={data}
+  value={3}
+  leftIcon={plusIcon}
+  rightIcon={delIcon}
+  leftIconProps={{ leftIconClass: "my-icon-class" }}
+  rightIconProps={{ rightIconClass: "my-icon-class" }}
+/>
 ```

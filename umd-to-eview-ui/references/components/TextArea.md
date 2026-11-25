@@ -58,158 +58,88 @@
 
 ```jsx
 import TextArea from "eview-ui/TextArea";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TextAreaExample extends React.Component {
-  render() {
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    const inputStyle = { resize: "both" };
-    const [version, theme] = getDemoVersion();
-    //resize: none|both|horizontal|vertical|initial|inherit;
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_textArea_example" style={{ margin: "20px" }}>
-          <div style={{ width: "30%" }}>
-            <TextArea
-              label="Default style"
-              placeholder="Please Enter"
-              labelStyle={labelStyle}
-              rows={5}
-              cols={50}
-              maxLength={100}
-            />
-          </div>
-          <div style={{ width: "30%" }}>
-            <TextArea
-              label="Resize Style Property."
-              placeholder="Please Enter"
-              labelStyle={labelStyle}
-              rows={5}
-              cols={50}
-              inputStyle={inputStyle}
-            />
-          </div>
-          <div style={{ width: "30%" }}>
-            <TextArea
-              label="Read Only"
-              labelStyle={labelStyle}
-              readOnly
-              value="read only"
-              rows={5}
-              cols={50}
-            />
-          </div>
-          <TextArea
-            label="Disabled style"
-            labelStyle={labelStyle}
-            disabled={true}
-            placeholder="Please Enter"
-            rows={5}
-            cols={50}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+const labelStyle = { display: "block", paddingLeft: "0px" };
 
-ReactDOM.render(<TextAreaExample />, mountNode);
+<TextArea
+  label="Default style"
+  placeholder="Please Enter"
+  labelStyle={labelStyle}
+  rows={5}
+  cols={50}
+  maxLength={100}
+/>;
+
+<TextArea
+  label="Resize Style Property."
+  placeholder="Please Enter"
+  labelStyle={labelStyle}
+  rows={5}
+  cols={50}
+  inputStyle={{ resize: "both" }}
+/>;
+
+<TextArea
+  label="Read Only"
+  labelStyle={labelStyle}
+  readOnly
+  value="read only"
+  rows={5}
+  cols={50}
+/>;
+
+<TextArea
+  label="Disabled style"
+  labelStyle={labelStyle}
+  disabled={true}
+  placeholder="Please Enter"
+  rows={5}
+  cols={50}
+/>
 ```
 
 ### 事件处理
 
 ```jsx
 import TextArea from "eview-ui/TextArea";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ValidateExample extends React.Component {
-  validator = (param) => {
-    let validationReturnMap = {};
-    let validationResult = param.length <= 5;
-    validationReturnMap["result"] = validationResult;
-    validationReturnMap["message"] = "Too many characters entered";
-    return validationReturnMap;
-  };
-
-  render() {
-    let labelStyle = {
-      display: "inline-block",
-      width: "75px",
-      marginLeft: "20px",
+<TextArea
+  label="Text field"
+  required={true}
+  labelStyle={{ display: "inline-block", width: "75px", marginLeft: "20px" }}
+  inputStyle={{ boxSizing: "border-box" }}
+  ruleText="Enter up to 5 words"
+  rows={5}
+  cols={50}
+  validator={(value) => {
+    // value: 用户输入值；返回 { result, message }，result 为是否通过
+    return {
+      result: value.length <= 5,
+      message: "Too many characters entered",
     };
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_textArea_example">
-          <div>
-            <TextArea
-              label="Text field"
-              required={true}
-              labelStyle={labelStyle}
-              validator={this.validator}
-              inputStyle={{ boxSizing: "border-box" }}
-              ruleText="Enter up to 5 words"
-              rows={5}
-              cols={50}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ValidateExample />, mountNode);
+  }}
+/>
 ```
 
 ### Custom Validation
 
 ```jsx
 import TextArea from "eview-ui/TextArea";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ValidateExample extends React.Component {
-  validator = (param) => {
-    let validationReturnMap = {};
-    let validationResult = param.length <= 5;
-    validationReturnMap["result"] = validationResult;
-    validationReturnMap["message"] = "Too many characters entered";
-    return validationReturnMap;
-  };
-
-  render() {
-    let labelStyle = {
-      display: "inline-block",
-      width: "75px",
-      marginLeft: "20px",
+<TextArea
+  label="Text field"
+  required={true}
+  labelStyle={{ display: "inline-block", width: "75px", marginLeft: "20px" }}
+  inputStyle={{ boxSizing: "border-box" }}
+  ruleText="Enter up to 5 words"
+  rows={5}
+  cols={50}
+  validator={(value) => {
+    // value: 用户输入值；返回 { result, message }，result 为是否通过
+    return {
+      result: value.length <= 5,
+      message: "Too many characters entered",
     };
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_textArea_example">
-          <div>
-            <TextArea
-              label="Text field"
-              required={true}
-              labelStyle={labelStyle}
-              validator={this.validator}
-              inputStyle={{ boxSizing: "border-box" }}
-              ruleText="Enter up to 5 words"
-              rows={5}
-              cols={50}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ValidateExample />, mountNode);
+  }}
+/>
 ```

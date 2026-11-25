@@ -61,650 +61,134 @@ TabItem是Tab的子标签和Tab标签一起使用。
 
 ```jsx
 import Tab, { TabItem } from "eview-ui/Tab";
-import LabelField from "eview-ui/LabelField";
-import create_default from "@images/create_default";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const TabContent = (props) => {
-  const { content } = props;
+const icon = "create_default"; // 图片 url
 
-  return <div style={{ padding: "1rem" }}>{content}</div>;
-};
+{/* 默认 Tab */}
+<Tab>
+  <TabItem title="Home"><div style={{ padding: "1rem" }}>Home</div></TabItem>
+  <TabItem title="Profile"><div style={{ padding: "1rem" }}>Profile</div></TabItem>
+  <TabItem title="Messages" disabled={true}><div style={{ padding: "1rem" }}>Messages</div></TabItem>
+</Tab>
 
-export default class TabExample extends React.Component {
-  handleClose = (index, e, title) => {
-    console.log("Tab Close event: ", index, e, title);
-  };
+{/* type="sub"：子页签；isAutoClose + onClose 自动关闭 */}
+<Tab type="sub" selectedIndex={1} isAutoClose={true} onClose={(index, e, title) => { /* index, e, title */ }}>
+  <TabItem title="Basic Setting" icon={icon}><div style={{ padding: "1rem" }}>Basic Setting</div></TabItem>
+  <TabItem title="Bandwidth" closable={true}><div style={{ padding: "1rem" }}>Bandwidth</div></TabItem>
+  <TabItem title="Mirror" disabled={true}><div style={{ padding: "1rem" }}>Mirror</div></TabItem>
+</Tab>
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    let contanierStyle = {
-      width: "48%",
-      border: "1px solid #f5f5f5",
-      marginRight: "2rem",
-      padding: "1rem",
-    };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_Tab_example" style={{ margin: "0 20px" }}>
-          <div style={{ display: "flex" }}>
-            <div style={contanierStyle}>
-              <LabelField style={labelStyle}>默认Tab</LabelField>
-              <Tab showAddButton={version === "aui3-1"}>
-                <TabItem title="Home">
-                  <TabContent content={"Home"} />
-                </TabItem>
-                <TabItem title="Profile">
-                  <TabContent content={"Profile"} />
-                </TabItem>
-                <TabItem title="Messages" disabled={true}>
-                  <TabContent content={"Messages"} />
-                </TabItem>
-                <TabItem title="Settings">
-                  <TabContent content={"Settings"} />
-                </TabItem>
-              </Tab>
-
-              <LabelField style={labelStyle}>
-                默认Tab：自定义图标、自定义width(超出width，显示...)
-              </LabelField>
-              <Tab style={{ width: "350px" }}>
-                <TabItem title="Home" icon={create_default}>
-                  <TabContent content={"Home"} />
-                </TabItem>
-                <TabItem title="Profile" closable={true}>
-                  <TabContent content={"Profile"} />
-                </TabItem>
-                <TabItem title="Messages" disabled={true}>
-                  <TabContent content={"Messages"} />
-                </TabItem>
-                <TabItem title="Settings" icon={create_default}>
-                  <TabContent content={"Settings"} />
-                </TabItem>
-                <TabItem title="loading">
-                  <TabContent content={"loading"} />
-                </TabItem>
-              </Tab>
-            </div>
-
-            <div style={contanierStyle}>
-              <LabelField style={labelStyle}>选项卡页签：type='sub'</LabelField>
-              <Tab
-                type="sub"
-                selectedIndex={1}
-                showAddButton={version === "aui3-1"}
-              >
-                <TabItem title="Basic Setting">
-                  <TabContent content={"Basic Setting"} />
-                </TabItem>
-                <TabItem title="Bandwidth">
-                  <TabContent content={"Bandwidth"} />
-                </TabItem>
-                <TabItem title="Mirror" disabled={true}>
-                  <TabContent content={"Mirror"} />
-                </TabItem>
-                <TabItem title="C&E">
-                  <TabContent content={"C&E"} />
-                </TabItem>
-              </Tab>
-
-              <br />
-              <br />
-              <LabelField style={labelStyle}>
-                选项卡页签：自定义图标、自定义width(超出width，显示...)
-              </LabelField>
-              <Tab
-                type="sub"
-                selectedIndex={1}
-                style={{ width: "350px" }}
-                isAutoClose={true}
-                onClose={this.handleClose}
-              >
-                <TabItem title="Basic Setting" icon={create_default}>
-                  <TabContent content={"Basic Setting"} />
-                </TabItem>
-                <TabItem title="Bandwidth" closable={true}>
-                  <TabContent content={"Bandwidth"} />
-                </TabItem>
-                <TabItem title="Mirror" disabled={true}>
-                  <TabContent content={"Mirror"} />
-                </TabItem>
-                <TabItem title="C&E">
-                  <TabContent content={"C&E"} />
-                </TabItem>
-              </Tab>
-            </div>
-          </div>
-
-          <div
-            style={{
-              border: "1px solid #f5f5f5",
-              padding: "1rem",
-              marginTop: "1rem",
-            }}
-          >
-            <LabelField style={labelStyle}>
-              分割式页签：type='page'，仅3.1及以上版本支持
-            </LabelField>
-            <Tab
-              type="page"
-              selectedIndex={1}
-              showAddButton={version === "aui3-1"}
-            >
-              <TabItem title="Basic Setting">
-                <TabContent content={"Basic Setting"} />
-              </TabItem>
-              <TabItem title="Bandwidth">
-                <TabContent content={"Bandwidth"} />
-              </TabItem>
-              <TabItem title="Mirror" disabled={true}>
-                <TabContent content={"Mirror"} />
-              </TabItem>
-              <TabItem title="C&E">
-                <TabContent content={"C&E"} />
-              </TabItem>
-            </Tab>
-
-            <LabelField style={labelStyle}>
-              分割式页签：自定义图标、自定义width(超出width，显示...)
-            </LabelField>
-            <Tab
-              type="page"
-              selectedIndex={1}
-              style={{ width: "400px" }}
-              isAutoClose={true}
-              onClose={this.handleClose}
-            >
-              <TabItem title="Basic Setting" icon={create_default}>
-                <TabContent content={"Basic Setting"} />
-              </TabItem>
-              <TabItem title="Bandwidth" closable={true}>
-                <TabContent content={"Bandwidth"} />
-              </TabItem>
-              <TabItem title="Mirror" disabled={true}>
-                <TabContent content={"Mirror"} />
-              </TabItem>
-              <TabItem title="C&E">
-                <TabContent content={"C&E"} />
-              </TabItem>
-            </Tab>
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TabExample />, mountNode);
+{/* type="page"：分割式页签 */}
+<Tab type="page" selectedIndex={1}>
+  <TabItem title="Basic Setting"><div style={{ padding: "1rem" }}>Basic Setting</div></TabItem>
+  <TabItem title="Bandwidth"><div style={{ padding: "1rem" }}>Bandwidth</div></TabItem>
+</Tab>
 ```
 
 ### 位置处理
 
 ```jsx
 import Tab, { TabItem } from "eview-ui/Tab";
-import Select from "eview-ui/Select";
-import Table from "eview-ui/Table";
-import img1 from "@images/table_1.png";
-import img2 from "@images/table_2.png";
-import Button from "eview-ui/Button";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-import create_default from "@images/create_default";
 
-export default class TabExample extends React.Component {
-  state = {
-    index: 0,
-    position: "top",
-  };
+const icon = "create_default"; // 图片 url
 
-  handleSelChange = (val, oldVal, text, oldText) => {
-    if (text != oldText) {
-      this.setState({ index: val - 1, position: text });
-    }
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    let options = [
-      { text: "top", value: 1 },
-      { text: "bottom", value: 2 },
-      { text: "left", value: 3 },
-      {
-        text: "right",
-        value: 4,
-      },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_Tab_example" style={{ margin: "20px" }}>
-          <Select
-            options={options}
-            label="Tab Position:"
-            selectedIndex={this.state.index}
-            onChange={this.handleSelChange}
-          />
-          <Tab
-            style={{ width: "450px", height: "300px", marginTop: "20px" }}
-            position={this.state.position}
-            lazyLoad={true}
-          >
-            <TabItem title="Home" closable={true} icon={create_default}>
-              <p>Home</p>
-            </TabItem>
-            <TabItem title="Profile" closable={true} setEditing={true}>
-              <p>Profile</p>
-            </TabItem>
-            <TabItem title="Messages" closable={true} disabled={true}>
-              <p>Messages</p>
-            </TabItem>
-            <TabItem title="Settings" closable={true}>
-              <p>Settings</p>
-            </TabItem>
-            <TabItem title="Table" closable={true} setEditing={true}></TabItem>
-            <TabItem
-              title="TreeTable"
-              closable={true}
-              setEditing={true}
-            ></TabItem>
-            <TabItem title="Profile3" closable={true}>
-              <p>Profile3</p>
-            </TabItem>
-            <TabItem title="Messages2" closable={true} disabled={true}>
-              <p>Messages2</p>
-            </TabItem>
-            <TabItem title="Settings2" closable={true}>
-              <p>Settings2</p>
-            </TabItem>
-            <TabItem title="Messages3" closable={true} disabled={true}>
-              <p>Messages3</p>
-            </TabItem>
-            <TabItem title="Settings3" closable={true}>
-              <p>Settings3</p>
-            </TabItem>
-          </Tab>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TabExample />, mountNode);
+// position: "top" | "bottom" | "left" | "right"
+<Tab style={{ width: "450px", height: "300px" }} position={"top"} lazyLoad={true}>
+  <TabItem title="Home" closable={true} icon={icon}><p>Home</p></TabItem>
+  <TabItem title="Profile" closable={true}><p>Profile</p></TabItem>
+  <TabItem title="Messages" closable={true} disabled={true}><p>Messages</p></TabItem>
+  <TabItem title="Settings" closable={true}><p>Settings</p></TabItem>
+</Tab>
 ```
 
 ### 事件处理
 
 ```jsx
-import Tab, { TabItem } from 'eview-ui/Tab';
-import DivMessage from 'eview-ui/DivMessage';
-import img1 from '@images/table_1.png';
-import img2 from '@images/table_2.png';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import Tab, { TabItem } from "eview-ui/Tab";
 
-class LazyLoad extends React.Component {
-
-  static timeouts: any;
-  state = {
-    lazyshowing: 'a',
-  };
-
-
-  setup() {
-    return setTimeout(() => {
-      this.setState({lazyshowing: 'good!'});
-    }, 2000);
-  }
-
-  componentDidMount() {
-    LazyLoad.timeouts = this.setup();
-    console.log('lazy mounted!');
-  }
-
-  componentDidUpdate() {
-    // this.setState({lazyshowing: 'eee'})
-  }
-
-  componentWillUnmount() {
-    console.log('should not happen');
-    clearTimeout(LazyLoad.timeouts);
-  }
-
-  render() {
-    return (
-      <span>{this.state.lazyshowing}</span>
-    );
-  }
-}
-
-
-export default class TabEventExample extends React.Component {
-
-  state = {
-    msg: '',
-    selectedIndex: 0
-  };
-
-  handleClick = (index, title) => {
-    this.setState({msg: "OnClick event callback: click on the title : " + title, selectedIndex: index})
-  }
-
-  handleCloseSub = (index, e, title) => {
-    console.log("Tab Close event: ", index, e, title)
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_Tab_example" style={{margin: "20px"}}>
-          <Tab selectedIndex={this.state.selectedIndex} onClick={this.handleClick} onClose={this.handleCloseSub}
-               style={{width: "370px"}} lazyLoad>
-            <TabItem title="Home">
-              <p>Home</p>
-            </TabItem>
-            <TabItem title="Profile" closable={true}>
-              <p>Profile</p>
-            </TabItem>
-            <TabItem title="Messages">
-
-            </TabItem>
-            <TabItem title="Settings">
-              <p>Setting</p>
-            </TabItem>
-            <TabItem title="Lazyload">
-              <LazyLoad/>
-            </TabItem>
-          </Tab>
-          {this.state.msg ?
-            <DivMessage text={this.state.msg} type="success" style={{marginTop: "10px", width: "600px"}}/> : ''}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TabEventExample />, mountNode);
-
+// onClick(index, title)；onClose(index, e, title)
+<Tab
+  selectedIndex={0}
+  onClick={(index, title) => { /* 取 index 更新 selectedIndex */ }}
+  onClose={(index, e, title) => { /* index, e, title */ }}
+  style={{ width: "370px" }}
+  lazyLoad
+>
+  <TabItem title="Home"><p>Home</p></TabItem>
+  <TabItem title="Profile" closable={true}><p>Profile</p></TabItem>
+  <TabItem title="Messages"></TabItem>
+  <TabItem title="Settings"><p>Setting</p></TabItem>
+</Tab>
 ```
 
 ### Add/Delete Dynamically
 
 ```jsx
 import Tab, { TabItem } from "eview-ui/Tab";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-let i = 0;
-let j = 0;
-export default class TabsExample extends React.Component {
-  state = {
-    data: [
-      { title: "Home", closable: true, children: <p>111</p> },
-      { title: "Profile", closable: true, children: <p>222</p> },
-      { title: "Messages", closable: true, children: <p>333</p> },
-    ],
+const data = [
+  { title: "Home", closable: true, children: <p>111</p> },
+  { title: "Profile", closable: true, children: <p>222</p> },
+  { title: "Messages", closable: true, children: <p>333</p> },
+];
 
-    subData: [
-      { title: "Home", closable: true, children: <p>111</p> },
-      { title: "Profile", closable: true, children: <p>222</p> },
-      { title: "Messages", closable: true, children: <p>333</p> },
-    ],
-  };
-
-  handleCloseDefault = (index) => {
-    let data = this.state.data;
-    data.splice(index, 1);
-    this.setState({
-      data: data,
-    });
-  };
-
-  handleCloseSub = (index, e, title) => {
-    let data = this.state.subData;
-    data.splice(index, 1);
-    this.setState({
-      subData: data,
-    });
-  };
-
-  handleClickDefault = () => {
-    let data = this.state.data;
-    data.push({
-      title: "Add item" + i++,
-      closable: true,
-      children: <p>Added</p>,
-    });
-    this.setState({
-      data: data,
-    });
-  };
-
-  handleClickSub = () => {
-    let data = this.state.subData;
-    data.push({
-      title: "Add item" + j++,
-      closable: true,
-      children: <p>Added</p>,
-    });
-    this.setState({
-      subData: data,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    let tabs = this.state.data.map((item, index) => {
-      return (
-        <TabItem title={item.title} closable={item.closable} key={index}>
-          {item.children}
-        </TabItem>
-      );
-    });
-    let subTabs = this.state.subData.map((item, index) => {
-      return (
-        <TabItem title={item.title} closable={item.closable} key={index}>
-          {item.children}
-        </TabItem>
-      );
-    });
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_Tab_example" style={{ margin: "20px" }}>
-          <div>
-            <Button
-              text="Click to add a level header"
-              onClick={this.handleClickDefault}
-              style={{ marginBottom: "10px" }}
-            ></Button>
-          </div>
-          <Tab onClose={this.handleCloseDefault}>{tabs}</Tab>
-
-          <div>
-            <Button
-              text="Click to add a second tab heading"
-              onClick={this.handleClickSub}
-              style={{ marginBottom: "10px", marginTop: "20px" }}
-            ></Button>
-          </div>
-          <Tab type="sub" onClose={this.handleCloseSub}>
-            {subTabs}
-          </Tab>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TabsExample />, mountNode);
+// onClose(index)：删除第 index 项；新增项 push 到 data 后重渲染
+<Tab onClose={(index) => { /* 从 data 中删除第 index 项 */ }}>
+  {data.map((item, index) => (
+    <TabItem title={item.title} closable={item.closable} key={index}>
+      {item.children}
+    </TabItem>
+  ))}
+</Tab>
 ```
 
 ### Nested Tab
 
 ```jsx
 import Tab, { TabItem } from "eview-ui/Tab";
-import LabelField from "eview-ui/LabelField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class NestedTab extends React.Component {
-  state = {
-    data: [
-      { title: "Child1", closable: true, children: <p>111</p> },
-      { title: "Child2", closable: true, children: <p>222</p> },
-      { title: "Child3", closable: true, children: <p>333</p> },
-    ],
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-
-    let tabs = this.state.data.map((item, index) => {
-      return (
-        <TabItem title={item.title} closable={item.closable} key={index}>
-          {item.children}
-        </TabItem>
-      );
-    });
-    let stylePadding = { padding: "10px 0px 0px 10px" };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_Tab_example" style={{ margin: "20px" }}>
-          <LabelField style={labelStyle}>Primary Tab：</LabelField>
-          <Tab style={{ width: "450px" }}>
-            <TabItem title="Home" closable={true}>
-              <Tab style={{ margin: "20px 0px 10px 10px", width: "450px" }}>
-                <TabItem title="Tab1">
-                  <p style={stylePadding}>Home1</p>
-                </TabItem>
-                <TabItem title="Tab2">
-                  <Tab style={{ margin: "20px 0px 10px 20px", width: "450px" }}>
-                    <TabItem title="Basic Setting Change">
-                      <p style={stylePadding}>Child Tab1 content ...</p>
-                    </TabItem>
-                    <TabItem title="Bandwidth" closable={true}>
-                      <p style={stylePadding}>Child Tab2 content ...</p>
-                    </TabItem>
-                    <TabItem title="Mirror">
-                      <p style={stylePadding}>Child Tab3 Content ...</p>
-                    </TabItem>
-                  </Tab>
-                </TabItem>
-                <TabItem title="Tab3">
-                  <p>Home3</p>
-                </TabItem>
-              </Tab>
-            </TabItem>
-            <TabItem title="Profile" closable={true}>
-              <p>Profiles</p>
-            </TabItem>
-            <TabItem title="Messages">
-              <p>Messages</p>
-            </TabItem>
-            <TabItem title="Settings">
-              <p>Settings</p>
-            </TabItem>
-          </Tab>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<NestedTab />, mountNode);
+<Tab style={{ width: "450px" }}>
+  <TabItem title="Home" closable={true}>
+    <Tab style={{ margin: "20px 0px 10px 10px", width: "450px" }}>
+      <TabItem title="Tab1"><p style={{ padding: "10px 0px 0px 10px" }}>Home1</p></TabItem>
+      <TabItem title="Tab2">
+        <Tab style={{ margin: "20px 0px 10px 20px", width: "450px" }}>
+          <TabItem title="Basic Setting Change"><p style={{ padding: "10px 0px 0px 10px" }}>Child Tab1 content ...</p></TabItem>
+          <TabItem title="Bandwidth" closable={true}><p style={{ padding: "10px 0px 0px 10px" }}>Child Tab2 content ...</p></TabItem>
+          <TabItem title="Mirror"><p style={{ padding: "10px 0px 0px 10px" }}>Child Tab3 Content ...</p></TabItem>
+        </Tab>
+      </TabItem>
+      <TabItem title="Tab3"><p>Home3</p></TabItem>
+    </Tab>
+  </TabItem>
+  <TabItem title="Profile" closable={true}><p>Profiles</p></TabItem>
+  <TabItem title="Messages"><p>Messages</p></TabItem>
+  <TabItem title="Settings"><p>Settings</p></TabItem>
+</Tab>
 ```
 
 ### Set Tab-Items are Non Draggable
 
 ```jsx
 import Tab, { TabItem } from "eview-ui/Tab";
-import LabelField from "eview-ui/LabelField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class NonDraggableTab extends React.Component {
-  state = {
-    data: [
-      { title: "Child1", closable: true, children: <p>111</p> },
-      { title: "Child2", closable: true, children: <p>222</p> },
-      { title: "Child3", closable: true, children: <p>333</p> },
-    ],
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-
-    let tabs = this.state.data.map((item, index) => {
-      return (
-        <TabItem title={item.title} closable={item.closable} key={index}>
-          {item.children}
-        </TabItem>
-      );
-    });
-    let stylePadding = { padding: "10px 0px 0px 10px" };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_Tab_example" style={{ margin: "20px" }}>
-          <LabelField style={labelStyle}>Primary Tab：</LabelField>
-          <Tab style={{ width: "450px" }} draggable={false}>
-            <TabItem title="Home" closable={true}>
-              <Tab
-                style={{ margin: "20px 0px 10px 10px", width: "450px" }}
-                draggable={false}
-              >
-                <TabItem title="Tab1">
-                  <p style={stylePadding}>Home1</p>
-                </TabItem>
-                <TabItem title="Tab2">
-                  <Tab style={{ margin: "20px 0px 10px 20px", width: "450px" }}>
-                    <TabItem title="Basic Setting Change">
-                      <p style={stylePadding}>Child Tab1 content ...</p>
-                    </TabItem>
-                    <TabItem title="Bandwidth" closable={true}>
-                      <p style={stylePadding}>Child Tab2 content ...</p>
-                    </TabItem>
-                    <TabItem title="Mirror">
-                      <p style={stylePadding}>Child Tab3 Content ...</p>
-                    </TabItem>
-                  </Tab>
-                </TabItem>
-                <TabItem title="Tab3">
-                  <p>Home3</p>
-                </TabItem>
-              </Tab>
-            </TabItem>
-            <TabItem title="Profile" closable={true}>
-              <p>Profiles</p>
-            </TabItem>
-            <TabItem title="Messages">
-              <p>Messages</p>
-            </TabItem>
-            <TabItem title="Settings">
-              <p>Settings</p>
-            </TabItem>
-          </Tab>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<NonDraggableTab />, mountNode);
+// draggable={false}：禁止 TabItem 拖拽排序
+<Tab style={{ width: "450px" }} draggable={false}>
+  <TabItem title="Home" closable={true}>
+    <Tab style={{ margin: "20px 0px 10px 10px", width: "450px" }} draggable={false}>
+      <TabItem title="Tab1"><p style={{ padding: "10px 0px 0px 10px" }}>Home1</p></TabItem>
+      <TabItem title="Tab2">
+        <Tab style={{ margin: "20px 0px 10px 20px", width: "450px" }}>
+          <TabItem title="Basic Setting Change"><p style={{ padding: "10px 0px 0px 10px" }}>Child Tab1 content ...</p></TabItem>
+          <TabItem title="Bandwidth" closable={true}><p style={{ padding: "10px 0px 0px 10px" }}>Child Tab2 content ...</p></TabItem>
+          <TabItem title="Mirror"><p style={{ padding: "10px 0px 0px 10px" }}>Child Tab3 Content ...</p></TabItem>
+        </Tab>
+      </TabItem>
+      <TabItem title="Tab3"><p>Home3</p></TabItem>
+    </Tab>
+  </TabItem>
+  <TabItem title="Profile" closable={true}><p>Profiles</p></TabItem>
+  <TabItem title="Messages"><p>Messages</p></TabItem>
+  <TabItem title="Settings"><p>Settings</p></TabItem>
+</Tab>
 ```

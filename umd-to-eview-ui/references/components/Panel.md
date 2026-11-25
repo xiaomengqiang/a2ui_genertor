@@ -219,224 +219,50 @@ interface Panel {
 ### 基本属性设置
 
 ```jsx
-import PanelE from 'eview-ui/Panel';
-import DivMessage from 'eview-ui/DivMessage';
-import img1 from '@images/table_1';
-import img2 from '@images/table_2';
-import Table from 'eview-ui/Table';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-const {Panel, PanelItem} = PanelE;
+import PanelE from "eview-ui/Panel";
+const { Panel, PanelItem } = PanelE;
 
-class TableDemo extends React.Component {
-  render() {
-    const columns = [
-      {
-        title: 'VPN Name',
-        dataType: Table.ColumnRenderType.TEXT_FIELD,
-        width: 160,
-        allowSort: false,
-        key: 'hideY',
-      },
-      {
-        title: 'State',
-        dataType: Table.ColumnRenderType.CUSTOM,
-        ellipsis: true,
-        width: 230,
-        sort: 'asc',
-        getCompareValue: v => v.age,
-        key: 'hideX',
-      },
-      {
-        title: 'Site',
-        dataType: Table.ColumnRenderType.TEXT_FIELD,
-        ellipsis: true,
-        selected: true,
-        key: 'hideY',
-      },
-      {
-        title: 'Alarm',
-        dataType: Table.ColumnRenderType.TEXT_FIELD,
-        ellipsis: true,
-        key: 'hideZ',
-      },
-    ];
-    const rows = [];
-    rows.push([
-      'R&D VPN2 ',
-      <div>
-      </div>,
-      '3',
-      'ICMP Echo',
-    ]);
-    rows.push([
-      'Shop Storage',
-      <div>
-        {' '}
-        Active
-      </div>,
-      '3',
-      'ICMP Echo ',
-    ]);
-    rows.push([
-      'IT Link',
-      <div>
-        <img src={img2} style={{verticalAlign: 'bottom'}} alt="Active"/>
-        {' '}
-        Active
-      </div>,
-      '7',
-      'ICMP Echo',
-    ]);
-    rows.push([
-      'R&D VPN1',
-      <div>
-        <img src={img2} style={{verticalAlign: 'bottom'}} alt="Active"/>
-        {' '}
-        Active
-      </div>,
-      '3',
-      'ICMP Echo',
-    ]);
-    rows.push([
-      'R&D VPN1',
-      <div>
-        <img src={img2} style={{verticalAlign: 'bottom'}} alt="Active"/>
-        {' '}
-        Active
-      </div>,
-      '3',
-      'ICMP Echo',
-    ]);
-    rows.push([
-      'R&D VPN1',
-      <div>
-        <img src={img2} style={{verticalAlign: 'bottom'}} alt="Active"/>
-        {' '}
-        Active
-      </div>,
-      '3',
-      'ICMP Echo',
-    ]);
-    rows.push([
-      'R&D VPN1',
-      <div>
-        <img src={img2} style={{verticalAlign: 'bottom'}} alt="Active"/>
-        {' '}
-        Active
-      </div>,
-      '3',
-      'ICMP Echo',
-    ]);
-
-    return (
-      <div>
-        <Table
-          columns={columns}
-          dataset={rows}
-          height={450}
-          pageSize={10}
-          ref={table => {
-            this.table = table;
-          }}
-          hideColumns={['hide', 'hideX']}
-          ref={(c) => {
-            this.scrollWrapper = c;
-          }}
-        />
-      </div>
-    );
-  }
-}
-
-export default class PanelExample extends React.Component {
-
-  state = {
-    selectedIndex: [0]
-  };
-
-  handleClick = (index) => {
-    //this.setState({selectedIndex: index})
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{width: 500}}>
-          <Panel enableMultiExpand={true} selectedIndex={this.state.selectedIndex} onExpand={this.handleClick}>
-            <PanelItem closable={false} title={"Panel title one"}>
-              <div style={{padding: 50}}>Fold content of panel one</div>
-            </PanelItem>
-            <PanelItem title={"Panel title two"}>
-              <div style={{padding: 50}}>Fold content of panel two</div>
-            </PanelItem>
-            <PanelItem title={"Panel title three"}>
-              <div style={{padding: 50}}><TableDemo/></div>
-            </PanelItem>
-          </Panel>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<PanelExample />, mountNode);
-
+<Panel
+  enableMultiExpand={true}
+  selectedIndex={[0]} // 默认展开的下标数组
+  onExpand={(index) => {
+    // index: 被展开 PanelItem 的下标
+  }}
+>
+  <PanelItem closable={false} title={"Panel title one"}>
+    <div style={{ padding: 50 }}>Fold content of panel one</div>
+  </PanelItem>
+  <PanelItem title={"Panel title two"}>
+    <div style={{ padding: 50 }}>Fold content of panel two</div>
+  </PanelItem>
+  <PanelItem title={"Panel title three"}>
+    <div style={{ padding: 50 }}>说明文字</div>
+  </PanelItem>
+</Panel>
 ```
 
 ### 事件处理
 
 ```jsx
-import PanelE from 'eview-ui/Panel';
-import DivMessage from 'eview-ui/DivMessage';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-const {Panel, PanelItem} = PanelE;
+import PanelE from "eview-ui/Panel";
+const { Panel, PanelItem } = PanelE;
 
-export default class PanelEventExample extends React.Component {
-
-  title = () => {
-    return <div>Custom Title Area</div>
-  };
-
-  state = {
-    selectedIndex: [0],
-    msg: '',
-  };
-
-  handlePanelExpand = (index) => {
-    this.setState({ msg: "onExpand event callback on Panel, Index Id : " + index,selectedIndex: [index]})
-  };
-
-  handlePanelClose = (index,e,collapsed) => {
-    this.setState({ msg: "onClose event callback on Panel, Index Id : " + index + " collpased : " + collapsed,  selectedIndex:[] })
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{width: 500}}>
-          <Panel enableMultiExpand={true} selectedIndex={this.state.selectedIndex} onExpand={this.handlePanelExpand}
-                 onClose={this.handlePanelClose}>
-            <PanelItem title={this.title()}>
-              <div style={{padding: 50}}>Content of My Folding Panel 1</div>
-            </PanelItem>
-            <PanelItem title={this.title()}>
-              <div style={{padding: 50}}>Content of My Folding Panel 2</div>
-            </PanelItem>
-          </Panel>
-          {this.state.msg ?
-            <DivMessage text={this.state.msg} type="success" style={{marginTop: "10px", width: "600px"}}/> : ''}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<PanelEventExample />, mountNode);
-
+<Panel
+  enableMultiExpand={true}
+  selectedIndex={[0]}
+  onExpand={(index) => {
+    // index: 被展开 PanelItem 下标；取 index 更新 selectedIndex
+  }}
+  onClose={(index, event, collapsed) => {
+    // collapsed: true 点击标题折叠 / false 点击关闭图标移除面板
+  }}
+>
+  <PanelItem title={<div>Custom Title Area</div>}>
+    <div style={{ padding: 50 }}>Content of My Folding Panel 1</div>
+  </PanelItem>
+  <PanelItem title={<div>Custom Title Area</div>}>
+    <div style={{ padding: 50 }}>Content of My Folding Panel 2</div>
+  </PanelItem>
+</Panel>
 ```
 

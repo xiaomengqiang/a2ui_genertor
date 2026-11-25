@@ -40,91 +40,45 @@
 
 ```jsx
 import IconButton from 'eview-ui/IconButton';
-import LabelField from 'eview-ui/LabelField';
-import pen_default from '@images/pen_default';
-import pen_hover from '@images/pen_hover';
-import pen_disabled from '@images/pen_disabled';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class IconButtonDemo extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    const divStyle = { margin: '20px 0px 50px 20px' };
-    const labelStyle = {
-      display: 'block',
-      fontSize: '14px',
-      marginBottom: '10px',
-      paddingLeft: '0px',
-    };
+// iconUrl/hoverIconUrl 以背景图方式渲染（废弃，建议用 iconName）
+<IconButton
+  tipText="Modify"
+  tipData={{ disposeTimeOut: 5000, placement: 'top' }}
+  iconUrl="pen_default" // 图片 url
+  hoverIconUrl="pen_hover" // 悬浮图标 url
+/>;
 
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={divStyle}>
-          <div style={{display: "inline-block", marginRight: "30px"}}>
-            <LabelField style={labelStyle}>Default</LabelField>
-            <IconButton tipText="Modify" tipData={{disposeTimeOut: 5000, placement: 'top'}} iconUrl={pen_default}
-                        hoverIconUrl={pen_hover}/>
-          </div>
-          <div style={{display: "inline-block"}}>
-            <LabelField style={labelStyle}>Disabled</LabelField>
-            <IconButton tipText="Set" tipData={{disposeTimeOut: 5000, placement: 'top'}} disabled
-                        iconUrl={pen_disabled} hoverIconUrl={pen_hover}/>
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<IconButtonDemo />, mountNode);
+// 禁用态
+<IconButton
+  tipText="Set"
+  tipData={{ disposeTimeOut: 5000, placement: 'top' }}
+  disabled
+  iconUrl="pen_disabled" // 图片 url
+  hoverIconUrl="pen_hover"
+/>;
 ```
 
 ### 事件回调
 
 ```jsx
 import IconButton from 'eview-ui/IconButton';
-import DivMessage from 'eview-ui/DivMessage';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class IconButtonEvent extends React.Component {
+// iconName 获取组件库已有图标（建议用法），触发方式 hover/focus，支持 Enter 键
+<IconButton
+  tipText="Display Tip"
+  tipData={{ disposeTimeOut: 5000, placement: 'top' }}
+  iconName="operation"
+  onClick={(event) => {
+    // event: 原生点击事件
+  }}
+/>;
 
-  state = {
-    msg: '',
-  };
-
-  handleClick = () => {
-    this.setState({ msg: "Callback events for the component's click event" });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const divStyle = {margin: '20px 0px 50px 20px'};
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div style={divStyle}>
-
-          <div style={{display: "inline-block", marginRight: "100px"}}>
-            <IconButton tipText="Display Tip" tipData={{disposeTimeOut: 5000, placement: 'top'}}
-                        iconName="operation" onClick={this.handleClick}/>
-          </div>
-
-          <div style={{display: "inline-block"}}>
-            <IconButton tipText="Loading Tip" tipData={{disposeTimeOut: 5000, placement: 'top'}}
-                        iconName="loading" onClick={this.handleClick}/>
-          </div>
-
-          {this.state.msg ?
-            <DivMessage text={this.state.msg} type="success" style={{marginTop: "10px", width: "600px"}}/> : ''}
-
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<IconButtonEvent />, mountNode);
+<IconButton
+  tipText="Loading Tip"
+  tipData={{ disposeTimeOut: 5000, placement: 'top' }}
+  iconName="loading"
+  onClick={(event) => {}}
+/>;
 ```
 

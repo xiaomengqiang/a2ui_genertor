@@ -126,69 +126,22 @@ interface LinkFieldProps {
 
 ```jsx
 import LinkField from "eview-ui/LinkField";
-import LabelField from "eview-ui/LabelField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class LinkFieldExample1 extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
+const style = { display: "inline-block", marginRight: "30px" };
+const customStyle = {
+  display: "inline-block",
+  marginRight: "30px",
+  color: "red",
+  textDecoration: "underline",
+  textUnderlineOffset: "0.25rem",
+};
 
-    let style = { display: "inline-block", marginRight: "30px" };
-    let customStyle = {
-      display: "inline-block",
-      marginRight: "30px",
-      color: "red",
-      textDecoration: "underline",
-      textUnderlineOffset: "0.25rem",
-    };
-
-    const labelStyle = {
-      display: "block",
-      marginBottom: "10px",
-      paddingLeft: "0px",
-    };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px" }}>
-          <div style={{ display: "inline-block" }}>
-            <LabelField style={labelStyle}>默认状态</LabelField>
-            <LinkField
-              style={style}
-              text={"文字链接"}
-              href={""}
-              disabled={false}
-            />
-          </div>
-
-          <div style={{ display: "inline-block" }}>
-            <LabelField style={labelStyle}>禁用状态</LabelField>
-            <LinkField
-              href={""}
-              style={style}
-              text={"文字链接"}
-              disabled={true}
-            />
-          </div>
-
-          <div style={{ display: "inline-block" }}>
-            <LabelField style={labelStyle}>自定义样式</LabelField>
-            <LinkField
-              href={""}
-              text={"文字链接"}
-              disabled={false}
-              style={customStyle}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<LinkFieldExample1 />, mountNode);
+// 默认状态
+<LinkField style={style} text="文字链接" href="" disabled={false} />
+// 禁用状态
+<LinkField href="" style={style} text="文字链接" disabled={true} />
+// 自定义样式
+<LinkField href="" text="文字链接" disabled={false} style={customStyle} />
 ```
 
 ### 事件处理
@@ -197,46 +150,14 @@ ReactDOM.render(<LinkFieldExample1 />, mountNode);
 
 ```jsx
 import LinkField from "eview-ui/LinkField";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class LinkFieldExample2 extends React.Component {
-  state = {
-    msg: "",
-  };
-
-  onClick = (e) => {
-    this.setState({ msg: "OnClick event callback : " + e.target.href });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <LinkField
-            href={""}
-            children={"Link text"}
-            style={{ marginLeft: "20px" }}
-            disabled={false}
-            onClick={this.onClick}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginLeft: "20px", marginTop: "10px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<LinkFieldExample2 />, mountNode);
+<LinkField
+  href=""
+  children="Link text"
+  style={{ marginLeft: "20px" }}
+  disabled={false}
+  onClick={(e) => {
+    // e 是 React 合成事件，取 e.target.href 更新
+  }}
+/>
 ```

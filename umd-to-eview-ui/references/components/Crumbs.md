@@ -38,42 +38,18 @@
 
 ```jsx
 import Crumbs from "eview-ui/Crumbs";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CrumbsSimpleExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    const data = [
-      {
-        title: "Security",
-        url: "#/Crumbs1"
-      },
-      {
-        title: "Firewall",
-        url: "#/Crumbs2"
-      },
-      {
-        title: "Site-FW",
-        url: "#/Crumbs3"
-      },
-      {
-        title: "URL Filter"
-      }
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Crumbs data={data} />
-          <Crumbs title="自定义分隔符" data={data} seprator="/" />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+const data = [
+  { title: "Security", url: "#/Crumbs1" },
+  { title: "Firewall", url: "#/Crumbs2" },
+  { title: "Site-FW", url: "#/Crumbs3" },
+  { title: "URL Filter" }, // 最后一项不传 url 即当前页
+];
 
-ReactDOM.render(<CrumbsSimpleExample />, mountNode);
+<Crumbs data={data} />
+
+// seprator 自定义分隔符（注意是 seprator 拼写）
+<Crumbs title="自定义分隔符" data={data} seprator="/" />
 ```
 
 ### 事件处理
@@ -82,64 +58,22 @@ ReactDOM.render(<CrumbsSimpleExample />, mountNode);
 
 ```jsx
 import Crumbs from "eview-ui/Crumbs";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CrumbsLinkExample extends React.Component {
-  state = {
-    msg: ""
-  };
+const data = [
+  { title: "Security", url: "#/Crumbs" },
+  { title: "Firewall" },
+  { title: "Site-FW", url: "#/Crumbs", enable: false }, // enable: false 不可点击
+  { title: "URL Filter" },
+];
 
-  handleClick = child => {
-    this.setState({ msg: "OnClick event callback" });
-    console.log(child);
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const data = [
-      {
-        title: "Security",
-        url: "#/Crumbs"
-      },
-      {
-        title: "Firewall"
-      },
-      {
-        title: "Site-FW",
-        url: "#/Crumbs",
-        enable: false
-      },
-      {
-        title: "URL Filter"
-      }
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ margin: "20px" }}>
-          <Crumbs
-            title="Create URL Filter"
-            onClick={this.handleClick}
-            data={data}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "470px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<CrumbsLinkExample />, mountNode);
+// onClick(url, event)：url 是被点击项的 url
+<Crumbs
+  title="Create URL Filter"
+  onClick={(url, event) => {
+    // url 是触发点击项的 url 属性
+  }}
+  data={data}
+/>
 ```
 
 ### 带图标的
@@ -148,41 +82,14 @@ ReactDOM.render(<CrumbsLinkExample />, mountNode);
 
 ```jsx
 import Crumbs from "eview-ui/Crumbs";
-import navFormActive from "@images/nav_form_active";
-import navMsgActive from "@images/nav_msg_active";
-import navHeartActive from "@images/nav_heart_active";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CrumbsSimpleExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    const data = [
-      {
-        title: "Security",
-        url: "#/Crumbs",
-        icon: navFormActive
-      },
-      {
-        url: "#/Crumbs",
-        icon: navMsgActive
-      },
-      {
-        title: "URL Filter",
-        icon: navHeartActive
-      }
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Crumbs data={data} />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+// data 项 icon 收图片 url 字符串
+const data = [
+  { title: "Security", url: "#/Crumbs", icon: "nav_form_active_url" }, // 图标 url
+  { url: "#/Crumbs", icon: "nav_msg_active_url" }, // 图标 url
+  { title: "URL Filter", icon: "nav_heart_active_url" }, // 图标 url
+];
 
-ReactDOM.render(<CrumbsSimpleExample />, mountNode);
+<Crumbs data={data} />
 ```
 

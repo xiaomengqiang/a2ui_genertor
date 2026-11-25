@@ -71,240 +71,72 @@
 
 ```jsx
 import TextField from "eview-ui/TextField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TextFieldExample extends React.Component {
-  validate = (value) => {
-    let validationReturnMap = {};
-    let validationResult = value.match(new RegExp("@", "g"));
-    validationReturnMap["result"] = validationResult;
-    validationReturnMap["message"] = "Incorrect input";
-    return validationReturnMap;
-  };
+const labelStyle = { display: "block", paddingLeft: "0px" };
 
-  render() {
-    let style = { width: "300px" };
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    let divStyle = { margin: "10px 20px", display: "inline-block" };
-    const [version, theme] = getDemoVersion();
+const validate = (value) => {
+  // validator 返回 { result, message }
+  let validationReturnMap = {};
+  validationReturnMap.result = value.match(new RegExp("@", "g"));
+  validationReturnMap.message = "Incorrect input";
+  return validationReturnMap;
+};
 
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_textField_example">
-          <div style={divStyle}>
-            <TextField
-              label="Default style"
-              placeholder="Please enter..."
-              labelStyle={labelStyle}
-              inputStyle={style}
-            />
-          </div>
-
-          <div style={divStyle}>
-            <TextField
-              label="autoComplete-off style"
-              placeholder="Please enter..."
-              labelStyle={labelStyle}
-              autoComplete="off"
-              inputStyle={style}
-            />
-          </div>
-
-          <div style={divStyle}>
-            <TextField
-              label="Incorrect input"
-              labelStyle={labelStyle}
-              value={0}
-              validator={this.validate}
-            />
-          </div>
-
-          <div style={divStyle}>
-            <TextField
-              label="Incorrect input tip style"
-              labelStyle={labelStyle}
-              value="error"
-              validator={this.validate}
-              hintType="tip"
-            />
-          </div>
-
-          <div style={divStyle}>
-            <TextField
-              label="Disabled style"
-              placeholder="Please enter..."
-              labelStyle={labelStyle}
-              disabled={true}
-            />
-          </div>
-
-          <div style={divStyle}>
-            <TextField
-              id="pwd"
-              label="Password Input"
-              placeholder="******"
-              labelStyle={labelStyle}
-              type="password"
-              autoComplete="off"
-              value="error"
-            />
-          </div>
-
-          <div style={divStyle}>
-            <TextField
-              label="Read Only"
-              value="read only"
-              readOnly
-              labelStyle={labelStyle}
-              inputStyle={style}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TextFieldExample />, mountNode);
+<TextField label="Default style" placeholder="Please enter..." labelStyle={labelStyle} inputStyle={{ width: "300px" }}/>
+<TextField label="autoComplete-off style" placeholder="Please enter..." labelStyle={labelStyle} autoComplete="off" inputStyle={{ width: "300px" }}/>
+<TextField label="Incorrect input" labelStyle={labelStyle} value={0} validator={validate}/>
+<TextField label="Incorrect input tip style" labelStyle={labelStyle} value="error" validator={validate} hintType="tip"/>
+<TextField label="Disabled style" placeholder="Please enter..." labelStyle={labelStyle} disabled={true}/>
+<TextField id="pwd" label="Password Input" placeholder="******" labelStyle={labelStyle} type="password" autoComplete="off" value="error"/>
+<TextField label="Read Only" value="read only" readOnly labelStyle={labelStyle} inputStyle={{ width: "300px" }}/>
 ```
 
 ### 自动补全提示词设置
 
 ```jsx
 import TextField from "eview-ui/TextField";
-import Dialog from "eview-ui/Dialog";
-import SelectPro from "eview-ui/SelectPro";
-import InputSelect from "eview-ui/InputSelect";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 const options0 = [
   { text: "China is big country", value: "1" },
   { text: "UK is small country", value: "2" },
   { text: "USA", value: 3 },
-  { text: "USAB", value: 4 },
-  { text: "USAC", value: 5 },
-  { text: "USAD", value: 6 },
-  { text: "USAE", value: 7 },
-  { text: "USAF", value: 8 },
-  { text: "USAG", value: 9 },
 ];
 
-export default class TextFieldExample extends React.Component {
-  handleClick1 = (item) => {
-    console.log("handleDropdownClick", item);
-  };
-
-  handleChange = (e, e1) => {
-    console.log("handleChange", "new:", e, "old:", e1);
-  };
-
-  render() {
-    let style = { width: "500px" };
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    let divStyle = { margin: "10px 20px", display: "inline-block" };
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_textField_example">
-          <div style={divStyle}>
-            <TextField
-              label="Default style"
-              placeholder="Please enter..."
-              labelStyle={labelStyle}
-              inputStyle={style}
-              onChange={this.handleChange}
-              value={"111"}
-              onOptionClick={this.handleClick1}
-              options={options0}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TextFieldExample />, mountNode);
+<TextField
+  label="Default style"
+  placeholder="Please enter..."
+  labelStyle={{ display: "block", paddingLeft: "0px" }}
+  inputStyle={{ width: "500px" }}
+  onChange={(value1, value2, event) => {
+    // value1 新值, value2 旧值
+  }}
+  value={"111"}
+  onOptionClick={(item) => {
+    // item: { text, value }
+  }}
+  options={options0}
+/>
 ```
 
 ### 事件回调
 
 ```jsx
 import TextField from "eview-ui/TextField";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TextFieldEventExample extends React.Component {
-  state = {
-    msg: "",
-    value: "",
-  };
-
-  handleChange = (value) => {
-    this.setState({
-      msg: "OnChange event callback, Contents of Textfield : " + value,
-      value: value,
-    });
-  };
-
-  handleBlur = (e) => {
-    this.setState({
-      msg: "OnBlur event callback, Contents of Textfield : " + e.target.value,
-      value: e.target.value,
-    });
-  };
-
-  handleFocus = (e) => {
-    this.setState({
-      msg: "OnFocus event callback, Contents of Textfield : " + e.target.value,
-      value: e.target.value,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let labelStyle = {
-      display: "inline-block",
-      width: "120px",
-      marginLeft: "20px",
-    };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_textField_example">
-          <div style={{ marginBottom: "20px", marginLeft: "20px" }}>
-            <TextField
-              label="Event callback:"
-              labelStyle={labelStyle}
-              value={this.state.value}
-              onChange={this.handleChange}
-              onBlur={this.handleBlur}
-              onFocus={this.handleFocus}
-            />
-            {this.state.msg ? (
-              <DivMessage
-                text={this.state.msg}
-                type="success"
-                style={{ marginTop: "10px", width: "600px" }}
-              />
-            ) : (
-              ""
-            )}
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TextFieldEventExample />, mountNode);
+<TextField
+  label="Event callback:"
+  labelStyle={{ display: "inline-block", width: "120px", marginLeft: "20px" }}
+  value=""
+  onChange={(value1, value2, event) => {
+    // value1 新值
+  }}
+  onBlur={(event) => {
+    // event.target.value
+  }}
+  onFocus={(event) => {
+    // event.target.value
+  }}
+/>
 ```
 
 ### Custom Validation
@@ -312,157 +144,53 @@ ReactDOM.render(<TextFieldEventExample />, mountNode);
 ```jsx
 import TextField from "eview-ui/TextField";
 import Button from "eview-ui/Button";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ValidateExample extends React.Component {
-  state = {
-    msg: "",
-    hintType: "div",
-  };
+const textFieldRef = React.useRef();
 
-  validator = (param) => {
-    console.log(param);
-    let validationReturnMap = {};
-    //If "@" not found then report the error.
-    var patt = new RegExp("@", "g");
-    let validationResult = patt.test(param);
-    validationReturnMap["result"] = validationResult;
-    validationReturnMap["message"] = "The email address is invalid.";
-    return validationReturnMap;
-  };
+const validator = (value) => {
+  // validator 返回 { result, message }
+  let validationReturnMap = {};
+  validationReturnMap.result = new RegExp("@", "g").test(value);
+  validationReturnMap.message = "The email address is invalid.";
+  return validationReturnMap;
+};
 
-  handleClickGetValue = () => {
-    this.setState({ msg: "getValue API : " + this.textField.getValue() });
-  };
-
-  handleClickValidate = (result) => {
-    this.setState({
-      msg: "Validate API result : " + this.textField.validate(),
-    });
-  };
-
-  handleClickFocus = () => {
-    this.textField.focus();
-  };
-
-  handleChange = (value) => {
-    this.setState({
-      msg: "OnChange event callback: Contents of Textfield : " + value,
-    });
-  };
-
-  handleChangeHintType = (value) => {
-    this.setState({
-      hintType: "tip",
-    });
-  };
-
-  render() {
-    let labelStyle = {
-      display: "inline-block",
-      width: "120px",
-      marginLeft: "20px",
-      marginRight: "16px",
-    };
-    let buttonStyle = { marginLeft: "20px" };
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_textField_example">
-          <TextField
-            label="Email Address:"
-            focusTip="Plz type"
-            required={true}
-            labelStyle={labelStyle}
-            validator={this.validator}
-            onChange={this.handleChange}
-            hintType={this.state.hintType}
-            ref={(textField) => (this.textField = textField)}
-          />
-          <br /> <br />
-          <Button
-            text="getValue"
-            onClick={this.handleClickGetValue}
-            style={buttonStyle}
-          ></Button>
-          <Button
-            text="Validate"
-            onClick={this.handleClickValidate}
-            style={buttonStyle}
-          ></Button>
-          <Button
-            text="Focus"
-            onClick={this.handleClickFocus}
-            style={buttonStyle}
-          ></Button>
-          <Button
-            text="change Hint Type"
-            onClick={this.handleChangeHintType}
-            style={buttonStyle}
-          ></Button>
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "660px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ValidateExample />, mountNode);
+// hintType: 'div' | 'tip'
+<TextField
+  label="Email Address:"
+  required={true}
+  labelStyle={{ display: "inline-block", width: "120px", marginLeft: "20px", marginRight: "16px" }}
+  validator={validator}
+  onChange={(value1, value2, event) => {
+    // value1 新值
+  }}
+  hintType="div"
+  ref={textFieldRef}
+/>
+<Button text="getValue" onClick={() => { textFieldRef.current.getValue(); }} style={{ marginLeft: "20px" }}/>
+<Button text="Validate" onClick={() => { textFieldRef.current.validate(); }} style={{ marginLeft: "20px" }}/>
+<Button text="Focus" onClick={() => { textFieldRef.current.focus(); }} style={{ marginLeft: "20px" }}/>
 ```
 
 ### Input Control validation
 
 ```jsx
 import TextField from "eview-ui/TextField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class InputControlExample extends React.Component {
-  isCharacterAllowed = (value, id) => {
-    console.log(value);
-    /*Allow only number between 0-9*/
-    var regxsRef = new RegExp("^[0-9]{1,10}$");
-    if (value == "" || regxsRef.test(value)) {
-      return true;
-    }
-    return false;
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let labelStyle = {
-      display: "inline-block",
-      width: "140px",
-      marginLeft: "20px",
-    };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_textField_example">
-          <TextField
-            label="Contact Number : "
-            required={true}
-            labelStyle={labelStyle}
-            isCharacterAllowed={this.isCharacterAllowed}
-            hintType="tip"
-            zIndex={3}
-          />
-        </div>
-      </ConfigProvider>
-    );
+const isCharacterAllowed = (value, id) => {
+  // 返回 true 允许输入，false 拒绝；此处仅允许 0-9
+  if (value === "" || new RegExp("^[0-9]{1,10}$").test(value)) {
+    return true;
   }
-}
+  return false;
+};
 
-ReactDOM.render(<InputControlExample />, mountNode);
+<TextField
+  label="Contact Number : "
+  required={true}
+  labelStyle={{ display: "inline-block", width: "140px", marginLeft: "20px" }}
+  isCharacterAllowed={isCharacterAllowed}
+  hintType="tip"
+  zIndex={3}
+/>
 ```

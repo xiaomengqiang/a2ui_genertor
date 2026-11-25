@@ -60,78 +60,51 @@ interface TimeLineRow {
 ```jsx
 import TimeLine from "eview-ui/TimeLine";
 import { Row, Col } from "eview-ui/GridLayout";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TimeLineDemo extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    let props = {
-      title: "Execution History",
-
-      render: (obj) => {
-        if (!obj) {
-          return;
-        }
-        let styleRef = { fontSize: "1rem", color: "#212121" };
-        if (obj && obj.title1 == "Approval Failed") {
-          styleRef = { fontSize: "1rem", color: "#ff0000" };
-        }
-        return (
-          <Row colMargin={"0rem 1.25rem 0rem 0rem"}>
-            <Col cols={8}>
-              <div style={{ position: "relative" }}>
-                <div style={styleRef}>{obj.title1}</div>
-                <div style={{ fontSize: "0.875rem", color: "#999999" }}>
-                  {obj.text1}
-                </div>
-              </div>
-            </Col>
-          </Row>
-        );
-      },
-
-      data: [
-        {
-          title: "",
-          date: "",
-          iconType: "default",
-          content: {
-            title1: "Inprogress",
-            text1: "NFV lying under the impact of automatic OAM services",
-          },
-        },
-        {
-          title: "",
-          date: "",
-          iconType: "success",
-          content: {
-            title1: "Approved",
-            text1: "NFV lying under the impact of automatic OAM services",
-          },
-        },
-        {
-          title: "",
-          date: "",
-          iconType: "error",
-          content: {
-            title1: "Approval Failed",
-            text1: "NFV lying under the impact of automatic OAM services",
-          },
-        },
-      ],
-    };
-
+const props = {
+  title: "Execution History",
+  render: (obj) => {
+    if (!obj) return;
+    const styleRef = { fontSize: "1rem", color: "#212121" };
+    if (obj.title1 === "Approval Failed") {
+      styleRef.color = "#ff0000";
+    }
     return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TimeLine {...props} />
-      </ConfigProvider>
+      <Row colMargin={"0rem 1.25rem 0rem 0rem"}>
+        <Col cols={8}>
+          <div style={{ position: "relative" }}>
+            <div style={styleRef}>{obj.title1}</div>
+            <div style={{ fontSize: "0.875rem", color: "#999999" }}>
+              {obj.text1}
+            </div>
+          </div>
+        </Col>
+      </Row>
     );
-  }
-}
+  },
+  data: [
+    {
+      title: "",
+      date: "",
+      iconType: "default", // 'default' | 'success' | 'error'（第一条 iconType 内置固定不受控）
+      content: { title1: "Inprogress", text1: "说明文字" },
+    },
+    {
+      title: "",
+      date: "",
+      iconType: "success",
+      content: { title1: "Approved", text1: "说明文字" },
+    },
+    {
+      title: "",
+      date: "",
+      iconType: "error",
+      content: { title1: "Approval Failed", text1: "说明文字" },
+    },
+  ],
+};
 
-ReactDOM.render(<TimeLineDemo />, mountNode);
+<TimeLine {...props} />
 ```
 
 ### 随着时间的推移
@@ -140,161 +113,62 @@ ReactDOM.render(<TimeLineDemo />, mountNode);
 ```jsx
 import TimeLine from "eview-ui/TimeLine";
 import { Row, Col } from "eview-ui/GridLayout";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TimeLineDemoExt extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    let props = {
-      title: "Execution History",
-
-      render: (obj) => {
-        return (
-          <Row colMargin={"0px 50px 0px 0px"}>
-            <Col cols={8}>
-              <div style={{ fontSize: "1.25rem", color: "#333333" }}>
-                {obj.title1}
-              </div>
-              <div style={{ fontSize: "0.875rem", color: "#666666" }}>
-                {obj.text1}
-              </div>
-            </Col>
-            <Col cols={6}>
-              <div
-                style={{
-                  fontSize: "0.875rem",
-                  color: "#999999",
-                  lineHeight: "1em",
-                  marginBottom: "10px",
-                }}
-              >
-                {obj.title2}
-              </div>
-              <div style={{ fontSize: "0.875rem", color: "#666666" }}>
-                {obj.text2}
-              </div>
-            </Col>
-            <Col cols={6}>
-              <div
-                style={{
-                  fontSize: "0.875rem",
-                  color: "#999999",
-                  lineHeight: "1em",
-                  marginBottom: "10px",
-                }}
-              >
-                {obj.title3}
-              </div>
-              <div style={{ fontSize: "0.875rem", color: "#666666" }}>
-                {obj.text3}
-              </div>
-            </Col>
-            <Col cols={4}>
-              <div
-                style={{
-                  fontSize: "0.875rem",
-                  color: "#999999",
-                  lineHeight: "1em",
-                  marginBottom: "10px",
-                }}
-              >
-                {obj.title4}
-              </div>
-              <div style={{ fontSize: "0.875rem", color: "#666666" }}>
-                {obj.text4}
-              </div>
-            </Col>
-          </Row>
-        );
+const props = {
+  title: "Execution History",
+  render: (obj) => (
+    <Row colMargin={"0px 50px 0px 0px"}>
+      <Col cols={8}>
+        <div style={{ fontSize: "1.25rem", color: "#333333" }}>{obj.title1}</div>
+        <div style={{ fontSize: "0.875rem", color: "#666666" }}>{obj.text1}</div>
+      </Col>
+      <Col cols={6}>
+        <div style={{ fontSize: "0.875rem", color: "#999999" }}>{obj.title2}</div>
+        <div style={{ fontSize: "0.875rem", color: "#666666" }}>{obj.text2}</div>
+      </Col>
+      <Col cols={6}>
+        <div style={{ fontSize: "0.875rem", color: "#999999" }}>{obj.title3}</div>
+        <div style={{ fontSize: "0.875rem", color: "#666666" }}>{obj.text3}</div>
+      </Col>
+      <Col cols={4}>
+        <div style={{ fontSize: "0.875rem", color: "#999999" }}>{obj.title4}</div>
+        <div style={{ fontSize: "0.875rem", color: "#666666" }}>{obj.text4}</div>
+      </Col>
+    </Row>
+  ),
+  data: [
+    {
+      title: "Succeed",
+      date: "2017-01-04 16:00",
+      iconType: "success",
+      content: {
+        title1: "说明文字",
+        title2: "Event:",
+        title3: "Condition:",
+        title4: "Action:",
+        text1: "说明文字",
+        text2: "说明文字",
+        text3: "说明文字",
+        text4: "说明文字",
       },
+    },
+    {
+      title: "Failure",
+      date: "2017-01-04 16:00",
+      iconType: "error",
+      content: {
+        title1: "说明文字",
+        title2: "Event:",
+        title3: "Condition:",
+        title4: "Action:",
+        text1: "说明文字",
+        text2: "说明文字",
+        text3: "说明文字",
+        text4: "说明文字",
+      },
+    },
+  ],
+};
 
-      data: [
-        {
-          title: "Succeed",
-          date: "2017-01-04 16:00",
-          iconType: "success",
-          content: {
-            title1: "NFV Automatic",
-            title2: "Event:",
-            title3: "Condition:",
-            title4: "Action:",
-            text1: "NFV lying under the impact of automatic OAM services",
-            text2: "Call success rate decreased by 10%",
-            text3: "Burst traffic or individual usage overload",
-            text4: "ScalingOut",
-          },
-        },
-        {
-          title: "Failure",
-          date: "2017-01-04 16:00",
-          iconType: "error",
-          content: {
-            title1: "NFV Automatic",
-            title2: "Event:",
-            title3: "Condition:",
-            title4: "Action:",
-            text1: "NFV lying under the impact of automatic OAM services",
-            text2: "Call success rate decreased by 10%",
-            text3: "Burst traffic or individual usage overload",
-            text4: "ScalingOut",
-          },
-        },
-        {
-          title: "Succeed",
-          date: "2017-01-04 16:00",
-          iconType: "success",
-          content: {
-            title1: "NFV Automatic",
-            title2: "Event:",
-            title3: "Condition:",
-            title4: "Action:",
-            text1: "NFV lying under the impact of automatic OAM services",
-            text2: "Call success rate decreased by 10%",
-            text3: "Burst traffic or individual usage overload",
-            text4: "ScalingOut",
-          },
-        },
-        {
-          title: "Succeed",
-          date: "2017-01-04 16:00",
-          iconType: "success",
-          content: {
-            title1: "NFV Automatic",
-            title2: "Event:",
-            title3: "Condition:",
-            title4: "Action:",
-            text1: "NFV lying under the impact of automatic OAM services",
-            text2: "Call success rate decreased by 10%",
-            text3: "Burst traffic or individual usage overload",
-            text4: "ScalingOut",
-          },
-        },
-        {
-          title: "Succeed",
-          date: "2017-01-04 16:00",
-          iconType: "success",
-          content: {
-            title1: "NFV Automatic",
-            title2: "Event:",
-            title3: "Condition:",
-            title4: "Action:",
-            text1: "NFV lying under the impact of automatic OAM services",
-            text2: "Call success rate decreased by 10%",
-            text3: "Burst traffic or individual usage overload",
-            text4: "ScalingOut",
-          },
-        },
-      ],
-    };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TimeLine {...props} />
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TimeLineDemoExt />, mountNode);
+<TimeLine {...props} />
 ```

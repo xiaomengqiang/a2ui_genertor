@@ -303,167 +303,84 @@ interface MessageDialogProProps extends Omit<
 
 ```jsx
 import MessageDialogPro from "eview-ui/MessageDialogPro";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class MessageDialogProSimpleExample extends React.Component {
-  state = {
-    successOpen: false,
-    errorOpen: false,
-    warnOpen: false,
-    confirmOpen: false,
-    riskOpen: false,
-    highRiskOpen: false,
-    infoOpen: false,
-  };
+// 受控形态：isOpen 由外部 state 控制，onClose 中置为 false 关闭
+<MessageDialogPro
+  type="success"
+  isOpen={false}
+  onClose={() => {
+    // 关闭：置 isOpen 为 false
+  }}
+  modal={false}
+  content="Request success"
+  detail="Request success"
+  buttons={{ ok: { onClick: () => {} } }}
+/>
 
-  closeSuccessPanel = () => {
-    this.setState({ successOpen: false });
-  };
-  closeErrorPanel = () => {
-    this.setState({ errorOpen: false });
-  };
-  closeWarnPanel = () => {
-    this.setState({ warnOpen: false });
-  };
-  closeConfirmPanel = () => {
-    this.setState({ confirmOpen: false });
-  };
-  closeRiskPanel = () => {
-    this.setState({ riskOpen: false });
-  };
-  closeHighRiskPanel = () => {
-    this.setState({ highRiskOpen: false });
-  };
-  closeInfoPanel = () => {
-    this.setState({ infoOpen: false });
-  };
+<MessageDialogPro
+  type="error"
+  isOpen={false}
+  onClose={() => {}}
+  modal={false}
+  content="Request Failed!"
+  detail="Request data is Non-existent"
+  buttons={{ ok: { onClick: () => {} } }}
+/>
 
-  render() {
-    const [version, theme] = getDemoVersion();
+<MessageDialogPro
+  type="warn"
+  isOpen={false}
+  onClose={() => {}}
+  modal={false}
+  content="Request exception!"
+  detail="Request data exception"
+  buttons={{ ok: { onClick: () => {} } }}
+/>
 
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "15px" }}>
-          <div style={{ padding: 5 }}>
-            <Button
-              text="Success Dialog"
-              onClick={() => this.setState({ successOpen: true })}
-            />
-            <MessageDialogPro
-              type="success"
-              isOpen={this.state.successOpen}
-              onClose={this.closeSuccessPanel}
-              modal={false}
-              content="Request success"
-              detail="Request success"
-              buttons={{ ok: { onClick: this.closeSuccessPanel } }}
-            />
-          </div>
-          <div style={{ padding: 5 }}>
-            <Button
-              text="Error Dialog"
-              onClick={() => this.setState({ errorOpen: true })}
-            />
-            <MessageDialogPro
-              type="error"
-              isOpen={this.state.errorOpen}
-              onClose={this.closeErrorPanel}
-              modal={false}
-              content="Request Failed!"
-              detail="Request data is Non-existent"
-              buttons={{ ok: { onClick: this.closeErrorPanel } }}
-            />
-          </div>
-          <div style={{ padding: 5 }}>
-            <Button
-              text="Warning Dialog"
-              onClick={() => this.setState({ warnOpen: true })}
-            />
-            <MessageDialogPro
-              type="warn"
-              isOpen={this.state.warnOpen}
-              onClose={this.closeWarnPanel}
-              modal={false}
-              content="Request exception!"
-              detail="Request data exception"
-              buttons={{ ok: { onClick: this.closeWarnPanel } }}
-            />
-          </div>
-          <div style={{ padding: 5 }}>
-            <Button
-              text="Confirm Dialog"
-              onClick={() => this.setState({ confirmOpen: true })}
-            />
-            <MessageDialogPro
-              type="confirm"
-              isOpen={this.state.confirmOpen}
-              onClose={this.closeConfirmPanel}
-              modal={true}
-              content="Delete data ?"
-              detail="You will delete data"
-              buttons={{
-                ok: { onClick: this.closeConfirmPanel },
-                cancel: { onClick: this.closeConfirmPanel },
-              }}
-            />
-          </div>
-          <div style={{ padding: 5 }}>
-            <Button
-              text="Risk Dialog"
-              onClick={() => this.setState({ riskOpen: true })}
-            />
-            <MessageDialogPro
-              type="risk"
-              isOpen={this.state.riskOpen}
-              onClose={this.closeRiskPanel}
-              modal={true}
-              content="Delete data ?"
-              detail="You will delete data"
-              hasChecked={true}
-              buttons={{ ok: { onClick: this.closeRiskPanel } }}
-            />
-          </div>
-          <div style={{ padding: 5 }}>
-            <Button
-              text="High Risk Dialog"
-              onClick={() => this.setState({ highRiskOpen: true })}
-            />
-            <MessageDialogPro
-              type="highRisk"
-              isOpen={this.state.highRiskOpen}
-              onClose={this.closeHighRiskPanel}
-              modal={true}
-              content="Delete data ?"
-              detail="You will delete data"
-              buttons={{ ok: { onClick: this.closeHighRiskPanel } }}
-            />
-          </div>
-          <div style={{ padding: 5 }}>
-            <Button
-              text="Info Dialog (Bottom Right)"
-              onClick={() => this.setState({ infoOpen: true })}
-            />
-            <MessageDialogPro
-              type="info"
-              isOpen={this.state.infoOpen}
-              onClose={this.closeInfoPanel}
-              position={[null, null, 0, 0]}
-              modal={false}
-              content="Data deleted"
-              detail="You deleted data"
-              buttons={{ ok: { onClick: this.closeInfoPanel } }}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+// confirm：modal={true}，带 ok / cancel
+<MessageDialogPro
+  type="confirm"
+  isOpen={false}
+  onClose={() => {}}
+  modal={true}
+  content="Delete data ?"
+  detail="You will delete data"
+  buttons={{ ok: { onClick: () => {} }, cancel: { onClick: () => {} } }}
+/>
 
-ReactDOM.render(<MessageDialogProSimpleExample />, mountNode);
+// risk：hasChecked 控制初始 Checkbox 勾选，确认按钮默认禁用
+<MessageDialogPro
+  type="risk"
+  isOpen={false}
+  onClose={() => {}}
+  modal={true}
+  content="Delete data ?"
+  detail="You will delete data"
+  hasChecked={true}
+  buttons={{ ok: { onClick: () => {} } }}
+/>
+
+<MessageDialogPro
+  type="highRisk"
+  isOpen={false}
+  onClose={() => {}}
+  modal={true}
+  content="Delete data ?"
+  detail="You will delete data"
+  buttons={{ ok: { onClick: () => {} } }}
+/>
+
+// info：position=[left, top, right, bottom]，右下角定位
+<MessageDialogPro
+  type="info"
+  isOpen={false}
+  onClose={() => {}}
+  position={[null, null, 0, 0]}
+  modal={false}
+  content="Data deleted"
+  detail="You deleted data"
+  buttons={{ ok: { onClick: () => {} } }}
+/>
 ```
 
 ### 函数调用
@@ -472,73 +389,30 @@ ReactDOM.render(<MessageDialogProSimpleExample />, mountNode);
 
 ```jsx
 import MessageDialogPro from "eview-ui/MessageDialogPro";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const MessageDialogProDemo2 = () => {
-  React.useEffect(() => {
-    return () => {
-      MessageDialogPro.destroyAll();
-    };
-  });
+// 命令式调用，返回引用可 update / destroy；3.1+ 必传 version
+const dialog = MessageDialogPro.success({
+  version: "aui3",
+  content: "success",
+  detail: "success detail",
+  modal: false,
+  afterClose: () => {
+    // 弹窗完全关闭后回调
+  },
+});
 
-  const [version, theme] = getDemoVersion();
+// 延时自动关闭
+setTimeout(() => {
+  dialog.destroy();
+}, 2000);
 
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <div>
-        <Button
-          text="Open a success dialog, auto close after 2000ms"
-          onClick={() => {
-            const dialog = MessageDialogPro.success({
-              version: version,
-              content: "success",
-              detail: "success detail",
-              modal: false,
-              afterClose: () => {
-                console.log("afterClose");
-              },
-            });
-            setTimeout(() => {
-              dialog.destroy();
-            }, 2000);
-          }}
-        />
-        <br />
-        <br />
-        <Button
-          text="Open a success dialog, update config"
-          onClick={() => {
-            const dialog = MessageDialogPro.success({
-              version: version,
-              content: "success",
-              modal: false,
-              buttons: {
-                ok: {
-                  text: "click me to update",
-                  onClick: () => {
-                    dialog.update({
-                      content: "new content",
-                      detail: "new detail",
-                    });
-                  },
-                },
-              },
-            });
-          }}
-        />
-        <br />
-        <br />
-        <Button
-          onClick={() => MessageDialogPro.destroyAll()}
-          text="destroyAll"
-        />
-      </div>
-    </ConfigProvider>
-  );
-};
+// 通过 update 更新配置（可传对象或函数）
+dialog.update({ content: "new content", detail: "new detail" });
+dialog.update((prevConfig) => ({
+  ...prevConfig,
+  title: `${prevConfig.title}（新）`,
+}));
 
-ReactDOM.render(<MessageDialogProDemo2 />, mountNode);
+// 销毁所有命令式弹窗（常用于路由切换清场）
+MessageDialogPro.destroyAll();
 ```

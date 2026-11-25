@@ -107,37 +107,8 @@ interface LabelFieldProps {
 
 ```jsx
 import LabelField from "eview-ui/LabelField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class LabelFieldExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_lbExample">
-          <div style={{ marginLeft: "20px", marginBottom: "20px" }}>
-            <LabelField text="Default style"></LabelField>
-          </div>
-
-          <div style={{ marginLeft: "20px", marginBottom: "20px" }}>
-            <LabelField text="Mandatory style" required={true}></LabelField>
-          </div>
-
-          <div style={{ marginLeft: "20px", marginBottom: "20px" }}>
-            <LabelField
-              text="UseFakeCls style"
-              required={true}
-              useFakeCls={true}
-            ></LabelField>
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<LabelFieldExample />, mountNode);
+<LabelField text="Default style" />
+<LabelField text="Mandatory style" required={true} />
+<LabelField text="UseFakeCls style" required={true} useFakeCls={true} />
 ```

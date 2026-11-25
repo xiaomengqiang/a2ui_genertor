@@ -28,191 +28,88 @@ Time Range Selector组件提供的API和函数创建时间组件。[在开发]
 
 ```jsx
 import { TimeRangeSelector } from "eview-ui";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TimeRangeSelectorExample extends React.Component {
-  state = {
-    width: "800px",
+const minDate = new Date(2011, 9, 7);
+const maxDate = new Date(2015, 11, 14);
+const maxdaysDate = new Date(2011, 10, 28);
+const maxhourDate = new Date(2011, 10, 10);
 
-    displayStartDate: new Date(2012, 9, 7, 0, 0, 0),
-    displayEndDate: new Date(2013, 11, 8, 0, 0, 0),
-    selectedStartDate: new Date(2012, 9, 7, 4, 0, 0),
-    selectedEndDate: new Date(2012, 10, 12, 12, 0, 0),
-  };
+// type="months"
+<TimeRangeSelector
+  minDate={minDate}
+  maxDate={maxDate}
+  displayStartDate={new Date(2012, 9, 7, 0, 0, 0)}
+  displayEndDate={new Date(2013, 11, 8, 0, 0, 0)}
+  selectedStartDate={new Date(2012, 9, 7, 4, 0, 0)}
+  selectedEndDate={new Date(2012, 10, 12, 12, 0, 0)}
+  width="800px"
+  id="testmeMonth"
+  onChange={(e) => {
+    // e: { min, max }
+  }}
+  type="months"
+/>
 
-  onChange = (e) => {
-    console.log(e);
-  };
+// type="days"
+<TimeRangeSelector
+  minDate={minDate}
+  maxDate={maxdaysDate}
+  displayStartDate={new Date(2011, 9, 7, 0, 0, 0)}
+  displayEndDate={new Date(2011, 10, 7, 0, 0, 0)}
+  selectedStartDate={new Date(2011, 9, 8, 12, 0, 0)}
+  selectedEndDate={new Date(2011, 9, 23, 20, 0, 0)}
+  width="800px"
+  id="testmeDays"
+  onChange={(e) => {}}
+  type="days"
+/>
 
-  render() {
-    const [version, theme] = getDemoVersion();
+// type="hours"
+<TimeRangeSelector
+  minDate={minDate}
+  maxDate={maxhourDate}
+  displayStartDate={new Date(2011, 9, 7, 0, 0, 0)}
+  displayEndDate={new Date(2011, 9, 8, 0, 0, 0)}
+  selectedStartDate={new Date(2011, 9, 7, 12, 0, 0)}
+  selectedEndDate={new Date(2011, 9, 7, 20, 0, 0)}
+  width="800px"
+  id="testmeHr"
+  onChange={(e) => {}}
+  type="hours"
+/>
 
-    const minDate = new Date(2011, 9, 7);
-    const maxDate = new Date(2015, 11, 14);
-
-    const maxhourDate = new Date(2011, 10, 10);
-
-    const maxdaysDate = new Date(2011, 10, 28);
-
-    const displayDaysStartDate = new Date(2011, 9, 7, 0, 0, 0);
-    const displayDaysEndDate = new Date(2011, 10, 7, 0, 0, 0);
-
-    const selectedDaysStartDate = new Date(2011, 9, 8, 12, 0, 0);
-    const selectedDaysEndDate = new Date(2011, 9, 23, 20, 0, 0);
-
-    const displayHoursStartDate = new Date(2011, 9, 7, 0, 0, 0);
-    const displayHoursEndDate = new Date(2011, 9, 8, 0, 0, 0);
-
-    const selectedHoursStartDate = new Date(2011, 9, 7, 12, 0, 0);
-    const selectedHoursEndDate = new Date(2011, 9, 7, 20, 0, 0);
-
-    const displayweeksStartDate = new Date(2012, 9, 7, 0, 0, 0);
-    const displayweeksEndDate = new Date(2012, 11, 8, 0, 0, 0);
-
-    const selectedweeksStartDate = new Date(2012, 9, 10, 12, 0, 0);
-    const selectedweeksEndDate = new Date(2012, 9, 10, 12, 0, 0);
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <br />
-          <p style={{ fontSize: "1rem", color: "lightslategray" }}>
-            Month Time Line
-          </p>
-          <TimeRangeSelector
-            minDate={minDate}
-            maxDate={maxDate}
-            displayStartDate={this.state.displayStartDate}
-            displayEndDate={this.state.displayEndDate}
-            selectedStartDate={this.state.selectedStartDate}
-            selectedEndDate={this.state.selectedEndDate}
-            width={this.state.width}
-            id={"testmeMonth"}
-            onChange={this.onChange}
-            type="months"
-          />
-          <br />
-
-          <br />
-          <p style={{ fontSize: "1rem", color: "lightslategray" }}>
-            Days Time Line
-          </p>
-          <TimeRangeSelector
-            minDate={minDate}
-            maxDate={maxdaysDate}
-            displayStartDate={displayDaysStartDate}
-            displayEndDate={displayDaysEndDate}
-            selectedStartDate={selectedDaysStartDate}
-            selectedEndDate={selectedDaysEndDate}
-            width={this.state.width}
-            id={"testmeDays"}
-            onChange={this.onChange}
-            type="days"
-          />
-          <br />
-
-          <br />
-          <p style={{ fontSize: "1rem", color: "lightslategray" }}>
-            Hours Time Line
-          </p>
-          <TimeRangeSelector
-            minDate={minDate}
-            maxDate={maxhourDate}
-            displayStartDate={displayHoursStartDate}
-            displayEndDate={displayHoursEndDate}
-            selectedStartDate={selectedHoursStartDate}
-            selectedEndDate={selectedHoursEndDate}
-            width={this.state.width}
-            id={"testmeHr"}
-            onChange={this.onChange}
-            type="hours"
-          />
-          <br />
-
-          <br />
-          <p style={{ fontSize: "1rem", color: "lightslategray" }}>
-            weeks Time Line
-          </p>
-          <TimeRangeSelector
-            minDate={minDate}
-            maxDate={maxDate}
-            displayStartDate={displayweeksStartDate}
-            displayEndDate={displayweeksEndDate}
-            selectedStartDate={selectedweeksStartDate}
-            selectedEndDate={selectedweeksEndDate}
-            width={this.state.width}
-            id={"testmeWeek"}
-            onChange={this.onChange}
-            type="weeks"
-          />
-          <br />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TimeRangeSelectorExample />, mountNode);
+// type="weeks"
+<TimeRangeSelector
+  minDate={minDate}
+  maxDate={maxDate}
+  displayStartDate={new Date(2012, 9, 7, 0, 0, 0)}
+  displayEndDate={new Date(2012, 11, 8, 0, 0, 0)}
+  selectedStartDate={new Date(2012, 9, 10, 12, 0, 0)}
+  selectedEndDate={new Date(2012, 9, 10, 12, 0, 0)}
+  width="800px"
+  id="testmeWeek"
+  onChange={(e) => {}}
+  type="weeks"
+/>
 ```
 
 ### Hours Style Settings
 
 ```jsx
 import { TimeRangeSelector } from "eview-ui";
-import Button from "eview-ui/Button";
-import "./less/TimeRangeHourStyle.less";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TimeRangeHourExample extends React.Component {
-  state = {
-    width: "100%",
-  };
-  onChange = (e) => {
-    console.log(e.min + "--->" + e.max);
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    const minDate = new Date(2018, 7, 9);
-    const maxDate = new Date(2018, 7, 10);
-
-    const displayHoursStartDate = new Date(2018, 7, 9, 0, 0, 0);
-    const displayHoursEndDate = new Date(2018, 7, 10, 0, 0, 0);
-
-    const selectedHoursStartDate = new Date(2018, 7, 9, 0, 0, 0);
-    const selectedHoursEndDate = new Date(2018, 7, 9, 23, 59, 59);
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div className="Product">
-          <br />
-          <p style={{ fontSize: "1rem", color: "lightslategray" }}>
-            Hide Left And Right Buttons And To Set Style Properties
-          </p>
-          <TimeRangeSelector
-            minDate={minDate}
-            maxDate={maxDate}
-            displayStartDate={displayHoursStartDate}
-            displayEndDate={displayHoursEndDate}
-            selectedStartDate={selectedHoursStartDate}
-            selectedEndDate={selectedHoursEndDate}
-            width={this.state.width}
-            id={"24Hr"}
-            onChange={this.onChange}
-            type="hours"
-          />
-          <br />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TimeRangeHourExample />, mountNode);
+<TimeRangeSelector
+  minDate={new Date(2018, 7, 9)}
+  maxDate={new Date(2018, 7, 10)}
+  displayStartDate={new Date(2018, 7, 9, 0, 0, 0)}
+  displayEndDate={new Date(2018, 7, 10, 0, 0, 0)}
+  selectedStartDate={new Date(2018, 7, 9, 0, 0, 0)}
+  selectedEndDate={new Date(2018, 7, 9, 23, 59, 59)}
+  width="100%"
+  id="24Hr"
+  onChange={(e) => {
+    // e: { min, max }
+  }}
+  type="hours"
+/>
 ```

@@ -69,86 +69,14 @@ export default class PageMessage extends Component<IPageMessageProps> {
 
 ```jsx
 import PageMessage from "eview-ui/PageMessage";
-import imgPicture from "@images/filter";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class PageMessageExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    let divStyle = { marginBottom: "20px" };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ margin: "20px" }}>
-          <div style={divStyle}>
-            <PageMessage
-              text="Prompt text"
-              type="info"
-              style={{ width: "40%" }}
-            />
-          </div>
-          <div style={divStyle}>
-            <PageMessage
-              text="Warning text"
-              type="warn"
-              style={{ width: "40%" }}
-            />
-          </div>
-          {version === "aui3-1" && (
-            <>
-              <div style={divStyle}>
-                <PageMessage
-                  text="Success text"
-                  type="success"
-                  style={{ width: "40%" }}
-                />
-              </div>
-              <div style={divStyle}>
-                <PageMessage
-                  text="Error text"
-                  type="error"
-                  style={{ width: "40%" }}
-                />
-              </div>
-              <div style={divStyle}>
-                <PageMessage
-                  text="Risk text"
-                  type="risk"
-                  style={{ width: "40%" }}
-                />
-              </div>
-              <div style={divStyle}>
-                <PageMessage
-                  text="High Risk text"
-                  type="highRisk"
-                  style={{ width: "40%" }}
-                />
-              </div>
-            </>
-          )}
-          <div style={divStyle}>
-            <PageMessage
-              text="Description Introduction to text"
-              type="default"
-              style={{ width: "40%" }}
-            />
-          </div>
-          <div style={divStyle}>
-            <PageMessage
-              text="Custom icon"
-              type="warn"
-              icon={imgPicture}
-              style={{ width: "40%" }}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<PageMessageExample />, mountNode);
+<PageMessage text="Prompt text" type="info" />
+<PageMessage text="Warning text" type="warn" />
+{/* AUI3.1 支持的类型 */}
+<PageMessage text="Success text" type="success" />
+<PageMessage text="Error text" type="error" />
+<PageMessage text="Risk text" type="risk" />
+<PageMessage text="High Risk text" type="highRisk" />
+<PageMessage text="Description Introduction to text" type="default" />
+<PageMessage text="Custom icon" type="warn" icon="filter.png" /* 图片 url */ />
 ```

@@ -46,45 +46,9 @@
 
 ```jsx
 import Radio from "eview-ui/Radio";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class RadioExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    let style = { margin: "20px 20px" };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_Radio_example">
-          <Radio
-            value="1"
-            label="Male"
-            checked={true}
-            style={style}
-            tipText="Male"
-            tipData={{ disposeTimeOut: 3000 }}
-          ></Radio>
-          <Radio
-            value="1"
-            label="Female"
-            style={style}
-            tipText="Female"
-          ></Radio>
-          <Radio
-            value="1"
-            label="Male"
-            checked={true}
-            disabled={true}
-            style={style}
-            tipText="Male"
-          ></Radio>
-          <Radio value="1" label="Female" disabled={true} style={style}></Radio>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<RadioExample />, mountNode);
+<Radio value="1" label="Male" checked={true} tipText="Male" tipData={{ disposeTimeOut: 3000 }} />
+<Radio value="1" label="Female" tipText="Female" />
+<Radio value="1" label="Male" checked={true} disabled={true} tipText="Male" />
+<Radio value="1" label="Female" disabled={true} />
 ```

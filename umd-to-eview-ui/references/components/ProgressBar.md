@@ -36,188 +36,40 @@
 
 ```jsx
 import ProgressBar from "eview-ui/ProgressBar";
-import LabelField from "eview-ui/LabelField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ProgressBarDemo extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    const param1 = {
-      format: "percent",
-      id: "gee",
-      current: 10,
-    };
-    const param1a = {
-      format: "percent",
-      current: 50,
-    };
-    const param1b = {
-      format: "percent",
-      current: 100,
-      labelPosition: "none",
-    };
-    const param1c = {
-      format: "percent",
-      current: 100,
-      labelPosition: "after",
-    };
-    const param2 = {
-      format: "steps",
-      current: 30,
-      max: 80,
-    };
-    const param3 = {
-      format: "steps",
-      current: 30,
-      max: 80,
-      style: {
-        width: "200px",
-        height: "50px",
-      },
-      barStyle: {
-        background: "#03A9F4",
-        height: "8px",
-        borderRadius: "4px",
-        margin: "-3px 0",
-      },
-      barBackStyle: {
-        background: "#cccccc",
-        height: "2px",
-        borderRadius: "1px",
-      },
-    };
-
-    let labelProps = {
-      style: {
-        display: "block",
-        paddingLeft: "0px",
-      },
-    };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ margin: "20px" }}>
-          <LabelField text={"Percentage progress bar"} {...labelProps} />
-          <ProgressBar {...param1} />
-          <br />
-          <br />
-          <LabelField text={"Percentage progress bar"} {...labelProps} />
-          <ProgressBar {...param1a} />
-          <br />
-          <br />
-          <LabelField text={"Percentage progress bar"} {...labelProps} />
-          <ProgressBar {...param1b} />
-          <br />
-          <br />
-          <LabelField text={"Stpes progress bar:"} {...labelProps} />
-          <ProgressBar {...param2} />
-          <br />
-          <br />
-          <LabelField text={"progress bar with classname"} {...labelProps} />
-          <ProgressBar className="progressClassNameTest" {...param1} />
-          <br />
-          <br />
-          <LabelField text={"Custom style:"} {...labelProps} />
-          <ProgressBar {...param3} />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ProgressBarDemo />, mountNode);
+// format="percent"：百分比进度条
+<ProgressBar format="percent" id="gee" current={10} />
+<ProgressBar format="percent" current={50} />
+<ProgressBar format="percent" current={100} labelPosition="none" />
+<ProgressBar format="percent" current={100} labelPosition="after" />
+// format="steps"：步骤型进度条，max 控制总步数
+<ProgressBar format="steps" current={30} max={80} />
+<ProgressBar className="progressClassNameTest" format="percent" current={10} />
+// 自定义 barStyle / barBackStyle
+<ProgressBar
+  format="steps"
+  current={30}
+  max={80}
+  style={{ width: "200px", height: "50px" }}
+  barStyle={{ background: "#03A9F4", height: "8px", borderRadius: "4px", margin: "-3px 0" }}
+  barBackStyle={{ background: "#cccccc", height: "2px", borderRadius: "1px" }}
+/>
 ```
 
 ### 进度条加载
 
 ```jsx
 import ProgressBar from "eview-ui/ProgressBar";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-let initProgress = 0;
+// 受控加载：current 由外部定时器递增更新（0 → 80）
+<ProgressBar
+  format="steps"
+  current={40} // 0 → 80 递增
+  max={80}
+  style={{ width: "300px" }}
+  barStyle={{ background: "#03A9F4", height: "8px", borderRadius: "4px", margin: "-3px 0" }}
+  barBackStyle={{ background: "#cccccc", height: "2px", borderRadius: "1px" }}
+/>
 
-export default class ProgressBarDemo extends React.Component {
-  state = {
-    progress: initProgress,
-    disabled: false,
-  };
-
-  componentWillUnmount() {
-    this.timer && clearInterval(this.timer);
-  }
-  onClick = () => {
-    var instance = this;
-    this.timer = setInterval(function () {
-      if (initProgress == 80) {
-        clearInterval(instance.timer);
-        return;
-      } else {
-        instance.increase();
-      }
-    }, 100);
-  };
-
-  increase = () => {
-    this.setState({
-      progress: (initProgress += 1),
-      disabled: true,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    const param = {
-      format: "steps",
-      current: this.state.progress,
-      max: 80,
-      style: {
-        width: "300px",
-      },
-      barStyle: {
-        background: "#03A9F4",
-        height: "8px",
-        borderRadius: "4px",
-        margin: "-3px 0",
-      },
-      barBackStyle: {
-        background: "#cccccc",
-        height: "2px",
-        borderRadius: "1px",
-      },
-    };
-
-    const param2 = {
-      format: "percent",
-      current: this.state.progress,
-      max: 80,
-    };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px" }}>
-          <Button
-            text={"Start loading"}
-            disabled={this.state.disabled}
-            onClick={this.onClick}
-          />
-          <br />
-          <br />
-          <ProgressBar {...param} />
-          <br />
-          <br />
-          <ProgressBar {...param2} />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ProgressBarDemo />, mountNode);
+<ProgressBar format="percent" current={40} max={80} />
 ```

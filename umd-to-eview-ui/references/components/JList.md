@@ -120,116 +120,27 @@ interface JList {
 
 ```jsx
 import JList from "eview-ui/JList";
-import Button from "eview-ui/Button";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class JListExample extends React.Component {
-  state = {
-    msg: null,
-    selected: [3, 5],
-  };
+const items = [
+  { text: "Computing development system" },
+  { text: "Mgmt & Deployment system", isEnable: false }, // isEnable:false 不可选
+  { text: "High Storage device" },
+  { text: "Higly deployed System" },
+];
 
-  onclickEvent = (e, value, index) => {
-    console.log(e, value, index);
-    // 这一句很重要，jlist没有将选中值暴露出来，主动通过setState更新到state中，避免state刷新后组件被使用初始值刷新
-    // 如果是单选需要改成
-    // this.setState({
-    //   selected: [index]
-    // })
-    this.setState({
-      selected: this.jlist.getSelectedItemsIndex(),
-    });
-  };
-
-  handleGetSelectedItemIndex = () => {
-    const row = this.jlist.getSelectedItemsIndex();
-    this.setState({
-      msg: (
-        <div>
-          getSelectedItemsIndex
-          <br />[{row.map((v) => v.toString()).join(",")}]
-        </div>
-      ),
-    });
-  };
-
-  handleGetSelectedData = () => {
-    const row = this.jlist.getSelectedItems();
-    console.log("row", row);
-    this.setState({
-      msg: (
-        <div>
-          getSelectedItems
-          <br />[{row.map((v) => v.text.toString()).join(",")}]
-        </div>
-      ),
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const children = [
-      {
-        text: "Computing development system Computing development system Computing development system",
-      },
-      { text: "Mgmt & Deployment system", isEnable: false },
-      { text: "High Storage device" },
-      { text: "Higly deployed System" },
-      { text: "RAM data" },
-      { text: "Memory storage" },
-      { text: "Mouse event" },
-      { text: "Keyboard envent" },
-      { text: "Monitor display" },
-      { text: "Monitor No display" },
-      { text: "Monitor working Ok" },
-    ];
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_lbExample">
-          <div style={{ marginLeft: "20px", marginBottom: "20px" }}>
-            <div style={{ marginBottom: "10px" }}>
-              <Button
-                onClick={this.handleGetSelectedItemIndex}
-                text="Read Selected indexes"
-              />{" "}
-              <Button
-                onClick={this.handleGetSelectedData}
-                text="Read Selected data"
-              />{" "}
-            </div>
-
-            <JList
-              items={children}
-              selectedIndex={this.state.selected}
-              width={500}
-              height={240}
-              mutiSelectEnable
-              textAlign="right"
-              onClick={this.onclickEvent}
-              ref={(jlist) => {
-                this.jlist = jlist;
-              }}
-            ></JList>
-          </div>
-
-          <br />
-          {this.state.msg && (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "100%" }}
-            />
-          )}
-          <br />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<JListExample />, mountNode);
+<JList
+  items={items}
+  selectedIndex={[3, 5]} // 数字数组（多选）；单选传单个数字
+  width={500}
+  height={240}
+  mutiSelectEnable // ctrl+click 多选 / shift+click 范围多选
+  textAlign="right"
+  onClick={(nativeEvent, item, index) => {
+    // nativeEvent: 原生 DOM 事件（非 React 合成事件）, item: 条目数据, index: 索引
+    // 选中值不自动暴露，需 ref.getSelectedItemsIndex() 回写
+  }}
+  ref={(jlist) => {
+    // jlist.getSelectedItemsIndex() / getSelectedItems()
+  }}
+/>
 ```

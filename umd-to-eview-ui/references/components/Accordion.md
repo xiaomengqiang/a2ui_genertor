@@ -22,7 +22,7 @@
 | data               | 手风琴数据 array<{title: ReactNode;value?: string;icon?: string;description?: string;activeIcon?: string;disabled?: boolean;children?: array}>           | array                                     |       |
 | selectedValue      | 默认被选中的项的 value，不设置，则为第一项的 value                                                                                                       | string                                    | ''    |
 | headerText         | 手风琴标题文字                                                                                                                                           | ReactNode                                 |       |
-| headerIcon         | 手风琴标题图标的 url                                                                     | string                                    |       |
+| headerIcon         | 手风琴标题图标的 url                                                                                                                                     | string                                    |       |
 | enableTooltip      | 是否使用提示                                                                                                                                             | bool                                      | true  |
 | toolTipProps       | 自定义手风琴菜单的Tooltip属性(6.0.x版本支持)，需要将enableTooltip设置为true，参考Tooltip组件文档来设置                                                   | [CustomTooltipType](/components/Tooltip/) |       |
 | forceShowTip       | 强制展示tip，设置为 'title'，使用浏览器默认的title属性。此时会忽略enableTooltip属性；enableTooltip只会在有溢出时才展示。                                 | string \| bool                            | false |
@@ -51,130 +51,46 @@
 
 ```jsx
 import Accordion from "eview-ui/Accordion";
-import DivMessage from "eview-ui/DivMessage";
-import { Row, Col } from "eview-ui/GridLayout";
-import LabelField from "eview-ui/LabelField";
-import huawei from "@images/huawei";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class AccordionDemo extends React.Component {
-  // static init state here
-  state = {
-    msg: "",
-    data: [
+const data = [
+  { title: "Navigation One", value: "1" },
+  {
+    title: "Navigation Two",
+    value: "hero-since-child",
+    children: [
       {
-        title: "Navigation One",
-        value: "1",
-      },
-      {
-        title: "Navigation Two",
-        value: "hero-since-child",
+        title: "Option1",
+        value: "opt1",
         children: [
-          {
-            title: "Option1",
-            value: "opt1",
-            children: [
-              {
-                title: "Sub Option1",
-                value: "subOpt1",
-              },
-              {
-                title: "Sub Option2",
-                value: "subOpt2",
-              },
-              {
-                title: "Sub Option3",
-                value: "subOpt3",
-              },
-              {
-                title: "Sub Option4",
-                value: "subOpt4",
-              },
-            ],
-          },
-          {
-            title: "Option2",
-            value: "opt2",
-          },
-          {
-            title: "Option3",
-            value: "opt3",
-          },
-          {
-            title: "Option4",
-            value: "opt4",
-          },
+          { title: "Sub Option1", value: "subOpt1" },
+          { title: "Sub Option2", value: "subOpt2" },
         ],
       },
-      {
-        title: "Navigation Tree",
-        value: "off-the-wall",
-        children: [
-          {
-            title: "Security Rule",
-            value: "Security Rule",
-          },
-          {
-            title: "Traffic Rule",
-            value: "Traffic Rule",
-          },
-          {
-            title: "Application Group",
-            value: "Application Group",
-          },
-          {
-            title: "URL Filter",
-            value: "URL Filter",
-          },
-        ],
-      },
+      { title: "Option2", value: "opt2" },
     ],
-    selectedValue: "subOpt1",
-  };
-  handleClick = (node) => {
-    if (!node.children || node.children?.length === 0) {
-      this.setState({
-        msg: `Clicked Node ：\n${node.code}`,
-        selectedValue: node.value,
-      });
-    }
-  };
+  },
+  {
+    title: "Navigation Tree",
+    value: "off-the-wall",
+    children: [
+      { title: "Security Rule", value: "Security Rule" },
+      { title: "URL Filter", value: "URL Filter" },
+    ],
+  },
+];
 
-  handleRightClick = (event, node) => {
-    console.log("handleRightClick called : ", event);
-    console.log("node : ", node);
-  };
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ background: "#fcfcfc", width: "100%" }}>
-          <Accordion
-            onClick={this.handleClick}
-            onItemRightClick={this.handleRightClick}
-            data={this.state.data}
-            selectedValue={this.state.selectedValue}
-            headerIcon={huawei}
-            style={{ height: "540px" }}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "280px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<AccordionDemo />, mountNode);
+<Accordion
+  data={data}
+  selectedValue="subOpt1"
+  headerIcon="huawei" // 标题图标 url
+  onClick={(node) => {
+    // node 是 data 项原始对象，取 node.value
+  }}
+  onItemRightClick={(event, { data }) => {
+    // event, { data: 右键项原始数据 }
+  }}
+  style={{ height: "540px" }}
+/>
 ```
 
 ### 收缩、展开菜单
@@ -183,120 +99,46 @@ ReactDOM.render(<AccordionDemo />, mountNode);
 
 ```jsx
 import Accordion from "eview-ui/Accordion";
-import DivMessage from "eview-ui/DivMessage";
-import { Row, Col } from "eview-ui/GridLayout";
-import LabelField from "eview-ui/LabelField";
-import Radio from "eview-ui/Radio";
-import huawei from "@images/huawei";
-import navFormActive from "@images/nav_form_active";
-import navForm from "@images/nav_form";
-import navMsg from "@images/nav_msg";
-import navMsgActive from "@images/nav_msg_active";
-import navHeart from "@images/nav_heart";
-import navHeartActive from "@images/nav_heart_active";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-export default class AccordionDemo extends React.Component {
-  // static init state here
-  state = {
-    expandMethod: "expand",
-    data: [
-      {
-        title: "Overview",
-        value: "over_view",
-        icon: navForm,
-        activeIcon: navFormActive,
-      },
-      {
-        title: "Easy Configuration",
-        value: "hero-since-child",
-        icon: navMsg,
-        activeIcon: navMsgActive,
-        children: [
-          {
-            title: "Thriller",
-            description:
-              "唱片同名歌曲，创造了多个单曲格莱美大奖记录，一举奠定了流行音乐天王地位。",
-          },
-          {
-            title: "The Girl Is Mine",
-            description: "热辣火热的舞蹈和动感心动的声响完美的结合",
-          },
-          {
-            title: "Beat It",
-            description: "经典中的经典，几乎无人不知",
-            value: "beat-it",
-          },
-          {
-            title: "Billie Jean",
-            description: "传说来自天王的一个亲身经历",
-          },
-        ],
-      },
-      {
-        title: "Advanced Configuration",
-        icon: navHeart,
-        activeIcon: navHeartActive,
-        value: "off-the-wall",
-        children: [
-          {
-            title: "Security Rule",
-            value: "Security Rule",
-          },
-          {
-            title: "Traffic Rule",
-          },
-          {
-            title: "Application Group",
-          },
-          {
-            title: "URL Filter",
-            value: "URL Filter",
-          },
-        ],
-      },
+
+const data = [
+  {
+    title: "Overview",
+    value: "over_view",
+    icon: "navForm", // 项图标 url
+    activeIcon: "navFormActive", // 选中态图标 url
+  },
+  {
+    title: "Easy Configuration",
+    value: "hero-since-child",
+    icon: "navMsg",
+    activeIcon: "navMsgActive",
+    children: [
+      { title: "Thriller", description: "说明文字" },
+      { title: "Beat It", value: "beat-it" },
     ],
-    selectedValue: "URL Filter",
-  };
+  },
+  {
+    title: "Advanced Configuration",
+    value: "off-the-wall",
+    icon: "navHeart",
+    activeIcon: "navHeartActive",
+    children: [
+      { title: "Security Rule", value: "Security Rule" },
+      { title: "URL Filter", value: "URL Filter" },
+    ],
+  },
+];
 
-  render() {
-    const { expandMethod } = this.state;
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginBottom: "1rem" }}>
-          <LabelField text="展开方式" />
-          <Radio
-            value="expand"
-            label="缩小"
-            checked={expandMethod === "expand"}
-            onChange={(value) => this.setState({ expandMethod: value })}
-            style={{ marginRight: "0.5rem" }}
-          />
-          <Radio
-            value="arrow"
-            label="收起"
-            checked={expandMethod === "arrow"}
-            onChange={(value) => this.setState({ expandMethod: value })}
-          />
-        </div>
-        <div style={{ background: "#fcfcfc", width: "100%" }}>
-          <Accordion
-            data={this.state.data}
-            headerText={"Site1-FW"}
-            selectedValue={this.state.selectedValue}
-            enableExpand={expandMethod === "expand"}
-            showArrow={expandMethod === "arrow"}
-            style={{ height: "776px", width: "344px" }}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<AccordionDemo />, mountNode);
+// 收缩态：enableExpand={true} showArrow={false}（缩小模式，显示文字）
+// 收起态：enableExpand={false} showArrow={true}（图标模式，仅显示图标）
+<Accordion
+  data={data}
+  headerText="Site1-FW"
+  selectedValue="URL Filter"
+  enableExpand={true}
+  showArrow={false}
+  style={{ height: "776px", width: "344px" }}
+/>
 ```
 
 ### 头部样式
@@ -305,139 +147,37 @@ ReactDOM.render(<AccordionDemo />, mountNode);
 
 ```jsx
 import Accordion from "eview-ui/Accordion";
-import DivMessage from "eview-ui/DivMessage";
-import Toggle from "eview-ui/Toggle";
-import Radio from "eview-ui/Radio";
-import { Row, Col } from "eview-ui/GridLayout";
-import LabelField from "eview-ui/LabelField";
-import navFormActive from "@images/nav_form_active";
-import navForm from "@images/nav_form";
-import navMsg from "@images/nav_msg";
-import navMsgActive from "@images/nav_msg_active";
-import navHeart from "@images/nav_heart";
-import navHeartActive from "@images/nav_heart_active";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class AccordionDemo extends React.Component {
-  // static init state here
-  state = {
-    hideTitleBar: false,
-    headerIconPosition: "top",
-    data: [
-      {
-        title: "Overview",
-        value: "over_view",
-        icon: navForm,
-        activeIcon: navFormActive,
-      },
-      {
-        title: "Easy Configuration",
-        value: "hero-since-child",
-        icon: navMsg,
-        activeIcon: navMsgActive,
-        children: [
-          {
-            title: "Thriller",
-            description:
-              "唱片同名歌曲，创造了多个单曲格莱美大奖记录，一举奠定了流行音乐天王地位。",
-          },
-          {
-            title: "The Girl Is Mine",
-            description: "热辣火热的舞蹈和动感心动的声响完美的结合",
-          },
-          {
-            title: "Beat It",
-            description: "经典中的经典，几乎无人不知",
-            value: "beat-it",
-          },
-          {
-            title: "Billie Jean",
-            description: "传说来自天王的一个亲身经历",
-          },
-        ],
-      },
-      {
-        title: "Advanced Configuration",
-        icon: navHeart,
-        activeIcon: navHeartActive,
-        value: "off-the-wall",
-        children: [
-          {
-            title: "Security Rule",
-            value: "Security Rule",
-          },
-          {
-            title: "Traffic Rule",
-          },
-          {
-            title: "Application Group",
-          },
-          {
-            title: "URL Filter",
-            value: "URL Filter",
-          },
-        ],
-      },
+const data = [
+  {
+    title: "Overview",
+    value: "over_view",
+    icon: "navForm",
+    activeIcon: "navFormActive",
+  },
+  {
+    title: "Advanced Configuration",
+    value: "off-the-wall",
+    icon: "navHeart",
+    activeIcon: "navHeartActive",
+    children: [
+      { title: "Security Rule", value: "Security Rule" },
+      { title: "URL Filter", value: "URL Filter" },
     ],
-    selectedValue: "URL Filter",
-  };
+  },
+];
 
-  render() {
-    const { data, selectedValue, hideTitleBar, headerIconPosition } =
-      this.state;
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginBottom: "1rem" }}>
-          <LabelField text="是否需要头部" />
-          <Toggle
-            toggled={hideTitleBar}
-            onToggle={(value) => {
-              this.setState({ hideTitleBar: !hideTitleBar });
-            }}
-          />
-          {!hideTitleBar && (
-            <span style={{ marginLeft: "1rem", display: "inline-flex" }}>
-              <LabelField text="头部位置" />
-              <Radio
-                value="top"
-                label="top"
-                checked={headerIconPosition === "top"}
-                onChange={(value) =>
-                  this.setState({ headerIconPosition: value })
-                }
-                style={{ marginRight: "0.5rem" }}
-              />
-              <Radio
-                value="left"
-                label="left"
-                checked={headerIconPosition === "left"}
-                onChange={(value) =>
-                  this.setState({ headerIconPosition: value })
-                }
-              />
-            </span>
-          )}
-        </div>
-        <div style={{ background: "#fcfcfc", width: "100%" }}>
-          <Accordion
-            data={data}
-            selectedValue={selectedValue}
-            headerText="Header"
-            hideTitleBar={hideTitleBar}
-            showArrow={true}
-            headerIconPosition={headerIconPosition}
-            style={{ height: "540px" }}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<AccordionDemo />, mountNode);
+// hideTitleBar: false 显示头部 / true 隐藏头部
+// headerIconPosition: "top"（默认）| "left"
+<Accordion
+  data={data}
+  selectedValue="URL Filter"
+  headerText="Header"
+  hideTitleBar={false}
+  headerIconPosition="top"
+  showArrow={true}
+  style={{ height: "540px" }}
+/>
 ```
 
 ### 单个展开
@@ -446,84 +186,34 @@ ReactDOM.render(<AccordionDemo />, mountNode);
 
 ```jsx
 import Accordion from "eview-ui/Accordion";
-import huawei from "@images/huawei";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class AccordionDemoNoMultiOpen extends React.Component {
-  // static init state here
-  state = {
-    data: [
-      {
-        title: "All",
-        value: "over_view",
-      },
-      {
-        title: "Star",
-        value: "hero-since-child",
-      },
-      {
-        title: "Off The Wall",
-        children: [
-          {
-            title: "Don't Stop Till You Get Enough",
-          },
-          {
-            title: "Rock with You",
-          },
-          {
-            title: "Off The Wall",
-            value: "off-the-wall",
-          },
-        ],
-      },
-      {
-        title: "Thriller",
-        description: "巅峰中的巅峰",
-        value: "thriller",
-        children: [
-          {
-            title: "Thriller",
-            description:
-              "唱片同名歌曲，创造了多个单曲格莱美大奖记录，一举奠定了流行音乐天王地位。",
-          },
-          {
-            title: "The Girl Is Mine",
-            description: "热辣火热的舞蹈和动感心动的声响完美的结合",
-          },
-          {
-            title: "Beat It",
-            description: "经典中的经典，几乎无人不知",
-          },
-          {
-            title: "Billie Jean",
-            description: "传说来自天王的一个亲身经历",
-          },
-        ],
-      },
+const data = [
+  { title: "All", value: "over_view" },
+  { title: "Star", value: "hero-since-child" },
+  {
+    title: "Off The Wall",
+    children: [
+      { title: "Don't Stop Till You Get Enough" },
+      { title: "Off The Wall", value: "off-the-wall" },
     ],
-    selectedValue: "off-the-wall",
-  };
+  },
+  {
+    title: "Thriller",
+    description: "巅峰中的巅峰",
+    value: "thriller",
+    children: [
+      { title: "Thriller", description: "说明文字" },
+      { title: "Beat It", description: "说明文字" },
+    ],
+  },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ background: "#fcfcfc", width: "100%" }}>
-          <Accordion
-            data={this.state.data}
-            selectedValue={this.state.selectedValue}
-            headerIcon={huawei}
-            enableMultiOpen={false}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<AccordionDemoNoMultiOpen />, mountNode);
+<Accordion
+  data={data}
+  selectedValue="off-the-wall"
+  headerIcon="huawei" // 标题图标 url
+  enableMultiOpen={false} // 只展开单个一级菜单（默认 false）
+/>
 ```
 
 ### 允许拖动
@@ -532,86 +222,25 @@ ReactDOM.render(<AccordionDemoNoMultiOpen />, mountNode);
 
 ```jsx
 import Accordion from "eview-ui/Accordion";
-import DivMessage from "eview-ui/DivMessage";
-import { Row, Col } from "eview-ui/GridLayout";
-import LabelField from "eview-ui/LabelField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-export default class AccordionDemo extends React.Component {
-  // static init state here
-  state = {
-    data: [
-      {
-        title: "Overview",
-        value: "over_view",
-      },
-      {
-        title: "Easy Configuration",
-        value: "hero-since-child",
-        children: [
-          {
-            title: "Thriller",
-            description:
-              "唱片同名歌曲，创造了多个单曲格莱美大奖记录，一举奠定了流行音乐天王地位。",
-          },
-          {
-            title: "The Girl Is Mine",
-            description: "热辣火热的舞蹈和动感心动的声响完美的结合",
-          },
-          {
-            title: "Beat It",
-            description: "经典中的经典，几乎无人不知",
-            value: "beat-it",
-          },
-          {
-            title: "Billie Jean",
-            description: "传说来自天王的一个亲身经历",
-          },
-        ],
-      },
-      {
-        title: "Advanced Configuration",
-        value: "off-the-wall",
-        children: [
-          {
-            title: "Security Rule",
-            value: "Security Rule",
-          },
-          {
-            title: "Traffic Rule",
-          },
-          {
-            title: "Application Group",
-          },
-          {
-            title: "URL Filter",
-            value: "URL Filter",
-          },
-        ],
-      },
+
+const data = [
+  { title: "Overview", value: "over_view" },
+  {
+    title: "Advanced Configuration",
+    value: "off-the-wall",
+    children: [
+      { title: "Security Rule", value: "Security Rule" },
+      { title: "URL Filter", value: "URL Filter" },
     ],
-    selectedValue: "URL Filter",
-  };
+  },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ background: "#fcfcfc", width: "100%" }}>
-          <Accordion
-            allowResize
-            maxResizableWidth="500px"
-            data={this.state.data}
-            selectedValue={this.state.selectedValue}
-            style={{ height: "540px" }}
-            enableMultiOpen
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<AccordionDemo />, mountNode);
+<Accordion
+  allowResize
+  maxResizableWidth="500px" // 支持 px 和 rem
+  data={data}
+  selectedValue="URL Filter"
+  enableMultiOpen
+  style={{ height: "540px" }}
+/>
 ```

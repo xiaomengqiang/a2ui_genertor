@@ -140,50 +140,20 @@ onChange回调的第二个参数类型：
 最简单的用法，在浮层中可以选择或者输入日期。
 
 ```jsx
-import { DatePicker } from 'eview-ui';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import DatePicker from "eview-ui/DatePicker";
 
-
-function DatePickerDemo() {
-  const [date, setDate] = React.useState();
-  const [month, setMonth] = React.useState();
-  const [week, setWeek] = React.useState();
-  const [year, setYear] = React.useState();
-
-  const [version, theme] = getDemoVersion();
-
-  const onDateChange = (value) => {
-    setDate(value);
-  };
-  const onMonthChange = (value) => {
-    setMonth(value);
-  };
-  const onWeekChange = (value) => {
-    setWeek(value);
-  };
-  const onYearChange = (value) => {
-    setYear(value);
-  };
-
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <>
-        <DatePicker value={date} placeholder="请选择日期" onChange={onDateChange}/>
-        <br/><br/>
-        <DatePicker value={month} placeholder="请选择月份" onChange={onMonthChange} type="month"/>
-        <br/><br/>
-        <DatePicker value={week} placeholder="请选择周" onChange={onWeekChange} type="week"/>
-        <br/><br/>
-        <DatePicker value={year} placeholder="请选择年份" onChange={onYearChange} type="year"/>
-      </>
-    </ConfigProvider>);
-}
-ReactDOM.render(
-  <DatePickerDemo />,
-  mountNode,
-);
+<DatePicker value="2020-01-01" placeholder="请选择日期" onChange={(value) => {
+  // 取 value 更新
+}}/>
+<DatePicker value="2020-01" placeholder="请选择月份" onChange={(value) => {
+  // 取 value 更新
+}} type="month"/>
+<DatePicker value="2020-W1" placeholder="请选择周" onChange={(value) => {
+  // 取 value 更新
+}} type="week"/>
+<DatePicker value="2020" placeholder="请选择年份" onChange={(value) => {
+  // 取 value 更新
+}} type="year"/>
 ```
 
 ### 日期时间
@@ -193,38 +163,25 @@ ReactDOM.render(
 是否显示 12 小时制通过`format`设置，格式设置查阅[moment](https://momentjs.com/docs/)
 
 ```jsx
-import { DatePicker } from 'eview-ui';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import DatePicker from "eview-ui/DatePicker";
 const { RangePicker } = DatePicker;
 
-function onChange(date) {
-  console.log(date);
-}
-
-const [version, theme] = getDemoVersion();
-
-ReactDOM.render(
-  <ConfigProvider version={version} theme={theme}>
-    <>
-      <DatePicker placeholder="日期时间(24小时制)" type="datetime" onChange={onChange}/>
-      <br/>
-      <br/>
-      <DatePicker
-        style={{width: '15rem'}}
-        placeholder="日期时间(12小时制)"
-        onChange={onChange}
-        type="datetime"
-        format="YYYY-MM-DD hh:mm:ss A"
-        ampm
-      />
-      <br/>
-      <br/>
-      <RangePicker type="datetime" placeholder={['开始日期', '结束日期']} onChange={onChange}/>
-    </>
-  </ConfigProvider>,
-  mountNode
-);
+<DatePicker placeholder="日期时间(24小时制)" type="datetime" onChange={(value) => {
+  // 取 value 更新
+}}/>
+<DatePicker
+  style={{ width: "15rem" }}
+  placeholder="日期时间(12小时制)"
+  onChange={(value) => {
+    // 取 value 更新
+  }}
+  type="datetime"
+  format="YYYY-MM-DD hh:mm:ss A"
+  ampm
+/>
+<RangePicker type="datetime" placeholder={["开始日期", "结束日期"]} onChange={(value) => {
+  // 取 value 更新
+}}/>
 ```
 
 ### 范围选择器
@@ -232,36 +189,18 @@ ReactDOM.render(
 选择日期范围
 
 ```jsx
-import { DatePicker } from 'eview-ui';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-
+import DatePicker from "eview-ui/DatePicker";
 const { RangePicker } = DatePicker;
 
-function DatePickerDemo() {
-  const [version, theme] = getDemoVersion();
-  const [value, setState] = React.useState([]);
-
-  const onChange = (date) => {
-    setState(date);
-  };
-
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <>
-        <RangePicker value={value} onChange={onChange} placeholder={['开始日期', '结束日期']}/>
-        <br/>
-        <RangePicker value={value} onChange={onChange} type="month" placeholder={['开始月份', '结束月份']}/>
-        <br/>
-        <RangePicker value={value} onChange={onChange} type="year" placeholder={['开始年', '结束年']}/>
-      </>
-    </ConfigProvider>);
-}
-ReactDOM.render(
-  <DatePickerDemo />,
-  mountNode,
-);
+<RangePicker value={["2020-01-01", "2020-02-01"]} onChange={(value) => {
+  // 取 value 更新
+}} placeholder={["开始日期", "结束日期"]}/>
+<RangePicker value={["2020-01", "2020-02"]} onChange={(value) => {
+  // 取 value 更新
+}} type="month" placeholder={["开始月份", "结束月份"]}/>
+<RangePicker value={["2020", "2021"]} onChange={(value) => {
+  // 取 value 更新
+}} type="year" placeholder={["开始年", "结束年"]}/>
 ```
 
 ### 夏令时
@@ -277,52 +216,11 @@ ReactDOM.render(
 注意：目前设置时区会对所有DatePicker实例都生效
 
 ```jsx
-import { DatePicker, Select } from 'eview-ui';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import DatePicker from "eview-ui/DatePicker";
 
-const DatePickerDstDemo = () => {
-  const [version, theme] = getDemoVersion();
-  const [timezone, setTimezone] = React.useState('Asia/Shanghai');
-  const timezoneOpts = [
-    {
-      text: '上海:',
-      value: 'Asia/Shanghai',
-    },
-    {
-      text: '巴黎',
-      value: 'Europe/Paris',
-    },
-    {
-      text: '伦敦',
-      value: 'Europe/London',
-    },
-    {
-      text: '洛杉矶',
-      value: 'America/Los_Angeles',
-    },
-  ];
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <div>
-        <Select
-          label="时区"
-          options={timezoneOpts}
-          onChange={v => {
-            setTimezone(v);
-          }}
-          value={timezone}
-        />
-        <div>
-          <DatePicker timezone={timezone} value={new Date()} style={{margin: '1rem 1rem 0 0'}}/>
-          <DatePicker type="datetime" timezone={timezone} value={new Date()}/>
-        </div>
-      </div>
-    </ConfigProvider>
-  );
-};
-ReactDOM.render(<DatePickerDstDemo />, mountNode);
+// timezone：'Asia/Shanghai' | 'Europe/Paris' | 'Europe/London' | 'America/Los_Angeles'
+<DatePicker timezone="Asia/Shanghai" value={new Date()} style={{ margin: "1rem 1rem 0 0" }}/>
+<DatePicker type="datetime" timezone="Asia/Shanghai" value={new Date()}/>
 ```
 
 ### 日期格式
@@ -336,38 +234,12 @@ ReactDOM.render(<DatePickerDstDemo />, mountNode);
 2. 自行通过`DatePicker.convertFormat`对cookie中的`format`进行转换
 
 ```jsx
-import { DatePicker } from 'eview-ui';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-
+import DatePicker from "eview-ui/DatePicker";
 const { RangePicker } = DatePicker;
-const [version, theme] = getDemoVersion();
 
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <>
-      <DatePicker
-        value={new Date()}
-        format="YYYY/MM/DD"
-      />
-      <br/>
-      <br/>
-      <DatePicker
-        value={new Date()}
-        type="month"
-        format="YYYY/MM"
-      />
-      <br/>
-      <br/>
-      <RangePicker
-        value={[new Date(), new Date()]}
-        format="MM/DD-YYYY"
-      />
-    </>
-  </ConfigProvider>,
-  mountNode
-);
+<DatePicker value={new Date()} format="YYYY/MM/DD"/>
+<DatePicker value={new Date()} type="month" format="YYYY/MM"/>
+<RangePicker value={[new Date(), new Date()]} format="MM/DD-YYYY"/>
 ```
 
 ### 时间校验
@@ -375,70 +247,28 @@ ReactDOM.render(
 传入`rules`定义校验规则，调用`validate()`进行结果校验
 
 ```jsx
-import { DatePicker, Button, LabelField, Radio } from 'eview-ui';
-import moment from 'moment';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import DatePicker from "eview-ui/DatePicker";
+import Button from "eview-ui/Button";
+import moment from "moment";
 
-const ValidateDatePicker = () => {
-  const [version, theme] = getDemoVersion();
-  const ref = React.useRef();
-  const [tipsType, setTipsType] = React.useState('div');
-  const validate = () => {
-    const result = ref.current.validate();
-    if(result) {
-      console.log('合法输入')
-    }
-  }
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <div style={{marginBottom: '2rem'}}>
-        <div style={{marginBottom: "1rem", display: "flex"}}>
-          <LabelField text="校验提示类型:"/>
-          <Radio
-            value="div"
-            label="div"
-            checked={tipsType === "div"}
-            onChange={value => setTipsType(value)}
-            style={{marginRight: "0.5rem"}}
-          />
-          <Radio
-            value="tipbox"
-            label="tipbox"
-            checked={tipsType === "tipbox"}
-            onChange={value => setTipsType(value)}
-          />
-        </div>
-        <DatePicker
-          ref={ref}
-          validationTipsType={tipsType}
-          rules={[
-            {required: true, message: '时间必填'},
-            {
-              validator: value => {
-                return value < moment();
-              },
-              message: '请选择今天以前的日期',
-            },
-          ]}
-        />
-        <Button
-          style={{marginLeft: '1rem'}}
-          text="校验"
-          onClick={() => validate()}
-        />
-        <Button
-          style={{marginLeft: '1rem'}}
-          text="清除"
-          onClick={() => ref.current.clearValidation()}
-        />
-      </div>
-    </ConfigProvider>
-  );
-};
+const ref = React.useRef();
 
-ReactDOM.render(<ValidateDatePicker />, mountNode);
+// validationTipsType: 'div' | 'tipbox'
+<DatePicker
+  ref={ref}
+  validationTipsType="div"
+  rules={[
+    { required: true, message: "时间必填" },
+    {
+      validator: (value) => {
+        return value < moment();
+      },
+      message: "请选择今天以前的日期",
+    },
+  ]}
+/>
+<Button style={{ marginLeft: "1rem" }} text="校验" onClick={() => { ref.current.validate(); }}/>
+<Button style={{ marginLeft: "1rem" }} text="清除" onClick={() => { ref.current.clearValidation(); }}/>
 ```
 
 ### 禁用、只读
@@ -446,31 +276,13 @@ ReactDOM.render(<ValidateDatePicker />, mountNode);
 `disabled`属性设置选择框的不可用状态，`readOnly`属性设置输入框只读，不可编辑
 
 ```jsx
-import { DatePicker } from 'eview-ui';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-
+import DatePicker from "eview-ui/DatePicker";
 const { RangePicker } = DatePicker;
-const [version, theme] = getDemoVersion();
 
-const DisabledDemo = () => (
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <div>
-      <DatePicker value={new Date()} disabled/>
-      <br/>
-      <br/>
-      <RangePicker value={[new Date(), new Date()]} disabled/>
-      <br/>
-      <br/>
-      <DatePicker value={new Date()} readOnly/>
-      <br/>
-      <br/>
-      <RangePicker value={[new Date(), new Date()]} readOnly/>
-    </div>
-  </ConfigProvider>
-);
-ReactDOM.render(<DisabledDemo />, mountNode);
+<DatePicker value={new Date()} disabled/>
+<RangePicker value={[new Date(), new Date()]} disabled/>
+<DatePicker value={new Date()} readOnly/>
+<RangePicker value={[new Date(), new Date()]} readOnly/>
 ```
 
 ### 可选范围
@@ -478,29 +290,10 @@ ReactDOM.render(<DisabledDemo />, mountNode);
 `range`属性设置日期可选范围
 
 ```jsx
-import { DatePicker } from 'eview-ui';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
-
+import DatePicker from "eview-ui/DatePicker";
 const { RangePicker } = DatePicker;
-const [version, theme] = getDemoVersion();
 
-ReactDOM.render(
-// 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <>
-      <DatePicker
-        placeholder="请选择日期"
-        range={['2020-03-15', '2020-04-15']}
-      />
-      <br/><br/>
-      <RangePicker
-        placeholder={['开始日期', '结束日期']}
-        range={['2020-03-15', '2020-04-15']}
-      />
-    </>
-  </ConfigProvider>,
-  mountNode
-);
+<DatePicker placeholder="请选择日期" range={["2020-03-15", "2020-04-15"]}/>
+<RangePicker placeholder={["开始日期", "结束日期"]} range={["2020-03-15", "2020-04-15"]}/>
 ```
 

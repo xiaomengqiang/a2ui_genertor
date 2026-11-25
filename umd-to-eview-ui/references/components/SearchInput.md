@@ -54,67 +54,41 @@
 
 ```jsx
 import SearchInput from "eview-ui/SearchInput";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class SearchInputSimpleExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    let style = { margin: "15px 20px" };
+const labelStyle = { display: "block", paddingLeft: "0px" };
 
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <div style={style}>
-            <SearchInput
-              label="Default style"
-              labelStyle={labelStyle}
-              placeholder="search"
-            />
-            <br />
-            <br />
-            <SearchInput
-              label="Limit 5 Character"
-              required={true}
-              labelStyle={labelStyle}
-              placeholder="search"
-              maxLengthInput={5}
-            />
-            <br />
-            <br />
-            <SearchInput
-              label="Additional Input props"
-              labelStyle={labelStyle}
-              inputProps={{ maxLength: 8 }}
-            />
-            <br />
-            <br />
-            <SearchInput
-              label="Disabled Style"
-              labelStyle={labelStyle}
-              placeholder="search"
-              disabled
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+<SearchInput
+  label="Default style"
+  labelStyle={labelStyle}
+  placeholder="search"
+/>;
 
-ReactDOM.render(<SearchInputSimpleExample />, mountNode);
+<SearchInput
+  label="Limit 5 Character"
+  required={true}
+  labelStyle={labelStyle}
+  placeholder="search"
+  maxLengthInput={5}
+/>;
+
+<SearchInput
+  label="Additional Input props"
+  labelStyle={labelStyle}
+  inputProps={{ maxLength: 8 }}
+/>;
+
+<SearchInput
+  label="Disabled Style"
+  labelStyle={labelStyle}
+  placeholder="search"
+  disabled
+/>
 ```
 
 ### 事件处理
 
 ```jsx
 import SearchInput from "eview-ui/SearchInput";
-import LabelField from "eview-ui/LabelField";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 const popItems = [
   { text: "a", value: 1 },
@@ -122,286 +96,74 @@ const popItems = [
   { text: "abc", value: 3 },
 ];
 
-export default class SearchInputExample extends React.Component {
-  state = {
-    msg: "",
-    popItems: popItems,
-    value1: "",
-    value2: "",
-  };
+// 静态设置选项：popItems 与 onSuggest 互斥，不能同设
+<SearchInput
+  value=""
+  popItems={popItems}
+  onSearch={(value) => {
+    // value: 搜索框文本值（点图标/回车/值变化时均触发，需防抖）
+  }}
+  onChange={(value) => {
+    // value: 变化后的值
+  }}
+  onItemClick={(value) => {
+    // value: 选中项的 value
+  }}
+/>;
 
-  handleSearch1 = (value) => {
-    this.setState({
-      msg: "onSearch event,Value of input box is : " + value,
-      value1: value,
-    });
-  };
-
-  handleSearch2 = (value) => {
-    this.setState({
-      msg: "onSearch event,Value of input box is : " + value,
-      value2: value,
-    });
-  };
-
-  handleChange1 = (value) => {
-    this.setState({
-      msg: "onChange event,Value of input box is : " + value,
-      value1: value,
-    });
-  };
-
-  handleChange2 = (value) => {
-    this.setState({
-      msg: "onChange event,Value of input box is : " + value,
-      value2: value,
-    });
-  };
-
-  handleItemClick1 = (value) => {
-    this.setState({
-      msg: "onItemClick event,Value is : " + value,
-      value1: value,
-    });
-  };
-
-  handleItemClick2 = (value) => {
-    this.setState({
-      msg: "onItemClick event,Value is : " + value,
-      value2: value,
-    });
-  };
-
-  handleSuggest = (value) => {
-    let data = [];
-    popItems.map((item, index) => {
-      if (
-        item.text
-          .toLocaleUpperCase()
-          .match(new RegExp(value.toLocaleUpperCase(), "g"))
-      ) {
-        data.push(item);
-      }
-    });
-    return data;
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const divStyle = { margin: "20px" };
-    const labelStyle = {
-      display: "block",
-      fontSize: "14px",
-      marginBottom: "10px",
-      paddingLeft: "0px",
-    };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={divStyle}>
-          <div style={{ display: "flex" }}>
-            <div style={{ marginRight: "30px" }}>
-              <LabelField style={labelStyle}>静态设置选项</LabelField>
-            </div>
-            <SearchInput
-              onSearch={this.handleSearch1}
-              onChange={this.handleChange1}
-              onItemClick={this.handleItemClick1}
-              popItems={this.state.popItems}
-              value={this.state.value1}
-            />
-          </div>
-          <div style={{ display: "flex" }}>
-            <div style={{ marginRight: "30px" }}>
-              <LabelField style={labelStyle}>动态设置选项</LabelField>
-            </div>
-            <SearchInput
-              onSearch={this.handleSearch2}
-              onChange={this.handleChange2}
-              onItemClick={this.handleItemClick2}
-              onSuggest={this.handleSuggest}
-              value={this.state.value2}
-            />
-          </div>
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "600px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
+// 动态设置选项：onSuggest 返回下拉列表（与 popItems 互斥）
+<SearchInput
+  value=""
+  onSuggest={(value) => {
+    // value: 当前输入值；返回 popItems 格式数组
+    return popItems.filter((item) =>
+      item.text.toUpperCase().includes(value.toUpperCase()),
     );
-  }
-}
-
-ReactDOM.render(<SearchInputExample />, mountNode);
+  }}
+  onSearch={(value) => {}}
+  onChange={(value) => {}}
+  onItemClick={(value) => {}}
+/>
 ```
 
 ### 懒加载结果
 
 ```jsx
 import SearchInput from "eview-ui/SearchInput";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class SearchInputLazyResults extends React.Component {
-  state = {
-    isShow: false,
-    msg: "",
-    data: [],
-    value: "",
-    lazyOptions: { totalRecords: 0, onLoadRecords: this.handleLoadRecords },
-  };
-  findMatchedResult = (value) => {
-    // Search result fetch has to be a very optimized logic and may involve server calls to get the relevant data.
-    // Also, frequent calls to search also will have to be intelligently handled to avoid unwanted search executions.
-    const result = [];
-    for (let i = 0; i < PHRASE_DICTIONARY.length; i++) {
-      if (
-        PHRASE_DICTIONARY[i].toLowerCase().indexOf(value.toLowerCase()) === 0
-      ) {
-        result.push({ text: PHRASE_DICTIONARY[i], value: i });
-      }
-    }
-    return result;
-  };
-  handleSuggest = (value) => {
-    let result;
-    if (value) result = this.findMatchedResult(value);
-    else result = [];
-    const data = result.slice(0, 10);
-    // const data = result;
-    this.setState({
-      data,
-      resultSet: result,
-      isShow: true,
-      msg: "onSuggest event, the current input box value is: " + value,
-      value: value,
-      lazyOptions: {
-        totalRecords: result.length,
-        onLoadRecords: this.handleLoadRecords,
-      },
-    });
-  };
-  handleSearchChange = (value) => {
-    let result;
-    if (value) result = this.findMatchedResult(value);
-    else result = [];
+// lazySearch：下拉结果分页懒加载，每次只提供 10 条
+const lazySearch = {
+  totalRecords: 11, // 搜索结果总数
+  onLoadRecords: (index) => {
+    // index: 视口内首条数据下标，业务返回该位置起的下一批数据
+  },
+};
 
-    const data = result.slice(0, 10);
-    // const data = result;
-    this.setState({
-      data,
-      resultSet: result,
-      isShow: true,
-      msg: "onChange event, the current input box value is: " + value,
-      value: value,
-      lazyOptions: {
-        totalRecords: result.length,
-        onLoadRecords: this.handleLoadRecords,
-      },
-    });
-  };
-  handleSearch = (value) => {
-    let result;
-    if (value) result = this.findMatchedResult(value);
-    else result = [];
-    const data = result.slice(0, 10);
-    // const data = result;
-    this.setState({
-      data,
-      resultSet: result,
-      isShow: true,
-      msg: "onSearch event, the current input box value is: " + value,
-      value: value,
-      lazyOptions: {
-        totalRecords: result.length,
-        onLoadRecords: this.handleLoadRecords,
-      },
-    });
-  };
-
-  handleClick = (obj) => {
-    this.setState({
-      data: [
-        { text: "a", value: 1 },
-        { text: "b", value: 2 },
-        { text: "c", value: 3 },
-      ],
-      isShow: false,
-      msg:
-        "OnItemClick event, click the value of the drop-down item: " +
-        obj.value,
-      value: obj.text,
-    });
-  };
-  handleClear = () => {
-    this.setState(() => ({
-      data: [],
-      isShow: false,
-      value: "",
-    }));
-  };
-
-  handleLoadRecords = (index) => {
-    const newdata = this.state.resultSet.slice(index, index + 10);
-    this.setState(() => ({
-      data: newdata,
-    }));
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px" }}>
-          <SearchInput
-            label="Enter the text value, the pop-up list box:"
-            value={this.state.value}
-            onSearch={this.handleSearch}
-            isShow={this.state.isShow}
-            popItems={this.state.data}
-            enablePopup={true}
-            onItemClick={this.handleClick}
-            onChange={this.handleSearchChange}
-            onClear={this.handleClear}
-            lazySearch={this.state.lazyOptions}
-            required={true}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "600px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-const PHRASE_DICTIONARY = [
-  "Two wrongs don't make a right.",
-  "The pen is mightier than the sword.",
-  "When in Rome, do as the Romans.",
-  "The squeaky wheel gets the grease.",
-  "When the going gets tough, the tough get going.",
-  "No man is an island.",
-  "Fortune favors the bold.",
-  "People who live in glass houses should not throw stones.",
-  "Hope for the best, but prepare for the worst.",
-  "Better late than never.",
-  "Birds of a feather flock together.",
+const popItems = [
+  { text: "Two wrongs don't make a right.", value: 0 },
+  { text: "The pen is mightier than the sword.", value: 1 },
+  { text: "When in Rome, do as the Romans.", value: 2 },
 ];
 
-ReactDOM.render(<SearchInputLazyResults />, mountNode);
+<SearchInput
+  label="Enter the text value, the pop-up list box:"
+  value=""
+  required={true}
+  isShow={true}
+  enablePopup={true}
+  popItems={popItems}
+  lazySearch={lazySearch}
+  onSearch={(value) => {
+    // value: 搜索框值
+  }}
+  onChange={(value) => {
+    // value: 变化后的值
+  }}
+  onItemClick={(obj) => {
+    // obj: { text, value } 选中项
+  }}
+  onClear={(value) => {
+    // value: 清除前的值
+  }}
+/>
 ```

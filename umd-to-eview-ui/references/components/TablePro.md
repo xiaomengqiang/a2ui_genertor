@@ -321,218 +321,65 @@ export interface TableChangeEvent {
 
 ```jsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-class TableBasic extends React.Component {
-  columns = [
-    {
-      title: "Name",
-      width: 100,
-      key: "name",
-      dataIndex: ["user", "name"],
-    },
-    {
-      title: "VPN Name",
-      width: 300,
-      key: "vpnName",
-      dataIndex: "vpnName",
-    },
-    {
-      title: "State",
-      width: 300,
-      key: "state",
-      dataIndex: "state",
-    },
-    {
-      title: "Site",
-      width: 300,
-      key: "site",
-      dataIndex: "site",
-    },
-    {
-      title: "Alarm",
-      key: "alarm",
-      dataIndex: "alarm",
-    },
-    {
-      title: "操作",
-      width: "100px",
-      key: "operation",
-      render: (text, record) => (
-        <a
-          onClick={() => {
-            alert(`VPN:${record.vpnName}`);
-          }}
-        >
-          detail
-        </a>
-      ),
-    },
-  ];
+const columns = [
+  { title: "Name", width: 100, key: "name", dataIndex: ["user", "name"] },
+  { title: "VPN Name", width: 300, key: "vpnName", dataIndex: "vpnName" },
+  { title: "State", width: 300, key: "state", dataIndex: "state" },
+  { title: "Site", width: 300, key: "site", dataIndex: "site" },
+  { title: "Alarm", key: "alarm", dataIndex: "alarm" },
+  {
+    title: "操作",
+    width: "100px",
+    key: "operation",
+    render: (text, record) => (
+      <a onClick={() => { /* 取 record.vpnName 处理 */ }}>detail</a>
+    ),
+  },
+];
 
-  dataset = [
-    {
-      user: {
-        name: "Jack",
-      },
-      vpnName: "R&D VPN2",
-      state: "TO BE",
-      site: 3,
-      alarm: "ICMP Echo",
-    },
-    {
-      user: {
-        name: "Mick",
-      },
-      vpnName: "Shop Storage",
-      state: "Active",
-      site: 2,
-      alarm: "Critical",
-    },
-    {
-      user: {
-        name: "Tom",
-      },
-      vpnName: "R&D VPN1",
-      state: "TO BE",
-      site: 4,
-      alarm: "Major",
-    },
-    {
-      user: {
-        name: "Jerry",
-      },
-      vpnName: "R&D VPN8",
-      state: "Active",
-      site: 6,
-      alarm: "ICMP Echo",
-    },
-  ];
+const dataset = [
+  { user: { name: "Jack" }, vpnName: "R&D VPN2", state: "TO BE", site: 3, alarm: "ICMP Echo" },
+  { user: { name: "Mick" }, vpnName: "Shop Storage", state: "Active", site: 2, alarm: "Critical" },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro
-          columns={this.columns} // Column Details
-          dataset={this.dataset} // Data Set
-          style={{ width: "500px", height: "200px" }}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TableBasic />, mountNode);
+<TablePro columns={columns} dataset={dataset} style={{ width: "500px", height: "200px" }} />
 ```
 
 ### 可选择
 
-```tsx
+```jsx
 import TablePro from "eview-ui/TablePro";
-import SelectPro from "eview-ui/SelectPro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TableDemo extends React.Component {
-  state = {
+const dataset = [
+  { key: "1", name: "John", age: 32, address: "New York No. 1 Lake Park" },
+  { key: "2", name: "Jim", age: 42, address: "London Central Park" },
+  { key: "3", name: "Joe", age: 32, address: "Tokyo Station" },
+  { key: "4", name: "Disabled User", age: 99, address: "Xi Cun" },
+];
+
+const columns = [
+  { key: "name", title: "名字", dataIndex: "name" },
+  { key: "age", dataIndex: "age", width: "15%", title: "年龄" },
+  { key: "address", title: "地址", dataIndex: "address", width: "260px" },
+];
+
+// selection.type: "checkbox"（多选） | "radio"（单选）
+<TablePro
+  columns={columns}
+  dataset={dataset}
+  selection={{
     type: "checkbox",
-  };
-
-  dataset = [
-    {
-      key: "1",
-      name: "John",
-      age: 32,
-      address: "New York No. 1 Lake Park",
+    disabelCheckAssociated: true,
+    getCheckboxProps: (record) => ({
+      name: record.name,
+      disabled: record.name === "Disabled User", // 禁用某行勾选
+    }),
+    onChange: (selectedRowKeys, selectedRows) => {
+      // selectedRowKeys: 选中项 key 数组；selectedRows: 选中行原始数据
     },
-    {
-      key: "2",
-      name: "Jim",
-      age: 42,
-      address: "London Central Park",
-    },
-    {
-      key: "3",
-      name: "Joe",
-      age: 32,
-      address: "Tokyo Station",
-    },
-    {
-      key: "4",
-      name: "Disabled User",
-      age: 99,
-      address: "Xi Cun",
-    },
-  ];
-  columns = [
-    {
-      key: "name",
-      title: "名字",
-      dataIndex: "name",
-    },
-    {
-      key: "age",
-      dataIndex: "age",
-      width: "15%",
-      title: "年龄",
-    },
-    {
-      key: "address",
-      title: "地址",
-      dataIndex: "address",
-      width: "260px",
-    },
-  ];
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          类型：
-          <SelectPro
-            value={this.state.type}
-            onChange={(value) => {
-              this.setState({
-                type: value,
-              });
-            }}
-            options={[
-              { text: "checkbox", value: "checkbox" },
-              { text: "radio", value: "radio" },
-            ]}
-          ></SelectPro>
-        </div>
-        <br />
-        <TablePro
-          columns={this.columns}
-          dataset={this.dataset}
-          selection={{
-            type: this.state.type,
-            disabelCheckAssociated: true,
-            getCheckboxProps: (record) => ({
-              name: record.name,
-              // Column configuration not to be checked
-              disabled: record.name === "Disabled User",
-            }),
-            onChange: (selectedRowKeys, selectedRows) => {
-              console.log(
-                `selectedRowKeys: ${selectedRowKeys}`,
-                "selectedRows: ",
-                selectedRows,
-              );
-            },
-          }}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TableDemo />, mountNode);
+  }}
+/>
 ```
 
 ### 自定义属性和事件
@@ -541,227 +388,84 @@ ReactDOM.render(<TableDemo />, mountNode);
 
 ```jsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-class TableBasic extends React.Component {
-  columns = [
-    {
-      title: "Name",
-      width: 100,
-      key: "name",
-      dataIndex: ["user", "name"],
+const columns = [
+  { title: "Name", width: 100, key: "name", dataIndex: ["user", "name"] },
+  { title: "VPN Name", width: 300, key: "vpnName", dataIndex: "vpnName" },
+  { title: "State", width: 300, key: "state", dataIndex: "state" },
+  { title: "Site", width: 300, key: "site", dataIndex: "site" },
+  { title: "Alarm", key: "alarm", dataIndex: "alarm" },
+  {
+    title: "操作",
+    width: "100px",
+    key: "operation",
+    render: (text, record) => (
+      <a onClick={() => { /* 取 record.vpnName 处理 */ }}>detail</a>
+    ),
+  },
+].map((col) => ({
+  ...col,
+  onHeaderCell: (column) => ({
+    onClick: () => {
+      // 点击表头单元格，column 为该列配置
     },
-    {
-      title: "VPN Name",
-      width: 300,
-      key: "vpnName",
-      dataIndex: "vpnName",
+  }),
+  onCell: (record) => ({
+    style: {
+      background: record[col.dataIndex] === "Blue" ? "#3b86fa" : "transparent",
     },
-    {
-      title: "State",
-      width: 300,
-      key: "state",
-      dataIndex: "state",
+    onClick: () => {
+      // 取 record[col.dataIndex] 处理
     },
-    {
-      title: "Site",
-      width: 300,
-      key: "site",
-      dataIndex: "site",
+    onContextMenu: (e) => {
+      e.preventDefault();
+      // 右键单元格
     },
-    {
-      title: "Alarm",
-      key: "alarm",
-      dataIndex: "alarm",
-    },
-    {
-      title: "操作",
-      width: "100px",
-      key: "operation",
-      render: (text, record) => (
-        <a
-          onClick={() => {
-            alert(`VPN:${record.vpnName}`);
-          }}
-        >
-          detail
-        </a>
-      ),
-    },
-  ].map((col) => ({
-    ...col,
-    onHeaderCell: (column) => ({
-      onClick: () => {
-        alert(column.title);
-      },
-    }),
-    onCell: (record) => ({
-      style: {
-        background: record[col.dataIndex] === "Blue" ? "#3b86fa" : "transparnt",
-      },
-      onClick: () => {
-        const value = record[col.dataIndex];
-        if (value) {
-          alert(value);
-        }
-      },
-      onContextMenu: (e) => {
-        e.preventDefault();
-        const value = record[col.dataIndex];
-        if (value) {
-          alert("右击了：" + value);
-        }
-      },
-    }),
-  }));
+  }),
+}));
 
-  dataset = [
-    {
-      user: {
-        name: "Jack",
-      },
-      vpnName: "R&D VPN2",
-      state: "Blue",
-      site: 3,
-      alarm: "ICMP Echo",
-    },
-    {
-      user: {
-        name: "Mick",
-      },
-      vpnName: "Shop Storage",
-      state: "Active",
-      site: 2,
-      alarm: "Critical",
-    },
-    {
-      user: {
-        name: "Tom",
-      },
-      vpnName: "R&D VPN1",
-      state: "TO BE",
-      site: 4,
-      alarm: "Major",
-    },
-    {
-      user: {
-        name: "Jerry",
-      },
-      vpnName: "R&D VPN8",
-      state: "Active",
-      site: 6,
-      alarm: "ICMP Echo",
-    },
-  ];
+const dataset = [
+  { user: { name: "Jack" }, vpnName: "R&D VPN2", state: "Blue", site: 3, alarm: "ICMP Echo" },
+  { user: { name: "Mick" }, vpnName: "Shop Storage", state: "Active", site: 2, alarm: "Critical" },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro
-          columnResizable={false}
-          columns={this.columns} // Column Details
-          dataset={this.dataset} // Data Set
-        />
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TableBasic />, mountNode);
+<TablePro columnResizable={false} columns={columns} dataset={dataset} />
 ```
 
 ### 控制选择项
 
 控制选择项，通过 `selection.selectedRowKeys` 来控制选中项。
 
-```tsx
+```jsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const dataset = [];
+const dataset = [
+  { key: 0, name: "Edward 0", age: 32, address: "London Queen Block Lane no. 0" },
+  { key: 1, name: "Edward 1", age: 32, address: "London Queen Block Lane no. 1" },
+  { key: 2, name: "Edward 2", age: 32, address: "London Queen Block Lane no. 2" },
+];
 
-for (let i = 0; i < 46; i++) {
-  dataset.push({
-    key: i,
-    name: `Edward ${i}`,
-    age: 32,
-    address: `London Queen Block Lane no. ${i}`,
-  });
-}
+const columns = [
+  { title: "名字", dataIndex: "name" },
+  { title: "年龄", dataIndex: "age" },
+  { title: "地址", dataIndex: "address" },
+];
 
-export default class TableDemo extends React.Component {
-  state = {
-    selectedRowKeys: [],
-  };
+// selectedRowKeys 受控：外部维护选中项 key 数组
+const selectedRowKeys = [0, 2];
 
-  dataset = dataset;
-
-  columns = [
-    {
-      title: "名字",
-      dataIndex: "name",
+<TablePro
+  columns={columns}
+  dataset={dataset}
+  pagination
+  selection={{
+    disabelCheckAssociated: true,
+    selectedRowKeys,
+    onChange: (selectedRowKeys, selectedRows) => {
+      // 取 selectedRowKeys 更新受控选中项
     },
-    {
-      title: "年龄",
-      dataIndex: "age",
-    },
-    {
-      title: "地址",
-      dataIndex: "address",
-    },
-  ];
-
-  onSelectChange = (selectedRowKeys) => {
-    console.log("selectedRowKeys changed: ", selectedRowKeys);
-    this.setState({
-      selectedRowKeys,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const { selectedRowKeys } = this.state;
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <p>
-          <a
-            style={{ marginRight: "1rem" }}
-            onClick={() => {
-              this.setState({
-                selectedRowKeys: [],
-              });
-            }}
-          >
-            RESET
-          </a>
-          {selectedRowKeys.length !== 0 && (
-            <span>
-              已选择：{selectedRowKeys.join("，")}
-              ，共{selectedRowKeys.length}项
-            </span>
-          )}
-        </p>
-        <br />
-        <TablePro
-          columns={this.columns}
-          dataset={this.dataset}
-          pagination
-          selection={{
-            disabelCheckAssociated: true,
-            selectedRowKeys,
-            onChange: this.onSelectChange,
-          }}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-ReactDOM.render(<TableDemo />, mountNode);
+  }}
+/>
 ```
 
 ### 筛选和排序
@@ -776,92 +480,52 @@ ReactDOM.render(<TableDemo />, mountNode);
 
 ```jsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 const cities = ["北京", "上海", "广州", "深圳"];
-// 自定义筛选组件
+
+// 自定义筛选菜单组件，onConfirm(value) 回调首参为筛选值
 function CityFilter({ value, onConfirm }) {
   return (
-    <div
-      style={{
-        background: "#fff",
-        padding: "1rem",
-        width: "10rem",
-        boxShadow: "0 0.25rem 0.4375rem rgba(0, 0, 0, 0.3)",
-        display: "flex",
-        justifyContent: "space-between",
-      }}
-    >
+    <div style={{ background: "#fff", padding: "1rem", width: "10rem" }}>
       {cities.map((city) =>
         city === value ? (
-          <span>{city}</span>
+          <span key={city}>{city}</span>
         ) : (
-          <a key={city} onClick={() => onConfirm(city)}>
-            {city}
-          </a>
+          <a key={city} onClick={() => onConfirm(city)}>{city}</a>
         ),
       )}
     </div>
   );
 }
-const dataset = [];
-for (let index = 0; index < 60; index++) {
-  dataset.push({
-    key: index,
-    name: "胡彦" + index,
-    age: parseInt(Math.random().toFixed(2) * 100, 10),
-    city: cities[parseInt(Math.random().toFixed(2) * 100, 10) % 4],
-    address: "西湖区湖底公园1号",
-  });
-}
-class TableDemo extends React.Component {
-  state = {
-    selectedRowKeys: [],
-  };
-  dataset = dataset;
-  columns = [
-    {
-      title: "姓名",
-      dataIndex: "name",
-      key: "name",
-      sorter: (a, b) => a.name - b.name,
-    },
-    {
-      title: "年龄",
-      dataIndex: "age",
-      key: "age",
-      sorter: (a, b) => a.age - b.age,
-      defaultOrder: "descend",
-      filter: (value, record) => String(record.age).includes(value),
-    },
-    {
-      title: "城市",
-      dataIndex: "city",
-      key: "city",
-      filter: (value, record) => record.city === value,
-      filterDropdown: CityFilter,
-      defaultFilteredValue: "深圳",
-    },
-    {
-      title: "住址",
-      dataIndex: "address",
-      key: "address",
-    },
-  ];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro columns={this.columns} dataset={this.dataset} pagination />
-      </ConfigProvider>
-    );
-  }
-}
+const dataset = [
+  { key: 0, name: "胡彦0", age: 23, city: "北京", address: "西湖区湖底公园1号" },
+  { key: 1, name: "胡彦1", age: 45, city: "深圳", address: "西湖区湖底公园1号" },
+  { key: 2, name: "胡彦2", age: 31, city: "上海", address: "西湖区湖底公园1号" },
+];
 
-ReactDOM.render(<TableDemo />, mountNode);
+const columns = [
+  { title: "姓名", dataIndex: "name", key: "name", sorter: (a, b) => a.name - b.name },
+  {
+    title: "年龄",
+    dataIndex: "age",
+    key: "age",
+    sorter: (a, b) => a.age - b.age,
+    defaultOrder: "descend",
+    filter: (value, record) => String(record.age).includes(value),
+  },
+  {
+    title: "城市",
+    dataIndex: "city",
+    key: "city",
+    filter: (value, record) => record.city === value,
+    filterDropdown: CityFilter,
+    defaultFilteredValue: "深圳",
+  },
+  { title: "住址", dataIndex: "address", key: "address" },
+];
+
+<TablePro columns={columns} dataset={dataset} pagination />
 ```
 
 ### 可展开
@@ -870,270 +534,98 @@ ReactDOM.render(<TableDemo />, mountNode);
 
 ```jsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-class TableDemo extends React.Component {
-  state = {
-    selectedRowKeys: [],
-  };
-  dataset = [
-    {
-      key: 1,
-      name: "Jim Brown",
-      id: 32,
-      city: "New York",
-    },
-    {
-      key: 2,
-      name: "John Green",
-      id: 42,
-      city: "London",
-    },
-    {
-      key: 3,
-      name: "Not Expandable",
-      id: 29,
-      city: "Jiangsu",
-    },
-    {
-      key: 4,
-      name: "Joey Black",
-      id: 12,
-      city: "Sidney",
-    },
-  ];
-  columns = [
-    {
-      title: "名字",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-    },
-    {
-      title: "城市",
-      dataIndex: "city",
-      key: "city",
-    },
-    {
-      title: "住址",
-      dataIndex: "address",
-      key: "address",
-    },
-  ];
+const dataset = [
+  { key: 1, name: "Jim Brown", id: 32, city: "New York" },
+  { key: 2, name: "John Green", id: 42, city: "London" },
+  { key: 3, name: "Not Expandable", id: 29, city: "Jiangsu" },
+  { key: 4, name: "Joey Black", id: 12, city: "Sidney" },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro
-          columns={this.columns}
-          dataset={this.dataset}
-          expansion={{
-            expandedRowRender: (record) => {
-              return `我是${record.name}, id：${record.id}，住在${record.city}`;
-            },
-            expandRowByClick: true,
-            rowExpandable: (record) => record.name !== "Not Expandable",
-          }}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-ReactDOM.render(<TableDemo />, mountNode);
+const columns = [
+  { title: "名字", dataIndex: "name", key: "name" },
+  { title: "ID", dataIndex: "id", key: "id" },
+  { title: "城市", dataIndex: "city", key: "city" },
+  { title: "住址", dataIndex: "address", key: "address" },
+];
+
+<TablePro
+  columns={columns}
+  dataset={dataset}
+  expansion={{
+    expandedRowRender: (record) => `我是${record.name}, id：${record.id}，住在${record.city}`,
+    expandRowByClick: true,
+    rowExpandable: (record) => record.name !== "Not Expandable", // 该行不可展开
+  }}
+/>
 ```
 
 ### 树表格
 
 ```jsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-class TableDemo extends React.Component {
-  state = {
-    selectedRowKeys: [],
-  };
+const dataset = [
+  {
+    key: 1,
+    name: "Johnson Brown sr.",
+    age: 60,
+    address: "Paris No. 1 Lake Park",
+    children: [
+      { key: 11, name: "Johnson Brown", age: 42, address: "Paris No. 2 Lake Park" },
+      {
+        key: 12,
+        name: "Johnson Brown jr.",
+        age: 33,
+        address: "Paris No. 3 Lake Park",
+        children: [
+          { key: 121, name: "Jimmy Brown", age: 56, address: "Paris No. 3 Lake Park" },
+        ],
+      },
+    ],
+  },
+  { key: 2, name: "Joey Black", age: 22, address: "Sidney No. 1 Lake Park" },
+];
 
-  dataset = [
-    {
-      key: 1,
-      name: "Johnson Brown sr.",
-      age: 60,
-      address: "Paris No. 1 Lake Park",
-      children: [
-        {
-          key: 11,
-          name: "Johnson Brown",
-          age: 42,
-          address: "Paris No. 2 Lake Park",
-        },
-        {
-          key: 12,
-          name: "Johnson Brown jr.",
-          age: 33,
-          address: "Paris No. 3 Lake Park",
-          children: [
-            {
-              key: 121,
-              name: "Jimmy Brown",
-              age: 56,
-              address: "Paris No. 3 Lake Park",
-            },
-          ],
-        },
-        {
-          key: 13,
-          name: "Jim Green sr.",
-          age: 72,
-          address: "Paris No. 1 Lake Park",
-          children: [
-            {
-              key: 31,
-              name: "Jim Green",
-              age: 62,
-              address: "Paris No. 2 Lake Park",
-              children: [
-                {
-                  key: 14,
-                  name: "Jimmy Green jr.",
-                  age: 15,
-                  address: "Paris No. 3 Lake Park",
-                },
-                {
-                  key: 15,
-                  name: "Jimmy Green sr.",
-                  age: 14,
-                  address: "Paris No. 4 Lake Park",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      key: 2,
-      name: "Joey Black",
-      age: 22,
-      address: "Sidney No. 1 Lake Park",
-    },
-    {
-      key: 3,
-      name: "Joey Black",
-      age: 42,
-      address: "Sidney No. 1 Lake Park",
-      children: false,
-    },
-  ];
-  columns = [
-    {
-      key: "name",
-      title: "名字",
-      dataIndex: "name",
-    },
-    {
-      key: "age",
-      dataIndex: "age",
-      width: "15%",
-      title: "年龄",
-    },
-    {
-      key: "address",
-      title: "地址",
-      dataIndex: "address",
-      width: "260px",
-    },
-  ];
+const columns = [
+  { key: "name", title: "名字", dataIndex: "name" },
+  { key: "age", dataIndex: "age", width: "15%", title: "年龄" },
+  { key: "address", title: "地址", dataIndex: "address", width: "260px" },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro
-          columns={this.columns}
-          dataset={this.dataset}
-          selection={{
-            disabelCheckAssociated: false,
-            onSelect: (record, selected, selectedRows) => {
-              console.log("OnSelect:", record, selected, selectedRows);
-            },
-            onChange: (selectedRowKeys, selectedRows) => {
-              console.log(
-                `SelectedRowKeys: ${selectedRowKeys}`,
-                "selectedRows: ",
-                selectedRows,
-              );
-            },
-          }}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TableDemo />, mountNode);
+<TablePro
+  columns={columns}
+  dataset={dataset}
+  selection={{
+    disabelCheckAssociated: false, // 父子勾选联动
+    onSelect: (record, selected, selectedRows) => {
+      // record: 当前行；selected: 是否选中；selectedRows: 选中行数组
+    },
+    onChange: (selectedRowKeys, selectedRows) => {
+      // 取 selectedRowKeys 更新选中项
+    },
+  }}
+/>
 ```
 
 ### 固定表头
 
 ```jsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-const dataset = [];
 
-for (let i = 0; i < 46; i++) {
-  dataset.push({
-    key: i,
-    name: `Edward ${i}`,
-    age: 32,
-    address: `London South Street Lane no. ${i}`,
-  });
-}
+const dataset = [
+  { key: 0, name: "Edward 0", age: 32, address: "London South Street Lane no. 0" },
+  { key: 1, name: "Edward 1", age: 32, address: "London South Street Lane no. 1" },
+  { key: 2, name: "Edward 2", age: 32, address: "London South Street Lane no. 2" },
+];
 
-export default class TableDemo extends React.Component {
-  dataset = dataset;
+const columns = [
+  { title: "名字", dataIndex: "name" },
+  { title: "年龄", dataIndex: "age" },
+  { title: "地址", dataIndex: "address" },
+];
 
-  columns = [
-    {
-      title: "名字",
-      dataIndex: "name",
-    },
-    {
-      title: "年龄",
-      dataIndex: "age",
-    },
-    {
-      title: "地址",
-      dataIndex: "address",
-    },
-  ];
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro
-          columns={this.columns}
-          dataset={this.dataset}
-          scroll={{ y: 240 }}
-          pagination={false}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TableDemo />, mountNode);
+<TablePro columns={columns} dataset={dataset} scroll={{ y: 240 }} pagination={false} />
 ```
 
 ### 固定列
@@ -1146,122 +638,23 @@ ReactDOM.render(<TableDemo />, mountNode);
 
 ```jsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const dataset = [];
+const dataset = [
+  { key: 0, name: "Edward 0", age: 32, address: "London South Street Lane no. 0" },
+  { key: 1, name: "Edward 1", age: 32, address: "London South Street Lane no. 1" },
+];
 
-for (let i = 0; i < 10; i++) {
-  dataset.push({
-    key: i,
-    name: `Edward ${i}`,
-    age: 32,
-    address: `London South Street Lane no. ${i}`,
-  });
-}
+const columns = [
+  { title: "Name", dataIndex: "name", width: "100px", fixed: "left" },
+  { title: "Age", dataIndex: "age", width: "60px", fixed: "left" },
+  { title: "Address1", key: "col1", dataIndex: "address", width: "260px" },
+  { title: "Address2", key: "col2", dataIndex: "address", width: "260px" },
+  { title: "Address3", key: "col3", dataIndex: "address", width: "260px" },
+  { title: "Address4", key: "col4", dataIndex: "address", width: "260px" },
+  { title: "Action", key: "action", width: "100px", render: () => <a>detail</a>, fixed: "right" },
+];
 
-export default class TableDemo extends React.Component {
-  dataset = dataset;
-
-  columns = [
-    {
-      title: "Name",
-      dataIndex: "name",
-      width: "100px",
-      fixed: "left",
-    },
-    {
-      title: "Age",
-      dataIndex: "age",
-      width: "60px",
-      fixed: "left",
-    },
-    {
-      title: "Address1",
-      key: "col1",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address2",
-      key: "col2",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address3",
-      key: "col3",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address4",
-      key: "col4",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address5",
-      key: "col5",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address6",
-      key: "col6",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address7",
-      key: "col7",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address8",
-      key: "col8",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address9",
-      key: "col9",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address10",
-      key: "col10",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Action",
-      key: "action",
-      width: "100px",
-      render: () => <a>detail</a>,
-      fixed: "right",
-    },
-  ];
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro
-          columns={this.columns}
-          dataset={this.dataset}
-          scroll={{ x: 1800 }}
-          pagination={false}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TableDemo />, mountNode);
+<TablePro columns={columns} dataset={dataset} scroll={{ x: 1800 }} pagination={false} />
 ```
 
 ### 单元格可编辑
@@ -1277,13 +670,9 @@ import TablePro from "eview-ui/TablePro";
 import SelectPro from "eview-ui/SelectPro";
 import TextField from "eview-ui/TextField";
 import React, { useState, useEffect } from "react";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-// 自定义表格的单元格组件
-// 需要的Props可从 column 中的 onCell 获取
+// 自定义可编辑单元格：通过 column.onCell 注入 props
 const EditableCell = ({
-  title,
   editable,
   children,
   dataIndex,
@@ -1298,409 +687,154 @@ const EditableCell = ({
   const inputRef = React.useRef();
 
   useEffect(() => {
-    if (editing) {
-      inputRef.current.focus();
-    }
+    if (editing) inputRef.current.focus();
   }, [editing]);
 
-  const toggleEdit = () => {
-    setEditing(!editing);
+  const save = (newValue) => {
+    setEditing(false);
+    handleSave({ ...record, [dataIndex]: newValue }); // 取新值更新对应行
   };
 
-  const save = (newValue) => {
-    if (value) {
-      try {
-        toggleEdit();
-        handleSave({ ...record, [dataIndex]: newValue });
-      } catch (errInfo) {
-        console.log("Save failed:", errInfo);
-      }
-    }
-  };
   let childNode = children;
   if (editable) {
     const InputComponent =
       type === "select" ? (
-        <SelectPro
-          required
-          ref={inputRef}
-          value={value}
-          onChange={(value) => {
-            setValue(value);
-            save(value);
-          }}
-          options={options}
-        />
+        <SelectPro required ref={inputRef} value={value} onChange={(value) => save(value)} options={options} />
       ) : (
-        <TextField
-          required
-          ref={inputRef}
-          onBlur={() => save(value)}
-          value={value}
-          onChange={(value) => setValue(value)}
-          hintType="tip"
-        />
+        <TextField required ref={inputRef} onBlur={() => save(value)} value={value} onChange={(value) => setValue(value)} hintType="tip" />
       );
-
-    childNode = editing ? (
-      InputComponent
-    ) : (
-      <div onClick={toggleEdit}>{children}</div>
-    );
+    childNode = editing ? InputComponent : <div onClick={() => setEditing(true)}>{children}</div>;
   }
 
   return <td {...restProps}>{childNode}</td>;
 };
 
-class TableDemo extends React.Component {
-  state = {
-    data: [
-      {
-        key: "0",
-        name: "Edward King 0",
-        sex: "man",
-        address: "London, Park Lane no. 0",
-      },
-      {
-        key: "1",
-        name: "Edward King 1",
-        sex: "woman",
-        address: "London, Park Lane no. 1",
-      },
-    ],
+const dataset = [
+  { key: "0", name: "Edward King 0", sex: "man", address: "London, Park Lane no. 0" },
+  { key: "1", name: "Edward King 1", sex: "woman", address: "London, Park Lane no. 1" },
+];
+
+const columns = [
+  { title: "姓名", dataIndex: "name", editable: "true", width: "500px", key: "name", type: "textfield" },
+  {
+    title: "性别",
+    dataIndex: "sex",
+    editable: "true",
+    width: "300px",
+    key: "sex",
+    options: [{ text: "man", value: "man" }, { text: "woman", value: "woman" }],
+    type: "select",
+  },
+  { title: "住址", dataIndex: "address", key: "address" },
+].map((col) => {
+  if (!col.editable) return col;
+  return {
+    ...col,
+    onCell: (record) => ({
+      record,
+      editable: col.editable,
+      dataIndex: col.dataIndex,
+      title: col.title,
+      handleSave: (row) => { /* 取 row 更新 dataset 中对应行 */ },
+      options: col.options,
+      type: col.type,
+    }),
   };
+});
 
-  columns = [
-    {
-      title: "姓名",
-      dataIndex: "name",
-      editable: "true",
-      width: "500px",
-      key: "name",
-      type: "textfield",
-    },
-    {
-      title: "性别",
-      dataIndex: "sex",
-      editable: "true",
-      width: "300px",
-      key: "age",
-      options: [
-        { text: "man", value: "man" },
-        { text: "woman", value: "woman" },
-      ],
-      type: "select",
-    },
-    {
-      title: "住址",
-      dataIndex: "address",
-      key: "address",
-    },
-  ];
-
-  // 传给EditableCell的回调函数，用来更新数据
-  handleSave = (row) => {
-    const newData = [...this.state.data];
-    const index = newData.findIndex((item) => row.key === item.key);
-    const item = newData[index];
-    newData.splice(index, 1, {
-      ...item,
-      ...row,
-    });
-    this.setState({
-      data: newData,
-    });
-  };
-
-  render() {
-    // 往 column 的 onCell注入 所需参数
-    const columns = this.columns.map((col) => {
-      if (!col.editable) {
-        return col;
-      }
-      return {
-        ...col,
-        onCell: (record) => ({
-          record,
-          editable: col.editable,
-          dataIndex: col.dataIndex,
-          title: col.title,
-          handleSave: this.handleSave,
-          options: col.options,
-          type: col.type,
-        }),
-      };
-    });
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro
-          components={{
-            body: {
-              cell: EditableCell,
-            },
-          }}
-          dataset={this.state.data}
-          columns={columns}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TableDemo />, mountNode);
+<TablePro
+  components={{ body: { cell: EditableCell } }}
+  dataset={dataset}
+  columns={columns}
+/>
 ```
 
 ### 固定头和列
 
 ```jsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-const dataset = [];
 
-for (let i = 0; i < 50; i++) {
-  dataset.push({
-    key: i,
-    name: `Edward ${i}`,
-    age: 32,
-    address: `London South Street Lane no. ${i}`,
-  });
-}
+const dataset = [
+  { key: "0", name: "Edward 0", age: 32, address: "London South Street Lane no. 0" },
+  { key: "1", name: "Edward 1", age: 32, address: "London South Street Lane no. 1" },
+  { key: "2", name: "Edward 2", age: 32, address: "London South Street Lane no. 2" },
+];
 
-export default class TableDemo extends React.Component {
-  dataset = dataset;
+const columns = [
+  { title: "Name", dataIndex: "name", width: "100px", fixed: "left" },
+  { title: "Age", dataIndex: "age", width: "60px", fixed: "left" },
+  { title: "Address1", key: "col1", dataIndex: "address", width: "260px" },
+  { title: "Address2", key: "col2", dataIndex: "address", width: "260px" },
+  { title: "Address3", key: "col3", dataIndex: "address", width: "260px" },
+  // Address4~Address10 同结构，width: "260px"
+  {
+    title: "Action",
+    key: "action",
+    width: "100px",
+    render: () => <a>detail</a>,
+    fixed: "right",
+  },
+];
 
-  columns = [
-    {
-      title: "Name",
-      dataIndex: "name",
-      width: "100px",
-      fixed: "left",
-    },
-    {
-      title: "Age",
-      dataIndex: "age",
-      width: "60px",
-      fixed: "left",
-    },
-    {
-      title: "Address1",
-      key: "col1",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address2",
-      key: "col2",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address3",
-      key: "col3",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address4",
-      key: "col4",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address5",
-      key: "col5",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address6",
-      key: "col6",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address7",
-      key: "col7",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address8",
-      key: "col8",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address9",
-      key: "col9",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Address10",
-      key: "col10",
-      dataIndex: "address",
-      width: "260px",
-    },
-    {
-      title: "Action",
-      key: "action",
-      width: "100px",
-      render: () => <a>detail</a>,
-      fixed: "right",
-    },
-  ];
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro
-          columns={this.columns}
-          dataset={this.dataset}
-          scroll={{ x: 2600, y: 400 }}
-          pagination={false}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TableDemo />, mountNode);
+<TablePro
+  columns={columns}
+  dataset={dataset}
+  scroll={{ x: 2600, y: 400 }}
+  pagination={false}
+/>
 ```
 
 ### 多级表头
 
 ```jsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const dataset = [];
+const dataset = [
+  { key: "0", name: "John Brown0", companyName: "SoftLake Co", street: "Lake Park", age: 1, gender: "M", number: 8200820, building: "No. B", companyAddress: "River Street 432" },
+  { key: "1", name: "John Brown1", companyName: "SoftLake Co", street: "Lake Park", age: 2, gender: "M", number: 8200820, building: "No. B", companyAddress: "River Street 432" },
+  { key: "2", name: "John Brown2", companyName: "SoftLake Co", street: "Lake Park", age: 3, gender: "M", number: 8200820, building: "No. B", companyAddress: "River Street 432" },
+];
 
-for (let i = 0; i < 50; i++) {
-  dataset.push({
-    name: "John Brown" + i,
-    key: i,
-    companyName: "SoftLake Co",
-    street: "Lake Park",
-    age: i + 1,
-    gender: "M",
-    number: 8200820,
-    building: "No. B",
-    companyAddress: "River Street 432",
-  });
-}
+const columns = [
+  { title: "序号", render: (text, record, i) => i + 1, width: 50, fixed: "left", align: "center", key: "no" },
+  { title: "姓名", key: "name", dataIndex: "name", width: 180, fixed: "left" },
+  {
+    title: "详细信息",
+    children: [
+      { key: "age", title: "年龄", dataIndex: "age", width: 150 },
+      {
+        title: "地址",
+        children: [
+          { title: "街道", key: "street", dataIndex: "street", width: 150 },
+          {
+            title: "区域",
+            children: [
+              { title: "楼号", key: "building", dataIndex: "building", width: 100 },
+              { title: "门牌号", key: "number", dataIndex: "number", width: 100 },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    title: "公司",
+    children: [
+      { title: "公司地址", key: "companyAddress", dataIndex: "companyAddress", width: 200 },
+      { title: "公司名字", key: "companyName", dataIndex: "companyName", width: 200 },
+    ],
+  },
+  { title: "年龄", key: "gender", dataIndex: "gender", width: 80, fixed: "right" },
+  {
+    title: "操作",
+    width: 80,
+    fixed: "right",
+    align: "center",
+    render: (text, record) => <a onClick={() => { /* say hi to record.name */ }}>say hi</a>,
+  },
+];
 
-export default class TableDemo extends React.Component {
-  dataset = dataset;
-
-  columns = [
-    {
-      title: "序号",
-      render: (text, record, i) => i + 1,
-      width: 50,
-      fixed: "left",
-      align: "center",
-      key: "no",
-    },
-    {
-      title: "姓名",
-      key: "name",
-      dataIndex: "name",
-      width: 180,
-      fixed: "left",
-    },
-    {
-      title: "详细信息",
-      children: [
-        {
-          key: "age",
-          title: "年龄",
-          dataIndex: "age",
-          width: 150,
-        },
-        {
-          title: "地址",
-          children: [
-            {
-              title: "街道",
-              key: "street",
-              dataIndex: "street",
-              width: 150,
-            },
-            {
-              title: "区域",
-              children: [
-                {
-                  title: "楼号",
-                  key: "building",
-                  dataIndex: "building",
-                  width: 100,
-                },
-                {
-                  title: "门牌号",
-                  key: "number",
-                  dataIndex: "number",
-                  width: 100,
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    {
-      title: "公司",
-      children: [
-        {
-          title: "公司地址",
-          key: "companyAddress",
-          dataIndex: "companyAddress",
-          width: 200,
-        },
-        {
-          title: "公司名字",
-          key: "companyName",
-          dataIndex: "companyName",
-          width: 200,
-        },
-      ],
-    },
-    {
-      title: "年龄",
-      key: "gender",
-      dataIndex: "gender",
-      width: 80,
-      fixed: "right",
-    },
-    {
-      title: "操作",
-      width: 80,
-      fixed: "right",
-      align: "center",
-      render: (text, record) => (
-        <a onClick={() => alert("hi " + record.name)}>say hi</a>
-      ),
-    },
-  ];
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro columns={this.columns} dataset={this.dataset} pagination />
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TableDemo />, mountNode);
+<TablePro columns={columns} dataset={dataset} pagination />
 ```
 
 ### 单元格省略提示
@@ -1709,120 +843,39 @@ ReactDOM.render(<TableDemo />, mountNode);
 
 ```jsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-class TableDemo extends React.Component {
-  columns = [
-    {
-      title: "Name",
-      width: 100,
-      key: "name",
-      dataIndex: ["user", "name"],
-    },
-    {
-      title: "VPN Name",
-      width: 300,
-      key: "vpnName",
-      dataIndex: "vpnName",
-    },
-    {
-      title: "State",
-      width: 150,
-      key: "state",
-      dataIndex: "state",
-    },
-    {
-      title: "Site",
-      key: "site",
-      dataIndex: "site",
-      width: 300,
-      ellipsis: {
-        hintType: "tip",
-      },
-    },
-    {
-      title: "Alarm",
-      key: "alarm",
-      width: 300,
-      ellipsis: {
-        hintType: "title",
-      },
-      dataIndex: "alarm",
-    },
-    {
-      title: "操作",
-      width: "100px",
-      key: "operation",
-      render: (text, record) => (
-        <a
-          onClick={() => {
-            alert(`VPN:${record.vpnName}`);
-          }}
-        >
-          detail
-        </a>
-      ),
-    },
-  ];
+const columns = [
+  { title: "Name", width: 100, key: "name", dataIndex: ["user", "name"] },
+  { title: "VPN Name", width: 300, key: "vpnName", dataIndex: "vpnName" },
+  { title: "State", width: 150, key: "state", dataIndex: "state" },
+  {
+    title: "Site",
+    key: "site",
+    dataIndex: "site",
+    width: 300,
+    ellipsis: { hintType: "tip" }, // 鼠标悬停 Tooltip 提示
+  },
+  {
+    title: "Alarm",
+    key: "alarm",
+    width: 300,
+    ellipsis: { hintType: "title" }, // 原生 title 属性提示
+    dataIndex: "alarm",
+  },
+  {
+    title: "操作",
+    width: "100px",
+    key: "operation",
+    render: (text, record) => <a onClick={() => { /* 取 record.vpnName */ }}>detail</a>,
+  },
+];
 
-  dataset = [
-    {
-      user: {
-        name: "Jack",
-      },
-      vpnName: "R&D VPN2",
-      state: "TO BE",
-      site: "Tooltip: Very very very very very very very very very very very very looooooooooooong",
-      alarm:
-        "Title: Very very very very very very very very very very very very looooooooooooong",
-    },
-    {
-      user: {
-        name: "Mick",
-      },
-      vpnName: "Shop Storage",
-      state: "Active",
-      site: "Tooltip: Very very very very very very very very very very very very looooooooooooong",
-      alarm:
-        "Title: Very very very very very very very very very very very very looooooooooooong",
-    },
-    {
-      user: {
-        name: "Tom",
-      },
-      vpnName: "R&D VPN1",
-      state: "TO BE",
-      site: "Tooltip: Very very very very very very very very very very very very looooooooooooong",
-      alarm:
-        "Title: Very very very very very very very very very very very very looooooooooooong",
-    },
-    {
-      user: {
-        name: "Jerry",
-      },
-      vpnName: "R&D VPN8",
-      state: "Active",
-      site: "Tooltip: Very very very very very very very very very very very very very very very looooooooooooong",
-      alarm:
-        "Title: Very very very very very very very very very very very very very very very looooooooooooong",
-    },
-  ];
+const dataset = [
+  { user: { name: "Jack" }, vpnName: "R&D VPN2", state: "TO BE", site: "说明文字", alarm: "说明文字" },
+  { user: { name: "Mick" }, vpnName: "Shop Storage", state: "Active", site: "说明文字", alarm: "说明文字" },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro
-          columns={this.columns} // Column Details
-          dataset={this.dataset} // Data Set
-        />
-      </ConfigProvider>
-    );
-  }
-}
-ReactDOM.render(<TableDemo />, mountNode);
+<TablePro columns={columns} dataset={dataset} />
 ```
 
 ### 合并单元格
@@ -1837,109 +890,51 @@ ReactDOM.render(<TableDemo />, mountNode);
 
 ```jsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-class TableDemo extends React.Component {
-  columns = [
-    {
-      title: "Name",
-      key: "name",
-      dataIndex: "name",
-    },
-    {
-      title: "Age",
-      key: "age",
-      dataIndex: "age",
-    },
-    {
-      title: "Address",
-      key: "address",
-      dataIndex: "address",
-      colSpan: 1,
-      onCell: (record, index) => {
-        return {
-          colSpan: index === 2 || index === 3 ? 2 : 1,
-          rowSpan: index === 2 ? 2 : index === 3 ? 0 : 1,
-        };
-      },
-    },
-    {
-      title: "Detail Address",
-      key: "detailAddress",
-      colSpan: 1,
-      dataIndex: "detailAddress",
-      onCell: (record, index) => {
-        return {
-          colSpan: index === 2 || index === 3 ? 0 : 1,
-        };
-      },
-    },
-    {
-      title: "Gender",
-      key: "gender",
-      dataIndex: "gender",
-      onCell: (record, index) => {
-        return {
-          rowSpan: index === 1 ? 2 : index === 2 ? 0 : 1,
-        };
-      },
-    },
-  ];
+const columns = [
+  { title: "Name", key: "name", dataIndex: "name" },
+  { title: "Age", key: "age", dataIndex: "age" },
+  {
+    title: "Address",
+    key: "address",
+    dataIndex: "address",
+    colSpan: 1,
+    onCell: (record, index) => ({
+      colSpan: index === 2 || index === 3 ? 2 : 1,
+      rowSpan: index === 2 ? 2 : index === 3 ? 0 : 1,
+    }),
+  },
+  {
+    title: "Detail Address",
+    key: "detailAddress",
+    colSpan: 1,
+    dataIndex: "detailAddress",
+    onCell: (record, index) => ({
+      colSpan: index === 2 || index === 3 ? 0 : 1,
+    }),
+  },
+  {
+    title: "Gender",
+    key: "gender",
+    dataIndex: "gender",
+    onCell: (record, index) => ({
+      rowSpan: index === 1 ? 2 : index === 2 ? 0 : 1,
+    }),
+  },
+];
 
-  dataset = [
-    {
-      key: 0,
-      name: "张三",
-      age: 21,
-      address: "陕西",
-      detailAddress: "西安",
-      gender: "男",
-    },
-    {
-      key: 1,
-      name: "李四",
-      age: 18,
-      address: "新疆",
-      detailAddress: "乌鲁木齐",
-      gender: "女",
-    },
-    {
-      key: 2,
-      name: "王五",
-      age: 32,
-      address: "四川",
-      detailAddress: "成都",
-      gender: "女",
-    },
-    {
-      key: 3,
-      name: "孙六",
-      age: 41,
-      address: "广东",
-      detailAddress: "青岛",
-      gender: "男",
-    },
-  ];
+const dataset = [
+  { key: 0, name: "张三", age: 21, address: "陕西", detailAddress: "西安", gender: "男" },
+  { key: 1, name: "李四", age: 18, address: "新疆", detailAddress: "乌鲁木齐", gender: "女" },
+  { key: 2, name: "王五", age: 32, address: "四川", detailAddress: "成都", gender: "女" },
+  { key: 3, name: "孙六", age: 41, address: "广东", detailAddress: "青岛", gender: "男" },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro
-          columns={this.columns} // Column Details
-          dataset={this.dataset} // Data Set
-          selection={{
-            selectedRowKeys: [1, 3],
-          }}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TableDemo />, mountNode);
+<TablePro
+  columns={columns}
+  dataset={dataset}
+  selection={{ selectedRowKeys: [1, 3] }}
+/>
 ```
 
 ### 隐藏单选勾选框
@@ -1951,79 +946,42 @@ ReactDOM.render(<TableDemo />, mountNode);
 ```tsx
 import TablePro from "eview-ui/TablePro";
 import LinkField from "eview-ui/LinkField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const dataset = [];
-for (let i = 0; i < 4; i++) {
-  dataset.push({
-    key: i,
-    name: `Edward ${i}`,
-    age: 32,
-    address: `London Queen Block Lane no. ${i}`,
-  });
-}
-export default class TableDemo extends React.Component {
-  state = {
+const dataset = [
+  { key: "0", name: "Edward 0", age: 32, address: "London Queen Block Lane no. 0" },
+  { key: "1", name: "Edward 1", age: 32, address: "London Queen Block Lane no. 1" },
+  { key: "2", name: "Edward 2", age: 32, address: "London Queen Block Lane no. 2" },
+];
+
+const columns = [
+  { title: "名字", dataIndex: "name" },
+  { title: "年龄", dataIndex: "age" },
+  {
+    title: "操作",
+    dataIndex: "address",
+    render: (text, record) => (
+      <LinkField
+        href={""}
+        children={"编辑"}
+        onClick={(e) => {
+          e.stopPropagation(); // 阻止冒泡，避免点击误触发行选中
+        }}
+      />
+    ),
+  },
+];
+
+<TablePro
+  columns={columns}
+  dataset={dataset}
+  selection={{
+    type: "radio",
+    hideSelect: true,
     selectedRowKeys: [],
-  };
-  dataset = dataset;
-  columns = [
-    {
-      title: "名字",
-      dataIndex: "name",
-    },
-    {
-      title: "年龄",
-      dataIndex: "age",
-    },
-    {
-      title: "操作",
-      dataIndex: "address",
-      render: (text, record) => {
-        return (
-          <LinkField
-            href={""}
-            children={"编辑"}
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          />
-        );
-      },
-    },
-  ];
-  onSelectChange = (selectedRowKeys) => {
-    console.log("selectedRowKeys changed: ", selectedRowKeys);
-    this.setState({
-      selectedRowKeys,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const { selectedRowKeys } = this.state;
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro
-          columns={this.columns}
-          dataset={this.dataset}
-          selection={{
-            type: "radio",
-            hideSelect: true,
-            selectedRowKeys,
-            onChange: this.onSelectChange,
-            onSelect: (a, v) => {
-              console.log("======onSelect===", a, v);
-            },
-          }}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-ReactDOM.render(<TableDemo />, mountNode);
+    onChange: (selectedRowKeys) => { /* 取 selectedRowKeys 更新 */ },
+    onSelect: (a, v) => { /* a, v */ },
+  }}
+/>
 ```
 
 ### 自定义行高
@@ -2033,63 +991,33 @@ ReactDOM.render(<TableDemo />, mountNode);
 
 ```tsx
 import TablePro from "eview-ui/TablePro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const dataset = [];
-for (let i = 0; i < 4; i++) {
-  dataset.push({
-    key: i,
-    name: `Edward ${i}`,
-    age: 32,
-    address: `London Queen Block Lane no. ${i}`,
-  });
-}
-export default class TableDemo extends React.Component {
-  dataset = dataset;
-  columns = [
-    {
-      title: "名字",
-      dataIndex: "name",
-    },
-    {
-      title: "年龄",
-      dataIndex: "age",
-    },
-    {
-      title: "地址",
-      dataIndex: "address",
-    },
-  ];
+const dataset = [
+  { key: "0", name: "Edward 0", age: 32, address: "London Queen Block Lane no. 0" },
+  { key: "1", name: "Edward 1", age: 32, address: "London Queen Block Lane no. 1" },
+  { key: "2", name: "Edward 2", age: 32, address: "London Queen Block Lane no. 2" },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <TablePro
-          columns={this.columns}
-          dataset={this.dataset}
-          onRow={(record) => {
-            return {
-              style: {
-                height: 32,
-              },
-            };
-          }}
-          onHeaderRow={(column) => {
-            return {
-              style: {
-                height: 32,
-              },
-            };
-          }}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-ReactDOM.render(<TableDemo />, mountNode);
+const columns = [
+  { title: "名字", dataIndex: "name" },
+  { title: "年龄", dataIndex: "age" },
+  { title: "地址", dataIndex: "address" },
+];
+
+<TablePro
+  columns={columns}
+  dataset={dataset}
+  onRow={(record) => {
+    return {
+      style: { height: 32 }, // body 行高
+    };
+  }}
+  onHeaderRow={(column) => {
+    return {
+      style: { height: 32 }, // 表头行高
+    };
+  }}
+/>
 ```
 
 ### 合并单元格Hover验证
@@ -2099,51 +1027,26 @@ ReactDOM.render(<TableDemo />, mountNode);
 ```jsx
 import TablePro from "eview-ui/TablePro";
 import SelectPro from "eview-ui/SelectPro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 const cities = ["北京", "上海", "广州", "深圳"];
 const cityOptions = cities.map((c) => ({ text: c, value: c }));
 
-// 自定义筛选组件，renderCount 用于观察是否被重复渲染
-let cityFilterRenderCount = 0;
+// 自定义筛选组件
 function CityFilter({ value, onConfirm }) {
-  cityFilterRenderCount++;
-  console.log("[CityFilter] render #" + cityFilterRenderCount);
   return (
-    <div
-      style={{
-        background: "#fff",
-        padding: "1rem",
-        width: "12rem",
-        boxShadow: "0 0.25rem 0.4375rem rgba(0, 0, 0, 0.3)",
-      }}
-    >
-      <div style={{ marginBottom: "0.5rem", fontSize: "12px", color: "#999" }}>
-        渲染次数: {cityFilterRenderCount}
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        {cities.map((city) =>
-          city === value ? (
-            <span key={city} style={{ color: "#1890ff", fontWeight: "bold" }}>
-              {city}
-            </span>
-          ) : (
-            <a
-              key={city}
-              onClick={() => onConfirm(city)}
-              style={{ cursor: "pointer" }}
-            >
-              {city}
-            </a>
-          ),
-        )}
-      </div>
+    <div style={{ background: "#fff", padding: "1rem", width: "12rem" }}>
+      {cities.map((city) =>
+        city === value ? (
+          <span key={city} style={{ color: "#1890ff", fontWeight: "bold" }}>{city}</span>
+        ) : (
+          <a key={city} onClick={() => onConfirm(city)} style={{ cursor: "pointer" }}>{city}</a>
+        ),
+      )}
     </div>
   );
 }
 
-// 可编辑单元格（Select）
+// 可编辑单元格（Select）：通过 column.onCell 注入 props
 const EditableCell = ({
   title,
   editable,
@@ -2158,140 +1061,72 @@ const EditableCell = ({
 
   const handleChange = (newValue) => {
     setValue(newValue);
-    handleSave({ ...record, [dataIndex]: newValue });
+    handleSave({ ...record, [dataIndex]: newValue }); // 取新值更新对应行
   };
 
   let childNode = children;
   if (editable) {
-    childNode = (
-      <SelectPro value={value} onChange={handleChange} options={options} />
-    );
+    childNode = <SelectPro value={value} onChange={handleChange} options={options} />;
   }
 
   return <td {...restProps}>{childNode}</td>;
 };
 
-const initialData = [
+const dataset = [
   { key: 0, name: "张三", age: 21, city: "北京", address: "朝阳区" },
   { key: 1, name: "李四", age: 18, city: "上海", address: "浦东新区" },
   { key: 2, name: "王五", age: 32, city: "广州", address: "天河区" },
   { key: 3, name: "赵六", age: 32, city: "深圳", address: "南山区" },
-  { key: 4, name: "孙七", age: 41, city: "北京", address: "海淀区" },
-  { key: 5, name: "周八", age: 28, city: "上海", address: "静安区" },
 ];
 
-class TableDemo extends React.Component {
-  state = {
-    data: initialData,
+const columns = [
+  { title: "姓名", dataIndex: "name", key: "name" },
+  {
+    title: "年龄",
+    dataIndex: "age",
+    key: "age",
+    onCell: (record, index) => ({ rowSpan: index === 2 ? 2 : index === 3 ? 0 : 1 }),
+  },
+  {
+    title: "城市",
+    dataIndex: "city",
+    key: "city",
+    editable: true,
+    options: cityOptions,
+    filter: (value, record) => record.city === value,
+    filterDropdown: CityFilter,
+    defaultFilteredValue: "深圳",
+  },
+  {
+    title: "地址",
+    dataIndex: "address",
+    key: "address",
+    onCell: (record, index) => ({ rowSpan: index === 2 ? 2 : index === 3 ? 0 : 1 }),
+  },
+].map((col) => {
+  if (!col.editable) return col;
+  return {
+    ...col,
+    onCell: (record, index) => ({
+      ...(col.onCell ? col.onCell(record, index) : {}),
+      record,
+      editable: col.editable,
+      dataIndex: col.dataIndex,
+      title: col.title,
+      handleSave: (row) => { /* 取 row 更新 dataset 中对应行 */ },
+      options: col.options,
+    }),
+  };
+});
+
+<TablePro
+  components={{ body: { cell: EditableCell } }}
+  columns={columns}
+  dataset={dataset}
+  selection={{
+    type: "checkbox",
     selectedRowKeys: [],
-  };
-
-  handleSave = (row) => {
-    const newData = [...this.state.data];
-    const index = newData.findIndex((item) => row.key === item.key);
-    const item = newData[index];
-    newData.splice(index, 1, { ...item, ...row });
-    this.setState({ data: newData });
-  };
-
-  getColumns = () => [
-    {
-      title: "姓名",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "年龄",
-      dataIndex: "age",
-      key: "age",
-      onCell: (record, index) => ({
-        rowSpan: index === 2 ? 2 : index === 3 ? 0 : 1,
-      }),
-    },
-    {
-      title: "城市",
-      dataIndex: "city",
-      key: "city",
-      editable: true,
-      options: cityOptions,
-      filter: (value, record) => record.city === value,
-      filterDropdown: CityFilter,
-      defaultFilteredValue: "深圳",
-    },
-    {
-      title: "地址",
-      dataIndex: "address",
-      key: "address",
-      onCell: (record, index) => ({
-        rowSpan: index === 2 ? 2 : index === 3 ? 0 : 1,
-      }),
-    },
-  ];
-
-  render() {
-    const columns = this.getColumns().map((col) => {
-      if (!col.editable) {
-        return col;
-      }
-      return {
-        ...col,
-        onCell: (record, index) => ({
-          ...(col.onCell ? col.onCell(record, index) : {}),
-          record,
-          editable: col.editable,
-          dataIndex: col.dataIndex,
-          title: col.title,
-          handleSave: this.handleSave,
-          options: col.options,
-        }),
-      };
-    });
-    const [version, theme] = getDemoVersion();
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <p style={{ color: "#666", fontSize: "13px", marginBottom: "12px" }}>
-            <b>验证步骤：</b>
-            <br />
-            1. 勾选行的 checkbox，验证选中状态正常
-            <br />
-            2. 点击"城市"列的筛选图标，打开筛选弹窗
-            <br />
-            3. 鼠标在表格行上移动，观察控制台 — CityFilter 不应重复
-            render（渲染次数不增加）
-            <br />
-            4.
-            关闭筛选弹窗，鼠标悬停在"王五"行上，"王五"和"赵六"的年龄/地址单元格应同时高亮
-            <br />
-            5. 鼠标移出，高亮消失
-            <br />
-            6. 点击"城市"列的下拉框，切换城市值，数据应正常更新
-          </p>
-          <TablePro
-            components={{
-              body: { cell: EditableCell },
-            }}
-            columns={columns}
-            dataset={this.state.data}
-            selection={{
-              type: "checkbox",
-              selectedRowKeys: this.state.selectedRowKeys,
-              onChange: (selectedRowKeys, selectedRows) => {
-                console.log(
-                  "selectedRowKeys:",
-                  selectedRowKeys,
-                  "selectedRows:",
-                  selectedRows,
-                );
-                this.setState({ selectedRowKeys });
-              },
-            }}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TableDemo />, mountNode);
+    onChange: (selectedRowKeys, selectedRows) => { /* 取 selectedRowKeys 更新 */ },
+  }}
+/>
 ```

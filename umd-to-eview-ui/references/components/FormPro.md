@@ -280,84 +280,36 @@ export interface ValidatorMessages {
 import Form from 'eview-ui/FormPro';
 import TextField from 'eview-ui/TextField';
 import Button from 'eview-ui/Button';
-import React from 'react';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
 const initialValues = {
   username: 'default_username'
 };
 
-const FormDemo = () => {
-  const form = Form.useForm();
-  const [values, setValues] = React.useState(null);
-  const [errors, setErrors] = React.useState(null);
-  const [version, theme] = getDemoVersion();
-  const handleOnSuccess = (values) => {
-    setValues(values);
-    setErrors(null);
-  };
-  const handleOnFailed = (errors) => {
-    setValues(null);
-    setErrors(errors);
-  };
-  const handleOnClick = (e) => {
-    form.submit();
-  };
+const form = Form.useForm();
 
-  const valuesText = `The form has been submitted successfully: \n${JSON.stringify(values, null, 4)}`;
-  const errorsText = `There are some mistakes while validating the form: \n${JSON.stringify(errors, null, 4)}`;
-  const textStyle = {
-    color: values ? '#3dcaa6' : '#ff4c4c',
-    padding: '2rem',
-    whiteSpace: 'pre'
-  };
-  const textDiv = (
-    <div style={textStyle}>
-        { values ? valuesText : errorsText }
-    </div>
-  );
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <React.Fragment>
-      <ConfigProvider version={version} theme={theme}>
-        <Form
-          form={form}
-          initialValues={initialValues}
-          onSuccess={handleOnSuccess}
-          onFailed={handleOnFailed}
-        >
-          <Form.Item label='User Name' name='username' rules={[{
-            required: true
-          }]}>
-            <TextField />
-          </Form.Item>
-          <Form.Item label='Password' name='password' rules={[{
-            required: true
-          }]}>
-            <TextField type='password' />
-          </Form.Item>
-          <Form.Item label='Email' name={['detail', 'email']} rules={[{
-              email: true
-          }]}>
-              <TextField />
-          </Form.Item>
-          <Form.Item label='Address' name={['detail', 'address']}>
-              <TextField />
-          </Form.Item>
-          <Form.Item colon={false}>
-            <Button text='Submit' onClick={handleOnClick} />
-          </Form.Item>
-        </Form>
-        {
-            (values || errors) ? textDiv : null
-        }
-      </ConfigProvider>
-    </React.Fragment>
-  );
-};
-
-ReactDOM.render(<FormDemo />, mountNode);
+// onSuccess(values): 校验通过；onFailed(errors): 校验失败
+<Form
+  form={form}
+  initialValues={initialValues}
+  onSuccess={(values) => { /* values: 全部表单值 */ }}
+  onFailed={(errors) => { /* errors: 校验错误信息 */ }}
+>
+  <Form.Item label='User Name' name='username' rules={[{ required: true }]}>
+    <TextField />
+  </Form.Item>
+  <Form.Item label='Password' name='password' rules={[{ required: true }]}>
+    <TextField type='password' />
+  </Form.Item>
+  <Form.Item label='Email' name={['detail', 'email']} rules={[{ email: true }]}>
+    <TextField />
+  </Form.Item>
+  <Form.Item label='Address' name={['detail', 'address']}>
+    <TextField />
+  </Form.Item>
+  <Form.Item colon={false}>
+    <Button text='Submit' onClick={() => { form.submit(); }} />
+  </Form.Item>
+</Form>
 ```
 
 ### 表单校验
@@ -366,111 +318,55 @@ ReactDOM.render(<FormDemo />, mountNode);
 Eview-UI后续的演进方向是完善Form的校验功能，逐步剔除输入控件自身的校验逻辑。因此我们建议输入类组件的校验功能都迁移到Form中。
 
 ```jsx
-import React from 'react';
 import Form from 'eview-ui/FormPro';
 import Spinner from 'eview-ui/Spinner';
 import TextField from 'eview-ui/TextField';
 import Button from 'eview-ui/Button';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-// 在Form的ValidateMessages中配置校验项的错误提示信息
+// validateMessages: 配置各校验项失败的错误提示信息
 const validateMessages = {
   required: 'User Name Can not be empty',
   range: (name, range) => `The ${name} must be a number between ${range[0]} and ${range[1]}`,
   pattern: 'The Password can only contains number and alpha'
 };
 
-const initialValues = {
-  age: 15
-};
+const initialValues = { age: 15 };
+const form = Form.useForm();
 
-const FormDemo = () => {
-  const form = Form.useForm();
-  const [values, setValues] = React.useState(null);
-  const [errors, setErrors] = React.useState(null);
-  const [version, theme] = getDemoVersion();
-  const handleOnSuccess = values => {
-    setValues(values);
-    setErrors(null);
-  };
-  const handleOnFailed = errors => {
-    setValues(null);
-    setErrors(errors);
-  };
-  const handleOnClick = (e) => {
-    e.preventDefault();
-    form.submit();
-  };
-
-  const valuesText = `The form has been submitted successfully: \n${JSON.stringify(values, null, 4)}`;
-  const errorsText = `There are some mistakes while validating the form: \n${JSON.stringify(errors, null, 4)}`;
-  const textStyle = {
-    color: values ? '#3dcaa6' : '#ff4c4c',
-    padding: '2rem',
-    whiteSpace: 'pre'
-  };
-  const textDiv = (
-    <div style={textStyle}>
-        { values ? valuesText : errorsText }
-    </div>
-  );
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <React.Fragment>
-      <ConfigProvider version={version} theme={theme}>
-        <Form
-          form={form}
-          initialValues={initialValues}
-          onSuccess={handleOnSuccess}
-          onFailed={handleOnFailed}
-          validateMessages={validateMessages}
-          labelCol={3}
-          wrapperCol={6}
-        >
-          <Form.Item label='User Name' name='username' rules={[{
-            required: true
-          }]}>
-            <TextField/>
-          </Form.Item>
-          {/* 一个Rule对象传入多个校验项，只显示第一个校验失败的校验项的提示信息 */}
-          <Form.Item label='Age' name='age' rules={[{
-            integer: true,
-            range: [0, 18]
-          }]}>
-            <Spinner type="number"/>
-          </Form.Item>
-          {/* rules传入多个Rule对象，会显示每个Rule对象的第一个校验失败的校验项的提示信息 */}
-          <Form.Item label='Password' name='password' rules={[{
-            minLength: 6
-          }, {
-            pattern: /^[0-9a-zA-Z]+$/
-          }]}>
-            <TextField type='password'/>
-          </Form.Item>
-          {/* 自定义校验项传入一个异步函数，如果校验失败，则抛出错误提示信息 */}
-          <Form.Item label='Confirm PassWord' name='confirmPassword' rules={[{
-            custom: async value => {
-              if (value !== form.getFieldValue('password')) {
-                throw 'The input is not same as the password';
-              }
-            }
-          }]}>
-            <TextField type='password'/>
-          </Form.Item>
-          <Form.Item colon={false}>
-            <Button text='Submit' onClick={handleOnClick}/>
-          </Form.Item>
-        </Form>
-        {
-          (values || errors) ? textDiv : null
-        }
-      </ConfigProvider>
-    </React.Fragment>
-  );
-};
-
-ReactDOM.render(<FormDemo />, mountNode);
+<Form
+  form={form}
+  initialValues={initialValues}
+  onSuccess={(values) => { /* values: 全部表单值 */ }}
+  onFailed={(errors) => { /* errors: 校验错误信息 */ }}
+  validateMessages={validateMessages}
+  labelCol={3}
+  wrapperCol={6}
+>
+  {/* 一个 Rule 对象传入多个校验项，只显示第一个校验失败的提示 */}
+  <Form.Item label='User Name' name='username' rules={[{ required: true }]}>
+    <TextField />
+  </Form.Item>
+  <Form.Item label='Age' name='age' rules={[{ integer: true, range: [0, 18] }]}>
+    <Spinner type="number" />
+  </Form.Item>
+  {/* rules 传多个 Rule 对象，会显示每个 Rule 对象第一个失败的提示 */}
+  <Form.Item label='Password' name='password' rules={[{ minLength: 6 }, { pattern: /^[0-9a-zA-Z]+$/ }]}>
+    <TextField type='password' />
+  </Form.Item>
+  {/* custom: 自定义异步校验，失败时抛出错误提示 */}
+  <Form.Item label='Confirm PassWord' name='confirmPassword' rules={[{
+    custom: async value => {
+      if (value !== form.getFieldValue('password')) {
+        throw 'The input is not same as the password';
+      }
+    }
+  }]}>
+    <TextField type='password' />
+  </Form.Item>
+  <Form.Item colon={false}>
+    <Button text='Submit' onClick={() => { form.submit(); }} />
+  </Form.Item>
+</Form>
 ```
 
 ### 使用FormInstance操作表单
@@ -484,12 +380,8 @@ import TextField from 'eview-ui/TextField';
 import Button from 'eview-ui/Button';
 import RadioGroup from 'eview-ui/RadioGroup';
 import Select from 'eview-ui/Select';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-const initialValues = {
-  showDetail: false
-};
+const initialValues = { showDetail: false };
 
 const validateMessages = {
   required: 'User Name Can not be empty',
@@ -497,182 +389,69 @@ const validateMessages = {
   pattern: 'The Password can only contains number and alpha'
 };
 
-const detailRadioGroupData = [{
-  text: 'Yes',
-  value: true
-}, {
-  text: 'No',
-  value: false
-}];
+const detailRadioGroupData = [{ text: 'Yes', value: true }, { text: 'No', value: false }];
+const citizenShipOptions = [
+  { text: 'America', value: 'America' },
+  { text: 'China', value: 'China' },
+  { text: 'Japan', value: 'Japan' }
+];
 
-const citizenShipOptions = [{
-  text: 'America',
-  value: 'America'
-}, {
-  text: 'China',
-  value: 'China'
-}, {
-  text: 'Japan',
-  value: 'Japan'
-}];
+// 类组件通过 ref 拿 FormInstance；函数组件用 Form.useForm()
+const form = React.createRef();
 
-const buttonStyle = {
-  marginRight: '32px'
-};
+const detailArea = (
+  <>
+    <Form.Item label='Email' name={['detail', 'email']} rules={[{ email: true }]}>
+      <TextField />
+    </Form.Item>
+    <Form.Item label='Citizen Ship' name={['detail', 'citizenShip']}>
+      <Select options={citizenShipOptions} />
+    </Form.Item>
+  </>
+);
 
-class FormDemo extends React.Component {
-  state = {
-    errors: null,
-    values: null,
-    showDetail: false
-  };
-
-  constructor(props) {
-    super(props);
-    this.form = React.createRef();
-  }
-
-  handleOnSuccess = values => {
-    this.setState({
-      values,
-      errors: null
-    });
-  };
-
-  handleOnFailed = errors => {
-    this.setState({
-      errors,
-      values: null
-    });
-  };
-
-  handleOnValuesChange = (changedValues, allNewValues, allPrevValues) => {
-    console.log(changedValues);
+// onValuesChange(changedValues, allNewValues, allPrevValues)：建议在此控制依赖状态
+<Form
+  ref={form}
+  initialValues={initialValues}
+  onValuesChange={(changedValues, allNewValues, allPrevValues) => {
+    // password 变化时重新校验 confirmPassword
     if (allNewValues.password !== allPrevValues.password) {
-      this.form.current.validateFields(['confirmPassword']).catch(e => e);
+      form.current.validateFields(['confirmPassword']).catch(e => e);
     }
-    /* 这是一个对比示例：如果只在FieldItem包裹的输入控件的onChange事件中控制依赖状态，那么用formInstance提供的方法
-      变更表单数据时，依赖状态将不会变更。这也是为什么你点击Quick Set按钮时，虽然Detail选项已经变更为否，但是下方的
-      输入控件依然存在的原因，尝试把这段注释的代码恢复，同时去除Detail表单项中的onChange事件，该bug即可修复。
-      因此，我们更建议在Form的onValuesChange回调中控制依赖状态
-    if (allNewValues.showDetail !== allPrevValues.showDetail) {
-      this.setState({
-        showDetail: allNewValues.showDetail
-      });
+  }}
+  onSuccess={(values) => { /* values: 全部表单值 */ }}
+  onFailed={(errors) => { /* errors: 校验错误信息 */ }}
+  validateMessages={validateMessages}
+  labelCol={3}
+  wrapperCol={6}
+>
+  <Form.Item label='User Name' name='username' rules={[{ required: true }]}>
+    <TextField />
+  </Form.Item>
+  <Form.Item label='Password' name='password' rules={[{ minLength: 6 }, { pattern: /^[0-9a-zA-Z]+$/ }]}>
+    <TextField type='password' />
+  </Form.Item>
+  <Form.Item label='Confirm PassWorld' name='confirmPassword' rules={[{
+    custom: async value => {
+      if (value !== form.current.getFieldValue('password')) {
+        throw 'The input is not same as the password';
+      }
     }
-    */
-  }
-
-  handleOnDetialChange = value => {
-    this.setState({
-      showDetail: value
-    });
-  }
-
-  handleOnSubmit = e => {
-    e.preventDefault();
-    this.form.current.submit();
-  };
-
-  handleOnQuickSet = e => {
-    e.preventDefault();
-    // 设置表单的值
-    this.form.current.setFieldsValue({
-      username: 'default_username',
-      password: 'defaultPassword',
-      confirmPassword: 'defaultPassword',
-      showDetail: false
-    });
-    // 校验表单
-    this.form.current.validateFields().catch(e => e);
-  };
-
-  handleOnReset = e => {
-    e.preventDefault();
-    // 重置表单
-    this.form.current.resetFields();
-  }
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const detailArea = (
-      <React.Fragment>
-        <Form.Item label='Email' name={['detail', 'email']} rules={[{
-          email: true
-        }]}>
-          <TextField />
-        </Form.Item>
-        <Form.Item label='Citizen Ship' name={['detail', 'citizenShip']}>
-          <Select options={citizenShipOptions} />
-        </Form.Item>
-      </React.Fragment>
-    );
-
-    const valuesText = `The form has been submitted successfully: \n${JSON.stringify(this.state.values, null, 4)}`;
-    const errorsText = `There are some mistakes while validating the form: \n${JSON.stringify(this.state.errors, null, 4)}`;
-    const textStyle = {
-      color: this.state.values ? '#3dcaa6' : '#ff4c4c',
-      padding: '2rem',
-      whiteSpace: 'pre'
-    };
-    const textDiv = (
-      <div style={textStyle}>
-        { this.state.values ? valuesText : errorsText }
-      </div>
-    );
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <React.Fragment>
-        <ConfigProvider version={version} theme={theme}>
-          <Form
-            ref={this.form}
-            onSuccess={this.handleOnSuccess}
-            initialValues={initialValues}
-            onValuesChange={this.handleOnValuesChange}
-            onFailed={this.handleOnFailed}
-            validateMessages={validateMessages}
-            labelCol={3}
-            wrapperCol={6}
-          >
-            <Form.Item label='User Name' name='username' rules={[{
-              required: true
-            }]}>
-              <TextField/>
-            </Form.Item>
-            <Form.Item label='Password' name='password' rules={[{
-              minLength: 6
-            }, {
-              pattern: /^[0-9a-zA-Z]+$/
-            }]}>
-              <TextField type='password'/>
-            </Form.Item>
-            <Form.Item label='Confirm PassWorld' name='confirmPassword' rules={[{
-              custom: async value => {
-                if (value !== this.form.current.getFieldValue('password')) {
-                  throw 'The input is not same as the password';
-                }
-              }
-            }]}>
-              <TextField type='password'/>
-            </Form.Item>
-            <Form.Item label='Detail' name='showDetail'>
-              <RadioGroup data={detailRadioGroupData} onChange={this.handleOnDetialChange}/>
-            </Form.Item>
-            {this.state.showDetail ? detailArea : null}
-            <Form.Item colon={false} wrapperCol={9}>
-              <Button style={buttonStyle} text='Submit' onClick={this.handleOnSubmit}/>
-              <Button style={buttonStyle} text='Quick Set' onClick={this.handleOnQuickSet}/>
-              <Button style={buttonStyle} text='Reset' onClick={this.handleOnReset}/>
-            </Form.Item>
-          </Form>
-          {(this.state.values || this.state.errors) ? textDiv : null}
-        </ConfigProvider>
-      </React.Fragment>
-    );
-  }
-}
-
-ReactDOM.render(<FormDemo />, mountNode);
+  }]}>
+    <TextField type='password' />
+  </Form.Item>
+  <Form.Item label='Detail' name='showDetail'>
+    <RadioGroup data={detailRadioGroupData} onChange={(value) => { /* 取 value 更新 showDetail */ }} />
+  </Form.Item>
+  {/* showDetail 为 true 时展示依赖表单项 */}
+  {false ? detailArea : null}
+  <Form.Item colon={false} wrapperCol={9}>
+    <Button text='Submit' onClick={() => { form.current.submit(); }} />
+    <Button text='Quick Set' onClick={() => { form.current.setFieldsValue({ username: 'default_username', password: 'defaultPassword', confirmPassword: 'defaultPassword', showDetail: false }); form.current.validateFields().catch(e => e); }} />
+    <Button text='Reset' onClick={() => { form.current.resetFields(); }} />
+  </Form.Item>
+</Form>
 ```
 
 ### 错误提示
@@ -684,79 +463,47 @@ import Form from 'eview-ui/FormPro';
 import TextField from 'eview-ui/TextField';
 import Tooltip from 'eview-ui/Tooltip';
 import { SvgIcon } from "@/shared/SvgIcon";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
+// validateErrorType='none' 时，自定义组件内部通过 form.getError 取校验结果自行展示
 const InputWithCustomErrorTip = (props) => {
-    const [_ , forceUpdate] = React.useState({});
-    const errorsContent = props.form.getError('url');
-    const showError = errorsContent !== undefined && errorsContent.length !== 0;
-    const errors = (
-        <div>
-            {errorsContent}
-        </div>
-    );
-    return (
-        <Tooltip content={errors}
-            placement="right"
-            visible={showError}
-        >
-            <TextField value={props.value} onChange={value => {
-                props.onChange(value);
-                forceUpdate({});
-            }} />
-        </Tooltip>
-    );
-};
-
-const Label = (props) => {
-    return (
-        <div style={{display: 'flex', alignItems:'center', justifyContent: 'center'}}>
-            <span style={{ marginRight: '0.25rem'}}>
-                {props.label}
-            </span>
-            <Tooltip content={props.hint} trigger='click'>
-                <SvgIcon src="help" size={14} style={{ marginLeft: '2px' }}/>
-            </Tooltip>
-        </div>
-    );
-};
-
-const FormDemo = () => {
-  const [version, theme] = getDemoVersion();
-  const form = Form.useForm();
-  // FormItem的label可以传入一个JSX，方便自由定制
-  const emailLabel = <Label label='Email' hint='this is a field with div errors hint'/>;
-  const ipLabel = <Label label='IP' hint='this is a field with default tip errors hint'/>;
-  const urlLabel = <Label label='Url' hint='this is a field with custom tip errors hint'/>;
+  const errorsContent = props.form.getError('url');
+  const showError = errorsContent !== undefined && errorsContent.length !== 0;
   return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <Form form={form}>
-        <Form.Item label={emailLabel} name='email' validateErrorType='div' rules={[{
-          email: true
-        }]}>
-          <TextField/>
-        </Form.Item>
-        <Form.Item label={ipLabel} name='Ip' validateErrorType='tip' rules={[{
-          ipv4: true
-        }]}>
-          <TextField/>
-        </Form.Item>
-        <Form.Item label={urlLabel} name='url' validateErrorType='none' rules={[{
-          url: true
-        }]}>
-          {/* 不显示FormItem提供的错误提示，而是自己展示错误提示*/}
-          <InputWithCustomErrorTip form={form} onChange={() => {
-            form.validateFields(['url']).catch(e => e);
-          }}/>
-        </Form.Item>
-      </Form>
-    </ConfigProvider>
+    <Tooltip content={<div>{errorsContent}</div>} placement="right" visible={showError}>
+      <TextField value={props.value} onChange={value => { props.onChange(value); }} />
+    </Tooltip>
   );
 };
 
-ReactDOM.render(<FormDemo />, mountNode);
+const Label = (props) => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <span style={{ marginRight: '0.25rem' }}>{props.label}</span>
+    <Tooltip content={props.hint} trigger='click'>
+      <SvgIcon src="help" size={14} style={{ marginLeft: '2px' }} />
+    </Tooltip>
+  </div>
+);
+
+const form = Form.useForm();
+// FormItem 的 label 可传入 JSX 自由定制
+const emailLabel = <Label label='Email' hint='this is a field with div errors hint' />;
+const ipLabel = <Label label='IP' hint='this is a field with default tip errors hint' />;
+const urlLabel = <Label label='Url' hint='this is a field with custom tip errors hint' />;
+
+<Form form={form}>
+  {/* validateErrorType='div'：错误提示展示在输入控件下方 */}
+  <Form.Item label={emailLabel} name='email' validateErrorType='div' rules={[{ email: true }]}>
+    <TextField />
+  </Form.Item>
+  {/* validateErrorType='tip'：错误提示为 Tooltip 气泡 */}
+  <Form.Item label={ipLabel} name='Ip' validateErrorType='tip' rules={[{ ipv4: true }]}>
+    <TextField />
+  </Form.Item>
+  {/* validateErrorType='none'：不显示 FormItem 提供的错误提示，自行展示 */}
+  <Form.Item label={urlLabel} name='url' validateErrorType='none' rules={[{ url: true }]}>
+    <InputWithCustomErrorTip form={form} onChange={() => { form.validateFields(['url']).catch(e => e); }} />
+  </Form.Item>
+</Form>
 ```
 
 ### 表单布局
@@ -764,81 +511,43 @@ ReactDOM.render(<FormDemo />, mountNode);
 Form提供了layout属性，实现了常用的三种布局。
 
 ```jsx
-import React from 'react';
 import Form from 'eview-ui/FormPro';
 import TextField from 'eview-ui/TextField';
-import Row from 'eview-ui/GridLayout/Row';
-import Button from 'eview-ui/Button';
-import ButtonGroup from 'eview-ui/ButtonGroup';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
 const SmallTextField = () => (<TextField inputStyle={{ width: '6rem' }} />);
 
-const FormDemo = () => {
-  const [layout, setLayout] = React.useState('inline');
-  const [version, theme] = getDemoVersion();
-  const buttonGroupData = ['inline', 'horizontal', 'vertical'].map(layout => ({
-    text: layout,
-    onClick: () => setLayout(layout)
-  }));
+// layout: "inline" | "horizontal" | "vertical"
+const layout = "inline";
 
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <React.Fragment>
-      <ConfigProvider version={version} theme={theme}>
-        <Row style={{ marginBottom: '1rem' }}>
-          <ButtonGroup data={buttonGroupData} />
-        </Row>
-        <Form
-          layout={layout as 'inline'}
-          labelAlign='left'
-          labelCol={{
-            cols: 1,
-            style: { minWidth: '2rem' }// labelCol不仅支持传数字，也支持直接传Col的props
-          }}
-        >
-          <Form.Item label='Email' name='email' rules={[{ email: true }]} style={{ marginRight: '1rem' }}>
-            <SmallTextField/>
-          </Form.Item>
-          <Form.Item label='Ip' name='Ip' rules={[{ ipv4: true }]} style={{ marginRight: '1rem' }}>
-            <SmallTextField/>
-          </Form.Item>
-          <Form.Item label='Url' name='url' rules={[{ url: true }]} >
-            <SmallTextField/>
-          </Form.Item>
-        </Form>
-        <div style={{ margin: '1rem 0' }}>
-          比较复杂的嵌套布局:
-        </div>
-        <Form labelCol={1}>
-          <Form.Item label='Item1' name='item1'>
-            <SmallTextField/>
-          </Form.Item>
-          <Form.Item label='Item2' name='item2'>
-            <SmallTextField/>
-          </Form.Item>
-          {/** 对于要在horizontal布局中嵌套inline布局的情况，可以参考以下demo */}
-          <Form.Item label='Item3' name='item3' wrapperCol={20}>
-            <Form.Item colon={false} name='item3' layout='inline' style={{ padding: '0px 0.5rem 0px 0px' }}>
-              <SmallTextField/>
-            </Form.Item>
-            <Form.Item label='Item4' name='item4' layout='inline' style={{ padding: '0px 0.5rem' }}>
-              <SmallTextField/>
-            </Form.Item>
-            <Form.Item label='Item5' name='item5' layout='inline' style={{ padding: '0px 0.5rem' }}>
-              <SmallTextField/>
-            </Form.Item>
-          </Form.Item>
-          <Form.Item label='Item6' name='item6'>
-            <SmallTextField/>
-          </Form.Item>
-        </Form>
-      </ConfigProvider>
-    </React.Fragment>
-  );
-};
+<Form
+  layout={layout}
+  labelAlign='left'
+  labelCol={{ cols: 1, style: { minWidth: '2rem' } /* labelCol 也支持传 Col 的 props */ }}
+>
+  <Form.Item label='Email' name='email' rules={[{ email: true }]} style={{ marginRight: '1rem' }}>
+    <SmallTextField />
+  </Form.Item>
+  <Form.Item label='Ip' name='Ip' rules={[{ ipv4: true }]} style={{ marginRight: '1rem' }}>
+    <SmallTextField />
+  </Form.Item>
+  <Form.Item label='Url' name='url' rules={[{ url: true }]}>
+    <SmallTextField />
+  </Form.Item>
+</Form>
 
-ReactDOM.render(<FormDemo />, mountNode);
+{/* horizontal 布局中嵌套 inline 布局 */}
+<Form labelCol={1}>
+  <Form.Item label='Item1' name='item1'>
+    <SmallTextField />
+  </Form.Item>
+  <Form.Item label='Item3' name='item3' wrapperCol={20}>
+    <Form.Item colon={false} name='item3' layout='inline' style={{ padding: '0px 0.5rem 0px 0px' }}>
+      <SmallTextField />
+    </Form.Item>
+    <Form.Item label='Item4' name='item4' layout='inline' style={{ padding: '0px 0.5rem' }}>
+      <SmallTextField />
+    </Form.Item>
+  </Form.Item>
+</Form>
 ```
 

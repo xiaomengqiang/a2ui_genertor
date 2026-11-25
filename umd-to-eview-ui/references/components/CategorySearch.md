@@ -107,57 +107,26 @@ export type Props = Partial<CategorySearch>;
 
 ```jsx
 import CategorySearch from 'eview-ui/CategorySearch';
-import Button from 'eview-ui/Button';
-import DivMessage from 'eview-ui/DivMessage';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CategorySearchExample extends React.Component {
+const options = [
+  { text: 'China', value: 1 },
+  { text: 'UK', value: 2 },
+  { text: 'USA', value: 3 },
+];
 
-  state = {
-    msg: '',
-  };
+// category 选中下拉项；inputProps 透传给搜索框（如 maxLength）
+<CategorySearch categoryOptions={options} category={2} />
 
-  handleGetCategory = () => {
-    this.setState({ msg: "getCategory API: " + this.categorySearch.getCategory() });
-  };
-  handleGetValue = () => {
-    this.setState({ msg: "getValue API: " + this.categorySearch.getValue() });
-  };
+<CategorySearch
+  categoryOptions={options}
+  category={2}
+  placeholder="Max length 10"
+  inputProps={{ maxLength: 10 }}
+  inputStyle={{ width: "300px" }}
+/>
 
-  render() {
-    const options = [
-      { text: 'China', value: 1 },
-      { text: 'UK', value: 2 },
-      { text: 'USA', value: 3 },
-    ];
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{marginBottom: "25px", paddingTop: '20px'}}>
-          <CategorySearch categoryOptions={options} category={2} ref={search => {
-            this.categorySearch = search
-          }}/>
-          <br/> <br/>
-          <Button text='getCategory' onClick={this.handleGetCategory}/>
-          <Button text='getValue' style={{marginLeft: '20px'}} onClick={this.handleGetValue}/>
-          {this.state.msg ?
-            <DivMessage text={this.state.msg} type="success" style={{marginTop: "10px", width: "560px"}}/> : ''}
-          <br/> <br/>
-          <CategorySearch categoryOptions={options} category={2} placeholder={"Max length 10"}
-                          inputProps={{maxLength: 10}} inputStyle={{width: "300px"}}/>
-          <br/> <br/>
-          <CategorySearch categoryOptions={options} category={2} disabled/>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<CategorySearchExample />, mountNode);
-
+// disabled 禁用
+<CategorySearch categoryOptions={options} category={2} disabled />
 ```
 
 ### 事件处理
@@ -166,136 +135,53 @@ ReactDOM.render(<CategorySearchExample />, mountNode);
 
 ```jsx
 import CategorySearch from 'eview-ui/CategorySearch';
-import LabelField from 'eview-ui/LabelField';
-import DivMessage from 'eview-ui/DivMessage';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-const popItems = [{ text: "a", value: 1 }, { text: "ab", value: 2 }, { text: "abc", value: 3 }];
+const options = [
+  { text: 'China', value: 'China' },
+  { text: 'UK', value: 'UK' },
+  { text: 'USA', value: 'USA' },
+];
 
-export default class CategorySearchEventExample extends React.Component {
-  state = {
-    msg: '',
-    data: popItems,
-    value1: '',
-    selectedValue1: '',
-    value2: '',
-    selectedValue2: '',
-  };
+// popItems 静态下拉（与 onSuggest 互斥）
+const popItems = [
+  { text: "a", value: 1 },
+  { text: "ab", value: 2 },
+  { text: "abc", value: 3 },
+];
 
-  handleCategoryChange1 = (typeValue) => {
-    this.setState({
-      msg: `onCategoryChange callback, Selected Value: ${typeValue}`,
-      selectedValue1: typeValue,
-    });
-  };
+// onSearch(category, value)：category 是下拉分类值，value 是搜索文本
+// onClear(oldValue, newValue)：oldValue 清除前文本，newValue 清除后（空字符串）
+<CategorySearch
+  categoryOptions={options}
+  category={'China'}
+  value=""
+  onCategoryChange={(value) => {
+    // value 是当前选中 select 的 value
+  }}
+  onSearch={(category, value) => {
+    // category 下拉分类值，value 搜索文本
+  }}
+  onClear={(oldValue, newValue) => {
+    // oldValue 清除前文本，newValue 空字符串
+  }}
+  popItems={popItems}
+/>
 
-  handleCategoryChange2 = (typeValue) => {
-    this.setState({
-      msg: `onCategoryChange callback, Selected Value: ${typeValue}`,
-      selectedValue2: typeValue,
-    });
-  };
-
-  handleSearch1 = (typeValue, searchValue) => {
-    this.setState({
-      msg: `onSearch callback, Category: ${typeValue}, Value: ${searchValue}`,
-      value1: searchValue,
-      selectedValue1: typeValue,
-    });
-  };
-
-  handleSearch2 = (typeValue, searchValue) => {
-    this.setState({
-      msg: `onSearch callback, Category: ${typeValue}, Value: ${searchValue}`,
-      value2: searchValue,
-      selectedValue2: typeValue,
-    });
-  };
-
-  handleClear1 = (oldValue, newValue) => {
-    this.setState({
-      msg: `onClear callback, OldValue: ${oldValue}, NewValue: ${newValue}`,
-      value1: '',
-    });
-  };
-
-  handleClear2 = (oldValue, newValue) => {
-    this.setState({
-      msg: `onClear callback, OldValue: ${oldValue}, NewValue: ${newValue}`,
-      value2: '',
-    });
-  };
-
-  handleSuggest = value => {
-    let data = [];
-    popItems.map((item) => {
-      if (item.text.toLocaleUpperCase().match(new RegExp(value.toLocaleUpperCase(), "g"))) {
-        data.push(item);
-      }
-    });
-    return data;
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const options = [
-      { text: 'China', value: 'China' },
-      { text: 'UK', value: 'UK' },
-      { text: 'USA', value: 'USA' },
-    ];
-
-    const lineStyle = {
-      display: 'flex',
-      alignItems: 'center',
-      marginBottom: 16
-    };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: '20px' }}>
-          <div style={lineStyle}>
-            <div style={{ display: "inline-block", marginRight: "30px" }}>
-              <LabelField>Static drop-down options</LabelField>
-            </div>
-            <div style={{ display: "inline-block" }}>
-              <CategorySearch
-                categoryOptions={options}
-                category={this.state.selectedValue1}
-                value={this.state.value1}
-                onCategoryChange={this.handleCategoryChange1}
-                onSearch={this.handleSearch1}
-                onClear={this.handleClear1}
-                popItems={this.state.data}
-              />
-            </div>
-          </div>
-          <div style={lineStyle}>
-            <div style={{ display: "inline-block", marginRight: "20px" }}>
-              <LabelField>Dynamic drop-down options</LabelField>
-            </div>
-            <div style={{ display: "inline-block" }}>
-              <CategorySearch
-                categoryOptions={options}
-                category={this.state.selectedValue2}
-                value={this.state.value2}
-                onCategoryChange={this.handleCategoryChange2}
-                onSearch={this.handleSearch2}
-                onClear={this.handleClear2}
-                onSuggest={this.handleSuggest}
-              />
-            </div>
-          </div>
-          {this.state.msg ? <DivMessage text={this.state.msg} type="success" style={{ marginTop: '10px', width: '500px' }} /> : ''}
-        </div>
-      </ConfigProvider>
+// onSuggest 动态下拉（与 popItems 互斥）：返回下拉列表数据
+<CategorySearch
+  categoryOptions={options}
+  category={'UK'}
+  value=""
+  onCategoryChange={(value) => {}}
+  onSearch={(category, value) => {}}
+  onClear={(oldValue, newValue) => {}}
+  onSuggest={(value) => {
+    // value 当前搜索框文本；返回 popItems 格式的数组
+    return popItems.filter((item) =>
+      item.text.toLocaleUpperCase().match(new RegExp(value.toLocaleUpperCase(), "g"))
     );
-  }
-}
-
-ReactDOM.render(<CategorySearchEventExample />, mountNode);
-
+  }}
+/>
 ```
 
 ### 主题与版本
@@ -304,32 +190,19 @@ ReactDOM.render(<CategorySearchEventExample />, mountNode);
 
 ```jsx
 import CategorySearch from 'eview-ui/CategorySearch';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CategorySearchThemeExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    const options = [
-      { text: 'China', value: 1 },
-      { text: 'UK', value: 2 },
-    ];
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginTop: '20px', marginLeft: '20px' }}>
-          <CategorySearch
-            categoryOptions={options}
-            category={1}
-            version="aui3"
-            theme="theme_dark"
-            placeholder="Please enter..."
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+const options = [
+  { text: 'China', value: 1 },
+  { text: 'UK', value: 2 },
+];
 
-ReactDOM.render(<CategorySearchThemeExample />, mountNode);
+// version 控制规范（如 'aui3'），theme 控制主题（如 'theme_dark'）
+<CategorySearch
+  categoryOptions={options}
+  category={1}
+  version="aui3"
+  theme="theme_dark"
+  placeholder="Please enter..."
+/>
 ```
 

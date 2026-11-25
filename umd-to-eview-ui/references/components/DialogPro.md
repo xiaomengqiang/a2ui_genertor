@@ -64,39 +64,19 @@ resize默认不开启，也不建议使用。开发人员应该合理的设置�
 
 ```jsx
 import DialogPro from 'eview-ui/DialogPro';
-import Button from 'eview-ui/Button';
-import TextField from 'eview-ui/TextField';
-import React, { useState } from 'react';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export const Demo = () => {
-  const [version, theme] = getDemoVersion();
-  const [height, setHeight] = useState(400);
-  const [open, setOpen] = useState(false);
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <div style={{ height: 50, width: 2400 }}>
-        <Button onClick={() => setOpen(true)} text='open dialog'/>
-        <DialogPro
-          isOpen={open}
-          onClose={() => setOpen(false)}
-          title={'Modal Dialog'}
-          modal={true}
-          resizable={true}
-          minSize={[600, 400]}
-          movable={false}
-        >
-          <div style={{height: height}}>
-            这是一个弹框
-          </div>
-        </DialogPro>
-      </div>
-    </ConfigProvider>
-  );
-};
-
-ReactDOM.render(<Demo />, mountNode);
+<DialogPro
+  isOpen={true} // 受控：onClose 中设为 false
+  onClose={(event) => {
+    // event: 关闭事件，需在此设 isOpen=false
+  }}
+  title="Modal Dialog"
+  modal={true} // 模态：按 AUI 规范不设 position，保持居中
+  resizable={true}
+  minSize={[600, 400]} // [宽, 高]，建议偶数
+  movable={false}
+>
+  <div style={{ height: 400 }}>这是一个弹框</div>
+</DialogPro>
 ```
 

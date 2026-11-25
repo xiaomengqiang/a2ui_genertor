@@ -63,365 +63,98 @@
 
 ```jsx
 import Spinner from "eview-ui/Spinner";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class SpinnerExample1 extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    let style = { marginRight: "50px" };
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px" }}>
-          <Spinner
-            value={50}
-            min={0}
-            max={100}
-            step={1}
-            label={"Default style"}
-            labelStyle={labelStyle}
-            style={style}
-          />
-          <Spinner
-            decTitle={"dec"}
-            incTitle={"inc"}
-            value={89}
-            min={1}
-            max={100}
-            step={2}
-            label={"Disabled Style"}
-            disabled={true}
-            labelStyle={labelStyle}
-            style={style}
-          />
-          <Spinner
-            value={3.14}
-            min={0}
-            max={100}
-            step={0.2}
-            precision={2}
-            label={"Precision style"}
-            labelStyle={labelStyle}
-            style={style}
-          />
-          <Spinner
-            value={1}
-            min={0}
-            max={100}
-            step={1}
-            label={"Min Max Cycle"}
-            labelStyle={labelStyle}
-            style={style}
-            minMaxCycle={true}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+const style = { marginRight: "50px" };
+const labelStyle = { display: "block", paddingLeft: "0px" };
 
-ReactDOM.render(<SpinnerExample1 />, mountNode);
+<>
+  <Spinner value={50} min={0} max={100} step={1} label={"Default style"} labelStyle={labelStyle} style={style} />
+  <Spinner decTitle={"dec"} incTitle={"inc"} value={89} min={1} max={100} step={2} label={"Disabled Style"} disabled={true} labelStyle={labelStyle} style={style} />
+  <Spinner value={3.14} min={0} max={100} step={0.2} precision={2} label={"Precision style"} labelStyle={labelStyle} style={style} />
+  <Spinner value={1} min={0} max={100} step={1} label={"Min Max Cycle"} labelStyle={labelStyle} style={style} minMaxCycle={true} />
+</>
 ```
 
 ### 事件处理
 
 ```jsx
 import Spinner from "eview-ui/Spinner";
-import DivMessage from "eview-ui/DivMessage";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class SpinnerExample2 extends React.Component {
-  state = {
-    msg: "",
-    value: 0,
-  };
-
-  handleChange = (value) => {
-    this.setState({ msg: "OnChange event callback : " + value, value: value });
-  };
-
-  onClickButton = (e) => {
-    this.setState({ msg: "getValue API : " + this.spinner.getValue() });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let buttonStyle = { marginLeft: "20px" };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px" }}>
-          <Spinner
-            label={"Event Callback:"}
-            onChange={this.handleChange}
-            value={this.state.value}
-            required
-            ref={(spinner) => {
-              this.spinner = spinner;
-            }}
-          />
-          <Button
-            text="getValue"
-            style={buttonStyle}
-            onClick={this.onClickButton}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "400px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<SpinnerExample2 />, mountNode);
+// value 受控：配合 onChange 更新；ref.getValue() 可取当前值
+<Spinner
+  label={"Event Callback:"}
+  value={0}
+  onChange={(value) => {
+    // value 为新值（非 event）
+  }}
+  required
+  ref={(spinner) => {
+    // spinner.getValue() 取当前值
+  }}
+/>
 ```
 
 ### 微调器类型时间演示
 
 ```jsx
 import Spinner from "eview-ui/Spinner";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class SpinnerTypeTime extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    let style = { marginRight: "50px" };
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <div style={{ marginLeft: "20px", display: "inline-block" }}>
-            <Spinner
-              type={"time"}
-              value={"12:00"}
-              timeFormat={"hh:mm"}
-              amPm={false}
-              label={"Time Format:hh:mm "}
-              labelStyle={labelStyle}
-              style={style}
-            />
-            <Spinner
-              type={"time"}
-              timeFormat={"hh:mm"}
-              value={"12:00"}
-              disabled={true}
-              amPm={true}
-              label={"Time Format:hh:mm Enable AM/PM "}
-              labelStyle={labelStyle}
-              style={style}
-            />
-          </div>
-          <div style={{ marginLeft: "20px", display: "inline-block" }}>
-            <Spinner
-              type={"time"}
-              timeFormat={"hh:mm:ss"}
-              amPm={false}
-              value={"15:33:26"}
-              label={"Time Format:hh:mm:ss "}
-              labelStyle={labelStyle}
-              style={style}
-            />
-            <Spinner
-              type={"time"}
-              timeFormat={"hh:mm:ss"}
-              amPm={true}
-              value={"11:33:26 AM"}
-              label={"Time Format:hh:mm:ss Enable AM/PM  "}
-              labelStyle={labelStyle}
-              style={style}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+const style = { marginRight: "50px" };
+const labelStyle = { display: "block", paddingLeft: "0px" };
 
-ReactDOM.render(<SpinnerTypeTime />, mountNode);
+// type="time": value 为时间字符串，timeFormat 控制格式，amPm 开启 12 小时制
+<>
+  <Spinner type={"time"} value={"12:00"} timeFormat={"hh:mm"} amPm={false} label={"Time Format:hh:mm "} labelStyle={labelStyle} style={style} />
+  <Spinner type={"time"} timeFormat={"hh:mm"} value={"12:00"} disabled={true} amPm={true} label={"Time Format:hh:mm Enable AM/PM "} labelStyle={labelStyle} style={style} />
+  <Spinner type={"time"} timeFormat={"hh:mm:ss"} amPm={false} value={"15:33:26"} label={"Time Format:hh:mm:ss "} labelStyle={labelStyle} style={style} />
+  <Spinner type={"time"} timeFormat={"hh:mm:ss"} amPm={true} value={"11:33:26 AM"} label={"Time Format:hh:mm:ss Enable AM/PM  "} labelStyle={labelStyle} style={style} />
+</>
 ```
 
 ### 微调器类型时间事件演示
 
 ```jsx
 import Spinner from "eview-ui/Spinner";
-import DivMessage from "eview-ui/DivMessage";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class SpinnerEventTypeTime extends React.Component {
-  state = {
-    msg: "",
-  };
-
-  handleChange = (value) => {
-    this.setState({ msg: "OnChange event callback : " + value, value: value });
-  };
-
-  onClickButton = (e) => {
-    this.setState({
-      msg: "getValue API : " + this.spinner.getValue(),
-      value: this.spinner.getValue(),
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let buttonStyle = { marginLeft: "20px" };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px" }}>
-          <Spinner
-            label={"Event Callback:"}
-            value={this.state.value}
-            onChange={this.handleChange}
-            required
-            type={"time"}
-            timeFormat={"hh:mm:ss"}
-            amPm={true}
-            ref={(spinner) => {
-              this.spinner = spinner;
-            }}
-          />
-          <Button
-            text="getValue"
-            style={buttonStyle}
-            onClick={this.onClickButton}
-          />
-
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "400px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<SpinnerEventTypeTime />, mountNode);
+// type="time": value 受控，onChange 回调首参为新值（非 event）
+<Spinner
+  label={"Event Callback:"}
+  value={"11:33:26 AM"}
+  onChange={(value) => {
+    // value 为新时间值
+  }}
+  required
+  type={"time"}
+  timeFormat={"hh:mm:ss"}
+  amPm={true}
+  ref={(spinner) => {
+    // spinner.getValue() 取当前值
+  }}
+/>
 ```
 
 ### 支持自定义前缀
 
 ```jsx
 import Spinner from "eview-ui/Spinner";
-import DivMessage from "eview-ui/DivMessage";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class SpinnerCustomPrefix extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      msg: "",
-      value: "D'8",
-      customPrefix: "D'",
-    };
-    this.prefixArr = ["D'", "H'"];
-  }
-
-  handleChange = (value) => {
-    this.setState({ msg: "OnChange event callback : " + value, value: value });
-  };
-
-  onClickButton = (e) => {
-    this.setState({
-      msg: "getValue API : " + this.spinner.getValue(),
-      value: this.spinner.getValue(),
-    });
-  };
-
-  handleCustomIncOrDecClick = (changeTag, direction, currentValue) => {
-    let customPrefix = currentValue.substr(0, 2);
-    let contentValue = currentValue.substr(2);
-
-    if (changeTag === "content") {
-      contentValue =
-        customPrefix === "D'"
-          ? parseInt(contentValue)
-          : parseInt(contentValue, 16);
-      contentValue += 1 * direction;
-      contentValue =
-        customPrefix === "D'" ? contentValue : contentValue.toString(16);
-    } else {
-      if (customPrefix === "D'") {
-        customPrefix = "H'";
-        contentValue = parseInt(contentValue).toString(16);
-      } else {
-        customPrefix = "D'";
-        contentValue = parseInt(contentValue, 16);
-      }
-    }
-    this.setState({
-      value: customPrefix + contentValue,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let buttonStyle = { marginLeft: "20px" };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <React.Fragment>
-        <ConfigProvider version={version} theme={theme}>
-          <br />
-          <div style={{ marginLeft: "20px" }}>
-            <Spinner
-              label={"Custom Prefix"}
-              value={this.state.value}
-              onChange={this.handleChange}
-              required
-              type={"customWithPrefixs"}
-              customPrefix={"H'"}
-              onCustomIncOrDecClick={this.handleCustomIncOrDecClick}
-              ref={(spinner) => {
-                this.spinner = spinner;
-              }}
-            />
-            <Button
-              text="getValue"
-              style={buttonStyle}
-              onClick={this.onClickButton}
-            />
-            {this.state.msg ? (
-              <DivMessage
-                text={this.state.msg}
-                type="success"
-                style={{ marginTop: "10px", width: "400px" }}
-              />
-            ) : (
-              ""
-            )}
-          </div>
-        </ConfigProvider>
-      </React.Fragment>
-    );
-  }
-}
-
-ReactDOM.render(<SpinnerCustomPrefix />, mountNode);
+// type="customWithPrefixs": 自定义前缀微调器
+// onCustomIncOrDecClick(changeTag, direction, currentValue)
+//   changeTag: "content"（调整数值）| "prefix"（切换前缀）；direction: +1/-1；currentValue: 当前完整值
+<Spinner
+  label={"Custom Prefix"}
+  value={"D'8"}
+  onChange={(value) => {
+    // value 为新值
+  }}
+  required
+  type={"customWithPrefixs"}
+  customPrefix={"H'"}
+  onCustomIncOrDecClick={(changeTag, direction, currentValue) => {
+    // 取 changeTag/direction/currentValue 计算新值并更新
+  }}
+  ref={(spinner) => {
+    // spinner.getValue() 取当前值
+  }}
+/>
 ```

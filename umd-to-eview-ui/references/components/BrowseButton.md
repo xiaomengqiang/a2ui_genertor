@@ -46,52 +46,14 @@ Click事件
 
 ```jsx
 import BrowseButton from "eview-ui/BrowseButton";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class BrowseButtonExample extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.clickCallBack = this.clickCallBack.bind(this);
-  }
-
-  state = {
-    msg1: "",
-    msg2: "",
-    msg3: "",
-  };
-
-  clickCallBack(e, value) {
-    this.setState({ msg1: "OnClick, value : " + value });
-    this.setState({ msg2: "" });
-    this.setState({ msg3: "" });
-  }
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <BrowseButton
-            onClick={this.clickCallBack}
-            placeHolder={"Click here to search"}
-            value={"d:\\"}
-          />
-          {this.state.msg1 ? (
-            <DivMessage text={this.state.msg1} type="success" />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<BrowseButtonExample />, mountNode);
+<BrowseButton
+  onClick={(event, value) => {
+    // value 是新值（非 event）
+  }}
+  placeHolder="Click here to search"
+  value={"d:\\"}
+/>
 ```
 
 ### Change事件
@@ -100,52 +62,14 @@ Change事件
 
 ```jsx
 import BrowseButton from "eview-ui/BrowseButton";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class BrowseButtonExample extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.onChange = this.onChange.bind(this);
-  }
-
-  state = {
-    msg1: "",
-    msg2: "",
-    msg3: "",
-  };
-
-  onChange(value, oldValue, e) {
-    this.setState({ msg1: "" });
-    this.setState({ msg2: "onChange, value : " + value });
-    this.setState({ msg3: "" });
-  }
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <BrowseButton
-            onChange={this.onChange}
-            inputDisabled={false}
-            inputStyle={{ width: "200px " }}
-          />
-          {this.state.msg2 ? (
-            <DivMessage text={this.state.msg2} type="success" />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<BrowseButtonExample />, mountNode);
+<BrowseButton
+  onChange={(newValue, oldValue, event) => {
+    // newValue 新值, oldValue 旧值
+  }}
+  inputDisabled={false}
+  inputStyle={{ width: "200px" }}
+/>
 ```
 
 ### 禁用
@@ -154,24 +78,8 @@ ReactDOM.render(<BrowseButtonExample />, mountNode);
 
 ```jsx
 import BrowseButton from "eview-ui/BrowseButton";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class BrowseButtonExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <BrowseButton label={"search"} buttonDisabled={true} />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-ReactDOM.render(<BrowseButtonExample />, mountNode);
+<BrowseButton label={"search"} buttonDisabled={true} />
 ```
 
 ### 失焦事件和用户指定的样式
@@ -180,55 +88,15 @@ ReactDOM.render(<BrowseButtonExample />, mountNode);
 
 ```jsx
 import BrowseButton from "eview-ui/BrowseButton";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class BrowseButtonExample extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.onBlur = this.onBlur.bind(this);
-  }
-
-  state = {
-    msg1: "",
-    msg2: "",
-    msg3: "",
-  };
-
-  onBlur(e) {
-    this.setState({ msg1: "" });
-    this.setState({ msg2: "" });
-    this.setState({ msg3: "onBlur, value : " + e.target.value });
-  }
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let inputStyle = { width: "400px" };
-    let buttonStyle = { width: "100px" };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <BrowseButton
-            label={"search"}
-            onBlur={this.onBlur}
-            inputStyle={inputStyle}
-            buttonStyle={buttonStyle}
-          />
-          {this.state.msg3 ? (
-            <DivMessage text={this.state.msg3} type="success" />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<BrowseButtonExample />, mountNode);
+<BrowseButton
+  label={"search"}
+  onBlur={(event) => {
+    // event.target.value 取值
+  }}
+  inputStyle={{ width: "400px" }}
+  buttonStyle={{ width: "100px" }}
+/>
 ```
 
 ### 自定义图标
@@ -237,42 +105,12 @@ ReactDOM.render(<BrowseButtonExample />, mountNode);
 
 ```jsx
 import BrowseButton from "eview-ui/BrowseButton";
-import homeIcon from "@images/home";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class BrowseButtonExample extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+const buttonStyle = {
+  backgroundImage: "url(home-icon-url)", // 图片 url
+  backgroundPosition: "center",
+  backgroundRepeat: "no-repeat",
+};
 
-  state = {
-    msg1: "",
-    msg2: "",
-    msg3: "",
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let buttonStyle = {
-      backgroundImage: `url(${homeIcon})`,
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",
-    };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <BrowseButton
-            value={"defaultValue"}
-            buttonStyle={buttonStyle}
-            label={""}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<BrowseButtonExample />, mountNode);
+<BrowseButton value={"defaultValue"} buttonStyle={buttonStyle} label={""} />
 ```

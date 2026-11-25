@@ -304,51 +304,24 @@ interface SubMenuProps extends Omit<
 
 ```jsx
 import Menu from "eview-ui/Menu";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const [version, theme] = getDemoVersion();
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <Menu style={{ width: 256, border: "1px solid #f0f0f0" }}>
-      <Menu.Item key="1">菜单项</Menu.Item>
-      <Menu.Item key="2">菜单项</Menu.Item>
-      <Menu.Divider />
-      <Menu.SubMenu key="3" title="打开">
-        <Menu.SubMenu key="4" title="打开">
-          <Menu.Item key="5">菜单项</Menu.Item>
-          <Menu.SubMenu key="6" title="打开">
-            <Menu.Item key="7">菜单项</Menu.Item>
-            <Menu.Item key="8">菜单项</Menu.Item>
-          </Menu.SubMenu>
-          <Menu.Item key="9">菜单项</Menu.Item>
-          <Menu.SubMenu key="10" title="打开">
-            <Menu.Item key="11">菜单项</Menu.Item>
-            <Menu.Item key="12">菜单项</Menu.Item>
-          </Menu.SubMenu>
-        </Menu.SubMenu>
-        <Menu.Item key="13">菜单项</Menu.Item>
-        <Menu.Item key="14">菜单项</Menu.Item>
-        <Menu.SubMenu key="15" title="打开15">
-          <Menu.Item key="16">菜单项</Menu.Item>
-          <Menu.SubMenu key="17" title="打开17">
-            <Menu.Item key="18">菜单项</Menu.Item>
-            <Menu.Item key="19">菜单项</Menu.Item>
-          </Menu.SubMenu>
-          <Menu.Item key="20">菜单项</Menu.Item>
-          <Menu.SubMenu key="21" title="打开21">
-            <Menu.Item key="22">菜单项</Menu.Item>
-            <Menu.Item key="23">菜单项</Menu.Item>
-          </Menu.SubMenu>
-        </Menu.SubMenu>
+<Menu style={{ width: 256, border: "1px solid #f0f0f0" }}>
+  <Menu.Item key="1">菜单项</Menu.Item>
+  <Menu.Item key="2">菜单项</Menu.Item>
+  <Menu.Divider />
+  <Menu.SubMenu key="3" title="打开">
+    <Menu.SubMenu key="4" title="打开">
+      <Menu.Item key="5">菜单项</Menu.Item>
+      <Menu.SubMenu key="6" title="打开">
+        <Menu.Item key="7">菜单项</Menu.Item>
+        <Menu.Item key="8">菜单项</Menu.Item>
       </Menu.SubMenu>
-      <Menu.Item key="24">菜单项</Menu.Item>
-      <Menu.Item key="25">菜单项</Menu.Item>
-    </Menu>
-  </ConfigProvider>,
-  mountNode,
-);
+      <Menu.Item key="9">菜单项</Menu.Item>
+    </Menu.SubMenu>
+    <Menu.Item key="13">菜单项</Menu.Item>
+  </Menu.SubMenu>
+  <Menu.Item key="24">菜单项</Menu.Item>
+</Menu>
 ```
 
 ### 小尺寸
@@ -357,49 +330,22 @@ ReactDOM.render(
 
 ```jsx
 import Menu from "eview-ui/Menu";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const [version, theme] = getDemoVersion();
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <Menu style={{ width: 256, border: "1px solid #f0f0f0" }} size="small">
-      <Menu.Item key="1">菜单项 1</Menu.Item>
-      <Menu.Item key="2">菜单项 2</Menu.Item>
-      <Menu.Divider />
-      <Menu.SubMenu key="3" title="打开 3">
-        <Menu.SubMenu key="4" title="打开 4">
-          <Menu.Item key="5">菜单项 5</Menu.Item>
-          <Menu.SubMenu key="6" title="打开 6">
-            <Menu.Item key="7">菜单项 7</Menu.Item>
-            <Menu.Item key="8">菜单项 8</Menu.Item>
-          </Menu.SubMenu>
-          <Menu.Item key="9">菜单项 9</Menu.Item>
-          <Menu.SubMenu key="10" title="打开 10">
-            <Menu.Item key="11">菜单项 11</Menu.Item>
-            <Menu.Item key="12">菜单项 12</Menu.Item>
-          </Menu.SubMenu>
-        </Menu.SubMenu>
-        <Menu.Item key="13">菜单项 13</Menu.Item>
-        <Menu.Item key="14">菜单项 14</Menu.Item>
-        <Menu.SubMenu key="15" title="打开 15">
-          <Menu.Item key="16">菜单项 16</Menu.Item>
-          <Menu.SubMenu key="17" title="打开 17">
-            <Menu.Item key="18">菜单项 18</Menu.Item>
-            <Menu.Item key="19">菜单项 19</Menu.Item>
-          </Menu.SubMenu>
-          <Menu.Item key="20">菜单项 20</Menu.Item>
-          <Menu.SubMenu key="21" title="打开 21">
-            <Menu.Item key="22">菜单项 22</Menu.Item>
-            <Menu.Item key="23">菜单项 23</Menu.Item>
-          </Menu.SubMenu>
-        </Menu.SubMenu>
+<Menu style={{ width: 256, border: "1px solid #f0f0f0" }} size="small">
+  <Menu.Item key="1">菜单项 1</Menu.Item>
+  <Menu.Item key="2">菜单项 2</Menu.Item>
+  <Menu.Divider />
+  <Menu.SubMenu key="3" title="打开 3">
+    <Menu.SubMenu key="4" title="打开 4">
+      <Menu.Item key="5">菜单项 5</Menu.Item>
+      <Menu.SubMenu key="6" title="打开 6">
+        <Menu.Item key="7">菜单项 7</Menu.Item>
+        <Menu.Item key="8">菜单项 8</Menu.Item>
       </Menu.SubMenu>
-      <Menu.Item key="24">菜单项</Menu.Item>
-      <Menu.Item key="25">菜单项</Menu.Item>
-    </Menu>
-  </ConfigProvider>,
-  mountNode,
-);
+      <Menu.Item key="9">菜单项 9</Menu.Item>
+    </Menu.SubMenu>
+    <Menu.Item key="13">菜单项 13</Menu.Item>
+  </Menu.SubMenu>
+  <Menu.Item key="24">菜单项</Menu.Item>
+</Menu>
 ```

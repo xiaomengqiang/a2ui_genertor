@@ -82,712 +82,152 @@
 ```jsx
 import SelectPro from "eview-ui/SelectPro";
 import Button from "eview-ui/Button";
-import navForm from "@images/nav_form";
-import navFormActive from "@images/nav_form_active";
-import navMsg from "@images/nav_msg";
-import navMsgActive from "@images/nav_msg_active";
-import navHeart from "@images/nav_heart";
-import navHeartActive from "@images/nav_heart_active";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-export default class SelectProExample extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      curValue: "",
-      curValue1: "",
-    };
-  }
-  onSelectGroup = (value) => {
-    this.setState({
-      curValue: value,
-    });
-  };
-  onSelectGroup1 = (value) => {
-    this.setState({
-      curValue1: value,
-    });
-  };
 
-  render() {
-    const blockStyle = {
-      marginRight: "3rem",
-    };
+const options = [
+  { text: "China is big country", value: "1" },
+  { text: "UK is small country", value: "2" },
+  { text: "USA", value: 3 },
+  { text: "USAB", value: 4 },
+  { text: "USAC", value: 5 },
+];
 
-    let options0 = [
-      { text: "China is big country", value: "1" },
-      { text: "UK is small country", value: "2" },
-      { text: "USA", value: 3 },
-      { text: "USAB", value: 4 },
-      { text: "USAC", value: 5 },
-      { text: "USAD", value: 6 },
-      { text: "USAE", value: 7 },
-      { text: "USAF", value: 8 },
-      { text: "USAG", value: 9 },
-      { text: "aa", value: 10 },
-      { text: "bb", value: 11 },
-      { text: "cc", value: 12 },
-      { text: "dd", value: 13 },
-      { text: "ee", value: 14 },
-    ];
+const navFormIcon = "nav_form"; // 图片 url
+const customizedOption = [
+  {
+    text: "Create",
+    value: 1,
+    node: (
+      <div>
+        <Button leftIcon={navFormIcon} size={"small"} style={{ padding: 0, border: 0, background: "transparent" }} />
+        <span>Create</span>
+      </div>
+    ),
+  },
+  {
+    text: "Export",
+    value: 2,
+    node: (
+      <div>
+        <Button leftIcon={navFormIcon} size={"small"} style={{ padding: 0, border: 0, background: "transparent" }} />
+        <span>Export</span>
+      </div>
+    ),
+  },
+];
 
-    const moreOptions = [];
-    for (let i = 15; i <= 10000; i++) {
-      moreOptions.push({
-        text: `val${i}`,
-        value: i,
-      });
-    }
-    options0 = options0.concat(moreOptions);
+{/* 受控组件：value 需配合 onChange 使用 */}
+<SelectPro options={options} value={""} onChange={(value) => { /* 取 value 更新 */ }} isVirtualScroll={true} />
 
-    const customizedOption = [
-      {
-        text: "Create",
-        value: 1,
-        node: (
-          <div>
-            <Button
-              leftIcon={navForm}
-              size={"small"}
-              leftIconProps={{
-                leftHoverIcon: navFormActive,
-              }}
-              style={{ padding: 0, border: 0, background: "transparent" }}
-            />
-            <span>Create</span>
-          </div>
-        ),
-      },
-      {
-        text: "Export",
-        value: 2,
-        node: (
-          <div>
-            <Button
-              leftIcon={navMsg}
-              size={"small"}
-              leftIconProps={{
-                leftHoverIcon: navMsgActive,
-              }}
-              style={{ padding: 0, border: 0, background: "transparent" }}
-            />
-            <span>Export</span>
-          </div>
-        ),
-      },
-      {
-        text: "Delete",
-        value: 3,
-        node: (
-          <div>
-            <Button
-              leftIcon={navHeart}
-              size={"small"}
-              leftIconProps={{
-                leftHoverIcon: navHeartActive,
-              }}
-              style={{ padding: 0, border: 0, background: "transparent" }}
-            />
-            <span>Delete</span>
-          </div>
-        ),
-      },
-    ];
+{/* required / popupDirection / placeholder */}
+<SelectPro options={options} required={true} value={""} onChange={(value) => { /* 取 value 更新 */ }} placeholder="请选择国家" popupDirection="top" />
 
-    const [version, theme] = getDemoVersion();
+{/* 自定义 option 渲染（node 字段）+ defaultValue */}
+<SelectPro options={customizedOption} defaultValue={1} />
 
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ display: "flex", flexWrap: "wrap" }}>
-          <div>
-            <div>基础功能:value需要配合onChange使用</div>
-            <SelectPro
-              options={options0}
-              value={this.state.curValue}
-              onChange={this.onSelectGroup}
-              isVirtualScroll={true}
-            />
-            <br />
-            <br />
-            <br />
-          </div>
-
-          <div style={blockStyle}>
-            <div>必填项 / 弹出方向 / 提示语</div>
-            <SelectPro
-              options={options0}
-              required={true}
-              value={this.state.curValue1}
-              onChange={this.onSelectGroup1}
-              placeholder="请选择国家"
-              popupDirection="top" // 当弹出方向空间不够时会自动切换到其他方向
-            />
-            <br />
-            <br />
-            <br />
-          </div>
-
-          <div style={blockStyle}>
-            <div>自定义Options / 默认值</div>
-            <SelectPro options={customizedOption} defaultValue={1} />
-            <br />
-            <br />
-            <br />
-          </div>
-
-          <div style={blockStyle}>
-            <div>disabled</div>
-            <SelectPro options={options0} disabled={true} />
-            <br />
-            <br />
-            <br />
-          </div>
-
-          <div style={blockStyle}>
-            <div>id / style / className添加</div>
-            <SelectPro
-              options={options0}
-              className="selectorClassName"
-              selectClassName="selectClassName"
-              dropdownClassName="dropdownClassName"
-              optionClassName="optionClassName"
-              style={{ width: "25rem" }}
-              isVirtualScroll={true}
-            />
-            <br />
-            <br />
-            <br />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<SelectProExample />, mountNode);
+{/* disabled */}
+<SelectPro options={options} disabled={true} />
 ```
 
 ### 事件处理
 
 ```jsx
 import SelectPro from "eview-ui/SelectPro";
-import Button from "eview-ui/Button";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class SelectEventExample extends React.Component {
-  state = {
-    msg: "",
-    selectedValue: "",
-    options: [
-      { text: "China", value: 1 },
-      { text: "UK", value: 2 },
-      { text: "USA", value: 3 },
-    ],
-  };
+const options = [
+  { text: "China", value: 1 },
+  { text: "UK", value: 2 },
+  { text: "USA", value: 3 },
+];
 
-  handleChange = (value) => {
-    this.setState({
-      msg: `OnChange Event Callback, Selected Value: ${value}`,
-      selectedValue: value,
-    });
-  };
-
-  handleClick = () => {
-    this.setState({ msg: `获取当前的值: ${this.state.selectedValue}` });
-  };
-
-  handleClickFocus = () => {
-    this.select.focus();
-  };
-
-  render() {
-    const buttonStyle = { marginLeft: "20px" };
-    const blockStyle = {
-      marginRight: "3rem",
-    };
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div
-          id="evu_Select_example"
-          style={{ marginLeft: "20px", minHeight: "80px" }}
-        >
-          <div style={blockStyle}>
-            <div>Event Callback</div>
-            <SelectPro
-              options={this.state.options}
-              ref={(select) => (this.select = select)}
-              value={this.state.selectedValue}
-              onChange={this.handleChange}
-            />
-            <Button
-              text="Value"
-              onClick={this.handleClick}
-              style={buttonStyle}
-            ></Button>
-            <Button
-              text="Focusing"
-              onClick={this.handleClickFocus}
-              style={buttonStyle}
-            ></Button>
-          </div>
-          <br />
-          <br />
-          <br />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "560px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<SelectEventExample />, mountNode);
+// value 受控；onChange 回调首参为选中值；ref.focus() 可聚焦
+<SelectPro
+  options={options}
+  ref={(select) => { /* select.focus() 聚焦 */ }}
+  value={1}
+  onChange={(value) => { /* 取 value 更新 */ }}
+/>
 ```
 
 ### 搜索
 
 ```jsx
 import SelectPro from "eview-ui/SelectPro";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class LazySelectExample extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      msg: "",
-      curValue1: "",
-      curValue2: [],
-    };
-    this.options = [
-      { text: "Afghanistan", value: 1 },
-      { text: "Albania", value: 2 },
-      { text: "Algeria", value: 3 },
-      { text: "Andorra", value: 4 },
-      { text: "Angola", value: 5 },
-      { text: "Anguilla", value: 6 },
-      { text: "Antigua & Barbuda", value: 7 },
-      { text: "Argentina", value: 8 },
-      { text: "Armenia", value: 9 },
-      { text: "Australia", value: 10 },
-      { text: "Austria", value: 11 },
-      { text: "Azerbaijan", value: 12 },
-      { text: "Bahamas", value: 13 },
-      { text: "Bahrain", value: 14 },
-      { text: "Bangladesh", value: 15 },
-      { text: "Barbados", value: 16 },
-      { text: "Belarus", value: 17 },
-      { text: "Belgium", value: 18 },
-      { text: "Belize", value: 19 },
-      { text: "Benin", value: 20 },
-      { text: "Bermuda", value: 21 },
-      { text: "Bhutan", value: 22 },
-      { text: "Bolivia", value: 23 },
-      { text: "Bosnia & Herzegovina", value: 24 },
-      { text: "Botswana", value: 25 },
-      { text: "Brazil", value: 26 },
-      { text: "Brunei Darussalam", value: 27 },
-      { text: "Bulgaria", value: 28 },
-      { text: "Burkina Faso", value: 29 },
-      { text: "Myanmar/Burma", value: 30 },
-      { text: "Burundi", value: 31 },
-      { text: "Cambodia", value: 32 },
-      { text: "Cameroon", value: 33 },
-      { text: "Canada", value: 34 },
-      { text: "Cape Verde", value: 35 },
-      { text: "Cayman Islands", value: 36 },
-      { text: "Central African Republic", value: 37 },
-      { text: "Chad", value: 38 },
-      { text: "Chile", value: 39 },
-      { text: "China", value: 40 },
-      { text: "Colombia", value: 41 },
-      { text: "Comoros", value: 42 },
-      { text: "Congo", value: 43 },
-      { text: "Costa Rica", value: 44 },
-      { text: "Croatia", value: 45 },
-      { text: "Cuba", value: 46 },
-      { text: "Cyprus", value: 47 },
-      { text: "Czech Republic", value: 48 },
-      { text: "Democratic Republic of the Congo", value: 49 },
-      { text: "Denmark", value: 50 },
-      { text: "Djibouti", value: 51 },
-      { text: "Dominican Republic", value: 52 },
-      { text: "Dominica", value: 53 },
-      { text: "Ecuador", value: 54 },
-      { text: "Egypt", value: 55 },
-      { text: "El Salvador", value: 56 },
-      { text: "Equatorial Guinea", value: 57 },
-      { text: "Eritrea", value: 58 },
-      { text: "Estonia", value: 59 },
-      { text: "Ethiopia", value: 60 },
-      { text: "Fiji", value: 61 },
-      { text: "Finland", value: 62 },
-      { text: "France", value: 63 },
-      { text: "French Guiana", value: 64 },
-      { text: "Gabon", value: 65 },
-      { text: "Gambia", value: 66 },
-      { text: "Georgia", value: 67 },
-      { text: "Germany", value: 68 },
-      { text: "Ghana", value: 69 },
-      { text: "Great Britain", value: 70 },
-      { text: "Greece", value: 71 },
-      { text: "Grenada", value: 72 },
-      { text: "Guadeloupe", value: 73 },
-      { text: "Guatemala", value: 74 },
-      { text: "Guinea", value: 75 },
-      { text: "Guinea-Bissau", value: 76 },
-      { text: "Guyana", value: 77 },
-      { text: "Haiti", value: 78 },
-      { text: "Honduras", value: 79 },
-      { text: "Hungary", value: 80 },
-      { text: "Iceland", value: 81 },
-      { text: "India", value: 82 },
-      { text: "Indonesia", value: 83 },
-      { text: "Iran", value: 84 },
-      { text: "Iraq", value: 85 },
-      { text: "Israel and the Occupied Territories", value: 86 },
-      { text: "Italy", value: 87 },
-      { text: "Ivory Coast (Cote d'Ivoire)", value: 88 },
-      { text: "Jamaica", value: 89 },
-      { text: "Japan", value: 90 },
-      { text: "Jordan", value: 91 },
-      { text: "Kazakhstan", value: 92 },
-      { text: "Kenya", value: 93 },
-      { text: "Kosovo", value: 94 },
-      { text: "Kuwait", value: 95 },
-      { text: "Kyrgyz Republic (Kyrgyzstan)", value: 96 },
-      { text: "Laos", value: 97 },
-      { text: "Latvia", value: 98 },
-      { text: "Lebanon", value: 99 },
-      { text: "Lesotho", value: 100 },
-      { text: "Liberia", value: 101 },
-      { text: "Libya", value: 102 },
-      { text: "Liechtenstein", value: 103 },
-      { text: "Lithuania", value: 104 },
-      { text: "Luxembourg", value: 105 },
-      { text: "Republic of Macedonia", value: 106 },
-      { text: "Madagascar", value: 107 },
-      { text: "Malawi", value: 108 },
-      { text: "Malaysia", value: 109 },
-      { text: "Maldives", value: 110 },
-      { text: "Mali", value: 111 },
-      { text: "Malta", value: 112 },
-      { text: "Martinique", value: 113 },
-      { text: "Mauritania", value: 114 },
-      { text: "Mauritius", value: 115 },
-      { text: "Mayotte", value: 116 },
-      { text: "Mexico", value: 117 },
-      { text: "Moldova", value: 118 },
-      { text: "Mongolia", value: 119 },
-    ];
-  }
+const options = [
+  { text: "Afghanistan", value: 1 },
+  { text: "Albania", value: 2 },
+  { text: "Algeria", value: 3 },
+  { text: "Andorra", value: 4 },
+  { text: "Angola", value: 5 },
+  { text: "Anguilla", value: 6 },
+];
 
-  handleChange1 = (value) => {
-    console.log("handleChange1触发", value);
-    this.setState({ curValue1: value, msg: "onChange1: " + value });
-  };
+{/* mode="singleSearch": 单选带搜索；onInputChange 回调首参为输入值 */}
+<SelectPro
+  mode="singleSearch"
+  options={options}
+  value={""}
+  onChange={(value) => { /* 取 value 更新 */ }}
+  onInputChange={(value) => { /* value 为搜索框输入值 */ }}
+  isVirtualScroll={true}
+/>
 
-  handleInputChange1 = (value, e) => {
-    this.setState({ curValue1: value, msg: "handleInputChange1: " + value });
-  };
-
-  handleChange2 = (value) => {
-    this.setState({ curValue2: value, msg: "onChange2: " + value });
-  };
-
-  handleInputChange2 = (value, e) => {
-    this.setState({ msg: "handleInputChange2: " + value });
-  };
-
-  render() {
-    const blockStyle = {
-      marginRight: "3rem",
-    };
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ display: "flex", flexWrap: "wrap" }}>
-          <div style={blockStyle}>
-            <div>单选带搜索</div>
-            <SelectPro
-              mode="singleSearch"
-              options={this.options}
-              value={this.state.curValue1}
-              onChange={this.handleChange1}
-              onInputChange={this.handleInputChange1}
-              isVirtualScroll={true}
-            />
-          </div>
-
-          <div style={blockStyle}>
-            <div>多选带搜索</div>
-            <SelectPro
-              mode="multiSearch"
-              options={this.options}
-              value={this.state.curValue2}
-              onChange={this.handleChange2}
-              onInputChange={this.handleInputChange2}
-              enableCloseIcon
-              isVirtualScroll={true}
-            />
-          </div>
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "560px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<LazySelectExample />, mountNode);
+{/* mode="multiSearch": 多选带搜索；value 为选中值数组 */}
+<SelectPro
+  mode="multiSearch"
+  options={options}
+  value={[]}
+  onChange={(value) => { /* value: 选中值数组 */ }}
+  onInputChange={(value) => { /* value 为搜索框输入值 */ }}
+  enableCloseIcon
+  isVirtualScroll={true}
+/>
 ```
 
 ### 多选
 
 ```jsx
 import SelectPro from "eview-ui/SelectPro";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class LazySelectExample extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      curValue1: [],
-      curValue2: ["1", "2", "3", "4", "5", "6"],
-      curValue3: [],
-      selectedValue: [9, 10, 11],
-    };
-    this.selRef = null;
-    this.options1 = [
-      { text: "Armenia", value: "1" },
-      { text: "Australia", value: "2" },
-      { text: "Austria", value: "3" },
-      { text: "Azerbaijan", value: "4" },
-      { text: "Bahamas", value: "5" },
-      { text: "Bahrain", value: "6" },
-    ];
-    this.defaultValue1 = ["1", "2"];
-    this.options = [
-      { text: "Afghanistan", value: 1 },
-      { text: "Albania", value: 2 },
-      { text: "Algeria", value: 3 },
-      { text: "Andorra", value: 4 },
-      { text: "Angola", value: 5 },
-      { text: "Anguilla", value: 6 },
-      { text: "Antigua & Barb", value: 7 },
-      { text: "Argentina", value: 8 },
-      { text: "Armenia", value: 9 },
-      { text: "Australia", value: 10 },
-      { text: "Austria", value: 11 },
-      { text: "Azerbaijan", value: 12 },
-      { text: "Bahamas", value: 13 },
-      { text: "Bahrain", value: 14 },
-      { text: "Bangladesh", value: 15 },
-      { text: "Barbados", value: 16 },
-      { text: "Belarus", value: 17 },
-      { text: "Belgium", value: 18 },
-      { text: "Belize", value: 19 },
-      { text: "Benin", value: 20 },
-      { text: "Bermuda", value: 21 },
-      { text: "Bhutan", value: 22 },
-      { text: "Bolivia", value: 23 },
-      { text: "Bosnia & Herzegovina", value: 24 },
-      { text: "Botswana", value: 25 },
-      { text: "Brazil", value: 26 },
-      { text: "Brunei Darussalam", value: 27 },
-      { text: "Bulgaria", value: 28 },
-      { text: "Burkina Faso", value: 29 },
-      { text: "Myanmar/Burma", value: 30 },
-      { text: "Burundi", value: 31 },
-      { text: "Cambodia", value: 32 },
-      { text: "Cameroon", value: 33 },
-      { text: "Canada", value: 34 },
-      { text: "Cape Verde", value: 35 },
-      { text: "Cayman Islands", value: 36 },
-      { text: "Central African Republic", value: 37 },
-      { text: "Chad", value: 38 },
-      { text: "Chile", value: 39 },
-      { text: "China", value: 40 },
-      { text: "Colombia", value: 41 },
-      { text: "Comoros", value: 42 },
-      { text: "Congo", value: 43 },
-      { text: "Costa Rica", value: 44 },
-      { text: "Croatia", value: 45 },
-      { text: "Cuba", value: 46 },
-      { text: "Cyprus", value: 47 },
-      { text: "Czech Republic", value: 48 },
-      { text: "Democratic Republic of the Congo", value: 49 },
-      { text: "Denmark", value: 50 },
-      { text: "Djibouti", value: 51 },
-      { text: "Dominican Republic", value: 52 },
-      { text: "Dominica", value: 53 },
-      { text: "Ecuador", value: 54 },
-      { text: "Egypt", value: 55 },
-      { text: "El Salvador", value: 56 },
-      { text: "Equatorial Guinea", value: 57 },
-      { text: "Eritrea", value: 58 },
-      { text: "Estonia", value: 59 },
-      { text: "Ethiopia", value: 60 },
-      { text: "Fiji", value: 61 },
-      { text: "Finland", value: 62 },
-      { text: "France", value: 63 },
-      { text: "French Guiana", value: 64 },
-      { text: "Gabon", value: 65 },
-      { text: "Gambia", value: 66 },
-      { text: "Georgia", value: 67 },
-      { text: "Germany", value: 68 },
-      { text: "Ghana", value: 69 },
-      { text: "Great Britain", value: 70 },
-      { text: "Greece", value: 71 },
-      { text: "Grenada", value: 72 },
-      { text: "Guadeloupe", value: 73 },
-      { text: "Guatemala", value: 74 },
-      { text: "Guinea", value: 75 },
-      { text: "Guinea-Bissau", value: 76 },
-      { text: "Guyana", value: 77 },
-      { text: "Haiti", value: 78 },
-      { text: "Honduras", value: 79 },
-      { text: "Hungary", value: 80 },
-      { text: "Iceland", value: 81 },
-      { text: "India", value: 82 },
-      { text: "Indonesia", value: 83 },
-      { text: "Iran", value: 84 },
-      { text: "Iraq", value: 85 },
-      { text: "Israel and the Occupied Territories", value: 86 },
-      { text: "Italy", value: 87 },
-      { text: "Ivory Coast (Cote d'Ivoire)", value: 88 },
-      { text: "Jamaica", value: 89 },
-      { text: "Japan", value: 90 },
-      { text: "Jordan", value: 91 },
-      { text: "Kazakhstan", value: 92 },
-      { text: "Kenya", value: 93 },
-      { text: "Kosovo", value: 94 },
-      { text: "Kuwait", value: 95 },
-      { text: "Kyrgyz Republic (Kyrgyzstan)", value: 96 },
-      { text: "Laos", value: 97 },
-      { text: "Latvia", value: 98 },
-      { text: "Lebanon", value: 99 },
-      { text: "Lesotho", value: 100 },
-      { text: "Liberia", value: 101 },
-      { text: "Libya", value: 102 },
-      { text: "Liechtenstein", value: 103 },
-      { text: "Lithuania", value: 104 },
-      { text: "Luxembourg", value: 105 },
-      { text: "Republic of Macedonia", value: 106 },
-      { text: "Madagascar", value: 107 },
-      { text: "Malawi", value: 108 },
-      { text: "Malaysia", value: 109 },
-      { text: "Maldives", value: 110 },
-      { text: "Mali", value: 111 },
-      { text: "Malta", value: 112 },
-      { text: "Martinique", value: 113 },
-      { text: "Mauritania", value: 114 },
-      { text: "Mauritius", value: 115 },
-      { text: "Mayotte", value: 116 },
-      { text: "Mexico", value: 117 },
-      { text: "Moldova", value: 118 },
-      { text: "Mongolia", value: 119 },
-    ];
-  }
+const options1 = [
+  { text: "Armenia", value: "1" },
+  { text: "Australia", value: "2" },
+  { text: "Austria", value: "3" },
+  { text: "Azerbaijan", value: "4" },
+  { text: "Bahamas", value: "5" },
+  { text: "Bahrain", value: "6" },
+];
 
-  handleChange1 = (value) => {
-    this.setState({ curValue1: value });
-  };
+{/* mode="multiple": 多选，value 为选中值数组 */}
+<SelectPro
+  mode="multiple"
+  options={options1}
+  value={[]}
+  onChange={(value) => { /* value: 选中值数组 */ }}
+/>
 
-  handleChange2 = (value) => {
-    this.setState({ curValue2: value });
-  };
+{/* delimiter: 多选展示分隔符；selectAll: 全选 */}
+<SelectPro
+  mode="multiple"
+  options={options1}
+  delimiter="~"
+  selectAll
+  value={["1", "2", "3"]}
+  onChange={(value) => { /* value: 选中值数组 */ }}
+  isVirtualScroll
+  tipMaxHeight={200}
+  inputTextDisplayLimit={1000}
+/>
 
-  handleChange3 = (value) => {
-    this.setState({ curValue3: value });
-  };
-
-  render() {
-    const blockStyle = {
-      marginRight: "3rem",
-    };
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ display: "flex", flexWrap: "wrap" }}>
-          <div style={blockStyle}>
-            <div>基础功能</div>
-            <SelectPro
-              mode="multiple"
-              options={this.options1}
-              value={this.state.curValue1}
-              onChange={this.handleChange1}
-            />
-            <br />
-            <br />
-            <br />
-            <br />
-          </div>
-
-          <div style={blockStyle}>
-            <div>delimiter, selectAll</div>
-            <SelectPro
-              mode="multiple"
-              options={this.options}
-              delimiter="~"
-              selectAll
-              value={this.state.curValue2}
-              onChange={this.handleChange2}
-              isVirtualScroll
-              tipMaxHeight={200}
-              inputTextDisplayLimit={1000}
-            />
-            <br />
-            <br />
-            <br />
-            <br />
-          </div>
-
-          <div style={blockStyle}>
-            <div>enableCloseIcon / defaultValue</div>
-            <SelectPro
-              mode="multiple"
-              options={this.options1}
-              enableCloseIcon
-              defaultValue={this.defaultValue1}
-              value={this.state.curValue3}
-              onChange={this.handleChange3}
-            />
-            <br />
-            <br />
-            <br />
-            <br />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<LazySelectExample />, mountNode);
+{/* enableCloseIcon + defaultValue（非受控初始值） */}
+<SelectPro
+  mode="multiple"
+  options={options1}
+  enableCloseIcon
+  defaultValue={["1", "2"]}
+  value={[]}
+  onChange={(value) => { /* value: 选中值数组 */ }}
+/>
 ```
 
 ### 校验
@@ -795,79 +235,26 @@ ReactDOM.render(<LazySelectExample />, mountNode);
 ```jsx
 import SelectPro from "eview-ui/SelectPro";
 import Tooltip from "eview-ui/Tooltip";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class LazySelectExample extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      curValue: [],
-      showTip: false,
-    };
-    this.timer;
-    this.options1 = [
-      { text: "Armenia", value: 9 },
-      { text: "Australia", value: 10 },
-      { text: "Austria", value: 11 },
-      { text: "Azerbaijan", value: 12 },
-      { text: "Bahamas", value: 13 },
-      { text: "Bahrain", value: 14 },
-    ];
-  }
+const options = [
+  { text: "Armenia", value: 9 },
+  { text: "Australia", value: 10 },
+  { text: "Austria", value: 11 },
+  { text: "Azerbaijan", value: 12 },
+  { text: "Bahamas", value: 13 },
+  { text: "Bahrain", value: 14 },
+];
 
-  handleOnChange = (value) => {
-    if (value.length > 3) {
-      this.setState({
-        showTip: true,
-      });
-      this.timer && clearTimeout(this.timer);
-      this.timer = setTimeout(
-        function () {
-          this.setState({
-            showTip: false,
-          });
-        }.bind(this),
-        2000,
-      );
-    } else {
-      this.setState({
-        curValue: value,
-        showTip: false,
-      });
-    }
-  };
-
-  render() {
-    const blockStyle = {
-      marginRight: "3rem",
-    };
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ display: "flex", flexWrap: "wrap" }}>
-          <div style={blockStyle}>
-            <div>校验功能</div>
-            <Tooltip content="选中项不能大于3个" visible={this.state.showTip}>
-              <SelectPro
-                mode="multiple"
-                options={this.options1}
-                selectAll
-                value={this.state.curValue}
-                onChange={this.handleOnChange}
-              />
-            </Tooltip>
-            <br />
-            <br />
-            <br />
-            <br />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<LazySelectExample />, mountNode);
+// 用 Tooltip 包裹做自定义校验提示：onChange 中判断后控制 Tooltip visible
+<Tooltip content="选中项不能大于3个" visible={false}>
+  <SelectPro
+    mode="multiple"
+    options={options}
+    selectAll
+    value={[]}
+    onChange={(value) => {
+      // value: 选中值数组；超 3 个时置 showTip=true 提示
+    }}
+  />
+</Tooltip>
 ```

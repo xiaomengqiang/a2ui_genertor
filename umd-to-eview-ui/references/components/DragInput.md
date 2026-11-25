@@ -54,62 +54,43 @@
 
 ```jsx
 import DragInput from 'eview-ui/DragInput';
-import PageMessage from 'eview-ui/PageMessage';
-import Button from 'eview-ui/Button';
-import LabelField from 'eview-ui/LabelField';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class DragInputDemo extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    const param1 = {
-      markIndexes:[15,16,17,18,19,20],
-      selectMax:17,
-      unit: "GB",
-      value:[15],
-      style:{width:'700px'},
-      max: 20,
-      min:15,
-      precision: 1
-    };
+// type: "single"（数值选择器）/ "range"（区间选择器）；value 永远是数组；markIndexes 要递增
+<DragInput
+  label="Numerical selector"
+  type="single"
+  markIndexes={[15, 16, 17, 18, 19, 20]} // 数字数组，需递增
+  unit="GB"
+  value={[15]} // single 默认 [min]
+  max={20}
+  min={15}
+  precision={1}
+  style={{ width: '700px' }}
+/>
 
-    const param2 = {
-      type:"range",
-      value:[10,15],
-      markIndexes:[10,20],
-      unit: "m",
-      max: 20,
-      min:10,
-      precision: 2
-    };
-    const param3 = {
-      type:"range",
-      value:[10,15],
-      markIndexes:[10,20],
-      unit: "m",
-      max: 20,
-      min:10,
-      displayInput:false,
-      precision: 2
-    };
+<DragInput
+  label="Interval selector"
+  type="range"
+  value={[10, 15]} // range 默认 [min, min]
+  markIndexes={[10, 20]}
+  unit="m"
+  max={20}
+  min={10}
+  precision={2}
+/>
 
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{padding: "20px"}}>
-          <DragInput {...param3} label={"Numerical selector"}/>
-          <DragInput {...param1} label={"Numerical selector"}/>
-          <br/>
-          <DragInput {...param2} label={"Interval selector"}/>
-        </div>
-      </ConfigProvider>
-    )
-  }
-}
-
-ReactDOM.render(<DragInputDemo />, mountNode);
-
+// displayInput: false 隐藏输入框
+<DragInput
+  label="Interval selector"
+  type="range"
+  value={[10, 15]}
+  markIndexes={[10, 20]}
+  unit="m"
+  max={20}
+  min={10}
+  displayInput={false}
+  precision={2}
+/>
 ```
 
 ### 动态更新
@@ -118,75 +99,23 @@ Dyanamic Updating the Values
 
 ```jsx
 import DragInput from 'eview-ui/DragInput';
-import DivMessage from 'eview-ui/DivMessage';
-import Button from 'eview-ui/Button';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-
-export default class DragSelectorDemo extends React.Component {
-  state = {
-    msg: "",
-    value:[10,12]
-  };
-  onChange = (value, changeValue)=> {
-
-    this.setState({
-      msg: "The currently selected value for the onChange event is " + value[0]+" max:"+value[1],
-      value:this.state.value
-    })
-  };
-
-
-  getValue = ()=> {
-    let value = this.dragSelect.getValue();
-    this.setState({
-      msg: <div>Call the getValue interface, the current selected value is<br/> min: {value[0]} max:{value[1]}</div>,
-      value:this.state.value
-    })
-  };
-  handleClick = () => {
-      let minVal = this.state.value[0] == 18 ? 10 : this.state.value[0]+1;
-      let maxVal = this.state.value[1] == 20 ? 12 : this.state.value[1]+1;
-      this.setState({value:[minVal, maxVal]});
-  }
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const {
-      id,
-      ...other
-      } = this.props;
-
-    const param1 = {
-      type:"range",
-      value:this.state.value,
-      unit: "MB",
-      step:1,
-      min:10,
-      max: 20,
-      markIndexes:[10,20],
-      precision: 2,
-      onChange: this.onChange,
-    };
-    let msg = this.state.msg ?
-      <DivMessage text={this.state.msg}  type="success" style={{width:"100%"}}/> : "";
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{padding:"20px"}}>
-          <DragInput {...param1} ref={(dragSelect)=>{this.dragSelect =dragSelect}}/><br/>
-          <Button text={"Value"} onClick={this.getValue} style={{marginBottom:"10px", marginRight:"10px"}}/>
-          <Button text = "Update Value" style = { {marginBottom: '20px'} } onClick = { this.handleClick } />
-          {msg}
-        </div>
-      </ConfigProvider>
-    )
-  }
-}
-
-ReactDOM.render(<DragSelectorDemo />, mountNode);
-
+// 受控 value（数组）；onChange(value, changeValue)：value 是选中值数组
+<DragInput
+  type="range"
+  value={[10, 12]}
+  unit="MB"
+  min={10}
+  max={20}
+  markIndexes={[10, 20]} // 数字数组，需递增
+  precision={2}
+  onChange={(value, changeValue) => {
+    // value 当前选中值数组，changeValue 本次改变的值
+  }}
+  ref={(dragSelect) => {
+    // dragSelect.getValue() 返回选中值数组
+  }}
+/>
 ```
 
 ### 事件处理
@@ -195,67 +124,20 @@ ReactDOM.render(<DragSelectorDemo />, mountNode);
 
 ```jsx
 import DragInput from 'eview-ui/DragInput';
-import DivMessage from 'eview-ui/DivMessage';
-import Button from 'eview-ui/Button';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-
-export default class DragSelectorDemo extends React.Component {
-  state = {
-    msg: "",
-    value:[0,5]
-  };
-  onChange = (value, changeValue)=> {
-
-    this.setState({
-      msg: "The currently selected value for the onChange event is " + value[0]+" max:"+value[1],
-      value:this.state.value
-    })
-  };
-
-
-  getValue = ()=> {
-    let value = this.dragSelect.getValue();
-    this.setState({
-      msg: <div>Call the getValue interface, the current selected value is<br/> min: {value[0]} max:{value[1]}</div>,
-      value:this.state.value
-    })
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const {
-      id,
-      ...other
-      } = this.props;
-
-    const param1 = {
-      type:"range",
-      value:this.state.value,
-      unit: "MB",
-      step:1,
-      max: 20,
-      markIndexes:[0,10,20],
-      precision: 2,
-      onChange: this.onChange,
-    };
-    let msg = this.state.msg ?
-      <DivMessage text={this.state.msg}  type="success" style={{width:"100%"}}/> : "";
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{padding:"20px"}}>
-          <DragInput {...param1} ref={(dragSelect)=>{this.dragSelect =dragSelect}}/><br/>
-          <Button text={"Value"} onClick={this.getValue} style={{marginBottom:"10px"}}/>
-          {msg}
-        </div>
-      </ConfigProvider>
-    )
-  }
-}
-
-ReactDOM.render(<DragSelectorDemo />, mountNode);
-
+// onChange(value, changeValue)：value 是选中值数组（含所有选中项）
+<DragInput
+  type="range"
+  value={[0, 5]}
+  unit="MB"
+  max={20}
+  markIndexes={[0, 10, 20]} // 数字数组，需递增
+  precision={2}
+  onChange={(value, changeValue) => {
+    // value 当前选中值数组，changeValue 本次改变的值
+  }}
+  ref={(dragSelect) => {
+    // dragSelect.getValue() 返回选中值数组
+  }}
+/>
 ```
-

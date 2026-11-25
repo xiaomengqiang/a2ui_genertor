@@ -130,125 +130,27 @@ export type PopUpProps = Partial<PopUp>;
 
 ```jsx
 import Popup from 'eview-ui/Popup';
-import Button from 'eview-ui/Button';
-import { getIconBase64 } from "@/shared/SvgIcon";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class DropDownExample extends React.Component {
+const data = [
+  { text: "Create", tipData: "defineCreate", value: 1, icon: "create-icon-url", iconActive: "create-icon-active-url" }, // icon/iconActive: 图标 url
+  { text: "Export", value: 2, icon: "export-icon-url", iconActive: "export-icon-active-url" },
+  { text: "Delete", value: 3, icon: "delete-icon-url", iconActive: "delete-icon-active-url" },
+];
 
-  state = {
-    isShow1: false,
-    isShow2: false,
-    value: null,
-    iconsSvg: {},
-  };
+<Popup
+  data={data}
+  value={null}
+  display={true} // 受控：由外部切换，onItemClick 中设为 false
+  popupDirection="bottom"
+  onItemClick={(item, e) => {
+    // item: 下拉项数据对象, e: 原生鼠标事件
+  }}
+/>
 
-  componentDidMount() {
-    let alive = true;
-    // data[].icon/iconActive 收 string（base64 data URL），用 getIconBase64 异步预载
-    Promise.all([
-      getIconBase64("plus", { size: 16 }).then(url => ["plus", url]),
-      getIconBase64("plus", { size: 16, color: "#2E86DE" }).then(url => ["plusActive", url]),
-      getIconBase64("del", { size: 16 }).then(url => ["del", url]),
-      getIconBase64("del", { size: 16, color: "#2E86DE" }).then(url => ["delActive", url]),
-      getIconBase64("back", { size: 16 }).then(url => ["exportImg", url]),
-      getIconBase64("back", { size: 16, color: "#2E86DE" }).then(url => ["exportImgActive", url]),
-    ]).then(entries => {
-      if (!alive) return;
-      const iconsSvg = Object.fromEntries(entries.filter(([, url]) => url));
-      this.setState({ iconsSvg });
-    });
-    return () => { alive = false; };
-  }
-
-  handleClick1 = () => {
-    if (this.state.isShow1) {
-      this.setState({ isShow1: false })
-    } else {
-      this.setState({ isShow1: true })
-    }
-  };
-  handleItemClick1 = (item) => {
-    this.setState({ isShow1: false, value: item.value })
-  };
-  handleClick2 = () => {
-    if (this.state.isShow2) {
-      this.setState({ isShow2: false })
-    } else {
-      this.setState({ isShow2: true })
-    }
-  };
-  handleItemClick2 = (item) => {
-    this.setState({ isShow2: false, value: item.value })
-  };
-
-  render() {
-    const { iconsSvg } = this.state;
-    const [version, theme] = getDemoVersion();
-    let options1 = [
-      {
-        text: "Create", tipData: "defineCreate", value: 1, icon: iconsSvg.plus, iconActive: iconsSvg.plusActive
-      },
-      {
-        text: "Export", value: 2, icon: iconsSvg.exportImg, iconActive: iconsSvg.exportImgActive
-      },
-      {
-        text: "Delete", value: 3, icon: iconsSvg.del, iconActive: iconsSvg.delActive
-      },
-      {
-        text: "push", value: 4, icon: iconsSvg.del, iconActive: iconsSvg.delActive
-      },
-      {
-        text: "pop", value: 5, icon: iconsSvg.del, iconActive: iconsSvg.delActive
-      },
-      {
-        text: "remove", value: 6, icon: iconsSvg.del, iconActive: iconsSvg.delActive
-      },
-      {
-        text: "add", value: 7, icon: iconsSvg.del, iconActive: iconsSvg.delActive
-      },
-      {
-        text: "multi", value: 8, icon: iconsSvg.del, iconActive: iconsSvg.delActive
-      },
-      {
-        text: "common", value: 9, icon: iconsSvg.del, iconActive: iconsSvg.delActive
-      }
-    ];
-    let options2 = [
-      {
-        text: "CreateenablHorzScrollenablHorzScroll", value: 11, icon: iconsSvg.plus, iconActive: iconsSvg.plusActive
-      },
-      {
-        text: "Export", value: 12, icon: iconsSvg.exportImg, iconActive: iconsSvg.exportImgActive
-      },
-      {
-        text: "Delete", value: 13, icon: iconsSvg.del, iconActive: iconsSvg.delActive
-      }
-    ];
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div id="eui_Select_example" style={{width: "480px", height: "200px"}}>
-          <Button text="Show/Hide Popup" style={{marginBottom: "5px"}} onClick={this.handleClick1}/>
-          <Button text="Show/Hide Popup with Scroll" style={{marginBottom: "5px", float: "right"}}
-                  onClick={this.handleClick2}/>
-
-          <div id="eui_Select_example1" style={{position: "relative", width: "200px"}}>
-            <Popup data={options1} value={this.state.value} display={this.state.isShow1}
-                   onItemClick={this.handleItemClick1}/>
-          </div>
-
-          <div id="eui_Select_example2" style={{position: "relative", width: "220px", height: "1px", float: "right"}}>
-            <Popup data={options2} value={this.state.value} display={this.state.isShow2}
-                   onItemClick={this.handleItemClick2} enablHorzScroll={true}/>
-          </div>
-        </div>
-      </ConfigProvider>
-    )
-  }
-}
-
-ReactDOM.render(<DropDownExample />, mountNode);
-
+<Popup
+  data={data}
+  display={true}
+  enablHorzScroll // 横向滚动条（注意源码拼写：enablHorzScroll）
+/>
 ```
 

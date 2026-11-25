@@ -248,626 +248,152 @@ interface MultipleSelectPopUp {
 
 ```jsx
 import MultipleSelect from "eview-ui/MultipleSelect";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class MultipleSelectDemo extends React.Component {
-  onChange = (value, changeValue) => {
-    console.log("selected values:", value);
-    console.log("changed value:", changeValue);
-  };
+const onChange = (value, changeValue, event) => {
+  // value 是选中值数组, changeValue 是本次变更项
+};
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    const param1 = {
-      onChange: this.onChange,
-      disabled: false,
-      label: "Default Style",
-      labelStyle: { display: "block" },
-      value: ["1", "2"],
-      style: { margin: "20px" },
-      inputStyle: { width: "670px" },
-      isVirtualScroll: true,
-      options: [
-        {
-          value: "1",
-          text: "The internet",
-        },
-        {
-          value: "2",
-          text: "Network",
-        },
-        {
-          value: "3",
-          text: "item 03",
-        },
-        {
-          value: "4",
-          text: "item 04",
-        },
-        {
-          value: "5",
-          text: "item 05",
-          optionStyle: { color: "red" },
-          optionClassName: "customName",
-        },
-        {
-          value: "6",
-          text: "item 06",
-        },
-        {
-          value: "7",
-          text: "item 07",
-        },
-        {
-          value: "8",
-          text: "item 08",
-        },
-        {
-          value: "9",
-          text: "item 09",
-        },
-        {
-          value: "10",
-          text: "item 10",
-        },
-        {
-          value: "11",
-          text: "item 11",
-        },
-        {
-          value: "12",
-          text: "item 12",
-        },
-        {
-          value: "13",
-          text: "item 13",
-        },
-        {
-          value: "14",
-          text: "item 14",
-        },
-        {
-          value: "15",
-          text: "item 15",
-        },
-        {
-          value: "16",
-          text: "item 16",
-        },
-        {
-          value: "17",
-          text: "item 17",
-        },
-        {
-          value: "18",
-          text: "item 18",
-        },
-        {
-          value: "19",
-          text: "item 19",
-        },
-      ],
-    };
+const options = [
+  { value: "1", text: "The internet" },
+  { value: "2", text: "Network" },
+  { value: "3", text: "item 03" },
+  { value: "4", text: "item 04" },
+  { value: "5", text: "item 05", optionStyle: { color: "red" }, optionClassName: "customName" },
+];
 
-    const moreData = [];
-    for (let i = 0; i < 10000; i++) {
-      moreData.push({
-        value: String(i),
-        text: `new item${i}`,
-      });
-    }
-
-    param1.options = param1.options.concat(moreData);
-
-    const param2 = {
-      onChange: this.onChange,
-      disabled: true,
-      style: { margin: "20px" },
-      label: "Disabled Style",
-      labelStyle: { display: "block" },
-      value: ["1", "2"],
-      options: [
-        {
-          value: "1",
-          text: "The internet",
-        },
-        {
-          value: "2",
-          text: "Network",
-        },
-        {
-          value: "3",
-          text: "item 03",
-        },
-        {
-          value: "4",
-          text: "item 04",
-        },
-        {
-          value: "5",
-          text: "item 05",
-        },
-        {
-          value: "6",
-          text: "item 06",
-        },
-        {
-          value: "7",
-          text: "item 07",
-        },
-        {
-          value: "8",
-          text: "item 08",
-        },
-        {
-          value: "9",
-          text: "item 09",
-        },
-        {
-          value: "10",
-          text: "item 10",
-        },
-      ],
-    };
-
-    const param3 = {
-      onChange: this.onChange,
-      disabled: false,
-      label: "Enable Close Icon",
-      labelStyle: { display: "block" },
-      value: ["1", "2"],
-      enableCloseIcon: true,
-      style: { margin: "20px" },
-      inputStyle: { width: "670px" },
-      options: [
-        {
-          value: "1",
-          text: "The internet",
-        },
-        {
-          value: "2",
-          text: "Network",
-        },
-        {
-          value: "3",
-          text: "item 03",
-        },
-        {
-          value: "4",
-          text: "item 04",
-        },
-        {
-          value: "5",
-          text: "item 05",
-        },
-        {
-          value: "6",
-          text: "item 06",
-        },
-        {
-          value: "7",
-          text: "item 07",
-        },
-        {
-          value: "8",
-          text: "item 08",
-        },
-        {
-          value: "9",
-          text: "item 09",
-        },
-        {
-          value: "10",
-          text: "item 10",
-        },
-        {
-          value: "11",
-          text: "item 11",
-        },
-        {
-          value: "12",
-          text: "item 12",
-        },
-        {
-          value: "13",
-          text: "item 13",
-        },
-        {
-          value: "14",
-          text: "item 14",
-        },
-        {
-          value: "15",
-          text: "item 15",
-        },
-        {
-          value: "16",
-          text: "Network444444",
-        },
-        {
-          value: "17",
-          text: "Networkkkkkk6666666kkk",
-        },
-        {
-          value: "18",
-          text: "Networkkkkkkkkk77777777kk",
-        },
-      ],
-    };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <MultipleSelect {...param1} />
-          <MultipleSelect {...param2} />
-          <MultipleSelect {...param3} />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<MultipleSelectDemo />, mountNode);
+// isVirtualScroll：options 较多时启用虚拟滚动
+<MultipleSelect
+  onChange={onChange}
+  label="Default Style"
+  labelStyle={{ display: "block" }}
+  value={["1", "2"]}
+  style={{ margin: "20px" }}
+  inputStyle={{ width: "670px" }}
+  isVirtualScroll
+  options={options}
+/>
+<MultipleSelect
+  onChange={onChange}
+  disabled
+  style={{ margin: "20px" }}
+  label="Disabled Style"
+  labelStyle={{ display: "block" }}
+  value={["1", "2"]}
+  options={options}
+/>
+<MultipleSelect
+  onChange={onChange}
+  label="Enable Close Icon"
+  labelStyle={{ display: "block" }}
+  value={["1", "2"]}
+  enableCloseIcon
+  style={{ margin: "20px" }}
+  inputStyle={{ width: "670px" }}
+  options={options}
+/>
 ```
 
 ### 扩展处理
 
 ```jsx
 import MultipleSelect from "eview-ui/MultipleSelect";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class MultipleSelectExpandQueryDemo extends React.Component {
-  state = {
-    value: [],
-    options: [],
-  };
-
-  onChange = (value, changeValue) => {
-    this.setState({
-      value: value,
-    });
-  };
-
-  handleMultipleSelectPopup = (popupOpened) => {
-    console.log("Popup state:", popupOpened);
-    if (popupOpened) {
-      this.setState({
-        options: [
-          { value: "1", text: "The internet" },
-          { value: "2", text: "Network1" },
-          { value: "3", text: "Network2" },
-        ],
-      });
-    }
-  };
-
-  onFocus = (e) => {
-    console.log("onFocus");
-  };
-
-  onBlur = (e) => {
-    console.log("onBlur");
-  };
-
-  focus = () => {
-    this.select.focus();
-  };
-
-  getValue = () => {
-    let value = this.select.getValue();
-    console.log("Selected values:", value);
-  };
-
-  validate = () => {
-    let result = this.select.validate();
-    console.log("Validate result:", result);
-  };
-
-  render() {
-    const param = {
-      id: "demo_multiple_select",
-      onChange: this.onChange,
-      onBlur: this.onBlur,
-      onOpenMultipleSelectPopup: this.handleMultipleSelectPopup,
-      onFocus: this.onFocus,
-      disabled: false,
-      label: "Multi-select expand dropdown box",
-      value: this.state.value,
-      required: true,
-      style: {
-        marginBottom: "20px",
-        marginRight: "20px",
-        verticalAlign: "top",
-      },
-      options: this.state.options,
-    };
-
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px", display: "inline-block" }}>
-          <MultipleSelect
-            ref={(select) => {
-              this.select = select;
-            }}
-            {...param}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<MultipleSelectExpandQueryDemo />, mountNode);
+<MultipleSelect
+  id="demo_multiple_select"
+  onChange={(value, changeValue, event) => {
+    // value 是选中值数组
+  }}
+  onBlur={(event) => {}}
+  onOpenMultipleSelectPopup={(popupOpened) => {
+    // popupOpened 为 true 时拉取 options 更新
+  }}
+  onFocus={(event) => {}}
+  label="Multi-select expand dropdown box"
+  value={[]}
+  required
+  style={{ marginBottom: "20px", marginRight: "20px", verticalAlign: "top" }}
+  options={[
+    { value: "1", text: "The internet" },
+    { value: "2", text: "Network1" },
+    { value: "3", text: "Network2" },
+  ]}
+/>
 ```
 
 ### 事件处理
 
 ```jsx
 import MultipleSelect from "eview-ui/MultipleSelect";
-import DivMessage from "eview-ui/DivMessage";
-import Button from "eview-ui/Button";
 import ButtonGroup from "eview-ui/ButtonGroup";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class MultipleSelectEventDemo extends React.Component {
-  state = {
-    msg: "",
-    value: [],
-  };
+const selectRef = React.useRef();
 
-  onChange = (value, changeValue) => {
-    this.setState({
-      msg:
-        "Changed value: " + changeValue + ", All selected: " + value.join(","),
-      value: value,
-    });
-  };
+const options = [
+  { value: "1", text: "The internet" },
+  { value: "2", text: "Network" },
+  { value: "3", text: "item 03" },
+  { value: "4", text: "item 04", disabled: true },
+  { value: "5", text: "item 05" },
+];
 
-  onFocus = (e) => {
-    this.setState({ msg: "On Focus" });
-  };
-
-  onBlur = (e) => {
-    this.setState({ msg: "On Blur" });
-  };
-
-  focus = () => {
-    this.select.focus();
-  };
-
-  clear = () => {
-    this.setState({ value: [] });
-  };
-
-  getValue = () => {
-    let value = this.select.getValue();
-    this.setState({
-      msg: "Selected values: " + value.join(","),
-      value: value,
-    });
-  };
-
-  validate = () => {
-    let result = this.select.validate();
-    this.setState({
-      msg: "Validate result: " + result,
-    });
-  };
-
-  render() {
-    const param = {
-      id: "demo_multiple_select",
-      onChange: this.onChange,
-      onBlur: this.onBlur,
-      onFocus: this.onFocus,
-      delimiter: ";",
-      disabled: false,
-      label: "Multi-select drop-down box",
-      value: this.state.value,
-      required: true,
-      isVirtualScroll: true,
-      tipTextLimit: 1000,
-      inputTextDisplayLimit: 1000,
-      style: {
-        marginBottom: "20px",
-        marginRight: "20px",
-        verticalAlign: "top",
-      },
-      options: [
-        { value: "1", text: "The internet" },
-        { value: "2", text: "Network" },
-        { value: "3", text: "item 03" },
-        { value: "4", text: "item 04", disabled: true },
-        { value: "5", text: "item 05" },
-        { value: "6", text: "item 06" },
-        { value: "7", text: "item 07" },
-        { value: "8", text: "item 08" },
-        { value: "9", text: "item 09" },
-        { value: "10", text: "item 10" },
-        { value: "11", text: "item 11" },
-        { value: "12", text: "item 12" },
-        { value: "13", text: "item 13" },
-        { value: "14", text: "item 14" },
-        { value: "15", text: "item 15" },
-        { value: "16", text: "The internet44444444" },
-        { value: "17", text: "The internet6666666" },
-        { value: "18", text: "The internet99999999" },
-      ],
-    };
-
-    const moreData = [];
-    for (let i = 0; i < 10000; i++) {
-      moreData.push({
-        value: String(i),
-        text: `new item${i}`,
-      });
-    }
-
-    param.options = param.options.concat(moreData);
-
-    let msg = this.state.msg ? (
-      <DivMessage
-        style={{ marginTop: "20px", width: "100%" }}
-        text={this.state.msg}
-        type="success"
-      />
-    ) : (
-      ""
-    );
-    const [version, theme] = getDemoVersion();
-    let data = [
-      { text: "Check", onClick: this.validate },
-      { text: "getValue", onClick: this.getValue },
-      { text: "Focus", onClick: this.focus },
-      { text: "Clear", onClick: this.clear },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px", display: "inline-block" }}>
-          <MultipleSelect
-            ref={(select) => {
-              this.select = select;
-            }}
-            {...param}
-            selectAll
-          />
-          <ButtonGroup data={data} />
-          {msg}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<MultipleSelectEventDemo />, mountNode);
+<MultipleSelect
+  ref={selectRef}
+  id="demo_multiple_select"
+  onChange={(value, changeValue, event) => {
+    // value 选中值数组, changeValue 变更项
+  }}
+  delimiter=";"
+  label="Multi-select drop-down box"
+  value={[]}
+  required
+  isVirtualScroll
+  tipTextLimit={1000}
+  inputTextDisplayLimit={1000}
+  style={{ marginBottom: "20px", marginRight: "20px", verticalAlign: "top" }}
+  options={options}
+  selectAll
+/>
+<ButtonGroup
+  data={[
+    { text: "Check", onClick: () => { selectRef.current.validate(); } },
+    { text: "getValue", onClick: () => { selectRef.current.getValue(); } },
+    { text: "Focus", onClick: () => { selectRef.current.focus(); } },
+    { text: "Clear", onClick: () => { /* 清空 value */ } },
+  ]}
+/>
 ```
 
 ### 可搜索选择框
 
 ```jsx
 import MultipleSelect from "eview-ui/MultipleSelect";
-import DivMessage from "eview-ui/DivMessage";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class MultipleSelectSearchableDemo extends React.Component {
-  state = {
-    msg: "",
-    value: [],
-  };
+const options = [
+  { value: "1", text: "The internet" },
+  { value: "2", text: "Network" },
+  { value: "3", text: "item 03" },
+  { value: "4", text: "item 04" },
+  { value: "5", text: "item 05" },
+];
 
-  onChange = (value, changeValue) => {
-    this.setState({
-      msg:
-        "Changed value: " + changeValue + ", All selected: " + value.join(","),
-      value: value,
-    });
-  };
-
-  onFocus = (e) => {
-    this.setState({ msg: "On Focus" });
-  };
-
-  onBlur = (e) => {
-    this.setState({ msg: "On Blur" });
-  };
-
-  focus = () => {
-    this.select.focus();
-  };
-
-  getValue = () => {
-    let value = this.select.getValue();
-    this.setState({
-      msg: "Selected values: " + value.join(","),
-      value: value,
-    });
-  };
-
-  validate = () => {
-    let result = this.select.validate();
-    this.setState({
-      msg: "Validate result: " + result,
-    });
-  };
-
-  onSearchTextChange = (text) => {
-    console.log("Search text:", text);
-  };
-
-  render() {
-    const param = {
-      id: "demo_multiple_select",
-      onChange: this.onChange,
-      onBlur: this.onBlur,
-      onFocus: this.onFocus,
-      onSearchTextChange: this.onSearchTextChange,
-      disabled: false,
-      label: "Multi-select searchable dropdown box",
-      value: this.state.value,
-      searchable: true,
-      selectAll: true,
-      selectAllSearched: true,
-      required: true,
-      isVirtualScroll: true,
-      style: {
-        marginBottom: "20px",
-        marginRight: "20px",
-        verticalAlign: "top",
-      },
-      options: [
-        { value: "1", text: "The internet" },
-        { value: "2", text: "Network" },
-        { value: "3", text: "item 03" },
-        { value: "4", text: "item 04" },
-        { value: "5", text: "item 05" },
-        { value: "6", text: "item 06" },
-        { value: "7", text: "item 07" },
-        { value: "8", text: "item 08" },
-        { value: "9", text: "item 09" },
-        { value: "10", text: "item 10" },
-        { value: "11", text: "item 11" },
-        { value: "12", text: "item 12" },
-        { value: "13", text: "item 13" },
-        { value: "14", text: "item 14" },
-        { value: "15", text: "item 15" },
-      ],
-    };
-
-    let msg = this.state.msg ? (
-      <DivMessage
-        style={{ marginTop: "20px", width: "100%" }}
-        text={this.state.msg}
-        type="success"
-      />
-    ) : (
-      ""
-    );
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px", display: "inline-block" }}>
-          <MultipleSelect
-            ref={(select) => {
-              this.select = select;
-            }}
-            {...param}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<MultipleSelectSearchableDemo />, mountNode);
+<MultipleSelect
+  id="demo_multiple_select"
+  onChange={(value, changeValue, event) => {
+    // value 选中值数组
+  }}
+  onBlur={(event) => {}}
+  onFocus={(event) => {}}
+  onSearchTextChange={(text) => {
+    // text 搜索框文本
+  }}
+  label="Multi-select searchable dropdown box"
+  value={[]}
+  searchable
+  selectAll
+  selectAllSearched
+  required
+  isVirtualScroll
+  style={{ marginBottom: "20px", marginRight: "20px", verticalAlign: "top" }}
+  options={options}
+/>
 ```

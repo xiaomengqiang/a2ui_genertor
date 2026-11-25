@@ -108,52 +108,17 @@ interface ColorPickerAPI {
 
 ```jsx
 import ColorPicker from 'eview-ui/ColorPicker';
-import Button from 'eview-ui/Button';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CrumbsSimpleExample extends React.Component {
-  state = {
-    color: '#0077ee'
-  };
-  handleOnColorChange(color) {
-    this.setState({
-      color
-    });
-  }
-  handleOnCollapse(e, color) {
-    console.log('onCollapse: ', e, color);
-  }
-  setPrimaryColor() {
-    this.setState({
-      color: '#0077ee'
-    });
-  }
-  render() {
-    const [version, theme] = getDemoVersion();
-    const labelStyle = { color: '#666', margin: '0.5rem 0' };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Button text="设为主题色" onClick={() => this.setPrimaryColor()}/>
-          <div style={labelStyle}>
-            当前颜色：<strong>{this.state.color}</strong>
-          </div>
-          <ColorPicker
-            zIndex={9999}
-            value={this.state.color}
-            onColorChange={color => this.handleOnColorChange(color)}
-            onCollapse={this.handleOnCollapse}
-          />
-          <div style={labelStyle}>禁用状态</div>
-          <ColorPicker disabled value="#0077ee"/>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<CrumbsSimpleExample />, mountNode);
+<ColorPicker
+  zIndex={9999}
+  value="#0077ee" // '#rrggbb' 十六进制颜色字符串
+  onColorChange={(color) => {
+    // color 是 '#rrggbb' 字符串，取 color 更新 value
+  }}
+  onCollapse={(e, color) => {
+    // e: 事件对象, color: 当前选中颜色值
+  }}
+/>
+<ColorPicker disabled value="#0077ee" />
 ```
 

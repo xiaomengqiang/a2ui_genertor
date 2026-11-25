@@ -53,53 +53,12 @@ HelpTip继承自Tooltip组件，以下属性也可使用：
 ```jsx
 import { SvgIcon } from '@/shared/SvgIcon'
 import HelpTip from "eview-ui/HelpTip";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class HelpTipExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    const containerStyle = {
-      margin: "30px",
-      height: '300px',
-      width: "800px",
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      color: 'black',
-      position: 'relative'
-    };
-
-    const style = {
-      width: '200px', backgroundColor: 'lightBlue', borderRadius: '5px',
-    };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={containerStyle}>
-          <span>默认情况下，箭头方向向左<HelpTip tipContent='arrow left, and you can set the position' /></span>
-          <span>设置箭头方向向上，并通过position调整图标的位置<HelpTip arrowDirection='top'
-                                                                       tipContent='arrow top, and you can set the position'
-                                                                       position={[0, 30]} /></span>
-          <span>设置箭头方向向下，并通过tipStyle设置提示框大小和自定义样式<HelpTip arrowDirection='bottom'
-                                                                                   position={[0, 10]}
-                                                                                   tipContent='arrow bottom, and you can set the style'
-                                                                                   tipStyle={style} /></span>
-          <span>设置箭头方向向右，通过tipContent设置提示框内容，提示框内的内容可以是任意的React节点<HelpTip
-            arrowDirection='right' position={[0, 10]}
-            tipContent={<div><SvgIcon src="error" size={16} /> <span>help tip box support html</span>
-            </div>} /></span>
-          <span style={{ fontSize: '0.75rem' }}>通过iconSize设置icon大小，箭头将自动对齐到图标中间位置<HelpTip
-            iconSize={['0.75rem', '0.75rem']} position={[0, 10]} arrowDirection='left'
-            tipContent={<span>you can set the size of the icon, <br />and the arrow will align to the middle of the icon</span>} /></span>
-          <span>隐藏箭头<HelpTip tipContent='配置hideArrow可以将箭头隐藏掉' hideArrow /></span>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<HelpTipExample />, mountNode);
+<HelpTip tipContent="arrow left, and you can set the position" />
+<HelpTip arrowDirection="top" position={[0, 30]} tipContent="arrow top" /> {/* position: [top, left] */}
+<HelpTip arrowDirection="bottom" position={[0, 10]} tipContent="arrow bottom" tipStyle={{ width: "200px", backgroundColor: "lightBlue", borderRadius: "5px" }} />
+<HelpTip arrowDirection="right" position={[0, 10]} tipContent={<div><SvgIcon src="error" size={16} /> <span>help tip box support html</span></div>} /> {/* tipContent 支持 ReactNode */}
+<HelpTip iconSize={["0.75rem", "0.75rem"]} position={[0, 10]} arrowDirection="left" tipContent={<span>you can set the size of the icon</span>} />
+<HelpTip tipContent="配置 hideArrow 可以将箭头隐藏掉" hideArrow />
 ```
 

@@ -99,88 +99,42 @@ export type Props = Partial<CategoryInput>;
 
 ```jsx
 import CategoryInput from 'eview-ui/CategoryInput';
-import Button from 'eview-ui/Button';
-import DivMessage from 'eview-ui/DivMessage';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CategoryInputExample extends React.Component {
+const options = [
+  { text: 'NE1', value: 1 },
+  { text: 'NE2', value: 2 },
+  { text: 'NE3', value: 3 },
+];
 
-  state = {
-    msg: '',
-  };
+// inputPosition: "left"（输入框在左）/ "right"（输入框在右，默认）
+<CategoryInput
+  label="Default Style"
+  inputPosition="left"
+  categoryOptions={options}
+  category={2}
+  placeholder="Please enter..."
+/>
 
-  handleClick = () => {
-    this.setState({ msg: "validate API: " + this.categoryInput.validate() });
-  };
-  handleGetCategory = () => {
-    this.setState({ msg: "getCategory API: " + this.categoryInput.getCategory() });
-  };
-  handleGetValue = () => {
-    this.setState({ msg: "getValue API: " + this.categoryInput.getValue() });
-  };
+// disabled 禁用态
+<CategoryInput
+  label="Disabled Style"
+  inputPosition="right"
+  categoryOptions={options}
+  disabled
+  placeholder="Please enter..."
+/>
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    const options = [
-      { text: 'NE1', value: 1 },
-      { text: 'NE2', value: 2 },
-      { text: 'NE3', value: 3 },
-    ];
-    let labelStyle = {
-      display: "inline-block",
-      width: "150px",
-      marginLeft: "20px"
-    };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <div style={{ marginBottom: "25px", marginTop: '20px' }}>
-            <CategoryInput label="Default Style" inputPosition={'left'} labelStyle={labelStyle}
-              inputClassName={'eui_category_input'} categoryOptions={options}
-              selectStyle={{ width: '80px' }}
-              inputStyle={{ width: '220px' }}
-              category={2}
-              placeholder="Please enter..." />
-          </div>
-          <div style={{ marginBottom: "25px", paddingTop: '20px' }}>
-            <CategoryInput label="Disabled Style" inputPosition={'right'} labelStyle={labelStyle}
-              inputClassName={'eui_category_input'} categoryOptions={options} disabled={true}
-              selectStyle={{ width: '80px' }}
-              inputStyle={{ width: '220px' }}
-              placeholder="Please enter..." />
-          </div>
-          <div style={{ marginBottom: "25px", paddingTop: '20px' }}>
-            <CategoryInput label="Required Style" inputPosition={'left'} labelStyle={labelStyle} required={true}
-              categoryOptions={options}
-              selectStyle={{ width: '80px' }}
-              inputStyle={{ width: '220px' }}
-              placeholder="Please enter..." />
-          </div>
-          <div style={{ marginBottom: "25px", paddingTop: '20px' }}>
-            <CategoryInput label="Required Style" inputPosition={'right'} labelStyle={labelStyle} required={true}
-              categoryOptions={options}
-              selectStyle={{ width: '80px' }}
-              inputStyle={{ width: '220px' }}
-              placeholder="Please enter..."
-              ref={input => { this.categoryInput = input }} />
-          </div>
-          <div>
-            <Button text='validate' style={{ marginLeft: '20px' }} onClick={this.handleClick} />
-            <Button text='getCategory' style={{ marginLeft: '20px' }} onClick={this.handleGetCategory} />
-            <Button text='getValue' style={{ marginLeft: '20px' }} onClick={this.handleGetValue} />
-            {this.state.msg ? <DivMessage text={this.state.msg} type="success" style={{ marginTop: "10px", width: "560px" }} /> : ''}
-          </div>
-
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<CategoryInputExample />, mountNode);
-
+// required 必填，加 * 并支持非空校验
+<CategoryInput
+  label="Required Style"
+  inputPosition="left"
+  required
+  categoryOptions={options}
+  placeholder="Please enter..."
+  ref={(input) => {
+    // input.validate() 校验；input.getCategory() 取下拉值；input.getValue() 取输入框值
+  }}
+/>
 ```
 
 ### 事件处理
@@ -189,76 +143,31 @@ ReactDOM.render(<CategoryInputExample />, mountNode);
 
 ```jsx
 import CategoryInput from 'eview-ui/CategoryInput';
-import LabelField from 'eview-ui/LabelField';
-import DivMessage from 'eview-ui/DivMessage';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CategoryInputEventExample extends React.Component {
-  state = {
-    msg: '',
-    value: '',
-  };
+const options = [
+  { text: 'China', value: 'China' },
+  { text: 'UK', value: 'UK' },
+  { text: 'USA', value: 'USA' },
+];
 
-  handleChange = (value, oldValue, event) => {
-    this.setState({ msg: "onChange callback, Value: " + value + ", OldValue: " + oldValue, value: value });
-  };
-
-  handleBlur = (e) => {
-    this.setState({ msg: "onBlur callback, Value: " + e.target.value });
-  };
-
-  handleFocus = (e) => {
-    this.setState({ msg: "onFocus callback, Value: " + e.target.value });
-  };
-
-  handleCategoryChange = (val) => {
-    this.setState({ msg: "onCategoryChange callback, Value: " + val });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const options = [
-      { text: 'China', value: 'China' },
-      { text: 'UK', value: 'UK' },
-      { text: 'USA', value: 'USA' },
-    ];
-    const labelStyle = {
-      display: 'block',
-      fontSize: '14px',
-      marginBottom: '10px',
-      paddingLeft: '0px',
-    };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: '20px' }}>
-          <div>
-            <div style={{ display: "inline-block", marginRight: "30px" }}>
-              <LabelField style={labelStyle}>Event callback</LabelField>
-            </div>
-            <div style={{ display: "inline-block" }}>
-              <CategoryInput categoryOptions={options}
-                value={this.state.value}
-                placeholder="Please enter..."
-                onChange={this.handleChange}
-                onBlur={this.handleBlur}
-                onFocus={this.handleFocus}
-                onCategoryChange={this.handleCategoryChange}
-              />
-            </div>
-          </div>
-          {this.state.msg ? <DivMessage text={this.state.msg} type="success" style={{ marginTop: '10px', width: '500px' }} /> : ''}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-
-ReactDOM.render(<CategoryInputEventExample />, mountNode);
-
+// onChange(value, oldValue, event)：前两参是输入框值；onCategoryChange(value) 是下拉选中值
+<CategoryInput
+  categoryOptions={options}
+  value=""
+  placeholder="Please enter..."
+  onChange={(value, oldValue, event) => {
+    // value 当前输入框值，oldValue 上次输入框值
+  }}
+  onBlur={(event) => {
+    // event 是原生 dom 事件
+  }}
+  onFocus={(event) => {
+    // event 是原生 dom 事件
+  }}
+  onCategoryChange={(value) => {
+    // value 是当前选中 select 的 value
+  }}
+/>
 ```
 
 ### 主题与版本
@@ -267,34 +176,19 @@ ReactDOM.render(<CategoryInputEventExample />, mountNode);
 
 ```jsx
 import CategoryInput from 'eview-ui/CategoryInput';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CategoryInputThemeExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    const options = [
-      { text: 'Option1', value: 1 },
-      { text: 'Option2', value: 2 },
-    ];
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginTop: '20px', marginLeft: '20px' }}>
-          <CategoryInput
-            label="AUI3 Theme"
-            categoryOptions={options}
-            version="aui3"
-            theme="theme_dark"
-            selectStyle={{ width: '80px' }}
-            inputStyle={{ width: '220px' }}
-            placeholder="Please enter..."
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+const options = [
+  { text: 'Option1', value: 1 },
+  { text: 'Option2', value: 2 },
+];
 
-ReactDOM.render(<CategoryInputThemeExample />, mountNode);
+// version 控制规范（如 'aui3'），theme 控制主题（如 'theme_dark'）
+<CategoryInput
+  label="AUI3 Theme"
+  categoryOptions={options}
+  version="aui3"
+  theme="theme_dark"
+  placeholder="Please enter..."
+/>
 ```
 

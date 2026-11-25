@@ -184,107 +184,66 @@ export type Props = Partial<Card>;
 
 ```jsx
 import Card from 'eview-ui/Card';
-import LabelField from 'eview-ui/LabelField';
-import IconImage from '@images/cloud';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CardExample1 extends React.Component {
-  render() {
-    let divStyle = {
-      margin: '5px 0px 30px 10px',
-      display: 'block',
-      height: '200px',
-      width: '410px',
-      float: 'left',
-    };
+const detailContent = [
+  { text: 'ID', value: 'test-node' },
+  { text: 'Partitions', value: 'Root Partition' },
+  { text: 'Create time', value: '2016-07-03 GMT + 08:00' },
+];
 
-    let detailContent = [
-      { text: 'ID', value: 'test-node' },
-      { text: 'Partitions', value: 'Root Partition' },
-      { text: 'Create time', value: '2016-07-03 GMT + 08:00' },
-    ];
+const resourceContent = [
+  { text: 'Indicators', value: '8' },
+  { text: 'Alarm', value: '9' },
+];
 
-    let resourceContent = [
-      { text: 'Indicators', value: '8' },
-      { text: 'Alarm', value: '9' },
-    ];
+const options = [
+  { text: 'China', value: 1 },
+  { text: 'UK', value: 2 },
+  { text: 'USA', value: 3 },
+];
 
-    let options = [
-      { text: 'China', value: 1 },
-      { text: 'UK', value: 2 },
-      { text: 'USA', value: 3 },
-    ];
+// type='resource'，不传 title 则不显示标题
+<Card
+  type="resource"
+  content={[{ text: 'CPU USage', value: '18%' }]}
+  icon="cloud" // 图片 url
+  style={{ marginRight: '20px' }}
+/>;
 
-    let noTitleOptions = [{text: 'CPU USage', value: '18%'}];
-    const [version, theme] = getDemoVersion();
+// type='resource'，设置 title
+<Card
+  icon="cloud" // 图片 url
+  title="Elastic cloud host"
+  content={resourceContent}
+  enableAdd={false}
+  type="resource"
+  style={{ marginRight: '20px' }}
+/>;
 
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
+// type='resource'，enableAdd={true} + selected（selected 仅 detail/resource 生效）
+<Card
+  icon="cloud" // 图片 url
+  title="Elastic cloud host"
+  content={resourceContent}
+  enableAdd={true}
+  type="resource"
+  selected={true}
+  style={{ marginRight: '20px' }}
+/>;
 
-        <div id="eui_card_example">
-          <div style={divStyle}>
-            <LabelField text={"type='resource' && No title."}/>
-            <Card
-              type="resource"
-              content={noTitleOptions}
-              icon={IconImage}
-              style={{marginRight: '20px'}}
-            />
-          </div>
+// type='detail' + menuData 下拉菜单
+<Card
+  title="Default-VPC"
+  content={detailContent}
+  type="detail"
+  menuTitle="Options"
+  menuData={options}
+  selected={true}
+  style={{ marginRight: '20px' }}
+/>;
 
-          <div style={divStyle}>
-            <LabelField text={"type='resource' && set title."}/>
-            <Card
-              icon={IconImage}
-              title="Elastic cloud host"
-              content={resourceContent}
-              enableAdd={false}
-              type="resource"
-              style={{marginRight: '20px'}}
-            />
-          </div>
-
-          <div style={divStyle}>
-            <LabelField text={"type='resource' && enableAdd='true'."}/>
-            <Card
-              icon={IconImage}
-              title="Elastic cloud host"
-              content={resourceContent}
-              enableAdd={true}
-              type="resource"
-              selected={true}
-              style={{marginRight: '20px'}}
-            />
-          </div>
-
-          <div style={divStyle}>
-            <LabelField text={"type='detail' && set title."}/>
-            <Card
-              title="Default-VPC"
-              content={detailContent}
-              type="detail"
-              menuTitle="Options"
-              menuData={options}
-              selected={true}
-              style={{marginRight: '20px'}}
-            />
-          </div>
-
-          <div style={divStyle}>
-            <LabelField text="type='add'."/>
-            <Card type="add"/>
-          </div>
-
-          <div style={{clear: 'both'}}></div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<CardExample1 />, mountNode);
+// type='add'
+<Card type="add" />
 ```
 
 ### 事件处理
@@ -293,116 +252,59 @@ ReactDOM.render(<CardExample1 />, mountNode);
 
 ```jsx
 import Card from 'eview-ui/Card';
-import DivMessage from 'eview-ui/DivMessage';
-import LabelField from 'eview-ui/LabelField';
-import IconImage from '@images/cloud';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CardExample2 extends React.Component {
-  state = {
-    display: false,
-    text: 'Default',
-  };
+const detailContent = [
+  { text: 'ID', value: 'test-node' },
+  { text: 'Available partitions', value: '1' },
+  { text: 'Create time', value: '2016-07-03 GMT + 08:00' },
+];
 
-  handleAddClick = () => {
-    this.setState({
-      display: true,
-      text: 'Click Add Button',
-    });
-  };
+const resourceContent = [
+  { text: 'Indicators', value: '8' },
+  { text: 'Alarm', value: '9' },
+];
 
-  handleCardClick = () => {
-    this.setState({
-      display: true,
-      text: 'Click Add Component',
-    });
-  };
+const options = [
+  { text: 'China', value: 1 },
+  { text: 'UK', value: 2 },
+  { text: 'USA', value: 3 },
+];
 
-  handleOptionClick = (text, value) => {
-    this.setState({
-      display: true,
-      text: 'Click the action drop-down menu item : ' + text + ', value : ' + value,
-    });
-  };
+// onAdd：type='resource' 时点击底部 + 号触发（需 enableAdd={true}）
+<Card
+  icon="cloud" // 图片 url
+  title="Elastic cloud host"
+  content={resourceContent}
+  enableAdd={true}
+  selected={true}
+  type="resource"
+  onAdd={() => {
+    // 回调无参数
+  }}
+  style={{ marginRight: '20px' }}
+/>;
 
-  render() {
-    let divStyle = {
-      margin: '5px 0px 30px 10px',
-      display: 'block',
-      height: '220px',
-      width: '410px',
-      float: 'left',
-    };
+// onMenuItemClick(text, value)
+<Card
+  title="Default-VPC"
+  content={detailContent}
+  type="detail"
+  menuTitle="Options"
+  selected={true}
+  menuData={options}
+  menuItemStyle={{ width: '200px' }}
+  onMenuItemClick={(text, value) => {
+    // text: 菜单项 text, value: 菜单项 value
+  }}
+  style={{ marginRight: '20px' }}
+/>;
 
-    let detailContent = [
-      { text: 'ID', value: 'test-node' },
-      { text: 'Available partitions', value: '1' },
-      { text: 'Create time', value: '2016-07-03 GMT + 08:00' },
-    ];
-
-    let resourceContent = [
-      { text: 'Indicators', value: '8' },
-      { text: 'Alarm', value: '9' },
-    ];
-
-    let options = [
-      { text: 'China', value: 1 },
-      { text: 'UK', value: 2 },
-      { text: 'USA', value: 3 },
-    ];
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="eui_card_example2">
-          <div style={divStyle}>
-            <LabelField text="onAdd event"/>
-            <Card
-              icon={IconImage}
-              title="Elastic cloud host"
-              content={resourceContent}
-              enableAdd={true}
-              selected={true}
-              type="resource"
-              onAdd={this.handleAddClick}
-              style={{marginRight: '20px'}}
-            />
-          </div>
-
-          <div style={divStyle}>
-            <LabelField text="onMenuItemClick event"/>
-            <Card
-              title="Default-VPC"
-              content={detailContent}
-              type="detail"
-              menuTitle="Options"
-              selected={true}
-              menuData={options}
-              menuItemStyle={{width: '200px'}}
-              onMenuItemClick={this.handleOptionClick}
-              style={{marginRight: '20px'}}
-            />
-          </div>
-
-          <div style={divStyle}>
-            <LabelField text="type='add' && onAdd event"/>
-            <Card type="add" onAdd={this.handleCardClick}/>
-            <br/>
-            <br/>
-            <div style={{display: 'block'}}>
-              <DivMessage text={this.state.text} type="default" display={this.state.display}/>
-            </div>
-          </div>
-
-          <div style={{clear: 'both'}}></div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<CardExample2 />, mountNode);
+// type='add' 的 onAdd：点击整个 + 号组件触发
+<Card
+  type="add"
+  onAdd={() => {
+    // 回调无参数
+  }}
+/>
 ```
 

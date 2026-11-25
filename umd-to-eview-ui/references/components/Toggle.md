@@ -40,107 +40,28 @@
 
 ```jsx
 import Toggle from "eview-ui/Toggle";
-import LabelField from "eview-ui/LabelField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ToggleExample extends React.Component {
-  render() {
-    let style = { marginRight: "10px" };
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ margin: "20px 20px" }}>
-          <div style={{ display: "inline-block", marginRight: "50px" }}>
-            <LabelField text="Default style" style={labelStyle} />
-            <Toggle toggled={true} style={style} />
-            <Toggle />
-          </div>
-          <div style={{ display: "inline-block" }}>
-            <LabelField text="Disabled style" style={labelStyle} />
-            <Toggle toggled={true} disabled={true} style={style} />
-            <Toggle disabled={true} style={style} />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ToggleExample />, mountNode);
+<Toggle toggled={true} /> {/* 开启态 */}
+<Toggle /> {/* 关闭态（默认） */}
+<Toggle toggled={true} disabled={true} /> {/* 禁用开启态 */}
+<Toggle disabled={true} /> {/* 禁用关闭态 */}
 ```
 
 ### 事件处理
 
 ```jsx
 import Toggle from "eview-ui/Toggle";
-import LabelField from "eview-ui/LabelField";
-import DivMessage from "eview-ui/DivMessage";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ToggleInteractiveExample extends React.Component {
-  state = {
-    msg: "",
-    toggled: false,
-  };
+const data = [1, 2]; // [关闭值, 开启值]
 
-  handleClick = () => {
-    this.setState({
-      msg: "GetValue value callback: current Value" + this.toggle.getValue(),
-    });
-  };
-
-  onToggle = (value) => {
-    this.setState({
-      msg: "OnToggle event callback: current Value" + value,
-      toggled: !this.state.toggled,
-    });
-  };
-
-  render() {
-    const data = [1, 2];
-    const toggleStyle = { verticalAlign: "text-top" };
-    const linkStyle = { margin: "0 5px", color: "#4a1eb9", cursor: "pointer" };
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <LabelField
-            text="Event Handling"
-            style={{ marginLeft: "20px" }}
-          ></LabelField>
-          <Toggle
-            data={data}
-            toggled={this.state.toggled}
-            onToggle={this.onToggle}
-            ref={(toggle) => (this.toggle = toggle)}
-            style={toggleStyle}
-          />
-          <Button
-            text="Value"
-            style={{ marginLeft: "180px" }}
-            onClick={this.handleClick}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginLeft: "15px", marginTop: "10px", width: "378px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ToggleInteractiveExample />, mountNode);
+<Toggle
+  data={data}
+  toggled={false} // 受控：由 onToggle 回写
+  onToggle={(value) => {
+    // value 是当前状态值（data 中对应项），取 value 更新 toggled
+  }}
+  ref={(toggle) => {
+    // toggle.getValue() 取当前状态值
+  }}
+/>
 ```

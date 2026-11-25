@@ -52,34 +52,17 @@ IPAddress组件实现ipv4和ipv6, mac格式的输入。
 请按demo设置`value`和`onChange`，从`value`获取值
 
 ```jsx
-import IPAddress from 'eview-ui/IPAddress';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import IPAddress from "eview-ui/IPAddress";
 
-export default function IPAddressDemo() {
-  const initialIpv4 = '192.128.1.1';
-  const initialIpv6 = 'FF:FF:FF:FF:FF:FF:FF:FF';
-  const initialMac = 'FF-FF-FF-FF-FF-FF';
-
-  const [ipv4, setIpv4] = React.useState(initialIpv4);
-  const [ipv6, setIpv6] = React.useState(initialIpv6);
-  const [mac, setMac] = React.useState(initialMac);
-  const [version, theme] = getDemoVersion();
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <div>
-        <IPAddress type="v4" value={ipv4} onChange={(value) => {setIpv4(value)}}/>
-        <div style={{margin: '1rem'}}/>
-        <IPAddress type="v6" value={ipv6} onChange={(value) => {setIpv6(value)}}/>
-        <div style={{margin: '1rem'}}/>
-        <IPAddress type="mac" value={mac} onChange={(value) => {setMac(value)}}/>
-      </div>
-    </ConfigProvider>
-  );
-}
-
-ReactDOM.render(<IPAddressDemo />, mountNode);
+<IPAddress type="v4" value="192.128.1.1" onChange={(value) => {
+  // 取 value 更新
+}}/>
+<IPAddress type="v6" value="FF:FF:FF:FF:FF:FF:FF:FF" onChange={(value) => {
+  // 取 value 更新
+}}/>
+<IPAddress type="mac" value="FF-FF-FF-FF-FF-FF" onChange={(value) => {
+  // 取 value 更新
+}}/>
 ```
 
 ### 校验
@@ -88,47 +71,29 @@ ReactDOM.render(<IPAddressDemo />, mountNode);
 `hintType` 设置校验提示类型，`div`或者`tip`
 
 ```jsx
-import IPAddress from 'eview-ui/IPAddress';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import IPAddress from "eview-ui/IPAddress";
 
-export default function IPAddressDemo() {
-  const [version, theme] = getDemoVersion();
-  const initialVal = ' . . .  ';
-  const [val1, setVal1] = React.useState(initialVal);
-  const [val2, setVal2] = React.useState(initialVal);
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <div>
-        <IPAddress
-          hintType="tip"
-          type="v4"
-          value={val1}
-          onChange={value => {
-            setVal1(value);
-          }}
-          validator={value => ({
-            result: value === '1.1.1.1',
-            message: 'It should be 1.1.1.1',
-          })}
-        />
-        <div style={{ margin: '1rem' }} />
-        <IPAddress
-          required
-          hintType="div"
-          type="v4"
-          value={val2}
-          onChange={value => {
-            setVal2(value);
-          }}
-        />
-      </div>
-    </ConfigProvider>
-  );
-}
-
-ReactDOM.render(<IPAddressDemo />, mountNode);
+<IPAddress
+  hintType="tip"
+  type="v4"
+  value=" . . .  "
+  onChange={(value) => {
+    // 取 value 更新
+  }}
+  validator={(value) => ({
+    result: value === "1.1.1.1",
+    message: "It should be 1.1.1.1",
+  })}
+/>
+<IPAddress
+  required
+  hintType="div"
+  type="v4"
+  value=" . . .  "
+  onChange={(value) => {
+    // 取 value 更新
+  }}
+/>
 ```
 
 ### API方法调用
@@ -136,40 +101,24 @@ ReactDOM.render(<IPAddressDemo />, mountNode);
 通过 `ref` 调用组件暴露的 `getValue`、`validate`、`focus`、`blur` 方法
 
 ```jsx
-import IPAddress from 'eview-ui/IPAddress';
-import Button from 'eview-ui/Button';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import IPAddress from "eview-ui/IPAddress";
+import Button from "eview-ui/Button";
 
-export default function IPAddressApiDemo() {
-  const ipRef = React.useRef();
-  const [ipv4, setIpv4] = React.useState('192.168.1.1');
-  const [msg, setMsg] = React.useState('');
-  const [version, theme] = getDemoVersion();
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <div>
-        <IPAddress
-          ref={ipRef}
-          type="v4"
-          value={ipv4}
-          onChange={(value) => {setIpv4(value)}}
-          required
-        />
-        <div style={{ marginTop: '0.5rem' }}>
-          <Button text="获取值" onClick={() => { setMsg('当前值: ' + ipRef.current.getValue()); }} style={{ marginRight: '5px' }}/>
-          <Button text="校验" onClick={() => { const valid = ipRef.current.validate(); setMsg('校验结果: ' + (valid ? '通过' : '未通过')); }} style={{ marginRight: '5px' }}/>
-          <Button text="聚焦" onClick={() => { ipRef.current.focus(); }} style={{ marginRight: '5px' }}/>
-          <Button text="失焦" onClick={() => { ipRef.current.blur(); }} style={{ marginRight: '5px' }}/>
-        </div>
-        {msg ? <div style={{ marginTop: '0.5rem', color: '#186FC2' }}>{msg}</div> : ''}
-      </div>
-    </ConfigProvider>
-  );
-}
+const ipRef = React.useRef();
 
-ReactDOM.render(<IPAddressApiDemo />, mountNode);
+<IPAddress
+  ref={ipRef}
+  type="v4"
+  value="192.168.1.1"
+  onChange={(value) => {
+    // 取 value 更新
+  }}
+  required
+/>
+<Button text="获取值" onClick={() => { ipRef.current.getValue(); }} style={{ marginRight: "5px" }}/>
+<Button text="校验" onClick={() => { ipRef.current.validate(); }} style={{ marginRight: "5px" }}/>
+<Button text="聚焦" onClick={() => { ipRef.current.focus(); }} style={{ marginRight: "5px" }}/>
+<Button text="失焦" onClick={() => { ipRef.current.blur(); }} style={{ marginRight: "5px" }}/>
 ```
 
 ### 禁用
@@ -177,26 +126,10 @@ ReactDOM.render(<IPAddressApiDemo />, mountNode);
 设置`disabled`禁用
 
 ```jsx
-import IPAddress from 'eview-ui/IPAddress';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import IPAddress from "eview-ui/IPAddress";
 
-export default function IPAddressDemo() {
-  const [version, theme] = getDemoVersion();
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <div>
-        <IPAddress disabled type="v4" />
-        <div style={{ margin: '1rem' }} />
-        <IPAddress disabled type="v6" />
-        <div style={{ margin: '1rem' }} />
-        <IPAddress disabled type="mac" />
-      </div>
-    </ConfigProvider>
-  );
-}
-
-ReactDOM.render(<IPAddressDemo />, mountNode);
+<IPAddress disabled type="v4" />
+<IPAddress disabled type="v6" />
+<IPAddress disabled type="mac" />
 ```
 

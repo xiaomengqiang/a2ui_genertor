@@ -116,48 +116,23 @@ export type OptionalProps = Partial<Props>;
 基本属性设置，展示默认选中、tooltip 提示、onPreChange 拦截、禁用和半选状态
 
 ```jsx
-import Checkbox from 'eview-ui/Checkbox';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import Checkbox from "eview-ui/Checkbox";
 
-export default class CheckboxExample extends React.Component {
+const style = { margin: "20px" };
 
-  handlePreCheckAllowed = () => {
-    return true;
-  };
-
-  handlePreCheckNotAllowed = () => {
-    return false;
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let style = {margin: "20px"};
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_Checkbox_example">
-          <Checkbox value="1" label="The Internet" checked={true} style={style} tipText="The Internet"
-                    tipData={{disposeTimeOut: 3000}}></Checkbox>
-          <Checkbox value="1" label="Design" style={style} tipText="Design"
-                    tipData={{disposeTimeOut: 5000, arrowDirection: 'left'}}></Checkbox>
-          <Checkbox value="1" label="Financial" style={style} tipText="Financial"
-                    tipData={{disposeTimeOut: 3000, arrowDirection: 'right'}}></Checkbox>
-          <Checkbox value="1" label="PreCheck Allowed" style={style} tipText="PreCheck Allowed"
-                    onPreChange={this.handlePreCheckAllowed}></Checkbox>
-          <Checkbox value="1" label="PreCheck Not Allowed" style={style} tipText="PreCheck Not Allowed"
-                    onPreChange={this.handlePreCheckNotAllowed}></Checkbox>
-          <Checkbox value="1" label="Administrative" disabled={true} style={style}></Checkbox>
-          <Checkbox value="1" label="halfChecked" halfChecked={true} checked={true}></Checkbox>
-        </div>
-      </ConfigProvider>
-    )
-  }
-}
-
-ReactDOM.render(<CheckboxExample />, mountNode);
-
+<Checkbox value="1" label="The Internet" checked={true} style={style} tipText="The Internet" tipData={{ disposeTimeOut: 3000 }}/>
+<Checkbox value="1" label="Design" style={style} tipText="Design" tipData={{ disposeTimeOut: 5000, arrowDirection: "left" }}/>
+<Checkbox value="1" label="Financial" style={style} tipText="Financial" tipData={{ disposeTimeOut: 3000, arrowDirection: "right" }}/>
+<Checkbox value="1" label="PreCheck Allowed" style={style} tipText="PreCheck Allowed" onPreChange={(value, newChecked, event) => {
+  // 返回 true 允许变更，false 阻止
+  return true;
+}}/>
+<Checkbox value="1" label="PreCheck Not Allowed" style={style} tipText="PreCheck Not Allowed" onPreChange={(value, newChecked, event) => {
+  // 返回 true 允许变更，false 阻止
+  return false;
+}}/>
+<Checkbox value="1" label="Administrative" disabled={true} style={style}/>
+<Checkbox value="1" label="halfChecked" halfChecked={true} checked={true}/>
 ```
 
 ### 事件处理
@@ -165,61 +140,23 @@ ReactDOM.render(<CheckboxExample />, mountNode);
 事件处理，展示 onChange 回调和 getValue / focus API 调用
 
 ```jsx
-import Checkbox from 'eview-ui/Checkbox';
-import DivMessage from 'eview-ui/DivMessage';
-import Button from 'eview-ui/Button';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import Checkbox from "eview-ui/Checkbox";
+import Button from "eview-ui/Button";
 
-export default class CheckboxEventExample extends React.Component {
+const checkboxRef = React.useRef();
 
-  state = {
-    msg: '',
-    checked: false,
-  };
-
-  handleClickGetValue = () => {
-    this.setState({msg: "getValue API: " + this.checkbox.getValue()});
-  };
-
-  handleClickFocus = () => {
-    this.checkbox.focus();
-  };
-
-  handleChange = (value, checked, event, additionalData) => {
-    if (checked) {
-      this.setState({msg: "onChange callback: Selected, Value: " + value, checked: true});
-    } else {
-      this.setState({msg: "onChange callback: Deselected, Value: " + value, checked: false});
-    }
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let buttonStyle = {marginLeft: "20px"};
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_Checkbox_example">
-          <Checkbox style={{marginLeft: "20px"}}
-                    checked={this.state.checked} value="1" label="onChange event display" onChange={this.handleChange}
-                    ref={(checkbox) => this.checkbox = checkbox}>
-          </Checkbox>
-
-          <Button text="getValue" onClick={this.handleClickGetValue} style={buttonStyle}></Button>
-          <Button text="Focus" onClick={this.handleClickFocus} style={buttonStyle}></Button>
-
-          {this.state.msg ? <DivMessage text={this.state.msg} type="success"
-                                        style={{marginLeft: "20px", marginTop: "10px", width: "500px"}}/> : ''}
-        </div>
-      </ConfigProvider>
-    )
-  }
-}
-
-ReactDOM.render(<CheckboxEventExample />, mountNode);
-
+<Checkbox
+  style={{ marginLeft: "20px" }}
+  checked={false}
+  value="1"
+  label="onChange event display"
+  onChange={(value, checked, event, additionalData) => {
+    // value 复选框 value, checked 选中状态
+  }}
+  ref={checkboxRef}
+/>
+<Button text="getValue" onClick={() => { checkboxRef.current.getValue(); }} style={{ marginLeft: "20px" }}/>
+<Button text="Focus" onClick={() => { checkboxRef.current.focus(); }} style={{ marginLeft: "20px" }}/>
 ```
 
 ### labelPosition 与自定义图标
@@ -227,25 +164,10 @@ ReactDOM.render(<CheckboxEventExample />, mountNode);
 通过 labelPosition 控制文本位置，通过 icon/iconClassName/iconStyle 自定义图标
 
 ```jsx
-import Checkbox from 'eview-ui/Checkbox';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import Checkbox from "eview-ui/Checkbox";
 
-export default class CheckboxLabelExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{marginTop: '20px'}}>
-          <Checkbox value="1" label="Label After (default)" style={{margin: '10px'}} />
-          <Checkbox value="2" label="Label Before" labelPosition="before" style={{margin: '10px'}} />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<CheckboxLabelExample />, mountNode);
+<Checkbox value="1" label="Label After (default)" style={{ margin: "10px" }} />
+<Checkbox value="2" label="Label Before" labelPosition="before" style={{ margin: "10px" }} />
 ```
 
 ### 全选（CheckboxGroup）
@@ -253,54 +175,32 @@ ReactDOM.render(<CheckboxLabelExample />, mountNode);
 使用 CheckboxGroup 实现全选功能
 
 ```jsx
-import CheckboxGroup from 'eview-ui/CheckboxGroup';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import CheckboxGroup from "eview-ui/CheckboxGroup";
 
-export default class ComboCheckbox extends React.Component {
+const data = [
+  { value: 0, text: "option1", disabled: true },
+  { value: 1, text: "option2" },
+  { value: 2, text: "option3" },
+  { value: 3, text: "option4" },
+  { value: 4, text: "option5" },
+  { value: 5, text: "option6" },
+];
 
-  handleChange = (value, oldValue, event) => {
-    console.log("checked values: " + value);
-  }
+const selectAll = {
+  text: "All",
+  onChange: (value, oldValue, event) => {
+    // value 是选中值数组
+  },
+};
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      {value: 0, text: "option1", disabled: true},
-      {value: 1, text: "option2"},
-      {value: 2, text: "option3"},
-      {value: 3, text: "option4"},
-      {value: 4, text: "option5"},
-      {value: 5, text: "option6"},
-      {value: 6, text: "option7"},
-      {value: 7, text: "option8-a-b-c-d-e-f-g-h-i-"},
-      {value: 8, text: "option9"},
-      {value: 9, text: "option10"}];
-
-    let selectAll = {text: "All", onChange: this.handleChange};
-    let containerStyle = {width: "1000px"};
-    let fieldStyle = {width: "200px"};
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_CheckboxGroup_example">
-          <div>
-            <CheckboxGroup label="Example with label: "
-                           fieldStyle={fieldStyle}
-                           value={[0]}
-                           style={containerStyle}
-                           selectAll={selectAll}
-                           data={data}
-                           rows={"0:2|3:5|6|7:9"}/>
-          </div>
-        </div>
-      </ConfigProvider>
-    )
-  }
-}
-
-ReactDOM.render(<ComboCheckbox />, mountNode);
-
+<CheckboxGroup
+  label="Example with label: "
+  fieldStyle={{ width: "200px" }}
+  value={[0]}
+  style={{ width: "1000px" }}
+  selectAll={selectAll}
+  data={data}
+  rows="0:2|3:5"
+/>
 ```
 

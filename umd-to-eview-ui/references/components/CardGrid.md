@@ -66,66 +66,44 @@ export type Props = Partial<CardGrid>;
 
 ```jsx
 import CardGrid from 'eview-ui/CardGrid';
-import titleIcon from '@images/title_Icon';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CardGridExample extends React.Component {
+const data = [
+  {
+    title: "Card Title 1",
+    icon: "titleIconUrl", // 图片 url
+    iconLabel: 'Label',
+    data: [
+      { key: 'Storage Type', value: 'file' },
+      { key: 'Owner', value: 'admin' },
+      { key: 'Update Time', value: 1 },
+    ],
+  },
+  {
+    title: "Card Title 2",
+    icon: "titleIconUrl", // 图片 url
+    iconLabel: 'Label',
+    data: [
+      { key: 'Storage Type', value: 'file' },
+      { key: 'Owner', value: 'admin' },
+    ],
+  },
+];
 
-  getData = () => {
-    let dataRes = [];
-    for(let i = 0; i < 20; i++) {
-      let dataObj  =  {
-        title:"Card Title "+ i,
-        icon: titleIcon,
-        iconLabel:'Label',
-        data:[
-          { key:'Storage Type', value:'file' },
-          { key:'Owner', value:'admin' },
-          { key:'Update Time', value:new Date().getUTCDate() }
-        ]
-      }
-      dataRes.push(dataObj);
-    }
-    return dataRes;
-  }
-
-  handleCardClick = (data, evt) => {
-    console.log('卡片点击:', data);
-  }
-
-  handleCheckboxClick = (data, isChecked, evt) => {
-    console.log('勾选框点击:', data, '是否选中:', isChecked);
-  }
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="eui_card_example">
-          <CardGrid
-            id='cardGrid'
-            enablePagination
-            currentPage={1}
-            pageSize={10}
-            pageSizeOptions={[2, 5, 10]}
-            data={this.getData()}
-            onCardClick={this.handleCardClick}
-            onCheckboxClick={this.handleCheckboxClick}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-
-ReactDOM.render(<CardGridExample />,
-  mountNode,
-);
-
+// onCardClick(data, event)：data 是所点击卡片的原始数据
+<CardGrid
+  id='cardGrid'
+  enablePagination
+  currentPage={1}
+  pageSize={10}
+  pageSizeOptions={[2, 5, 10]}
+  data={data}
+  onCardClick={(data, event) => {
+    // data 是所点击卡片的 data，event 是原生 click 事件
+  }}
+  onCheckboxClick={(data, isChecked, event) => {
+    // data 是所勾选卡片的 data，isChecked 是否选中，event 是 change 事件
+  }}
+/>
 ```
 
 ### 样式与主题
@@ -134,51 +112,35 @@ ReactDOM.render(<CardGridExample />,
 
 ```jsx
 import CardGrid from 'eview-ui/CardGrid';
-import titleIcon from '@images/title_Icon';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CardGridStyleExample extends React.Component {
+const data = [
+  {
+    title: "Card Title 0",
+    icon: "titleIconUrl", // 图片 url
+    iconLabel: 'Label',
+    data: [
+      { key: 'Type', value: 'file' },
+      { key: 'Owner', value: 'admin' },
+    ],
+  },
+  {
+    title: "Card Title 1",
+    icon: "titleIconUrl", // 图片 url
+    iconLabel: 'Label',
+    data: [
+      { key: 'Type', value: 'file' },
+      { key: 'Owner', value: 'admin' },
+    ],
+  },
+];
 
-  getData = () => {
-    let dataRes = [];
-    for(let i = 0; i < 6; i++) {
-      let dataObj = {
-        title:"Card Title " + i,
-        icon: titleIcon,
-        iconLabel:'Label',
-        data:[
-          { key:'Type', value:'file' },
-          { key:'Owner', value:'admin' }
-        ]
-      }
-      dataRes.push(dataObj);
-    }
-    return dataRes;
-  }
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <CardGrid
-          className='custom-card-grid'
-          style={{ marginTop: '10px' }}
-          version='aui3'
-          theme='theme_dark'
-          data={this.getData()}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-
-
-ReactDOM.render(<CardGridStyleExample />,
-  mountNode,
-);
-
+<CardGrid
+  className='custom-card-grid'
+  style={{ marginTop: '10px' }}
+  version='aui3'
+  theme='theme_dark'
+  data={data}
+/>
 ```
 
 ### 不分页模式
@@ -187,47 +149,34 @@ enablePagination 为 false 时不分页，所有卡片同时展示
 
 ```jsx
 import CardGrid from 'eview-ui/CardGrid';
-import titleIcon from '@images/title_Icon';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CardGridNoPageExample extends React.Component {
+// enablePagination 为 false 时不分页，所有卡片同时展示
+const data = [
+  {
+    title: "Card Title 0",
+    icon: "titleIconUrl", // 图片 url
+    iconLabel: 'Label',
+    data: [
+      { key: 'Status', value: 'active' },
+      { key: 'Count', value: 0 },
+    ],
+  },
+  {
+    title: "Card Title 1",
+    icon: "titleIconUrl", // 图片 url
+    iconLabel: 'Label',
+    data: [
+      { key: 'Status', value: 'active' },
+      { key: 'Count', value: 10 },
+    ],
+  },
+];
 
-  getData = () => {
-    let dataRes = [];
-    for(let i = 0; i < 8; i++) {
-      let dataObj = {
-        title:"Card Title " + i,
-        icon: titleIcon,
-        iconLabel:'Label',
-        data:[
-          { key:'Status', value:'active' },
-          { key:'Count', value: i * 10 }
-        ]
-      }
-      dataRes.push(dataObj);
-    }
-    return dataRes;
-  }
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <CardGrid
-          data={this.getData()}
-          onCardClick={(data, evt) => console.log(data)}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-
-
-ReactDOM.render(<CardGridNoPageExample />,
-  mountNode,
-);
-
+<CardGrid
+  data={data}
+  onCardClick={(data, event) => {
+    // data 是所点击卡片的 data
+  }}
+/>
 ```
 

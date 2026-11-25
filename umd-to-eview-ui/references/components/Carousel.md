@@ -77,61 +77,34 @@ export type Props = Partial<CarouselProps>;
 
 ```jsx
 import Carousel from "eview-ui/Carousel";
-import LabelField from "eview-ui/LabelField";
-import pic1 from "@images/pic1";
-import pic2 from "@images/pic2";
-import pic3 from "@images/pic3";
-import pic4 from "@images/pic4";
 
-export default class CarouselExample extends React.Component {
-  render() {
-    const divStyle = { margin: "20px 0px 50px 20px" };
-    const labelStyle = {
-      display: "block",
-      fontSize: "14px",
-      marginBottom: "10px",
-      paddingLeft: "0px"
-    };
-    return (
-      <div id="evu_Carousel_example">
-        <div style={divStyle}>
-          <LabelField style={labelStyle}>Basic Carousel</LabelField>
-          <Carousel>
-            <img src={pic1} />
-            <img src={pic2} />
-            <img src={pic3} />
-            <img src={pic4} />
-          </Carousel>
-        </div>
-        <div style={divStyle}>
-          <LabelField style={labelStyle}>Autoplay Carousel</LabelField>
-          <Carousel autoplay autoplayInterval={3000} transformTime={600}>
-            <img src={pic1} />
-            <img src={pic2} />
-            <img src={pic3} />
-            <img src={pic4} />
-          </Carousel>
-        </div>
+const pic1 = "pic1-url"; // 图片 url
+const pic2 = "pic2-url";
+const pic3 = "pic3-url";
+const pic4 = "pic4-url";
 
-        <div style={divStyle}>
-          <LabelField style={labelStyle}>Vertical Carousel</LabelField>
-          <Carousel
-            autoplay
-            autoplayInterval={3000}
-            transformTime={600}
-            axis="vertical"
-          >
-            <img src={pic2} />
-            <img src={pic3} />
-            <img src={pic4} />
-          </Carousel>
-        </div>
-      </div>
-    );
-  }
-}
+// 基本：children 直接用 <img>
+<Carousel>
+  <img src={pic1} />
+  <img src={pic2} />
+  <img src={pic3} />
+  <img src={pic4} />
+</Carousel>
 
-ReactDOM.render(<CarouselExample />, mountNode);
+// 自动播放：autoplay + autoplayInterval（ms，默认 3000）+ transformTime（过渡 ms，默认 350）
+<Carousel autoplay autoplayInterval={3000} transformTime={600}>
+  <img src={pic1} />
+  <img src={pic2} />
+  <img src={pic3} />
+  <img src={pic4} />
+</Carousel>
+
+// 垂直方向：axis="vertical"
+<Carousel autoplay autoplayInterval={3000} transformTime={600} axis="vertical">
+  <img src={pic2} />
+  <img src={pic3} />
+  <img src={pic4} />
+</Carousel>
 ```
 
 ### 自定义内容
@@ -139,49 +112,44 @@ ReactDOM.render(<CarouselExample />, mountNode);
 使用 `Carousel.Item` 可以在轮播项中自定义内容，如图片叠加文字说明
 
 ```jsx
-import Carousel from 'eview-ui/Carousel';
-import pic1 from '@images/pic1';
-import pic2 from '@images/pic2';
-import pic3 from '@images/pic3';
+import Carousel from "eview-ui/Carousel";
 
-export default class CarouselCaptionExample extends React.Component {
-  render() {
-    const divStyle = { margin: "20px 0px 50px 20px" };
-    const captionStyle = { position: "absolute", bottom: "0", width: "100%", padding: "30px 0", color: "#fff" };
-    const carouselStyle = { width: "500px", height: "300px" };
-    return (
-      <div id="evu_Carousel_example">
-        <div style={divStyle}>
-          <Carousel style={carouselStyle}>
-            <Carousel.Item>
-              <img src={pic1} />
-              <div style={captionStyle}>
-                <h3>First slide label</h3>
-                <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
-              </div>
-            </Carousel.Item>
-            <Carousel.Item>
-              <img src={pic2} />
-              <div style={captionStyle}>
-                <h3>Second slide label</h3>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-              </div>
-            </Carousel.Item>
-            <Carousel.Item>
-              <img src={pic3} />
-              <div style={captionStyle}>
-                <h3>Third slide label</h3>
-                <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur.</p>
-              </div>
-            </Carousel.Item>
-          </Carousel>
-        </div>
-      </div>
-    );
-  }
-}
+const pic1 = "pic1-url"; // 图片 url
+const pic2 = "pic2-url";
+const pic3 = "pic3-url";
 
-ReactDOM.render(<CarouselCaptionExample />, mountNode);
+const captionStyle = {
+  position: "absolute",
+  bottom: "0",
+  width: "100%",
+  padding: "30px 0",
+  color: "#fff",
+};
+
+// Carousel.Item：在轮播项中自定义内容（图片叠加文字说明等）
+<Carousel style={{ width: "500px", height: "300px" }}>
+  <Carousel.Item>
+    <img src={pic1} />
+    <div style={captionStyle}>
+      <h3>First slide label</h3>
+      <p>说明文字</p>
+    </div>
+  </Carousel.Item>
+  <Carousel.Item>
+    <img src={pic2} />
+    <div style={captionStyle}>
+      <h3>Second slide label</h3>
+      <p>说明文字</p>
+    </div>
+  </Carousel.Item>
+  <Carousel.Item>
+    <img src={pic3} />
+    <div style={captionStyle}>
+      <h3>Third slide label</h3>
+      <p>说明文字</p>
+    </div>
+  </Carousel.Item>
+</Carousel>
 ```
 
 ### 指定轮播方向
@@ -189,23 +157,17 @@ ReactDOM.render(<CarouselCaptionExample />, mountNode);
 通过 `direction` 控制轮播切换方向，`right` 为从右向左，`left` 为从左向右
 
 ```jsx
-import Carousel from 'eview-ui/Carousel';
-import pic1 from '@images/pic1';
-import pic2 from '@images/pic2';
-import pic3 from '@images/pic3';
+import Carousel from "eview-ui/Carousel";
 
-export default class CarouselDirectionExample extends React.Component {
-  render() {
-    return (
-      <Carousel autoplay autoplayInterval={3000} direction="left">
-        <img src={pic1} />
-        <img src={pic2} />
-        <img src={pic3} />
-      </Carousel>
-    );
-  }
-}
+const pic1 = "pic1-url"; // 图片 url
+const pic2 = "pic2-url";
+const pic3 = "pic3-url";
 
-ReactDOM.render(<CarouselDirectionExample />, mountNode);
+// direction 控制切换方向：right（默认，从右向左）/ left（从左向右）/ top / bottom
+<Carousel autoplay autoplayInterval={3000} direction="left">
+  <img src={pic1} />
+  <img src={pic2} />
+  <img src={pic3} />
+</Carousel>
 ```
 

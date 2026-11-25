@@ -25,33 +25,9 @@
 
 ```jsx
 import Shade from "eview-ui/Shade";
-import LabelField from "eview-ui/LabelField";
 
-export default class ShadeExample extends React.Component {
-  render() {
-    const labelStyle = {
-      style: {
-        paddingLeft: "0",
-        display: "block",
-      },
-    };
-
-    return (
-      <div id="evu_Shade_example" style={{ margin: "0 20px" }}>
-        <LabelField {...labelStyle} text={"Set the shade"} />
-        <Shade isShow={true} width="80%" height="100%" position="relative">
-          <div style={{ color: "#272727" }}>
-            这是shade内部子组件，用于展示shade样式的文本。
-            <br />
-            This is an example text for shade style.
-            <br />
-            阴影的长度和宽度是设置取决于position的值，relative是以其父组件为基准，absolute是以整个DOM的根组件为基准。
-          </div>
-        </Shade>
-      </div>
-    );
-  }
-}
-
-ReactDOM.render(<ShadeExample />, mountNode);
+// position="relative"：以父组件为基准；"absolute"：以 DOM 根为基准；"fixed"：以视口为基准
+<Shade isShow={true} width="80%" height="100%" position="relative">
+  <div>{/* shade 内部子组件内容 */}</div>
+</Shade>
 ```

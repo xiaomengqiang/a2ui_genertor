@@ -61,116 +61,58 @@ Menu组件提供API功能,用户可以创建和子菜单。
 
 ```jsx
 import ButtonMenu from "eview-ui/ButtonMenu";
-import createDefault from "@images/create_default";
-import deleteDefault from "@images/delete_default";
-import exportDefault from "@images/export_default";
-import createIcon from "@images/create_icon";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ButtonMenuExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
+const optionsButton1 = [
+  {
+    text: "Create",
+    value: 1,
+    iconUrl: "create-default-url", // 图片 url
+  },
+  {
+    text: "Export",
+    value: 2,
+    iconUrl: "export-default-url", // 图片 url
+  },
+  {
+    text: "Delete",
+    value: 3,
+    iconUrl: "delete-default-url", // 图片 url
+  },
+];
 
-    let style1 = { marginLeft: "20px", width: "400px" };
-    let style2 = { marginLeft: "20px", width: "400px" };
-    let labelStyle = { paddingLeft: "5px" };
+const textOptions = [
+  { text: "Create", value: 1 },
+  { text: "Modify", value: 2 },
+];
 
-    let optionsButton1 = [
-      { text: "Create", value: 1, iconUrl: createDefault },
-      { text: "Export", value: 2, iconUrl: exportDefault },
-      { text: "Delete", value: 3, iconUrl: deleteDefault },
-      { text: "Create1", value: 4, iconUrl: createDefault },
-      { text: "Export1", value: 5, iconUrl: exportDefault },
-      { text: "Delete1", value: 6, iconUrl: deleteDefault },
-      { text: "Create2", value: 7, iconUrl: createDefault },
-      { text: "Export2", value: 8, iconUrl: exportDefault },
-      { text: "Delete2", value: 9, iconUrl: deleteDefault },
-    ];
-
-    let optionsButton2 = [
-      { text: "Create", value: 1, iconUrl: createDefault },
-      { text: "Export", value: 2, iconUrl: exportDefault },
-      { text: "Delete", value: 3, iconUrl: deleteDefault },
-      { text: "Create1", value: 4, iconUrl: createDefault },
-      {
-        text: "Create1Create1Create1Create1Create1Create1Create1Create1",
-        value: 5,
-        iconUrl: exportDefault,
-      },
-      { text: "Delete1", value: 6, iconUrl: deleteDefault },
-      { text: "Create2", value: 7, iconUrl: createDefault },
-      { text: "Export2", value: 8, iconUrl: exportDefault },
-      {
-        text: "Create1Create1Create1Create1CreateCreate1Create1Create11",
-        value: 9,
-        iconUrl: deleteDefault,
-      },
-      {
-        text: "Create1Create1Create1Create1Create1Create1Create1",
-        value: 10,
-        iconUrl: createDefault,
-      },
-      {
-        text: "Create1Create1CreateCreate1Create1Create1Create11Create1Create1",
-        value: 11,
-        iconUrl: exportDefault,
-      },
-      { text: "Create1", value: 12, iconUrl: deleteDefault },
-    ];
-
-    let textOptions = [
-      { text: "Create", value: 1 },
-      { text: "Modify I am Big Text", value: 2 },
-    ];
-
-    let options1 = [{ text: "Create", value: 1 }];
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_ButtonMenu_example">
-          <div>
-            <ButtonMenu
-              text="Operation "
-              position="right"
-              iconUrl={createDefault}
-              options={optionsButton1}
-              label="Default style"
-              labelStyle={labelStyle}
-              selectedIndex={1}
-              style={style1}
-            />
-            <br />
-            <br />
-            <ButtonMenu
-              text="Operation"
-              options={textOptions}
-              label="Only Text:"
-              labelStyle={labelStyle}
-              value={1}
-              style={style2}
-            />
-            <br />
-            <br />
-            <ButtonMenu
-              text="Operation"
-              iconUrl={createIcon}
-              options={textOptions}
-              label="Disabled style"
-              labelStyle={labelStyle}
-              value={1}
-              disabled={true}
-              style={style2}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ButtonMenuExample />, mountNode);
+<ButtonMenu
+  text="Operation"
+  position="right"
+  iconUrl="create-default-url" // 图片 url
+  options={optionsButton1}
+  label="Default style"
+  labelStyle={{ paddingLeft: "5px" }}
+  selectedIndex={1}
+  style={{ marginLeft: "20px", width: "400px" }}
+/>
+<ButtonMenu
+  text="Operation"
+  options={textOptions}
+  label="Only Text:"
+  labelStyle={{ paddingLeft: "5px" }}
+  value={1}
+  style={{ marginLeft: "20px", width: "400px" }}
+/>
+<ButtonMenu
+  text="Operation"
+  iconUrl="create-icon-url" // 图片 url
+  options={textOptions}
+  label="Disabled style"
+  labelStyle={{ paddingLeft: "5px" }}
+  value={1}
+  disabled={true}
+  style={{ marginLeft: "20px", width: "400px" }}
+/>
 ```
 
 ### 文本下拉按钮类型
@@ -179,56 +121,25 @@ ReactDOM.render(<ButtonMenuExample />, mountNode);
 
 ```jsx
 import ButtonMenu from "eview-ui/ButtonMenu";
-import createDefault from "@images/create_default";
-import deleteDefault from "@images/delete_default";
-import exportDefault from "@images/export_default";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ButtonMenuExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
+const optionsButton1 = [
+  { text: "Create", value: 1 },
+  { text: "Export", value: 2 },
+  { text: "Delete", value: 3 },
+];
 
-    let style1 = { marginLeft: "20px", width: "400px" };
-    let labelStyle = { paddingLeft: "5px" };
-
-    let optionsButton1 = [
-      { text: "Create", value: 1 },
-      { text: "Export", value: 2 },
-      { text: "Delete", value: 3 },
-      { text: "Create1", value: 4 },
-      { text: "Export1", value: 5 },
-      { text: "Delete1", value: 6 },
-      { text: "Create2", value: 7 },
-      { text: "Export2", value: 8 },
-      { text: "Delete2", value: 9 },
-    ];
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_ButtonMenu_example">
-          <div>
-            <ButtonMenu
-              text="文本按钮"
-              position="right"
-              iconUrl={createDefault}
-              options={optionsButton1}
-              label="Default style"
-              labelStyle={labelStyle}
-              selectedIndex={1}
-              style={style1}
-              isTextDropdown
-              width={"12rem"}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ButtonMenuExample />, mountNode);
+<ButtonMenu
+  text="文本按钮"
+  position="right"
+  iconUrl="create-default-url" // 图片 url
+  options={optionsButton1}
+  label="Default style"
+  labelStyle={{ paddingLeft: "5px" }}
+  selectedIndex={1}
+  style={{ marginLeft: "20px", width: "400px" }}
+  isTextDropdown
+  width={"12rem"}
+/>
 ```
 
 ### 按钮菜单事件
@@ -237,105 +148,46 @@ ReactDOM.render(<ButtonMenuExample />, mountNode);
 
 ```jsx
 import ButtonMenu from "eview-ui/ButtonMenu";
-import createDefault from "@images/create_default";
-import deleteDefault from "@images/delete_default";
-import exportDefault from "@images/export_default";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ButtonMenuExample extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleChange = this.handleChange.bind(this);
-    this.handleFocus = this.handleFocus.bind(this);
-  }
+const options = [
+  {
+    text: "Create",
+    value: 1,
+    iconUrl: "create-default-url", // 图片 url
+    title: "Create a Drive",
+  },
+  {
+    text: "Export",
+    value: 2,
+    disable: true,
+    iconUrl: "export-default-url", // 图片 url
+    title: "Export a Drive",
+  },
+  {
+    text: "Delete",
+    value: 3,
+    iconUrl: "delete-default-url", // 图片 url
+    title: "Delete a Drive",
+  },
+];
 
-  state = {
-    msg: "",
-  };
-
-  handleChange = (data, event) => {
-    this.setState({
-      msg:
-        "OnClick event callback: Selected option Text : " +
-        data.text +
-        " and Value : " +
-        data.value,
-    });
-  };
-
-  handleFocus = (e) => {
-    this.setState({
-      msg: "OnFocus event callback: Selected option Text : " + e.target.value,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let style = { marginLeft: "20px", width: "310px" };
-    let labelStyle = { paddingLeft: "0px" };
-    let options = [
-      {
-        text: "Create",
-        value: 1,
-        iconUrl: createDefault,
-        title: "Create a Drive",
-      },
-      {
-        text: "Export",
-        value: 2,
-        disable: true,
-        iconUrl: exportDefault,
-        title: "Export a Drive",
-      },
-      {
-        text: "Delete",
-        value: 3,
-        iconUrl: deleteDefault,
-        title: "Delete a Drive",
-      },
-    ];
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_ButtonMenu_example">
-          <div>
-            <ButtonMenu
-              text="Operation"
-              iconUrl={createDefault}
-              options={options}
-              label="OnClick Event"
-              labelStyle={labelStyle}
-              selectedIndex={0}
-              style={style}
-              onClick={this.handleChange}
-              onFocus={this.handleFocus}
-              tipShow={"always"}
-              tipData={"Operation drive"}
-            />
-            {this.state.msg ? (
-              <DivMessage
-                text={this.state.msg}
-                type="success"
-                style={{
-                  marginTop: "10px",
-                  width: "420px",
-                  marginLeft: "93px",
-                }}
-              />
-            ) : (
-              ""
-            )}
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ButtonMenuExample />, mountNode);
+<ButtonMenu
+  text="Operation"
+  iconUrl="create-default-url" // 图片 url
+  options={options}
+  label="OnClick Event"
+  labelStyle={{ paddingLeft: "0px" }}
+  selectedIndex={0}
+  style={{ marginLeft: "20px", width: "310px" }}
+  onClick={(data, event) => {
+    // data 是被点击的选项对象（含 text/value）
+  }}
+  onFocus={(event) => {
+    // event 是原生 focus 事件
+  }}
+  tipShow={"always"}
+  tipData={"Operation drive"}
+/>
 ```
 
 ### popup位置
@@ -344,85 +196,47 @@ ReactDOM.render(<ButtonMenuExample />, mountNode);
 
 ```jsx
 import ButtonMenu from "eview-ui/ButtonMenu";
-import createDefault from "@images/create_default";
-import deleteDefault from "@images/delete_default";
-import exportDefault from "@images/export_default";
-import DivMessage from "eview-ui/DivMessage";
-import LabelField from "eview-ui/LabelField";
-import Radio from "eview-ui/Radio";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ButtonMenuExample extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+const options = [
+  {
+    text: "Create",
+    value: 1,
+    iconUrl: "create-default-url", // 图片 url
+    title: "Create a Drive",
+  },
+  {
+    text: "Export",
+    value: 2,
+    disable: true,
+    iconUrl: "export-default-url", // 图片 url
+    title: "Export a Drive",
+  },
+  {
+    text: "Delete",
+    value: 3,
+    iconUrl: "delete-default-url", // 图片 url
+    title: "Delete a Drive",
+  },
+];
 
-  state = {
-    msg: "",
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    let style = { marginLeft: "20px", width: "310px" };
-    let labelStyle = { paddingLeft: "0px" };
-    let options = [
-      {
-        text: "Create",
-        value: 1,
-        iconUrl: createDefault,
-        title: "Create a Drive",
-      },
-      {
-        text: "Export",
-        value: 2,
-        disable: true,
-        iconUrl: exportDefault,
-        title: "Export a Drive",
-      },
-      {
-        text: "Delete",
-        value: 3,
-        iconUrl: deleteDefault,
-        title: "Delete a Drive",
-      },
-    ];
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_ButtonMenu_example">
-          <div>
-            <ButtonMenu
-              text="Up Button"
-              iconUrl={createDefault}
-              options={options}
-              label="display向上："
-              labelStyle={labelStyle}
-              displayDirection="up"
-              style={style}
-            />
-            <br />
-            <br />
-
-            <ButtonMenu
-              text="Down Button"
-              iconUrl={createDefault}
-              options={options}
-              label="display向下："
-              labelStyle={labelStyle}
-              displayDirection="down"
-              style={style}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ButtonMenuExample />, mountNode);
+<ButtonMenu
+  text="Up Button"
+  iconUrl="create-default-url" // 图片 url
+  options={options}
+  label="display向上："
+  labelStyle={{ paddingLeft: "0px" }}
+  displayDirection="up"
+  style={{ marginLeft: "20px", width: "310px" }}
+/>
+<ButtonMenu
+  text="Down Button"
+  iconUrl="create-default-url" // 图片 url
+  options={options}
+  label="display向下："
+  labelStyle={{ paddingLeft: "0px" }}
+  displayDirection="down"
+  style={{ marginLeft: "20px", width: "310px" }}
+/>
 ```
 
 ### icon和label位置设定
@@ -433,102 +247,38 @@ ReactDOM.render(<ButtonMenuExample />, mountNode);
 
 ```jsx
 import ButtonMenu from "eview-ui/ButtonMenu";
-import createDefault from "@images/create_default";
-import deleteDefault from "@images/delete_default";
-import exportDefault from "@images/export_default";
-import DivMessage from "eview-ui/DivMessage";
-import LabelField from "eview-ui/LabelField";
-import Radio from "eview-ui/Radio";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ButtonMenuExample extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+const options = [
+  {
+    text: "Create",
+    value: 1,
+    iconUrl: "create-default-url", // 图片 url
+    title: "Create a Drive",
+  },
+  {
+    text: "Export",
+    value: 2,
+    disable: true,
+    iconUrl: "export-default-url", // 图片 url
+    title: "Export a Drive",
+  },
+  {
+    text: "Delete",
+    value: 3,
+    iconUrl: "delete-default-url", // 图片 url
+    title: "Delete a Drive",
+  },
+];
 
-  state = {
-    labelPos: "before",
-    iconPos: "left",
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let labelStyle = { paddingLeft: "0px" };
-    let options = [
-      {
-        text: "Create",
-        value: 1,
-        iconUrl: createDefault,
-        title: "Create a Drive",
-      },
-      {
-        text: "Export",
-        value: 2,
-        disable: true,
-        iconUrl: exportDefault,
-        title: "Export a Drive",
-      },
-      {
-        text: "Delete",
-        value: 3,
-        iconUrl: deleteDefault,
-        title: "Delete a Drive",
-      },
-    ];
-    const { iconPos, labelPos } = this.state;
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_ButtonMenu_example">
-          <div style={{ marginBottom: "1rem", display: "flex" }}>
-            <LabelField text="label位置:" />
-            <Radio
-              value="before"
-              label="before"
-              checked={labelPos === "before"}
-              onChange={(value) => this.setState({ labelPos: value })}
-              style={{ marginRight: "0.5rem" }}
-            />
-            <Radio
-              value="after"
-              label="after"
-              checked={labelPos === "after"}
-              onChange={(value) => this.setState({ labelPos: value })}
-            />
-          </div>
-          <div style={{ marginBottom: "1rem", display: "flex" }}>
-            <LabelField text="icon位置:" />
-            <Radio
-              value="left"
-              label="left"
-              checked={iconPos === "left"}
-              onChange={(value) => this.setState({ iconPos: value })}
-              style={{ marginRight: "0.5rem" }}
-            />
-            <Radio
-              value="right"
-              label="right"
-              checked={iconPos === "right"}
-              onChange={(value) => this.setState({ iconPos: value })}
-            />
-          </div>
-          <div>
-            <ButtonMenu
-              text="Opertion"
-              iconUrl={createDefault}
-              options={options}
-              position={iconPos}
-              labelPosition={labelPos}
-              label="自定义位置"
-              labelStyle={labelStyle}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ButtonMenuExample />, mountNode);
+// position: 'left' | 'right'（icon 位置）
+// labelPosition: 'before' | 'after'（label 位置）
+<ButtonMenu
+  text="Opertion"
+  iconUrl="create-default-url" // 图片 url
+  options={options}
+  position="left"
+  labelPosition="before"
+  label="自定义位置"
+  labelStyle={{ paddingLeft: "0px" }}
+/>
 ```

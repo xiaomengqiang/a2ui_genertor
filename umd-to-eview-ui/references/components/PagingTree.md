@@ -154,387 +154,104 @@
 ### 滚动分页树基本使用
 
 ```jsx
-import React from 'react';
-import Button from 'eview-ui/Button';
-import ButtonGroup from 'eview-ui/ButtonGroup';
-import PagingTree from 'eview-ui/PagingTree';
+import PagingTree from "eview-ui/PagingTree";
 import TreeDataEngine from "eview-ui/PagingTree/TreeDataEngine";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-const tree: any[] = []
-for (let i = 0; i < 50; i++) {
-  tree.push({
-    text: `lv0#${i}`,
-    level: 0,
-    expand: true
-  })
-  for (let j = 0; j < 60; j++) {
-    tree.push({
-      text: `lv1#${i}_${j}`,
-      level: 1,
-      expand: true
-    })
-    for (let k = 0; k < 100; k++) {
-      tree.push({
-        text: `lv2#${i}_${j}_${k}`,
-        level: 2,
-        isLeaf: true,
-        expand: true
-      })
+// 大数据量树：嵌套结构示意（实际可上万节点）
+const tree = [];
+for (let i = 0; i < 2; i++) {
+  tree.push({ text: `lv0#${i}`, level: 0, expand: true });
+  for (let j = 0; j < 2; j++) {
+    tree.push({ text: `lv1#${i}_${j}`, level: 1, expand: true });
+    for (let k = 0; k < 3; k++) {
+      tree.push({ text: `lv2#${i}_${j}_${k}`, level: 2, isLeaf: true, expand: true });
     }
   }
 }
 
-export default class TreeBasicDemo extends React.Component<any, any> {
-  constructor(props: any) {
-    super(props);
+const treeDataController = new TreeDataEngine({ treeData: tree });
 
-    const treeDataController = new TreeDataEngine({
-      treeData: tree
-    });
-
-    this.state = {
-      treeData: treeDataController.pageList,
-      treeDataController,
-      showCheckBox: true,
-      showExpandIcon: true,
-      nativeScroll: true,
-      isSelectType: false
-    };
-  }
-
-  onExpandAll = () => {
-    const {treeDataController} = this.state;
-    treeDataController.$expandAll();
-    this.setState({
-      treeData: treeDataController.pageList
-    });
-  }
-
-  onCollapseAll = () => {
-    const {treeDataController} = this.state;
-    treeDataController.$collapseAll();
-    this.setState({
-      treeData: treeDataController.pageList
-    });
-  }
-
-  handleCheckBoxSwitch = () => {
-    this.setState({showCheckBox: !this.state.showCheckBox});
-  }
-
-  handleExpandSwitch = () => {
-    this.setState({showExpandIcon: !this.state.showExpandIcon});
-  }
-
-  handleScrollSwitch = () => {
-    this.setState({nativeScroll: !this.state.nativeScroll});
-  }
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      { text: 'expandAll', onClick: this.onExpandAll },
-      { text: 'collapseAll', onClick: this.onCollapseAll },
-      { text: 'CheckBox Switch', onClick: this.handleCheckBoxSwitch },
-      { text: 'Expand Switch', onClick: this.handleExpandSwitch },
-      { text: 'Scroll Switch', onClick: this.handleScrollSwitch },
-    ];
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{
-          width: '50%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          color: "black"
-        }}>
-          <div>
-            节点数量:{this.state.treeDataController.treeData.length},
-            已选叶子节点数量:{this.state.treeDataController.$getCheckList().length}<br/>
-            <ButtonGroup data={data}/>
-          </div>
-          <PagingTree height={400}
-                      treeDataController={this.state.treeDataController}
-                      clickType={this.state.isSelectType ? 'select' : 'check'}
-                      treeData={this.state.treeData}
-                      hasCheckBox={this.state.showCheckBox}
-                      hasExpand={this.state.showExpandIcon}
-                      useSpace={true}
-                      nativeScroll={this.state.nativeScroll}
-                      reRender={() => this.setState({treeData: this.state.treeDataController.pageList.concat()})}/>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TreeBasicDemo />, mountNode);
+<PagingTree
+  height={400}
+  treeDataController={treeDataController}
+  treeData={treeDataController.pageList}
+  clickType="check" // 'check' | 'select'
+  hasCheckBox={true} // true / false（select 模式强制 false）
+  hasExpand={true} // true / false
+  useSpace={true}
+  nativeScroll={true} // true 原生滚动条 / false 组件滚动条
+  reRender={() => {
+    // 内部树修改数据后通知外部重绘：取 treeDataController.pageList 更新
+  }}
+/>
 ```
 
 ### 拓扑场景
 
 ```jsx
-import PagingTree from 'eview-ui/PagingTree';
+import PagingTree from "eview-ui/PagingTree";
 import TreeDataEngine from "eview-ui/PagingTree/TreeDataEngine";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-class TopoTreeNode extends React.Component<any, any> {
-
-    SUBNET_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACGElEQVRIS62V4XHTQBCFv70UgKkAV4CtCkgqIKkAUUHsCpAriKjAcQWYCmIqkEIFTgdxAdwye9LJtiJbIuH+aEazt+/27b63wpBTMMJxizIL4UKO5zsJz33XpS+AghThDhi1Yp8RZkxYnctxGqDgsk487XlEiTInYdMV9xKgYIzwDUh7qzsOuEdZkLA9/H0E4AqXefG3HXQMxTLaciYs4oUGQEpKhcnQTD1xG6ZcVfNgp2rksnXpSURKVf3ckyzGXQLvmljlKwn3AaCmxnjfH+V9GMOC1OHGp0A8fk1CySM5itEbjlO38InPzgFchckwDVjD3cHrYpaohYKRiCwVvR4OIPzCkwH2+hJhDXyoE+xwpPyhdLjU4zcID4dV9lcQAaqLNoJzHGuUMco1F4zxLBEew0PeCGCP26DcVASTNXwfP6Qp4l8rIFRAoMkoMzHmYWr+A4DRYiM4QvhRfzM8P0NfhO2rKHLKyhOabI4ZDa+hQJC1qs7rJhuQeVGjg36K9jqwMT1leNvoPW0tHQFQMKudcz9pjhsbQxG5U7Rt1YeCtL6s2jqoHTaPVmFNK4+k/jZT2qFMrbq9mxZMW2J6LcQTShr3w4t9UHNpq3FvXMOgdk5dbv5zGN690QpGDnIvfBmSu564WdeOPr+TbW1Wqv3UCRRFdmJd2p3+pW9R1b6olFsd4zkzv++rcBhAzPKbyo4/BssYdP4CSgUJKAqA/tMAAAAASUVORK5CYII='
-
-    handleMouseOver = (e: React.MouseEvent) => {
-        const {onMouseOver, node} = this.props;
-        onMouseOver(e, node, node.line);
-    }
-
-    handleMouseOut = (e: React.MouseEvent) => {
-        const {onMouseOut, node} = this.props;
-        onMouseOut(e, node, node.line);
-    }
-
-    render() {
-        const {treeDataController, node} = this.props;
-        const style: React.CSSProperties = {
-            whiteSpace: 'nowrap'
-        };
-
-        const selectedNode = treeDataController.selectedNodeMap[this.props.node.id];
-        const defaultSelected = Object.keys(treeDataController.selectedNodeMap).length === 0 && node.isRoot;
-        if (selectedNode || defaultSelected) {
-            style.background = '#186FC2';
-            style.color = '#fff';
-        }
-
-        return (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              cursor: 'pointer'
-            }}
-            onMouseOver={this.handleMouseOver}
-            onMouseOut={this.handleMouseOut}
-            className={'topo-left-tree-node'}>
-            {<img alt='' src={this.SUBNET_ICON} className={'topo-left-tree-node-img'}
-                  style={{border: `1px solid ${node.color}`}}/>}
-            <div style={style}>
-              {node.label}
-            </div>
-          </div>
-        );
-    }
+// 自定义节点组件：接收 { node, treeDataController, onMouseOver, onMouseOut }
+function TopoTreeNode({ node, treeDataController, onMouseOver, onMouseOut }) {
+  const handleMouseOver = (e) => onMouseOver(e, node, node.line);
+  const handleMouseOut = (e) => onMouseOut(e, node, node.line);
+  const selectedNode = treeDataController.selectedNodeMap[node.id];
+  const defaultSelected =
+    Object.keys(treeDataController.selectedNodeMap).length === 0 && node.isRoot;
+  const style = { whiteSpace: "nowrap" };
+  if (selectedNode || defaultSelected) {
+    style.background = "#186FC2";
+    style.color = "#fff";
+  }
+  return (
+    <div
+      style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
+      onMouseOver={handleMouseOver}
+      onMouseOut={handleMouseOut}
+    >
+      <img
+        alt=""
+        src="data:image/png;base64,..." // 图片 url
+        style={{ border: `1px solid ${node.color}` }}
+      />
+      <div style={style}>{node.label}</div>
+    </div>
+  );
 }
 
-export default class TopoPagingTree extends React.Component<any, any> {
-    constructor(props: any) {
-        super(props);
+const treeDataController = new TreeDataEngine({ treeData: [] });
 
-        const treeDataController = new TreeDataEngine({
-            treeData: []
-        });
-
-        this.state = {
-            treeData: treeDataController.pageList,
-            treeDataController,
-            showCheckBox: true,
-            showExpandIcon: true,
-            nativeScroll: true
-        };
-    }
-
-    reRender = () => {
-        this.setState({treeData: this.state.treeDataController.pageList.concat()});
-    };
-
-    handleExpand = (event, node, lineNum, expandType) => {
-        if (node.isLeaf) {
-            return;
-        }
-        const {treeDataController} = this.state;
-        const treeDatum = treeDataController.treeDataMap[node.id];
-
-        treeDataController.$expand(lineNum, true, expandType);
-
-        if (treeDatum.expand) {
-            this.getTreeData(treeDatum.id);
-        } else {
-            this.reRender();
-        }
-    }
-
-    handleClick = (event, node, line) => {
-        this.setState({callbackResult: `点击了node: ${node.label}`})
-    }
-
-    handleDoubleClick = (event, node, line) => {
-        this.handleExpand(event, node, line);
-    }
-
-    handleContextMenu = (event, node, line) => {
-        event.preventDefault();
-        event.stopPropagation();
-        this.setState({callbackResult: `右键点击了node: ${node.label}`})
-    }
-
-    handleMouseOver = (e, node) => {
-        this.setState({callbackResult: `移入node: ${node.label}`})
-    }
-
-    handleMouseOut = (e, node) => {
-        this.setState({callbackResult: `移出node: ${node.label}`})
-    }
-
-    getTreeData = (parentId) => {
-        const {treeDataController} = this.state;
-        if (parentId) {
-            setTimeout(() => {
-                const treeData = treeDataController.treeData;
-                const line = treeData.findIndex(data => data.id === parentId);
-                const nodeData = treeData[line];
-                nodeData.expand = true;
-
-                let data = {};
-                if (parentId === '102') {
-                    data.nodes = treeNodes.nodes.map(treeNode => {
-                        treeNode.id = treeNode.resId;
-                        return treeNode;
-                    });
-                } else {
-                    data.nodes = [];
-                    for (let i = 0; i < 100; i++) {
-                        data.nodes.push({
-                            "label": `${nodeData.label}_${i}`,
-                            "id": `${nodeData.id}_${i}`,
-                            "parentId": parentId,
-                            "isLeaf": Math.floor(Math.random() * 100) % 2 === 0,
-                            "isNE": false,
-                            "isManaged": true,
-                            "typeId": "200",
-                            "isRoot": false,
-                            "uncheckedDisable": false
-                        });
-                    }
-                }
-                if (data.nodes && data.nodes.length > 0) {
-                    const childLevel = nodeData.level + 1;
-                    data.nodes.forEach((item, index) => {
-                        item.level = childLevel;
-                        item.line = line + index + 1;
-                        item.expand = false;
-                        item.filter = true;
-                        item.checked = !item.disabled ? nodeData.checked : 0;
-                    });
-                }
-                treeDataController.updateNodes([{id: nodeData.id, children: data.nodes}]);
-                this.setState({treeData: this.state.treeDataController.pageList.concat()})
-            }, 200);
-        } else {
-            setTimeout(() => {
-                const rootData = rootNode;
-                if (rootData.nodes && rootData.nodes.length > 0) {
-                    const rootNode = rootData.nodes[0];
-                    rootNode.id = rootNode.resId;
-                    rootNode.line = 0;
-                    rootNode.level = 0;
-                    rootNode.expand = false;
-                    rootNode.filter = true;
-                    rootNode.checked = 0;
-                    this.state.treeDataController.rootNode = rootNode;
-                    this.state.treeDataController.updateFlatTree();
-                    this.setState({treeData: this.state.treeDataController.pageList.concat()})
-                    this.getTreeData(rootNode.id);
-                }
-            }, 200);
-        }
-    };
-
-    componentDidMount() {
-        this.getTreeData();
-    }
-
-    render() {
-        const [version, theme] = getDemoVersion();
-        const {treeData, treeDataController} = this.state;
-        return (
-          treeData ?
-            <ConfigProvider version={version} theme={theme}>
-              <div style={{position: 'relative', color: 'black'}}>
-                当前节点数: {treeDataController.showTotal}
-                <PagingTree
-                  treeData={treeData}
-                  treeDataController={treeDataController}
-                  reRender={this.reRender}
-                  hasCheckBox={false}
-                  clickType={'select'}
-                  nativeScroll={true}
-                  nodeComponent={TopoTreeNode}
-                  onExpand={this.handleExpand}
-                  onClick={this.handleClick}
-                  onMouseOver={this.handleMouseOver}
-                  onMouseOut={this.handleMouseOut}
-                  onRightMenu={this.handleContextMenu}
-                  onDoubleClick={this.handleDoubleClick}
-                  height={500}/>
-                {this.state.callbackResult && <div>{this.state.callbackResult}</div>}
-              </div>
-            </ConfigProvider>
-            :
-            null);
-    }
-}
-
-const rootNode = {
-  nodes: [{
-    "label": "Product Phytopo",
-    "resId": "102",
-    "isLeaf": false,
-    "isNE": false,
-    "isManaged": true,
-    "isRoot": true,
-    "typeId": "0",
-    "uncheckedDisable": true
-  }]
-};
-
-const treeNodes = {
-  "nodes": [{
-    "label": "NCE",
-    "resId": "1001",
-    "parentId": "102",
-    "isLeaf": true,
-    "isNE": true,
-    "isManaged": true,
-    "typeId": "100000",
-    "isRoot": false,
-    "uncheckedDisable": true
-  }, {
-    "label": "ComSubnet11345",
-    "resId": "1120",
-    "parentId": "102",
-    "isLeaf": false,
-    "isNE": false,
-    "isManaged": true,
-    "typeId": "200",
-    "isRoot": false,
-    "uncheckedDisable": false
-  }, {
-    "label": "ComSubnet12554",
-    "resId": "1155",
-    "parentId": "102",
-    "isLeaf": true,
-    "isNE": false,
-    "isManaged": true,
-    "typeId": "200",
-    "isRoot": false,
-    "uncheckedDisable": false
-  }]
-};
-
-ReactDOM.render(<TopoPagingTree />, mountNode);
+<PagingTree
+  treeData={treeDataController.pageList}
+  treeDataController={treeDataController}
+  reRender={() => {
+    // 取 treeDataController.pageList 更新
+  }}
+  hasCheckBox={false}
+  clickType="select"
+  nativeScroll={true}
+  nodeComponent={TopoTreeNode}
+  onExpand={(event, node, line, expandType) => {
+    // 异步加载子节点：treeDataController.$expand(line, true, expandType)
+    // 取树数据后 updateNodes([{ id, children }])
+  }}
+  onClick={(event, node, line) => {
+    // 取 node 更新
+  }}
+  onMouseOver={(e, node) => {
+    // 移入 node
+  }}
+  onMouseOut={(e, node) => {
+    // 移出 node
+  }}
+  onRightMenu={(e, node, line) => {
+    // 右键 node
+  }}
+  onDoubleClick={(event, node, line) => {
+    // 双击：触发展开
+  }}
+  height={500}
+/>
 ```
 

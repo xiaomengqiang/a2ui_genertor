@@ -51,120 +51,53 @@ data数组中的每个对象支持以下属性（对应IconButton组件），以
 
 ```jsx
 import IconButtonGroup from "eview-ui/IconButtonGroup";
-import DivMessage from 'eview-ui/DivMessage';
-import navForm from "@images/nav_form"
-import navFormActive from "@images/nav_form_active"
-import navMsg from "@images/nav_msg"
-import navMsgActive from "@images/nav_msg_active"
-import navHeart from "@images/nav_heart"
-import navHeartActive from "@images/nav_heart_active"
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class IconButtonGroupExample extends React.Component {
-  state = {
-    msg: '',
-  };
+const data = [
+  {
+    title: "icon1",
+    tipText: "form",
+    tipData: { disposeTimeOut: 5000, placement: "top" },
+    iconUrl: "nav_form", // 图片 url
+    hoverIconUrl: "nav_form_active", // 图片 url
+    onClick: () => {
+      // 取点击项更新
+    },
+  },
+  {
+    title: "icon2",
+    disabled: true,
+    tipText: "msg",
+    iconUrl: "nav_msg", // 图片 url
+    hoverIconUrl: "nav_msg_active", // 图片 url
+  },
+  {
+    title: "icon3",
+    tipText: "heart",
+    iconUrl: "nav_heart", // 图片 url
+    hoverIconUrl: "nav_heart_active", // 图片 url
+  },
+  { title: "icon4", tipText: "star", iconName: "star" },
+];
 
-  handleClick = () => {
-    this.setState({ msg: "Callback events for the component's click event" });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const data = [
-      {
-        title: "icon1",
-        tipText: "form",
-        tipData: { disposeTimeOut: 5000, placement: 'top' },
-        iconUrl: navForm,
-        hoverIconUrl: navFormActive,
-        onClick: this.handleClick,
-      },
-      {
-        title: "icon2",
-        disabled: true,
-        tipText: "msg",
-        iconUrl: navMsg,
-        hoverIconUrl: navMsgActive,
-      },
-      {
-        title: "icon3",
-        tipText: "heart",
-        iconUrl: navHeart,
-        hoverIconUrl: navHeartActive,
-      },
-      {
-        title: "icon4",
-        tipText: "star",
-        iconName: "star",
-      }
-    ];
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_IconButtonGroup_example">
-          <div>
-            <IconButtonGroup data={data} id="IconButtonGroupId"/>
-          </div>
-
-          {this.state.msg ?
-            <DivMessage text={this.state.msg} type="success" style={{marginTop: "10px", width: "600px"}}/> : ''}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<IconButtonGroupExample />, mountNode);
+<IconButtonGroup data={data} id="IconButtonGroupId" />
 ```
 
 ### 使用 iconName 和自定义样式
 
 ```jsx
 import IconButtonGroup from "eview-ui/IconButtonGroup";
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class IconButtonGroupStyledExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    const data = [
-      {
-        tipText: "编辑",
-        iconName: "edit",
-        iconProps: { color: '#191919', hoverColor: '#0072e8' },
-      },
-      {
-        tipText: "删除",
-        iconName: "del",
-        iconProps: { color: '#191919', hoverColor: '#0072e8' },
-      },
-      {
-        tipText: "刷新",
-        iconName: "refresh",
-        iconProps: { color: '#191919', hoverColor: '#0072e8' },
-      },
-      {
-        tipText: "设置",
-        iconName: "operation",
-        disabled: true,
-      },
-    ];
+const data = [
+  { tipText: "编辑", iconName: "edit", iconProps: { color: "#191919", hoverColor: "#0072e8" } },
+  { tipText: "删除", iconName: "del", iconProps: { color: "#191919", hoverColor: "#0072e8" } },
+  { tipText: "刷新", iconName: "refresh", iconProps: { color: "#191919", hoverColor: "#0072e8" } },
+  { tipText: "设置", iconName: "operation", disabled: true },
+];
 
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <IconButtonGroup
-          data={data}
-          itemStyle={{ marginRight: '0.5rem' }}
-          style={{ padding: '8px' }}
-        />
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<IconButtonGroupStyledExample />, mountNode);
+<IconButtonGroup
+  data={data}
+  itemStyle={{ marginRight: "0.5rem" }}
+  style={{ padding: "8px" }}
+/>
 ```
 

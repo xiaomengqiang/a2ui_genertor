@@ -37,179 +37,74 @@
 
 ```jsx
 import Tag from "eview-ui/Tag";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 import { SvgIcon } from "@/shared/SvgIcon";
 
-class TagExample extends React.Component {
-  state = {
-    selected: false,
-  };
-  onCLick() {
-    this.setState({
-      selected: !this.state.selected,
-    });
-  }
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Tag type={"message"} style={{ marginRight: "2rem" }}>
-            Tag
-          </Tag>
-          <Tag type={"message"} hasIcon={true} style={{ marginRight: "2rem" }}>
-            <span
-              style={{
-                display: "inline-block",
-                verticalAlign: "middle",
-                marginRight: "0.125rem",
-              }}
-            >
-              <SvgIcon src="calender" size={12} hoverColor="#191919" />
-            </span>
-            Tag
-          </Tag>
-          <Tag
-            type={"message"}
-            onClick={() => {
-              this.onCLick();
-            }}
-            selected={this.state.selected}
-            style={{ marginRight: "2rem" }}
-            onClose={() => {}}
-          >
-            Active Tag
-          </Tag>
-          <Tag type={"message"} disabled>
-            Disabled Tag
-          </Tag>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TagExample />, mountNode);
+<Tag type={"message"} style={{ marginRight: "2rem" }}>
+  Tag
+</Tag>
+<Tag type={"message"} hasIcon={true} style={{ marginRight: "2rem" }}>
+  <span style={{ display: "inline-block", verticalAlign: "middle", marginRight: "0.125rem" }}>
+    <SvgIcon src="calender" size={12} hoverColor="#191919" />
+  </span>
+  Tag
+</Tag>
+{/* selected: true 高亮 / false 普通（两态切换） */}
+<Tag
+  type={"message"}
+  onClick={() => {
+    // 取反 selected 更新
+  }}
+  selected={false}
+  style={{ marginRight: "2rem" }}
+  onClose={() => {
+    // 关闭回调
+  }}
+>
+  Active Tag
+</Tag>
+<Tag type={"message"} disabled>
+  Disabled Tag
+</Tag>
 ```
 
 ### 状态标签
 
 ```jsx
 import Tag from "eview-ui/Tag";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-class TagExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Tag type="status" color="default" style={{ marginRight: "1rem" }}>
-            default
-          </Tag>
-          <Tag type="status" color="primary" style={{ marginRight: "1rem" }}>
-            primary
-          </Tag>
-          <Tag type="status" color="success" style={{ marginRight: "1rem" }}>
-            success
-          </Tag>
-          <Tag type="status" color="warning" style={{ marginRight: "1rem" }}>
-            warning
-          </Tag>
-          <Tag type="status" color="caution" style={{ marginRight: "1rem" }}>
-            caution
-          </Tag>
-          <Tag type="status" color="danger" style={{ marginRight: "1rem" }}>
-            danger
-          </Tag>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TagExample />, mountNode);
+<div>
+  <Tag type="status" color="default" style={{ marginRight: "1rem" }}>default</Tag>
+  <Tag type="status" color="primary" style={{ marginRight: "1rem" }}>primary</Tag>
+  <Tag type="status" color="success" style={{ marginRight: "1rem" }}>success</Tag>
+  <Tag type="status" color="warning" style={{ marginRight: "1rem" }}>warning</Tag>
+  <Tag type="status" color="caution" style={{ marginRight: "1rem" }}>caution</Tag>
+  <Tag type="status" color="danger" style={{ marginRight: "1rem" }}>danger</Tag>
+</div>
 ```
 
 ### 圆点标签
 
 ```jsx
 import Tag from "eview-ui/Tag";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-class TagExample extends React.Component {
-  state = {
-    selected: false,
-  };
-  onCLick() {
-    this.setState({
-      selected: !this.state.selected,
-    });
-  }
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Tag type="dot" color="default" style={{ marginRight: "1rem" }}>
-            default
-          </Tag>
-          <Tag type="dot" color="primary" style={{ marginRight: "1rem" }}>
-            primary
-          </Tag>
-          <Tag type="dot" color="success" style={{ marginRight: "1rem" }}>
-            success
-          </Tag>
-          <Tag type="dot" color="warning" style={{ marginRight: "1rem" }}>
-            warning
-          </Tag>
-          <Tag type="dot" color="caution" style={{ marginRight: "1rem" }}>
-            caution
-          </Tag>
-          <Tag type="dot" color="danger" style={{ marginRight: "1rem" }}>
-            danger
-          </Tag>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TagExample />, mountNode);
+<div>
+  <Tag type="dot" color="default" style={{ marginRight: "1rem" }}>default</Tag>
+  <Tag type="dot" color="primary" style={{ marginRight: "1rem" }}>primary</Tag>
+  <Tag type="dot" color="success" style={{ marginRight: "1rem" }}>success</Tag>
+  <Tag type="dot" color="warning" style={{ marginRight: "1rem" }}>warning</Tag>
+  <Tag type="dot" color="caution" style={{ marginRight: "1rem" }}>caution</Tag>
+  <Tag type="dot" color="danger" style={{ marginRight: "1rem" }}>danger</Tag>
+</div>
 ```
 
 ### 尺寸
 
 ```jsx
 import Tag from "eview-ui/Tag";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-class TagExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Tag type="status" size="large" style={{ marginRight: "2rem" }}>
-            {" "}
-            large{" "}
-          </Tag>
-          <Tag type="status" style={{ marginRight: "2rem" }}>
-            {" "}
-            default{" "}
-          </Tag>
-          <Tag type="status" size="small">
-            small{" "}
-          </Tag>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TagExample />, mountNode);
+<div>
+  <Tag type="status" size="large" style={{ marginRight: "2rem" }}>large</Tag>
+  <Tag type="status" style={{ marginRight: "2rem" }}>default</Tag>
+  <Tag type="status" size="small">small</Tag>
+</div>
 ```

@@ -60,20 +60,9 @@
 点击时间选择器输入或选时间
 
 ```jsx
-import React from "react";
 import TimePicker from "eview-ui/TimePicker";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const [version, theme] = getDemoVersion();
-
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <TimePicker />
-  </ConfigProvider>,
-  mountNode,
-);
+<TimePicker />
 ```
 
 ### 时间传入与获取
@@ -81,45 +70,18 @@ ReactDOM.render(
 通过time或defaultTime传入时间值, 通过onChange获取时间值。传入的新的time可以更新为新的time值
 
 ```jsx
-import React from 'react';
-import TimePicker, { ArrayTime } from 'eview-ui/TimePicker';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import TimePicker, { ArrayTime } from "eview-ui/TimePicker";
 
-const style: React.CSSProperties = {
-  margin: '0 0.5rem 0.75rem 0'
-}
+const style = { margin: "0 0.5rem 0.75rem 0" };
 
-export default function TimePickerUseTimeDemo() {
-  const [version, theme] = getDemoVersion();
-  const [time, setTime] = React.useState(null as ArrayTime);
+// defaultTime: 非受控初始值；time: 受控值（[时, 分, 秒] 数字数组）
+// onChange 回调首参为 [时, 分, 秒] 数字数组
+const time = [12, 9, 8];
 
-  React.useEffect(() => {
-    const id = setInterval(() => {
-      if (time === null) {
-        return;
-      }
-      const nextMoment = moment(time.join(':'), 'HH:mm:ss').add(1, 'second');
-      const nextTime = nextMoment.format('HH:mm:ss').split(':').map(Number) as [number, number, number];
-      setTime(nextTime);
-    }, 1000);
-    return () => {
-      clearInterval(id);
-    };
-  }, [time]);
-
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <>
-        <TimePicker defaultTime={null} onChange={console.log} placeholder={'defaultTime'} style={style}/>
-        <TimePicker time={time} onChange={setTime} placeholder={'time'} style={style}/>
-      </>
-    </ConfigProvider>
-  );
-}
-
-ReactDOM.render(<TimePickerUseTimeDemo />, mountNode);
+<>
+  <TimePicker defaultTime={null} onChange={(value) => { /* value: [时,分,秒] */ }} placeholder={"defaultTime"} style={style} />
+  <TimePicker time={time} onChange={(value) => { /* 取 value 更新 time */ }} placeholder={"time"} style={style} />
+</>
 ```
 
 ### 禁用
@@ -127,20 +89,9 @@ ReactDOM.render(<TimePickerUseTimeDemo />, mountNode);
 禁用操作
 
 ```jsx
-import React from "react";
 import TimePicker from "eview-ui/TimePicker";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const [version, theme] = getDemoVersion();
-
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <TimePicker defaultTime={[12, 9, 8]} disabled />
-  </ConfigProvider>,
-  mountNode,
-);
+<TimePicker defaultTime={[12, 9, 8]} disabled />
 ```
 
 ### 时间格式
@@ -148,27 +99,16 @@ ReactDOM.render(
 时间显示格式参数format和use12HrClock
 
 ```jsx
-import React from 'react';
-import TimePicker from 'eview-ui/TimePicker';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import TimePicker from "eview-ui/TimePicker";
 
-const style: React.CSSProperties = {
-  margin: '0 0.5rem 0.75rem 0'
-}
-const [version, theme] = getDemoVersion();
+const style = { margin: "0 0.5rem 0.75rem 0" };
 
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <>
-      <TimePicker format={'hh:mm:ss'} placeholder={'hh:mm:ss (24hr)'} style={style}/>
-      <TimePicker format={'hh:mm'} placeholder={'hh:mm (24hr)'} style={style}/>
-      <TimePicker format={'hh:mm:ss'} use12HrClock placeholder={'hh:mm:ss (12hr)'} style={style}/>
-      <TimePicker format={'hh:mm'} use12HrClock placeholder={'hh:mm (12hr)'} style={style}/>
-      <TimePicker format={'mm:ss'} placeholder={'mm:ss'} style={style}/>
-    </>
-  </ConfigProvider>,
-  mountNode
-);
+// format 控制时间显示格式；use12HrClock 开启 12 小时制
+<>
+  <TimePicker format={"hh:mm:ss"} placeholder={"hh:mm:ss (24hr)"} style={style} />
+  <TimePicker format={"hh:mm"} placeholder={"hh:mm (24hr)"} style={style} />
+  <TimePicker format={"hh:mm:ss"} use12HrClock placeholder={"hh:mm:ss (12hr)"} style={style} />
+  <TimePicker format={"hh:mm"} use12HrClock placeholder={"hh:mm (12hr)"} style={style} />
+  <TimePicker format={"mm:ss"} placeholder={"mm:ss"} style={style} />
+</>
 ```

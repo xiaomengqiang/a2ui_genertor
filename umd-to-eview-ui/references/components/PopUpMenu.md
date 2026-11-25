@@ -153,243 +153,116 @@ interface PopUpMenu {
 ### 基本属性设置
 
 ```jsx
-import Button from 'eview-ui/Button';
-import PopUpMenu from 'eview-ui/PopUpMenu';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import PopUpMenu from "eview-ui/PopUpMenu";
 
-export default class PopUpMenuMenuDefaultExample extends React.Component {
+const options = [
+  {
+    text: "Item 1",
+    serialno: 1,
+    submenus: [
+      { text: "Item 1.1", serialno: 11 },
+      { text: "Item 1.2", serialno: 12 },
+    ],
+  },
+  {
+    text: "Item 2",
+    serialno: 2,
+    submenus: [
+      { text: "说明文字", serialno: 21 },
+      {
+        text: "说明文字",
+        serialno: 22,
+        submenus: [
+          { text: "Item 2.2.1", serialno: 221 },
+          { text: "Item 2.2.2", serialno: 222 },
+        ],
+      },
+    ],
+  },
+  { isDivider: true, serialno: 3 },
+  { text: "Item 4", serialno: 4, disable: true, submenus: [] },
+];
 
-    state = {
-        isMenuOpen: false,
-        isMenu2Open: false,
-    };
+// isOpen 受控；parentId 指定菜单依附的父元素 id；自动调整菜单宽度
+<PopUpMenu
+  parentId="evu_PopUpMenu_example_default"
+  options={options}
+  isOpen={false} // true 打开 / false 关闭
+  onClick={(evt) => {
+    // evt: { event, text, value, clickItem }
+  }}
+  onBlur={() => {
+    // 失焦（点击外部）触发
+  }}
+/>
 
-    _handleShowBtn1 = () => {
-        this.setState({ isMenuOpen: true });
-    };
-
-    _handleHideBtn1 = () => {
-        this.setState({ isMenuOpen: false });
-    };
-
-    _handleShowBtn2 = () => {
-        this.setState({ isMenu2Open: true });
-    };
-
-    _handleHideBtn2 = () => {
-        this.setState({ isMenu2Open: false });
-    };
-
-    handleMenuClick = (evt) => {
-        console.log(evt);
-    }
-
-    handleMenuClick2 = (evt) => {
-        console.log(evt);
-    }
-
-    handleOnBlur = () => {
-        console.log('blur CallBack');
-    }
-
-    render() {
-      const [version, theme] = getDemoVersion();
-        let btnDivStyle = { paddingBottom: 0 };
-        let menuDivStyle = { paddingTop: 0, height: 0 };
-        let options1 = [
-            {
-                text: "Item 1", serialno: 1, submenus: [
-                    { text: "Item 1.1", serialno: 11 },
-                    { text: "Item 1.2", serialno: 12 },
-                    { text: "Item 1.3", serialno: 13 }]
-            },
-            {
-                text: "Item 2", serialno: 2, submenus: [
-                    { text: "ItemItemItemItemItemItemItemItemItemItemItem 1ItemItemItem", serialno: 21 },
-                    {
-                        text: "ItemItemItemItemItemItemItemItemItemItemItemItem 2.2Item", serialno: 22, submenus: [
-                            { text: "ItemItemItemItemItemItemItemItemItemItemItem 1ItemItemItem 2.2.1", serialno: 221 },
-                            { text: "ItemItemItemItemItemItemItemItemItemItemItem 1ItemItemItem 2.2.2", serialno: 222 },
-                            { text: "ItemItemItemItemItemItemItemItemItemItemItem 1ItemItemItem 2.2.3", serialno: 223 },
-                            { text: "ItemItemItemItemItemItemItemItemItemItemItem 1ItemItemItem 2.2.4", serialno: 224 }]
-                    },
-                    { text: "Item 2.3", serialno: 23 }]
-            },
-            { isDivider: true, serialno: 3 },
-            { text: "Item 4", serialno: 4, disable: true, submenus: [] },
-            {
-                text: "Item 5", serialno: 5, submenus: [
-                    { text: "Item 5.1", serialno: 51 },
-                    { text: "Item 5.2", serialno: 52 },
-                    { text: "Item 5.3", serialno: 53 },
-                    { text: "Item 5.4", serialno: 54 }]
-            }
-        ];
-        let options2 = [
-            {
-                text: "Item 1", serialno: 1, submenus: [
-                    { text: "Item 1.1", serialno: 11 },
-                    { text: "Item 1.2", serialno: 12 },
-                    { text: "Item 1.3", serialno: 13 },
-                    { text: "Item 1.3", serialno: 13 }]
-            },
-            {
-                text: "Item 2", serialno: 2, submenus: [
-                    { text: "ItemItemItemItemItemItemItemItemItemItemItem 1ItemItemItem", serialno: 21 },
-                    {
-                        text: "ItemItemItemItemItemItemItemItemItemItemItemItem 2.2Item", serialno: 22, submenus: [
-                            { text: "ItemItemItemItemItemItemItemItemItemItemItem 1ItemItemItem", serialno: 221 },
-                            { text: "Item 2.2.2", serialno: 223 },
-                            { text: "Item 2.2.3", serialno: 224 },
-                            { text: "Item 2.2.4", serialno: 225 }]
-                    },
-                    { text: "Item 2.3", serialno: 23 }]
-            },
-            { isDivider: true, serialno: 3 },
-            { text: "Item 4", serialno: 4, disable: true, submenus: [] },
-            {
-                text: "Item 5", serialno: 5, submenus: [
-                    { text: "Item 5.1", serialno: 51 },
-                    { text: "Item 5.2", serialno: 52 },
-                    { text: "Item 5.3", serialno: 53 },
-                    { text: "Item 5.4", serialno: 54 }]
-            }
-        ];
-
-      return (
-        <ConfigProvider version={version} theme={theme}>
-          <div style={{display: "inline-block"}}>
-            <div style={{display: "inline-block"}}>
-              <p style={{fontSize: "13px", color: "lightslategray"}}>Popup menu 自动调整菜单的宽度</p>
-              <div style={btnDivStyle}>
-                <Button text='Show Menu' onClick={this._handleShowBtn1} style={{width: "182px"}}/>
-                <Button text='Hide Menu' onClick={this._handleHideBtn1} style={{width: "182px"}}/>
-              </div>
-              <div>
-                <div style={menuDivStyle} id="evu_PopUpMenu_example_default">
-                  <PopUpMenu onBlur={this._handleHideBtn1} parentId="evu_PopUpMenu_example_default" options={options1}
-                             isOpen={this.state.isMenuOpen} onClick={this.handleMenuClick}></PopUpMenu>
-                </div>
-              </div>
-            </div>
-            <div style={{display: "inline-block", marginLeft: "150px"}}>
-              <p style={{fontSize: "13px", color: "lightslategray"}}>Popup menu 通过width设置菜单的宽度</p>
-              <div style={btnDivStyle}>
-                <Button text='Show Menu' onClick={this._handleShowBtn2} style={{width: "182px"}}/>
-                <Button text='Hide Menu' onClick={this._handleHideBtn2} style={{width: "182px"}}/>
-              </div>
-              <div>
-                <div style={menuDivStyle} id="evu_PopUpMenu_example_default2">
-                  <PopUpMenu parentId="evu_PopUpMenu_example_default2" options={options2}
-                             isOpen={this.state.isMenu2Open} width="200px" onClick={this.handleMenuClick2}
-                             onBlur={this._handleHideBtn2}></PopUpMenu>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ConfigProvider>
-      )
-    }
-}
-
-ReactDOM.render(<PopUpMenuMenuDefaultExample />, mountNode);
-
+// 通过 width 设置菜单宽度
+<PopUpMenu
+  parentId="evu_PopUpMenu_example_default2"
+  options={options}
+  isOpen={false}
+  width="200px"
+  onClick={(evt) => {}}
+  onBlur={() => {}}
+/>
 ```
 
 ### 带有图标和事件示例的菜单
 
 ```jsx
-import PopUpMenu from 'eview-ui/PopUpMenu';
-import createPicture from '@images/create_icon';
-import Button from 'eview-ui/Button';
-import DivMessage from 'eview-ui/DivMessage';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
+import PopUpMenu from "eview-ui/PopUpMenu";
 
-export default class PopUpMenuIconExample extends React.Component {
+const options = [
+  {
+    text: "Item 1",
+    serialno: 1,
+    iconUrl: "create_icon", // 图片 url
+    submenus: [
+      {
+        text: "Item 1.1",
+        serialno: 11,
+        iconUrl: "create_icon", // 图片 url
+        onClick: (evt) => {
+          // 单项自定义点击回调；evt: { text, value, clickItem }
+          // 设置后不再触发全局 onClick
+        },
+      },
+      { text: "Item 1.2", serialno: 12, iconUrl: "create_icon" },
+    ],
+  },
+  {
+    text: "Item 2",
+    serialno: 2,
+    iconUrl: "create_icon",
+    submenus: [
+      { text: "Item 2.1", serialno: 21, iconUrl: "create_icon" },
+      {
+        text: "Item 2.2",
+        serialno: 22,
+        iconUrl: "create_icon",
+        submenus: [
+          {
+            text: "Item 2.2.1",
+            serialno: 221,
+            iconUrl: "create_icon",
+            onClick: (evt) => {},
+          },
+          { text: "Item 2.2.2", serialno: 222, iconUrl: "create_icon" },
+        ],
+      },
+    ],
+  },
+];
 
-    state = {
-        isMenuOpen: false
-    };
-
-    handleShowBtn = () => {
-        this.setState({ isMenuOpen: true });
-    };
-
-    handleHideBtn = () => {
-        this.setState({ isMenuOpen: false });
-    };
-
-    handleMenuClick = (evt) => {
-        console.log("handleMenuClick: ", evt);
-        this.setState(() => ({ msg: "OnClick event callback: Selected menu option Text : " + evt.text + " and Value : " + evt.value, isMenuOpen: false }));
-    }
-
-    handleCustomItemClick = (evt) => {
-        console.log("handleCustomItemClick: ", evt);
-        this.setState(() => ({ msg: "OnClick event custom callback: Selected menu option Text : " + evt.text + " and Value : " + evt.value, isMenuOpen: false }));
-    }
-
-    render() {
-      const [version, theme] = getDemoVersion();
-        let btnDivStyle = { paddingBottom: 0 };
-        let menuDivStyle = { paddingTop: 0, height: 0 };
-        let options = [
-            {
-                text: "Item 1", serialno: 1, iconUrl: createPicture, submenus: [
-                    { text: "Item 1.1", serialno: 11, iconUrl: createPicture, onClick: this.handleCustomItemClick },
-                    { text: "Item 1.2", serialno: 12, iconUrl: createPicture },
-                    { text: "Item 1.3", serialno: 13, iconUrl: createPicture },
-                    { text: "Item 1.4", serialno: 14, iconUrl: createPicture }]
-            },
-            {
-                text: "Item 2", serialno: 2, iconUrl: createPicture, submenus: [
-                    { text: "Item 2.1", serialno: 21, iconUrl: createPicture },
-                    {
-                        text: "Item 2.2", serialno: 22, iconUrl: createPicture, submenus: [
-                            { text: "Item 2.2.1", serialno: 221, iconUrl: createPicture, onClick: this.handleCustomItemClick },
-                            { text: "Item 2.2.2", serialno: 222, iconUrl: createPicture },
-                            { text: "Item 2.2.3", serialno: 223, iconUrl: createPicture },
-                            { text: "Item 2.2.4", serialno: 224, iconUrl: createPicture }]
-                    },
-                    { text: "Item 2.3", serialno: 23, iconUrl: createPicture },
-                    { text: "Item 2.4", serialno: 24, iconUrl: createPicture }]
-            },
-            { text: "Item 3", serialno: 3, iconUrl: createPicture, submenus: [] },
-            {
-                text: "Item 4", serialno: 4, iconUrl: createPicture, submenus: [
-                    { text: "Item 4.1", serialno: 41, iconUrl: createPicture },
-                    { text: "Item 4.2", serialno: 42, iconUrl: createPicture },
-                    { text: "Item 4.3", serialno: 43, iconUrl: createPicture },
-                    { text: "Item 4.4", serialno: 44, iconUrl: createPicture }]
-            },
-            { text: "Item 5", serialno: 5, iconUrl: createPicture, submenus: [] },
-            { text: "Item 6", serialno: 6, iconUrl: createPicture, submenus: [] }
-        ];
-      return (
-        <ConfigProvider version={version} theme={theme}>
-          <div>
-            <p style={{fontSize: "13px", color: "lightslategray"}}>Popup menu 设置图标和事件</p>
-            <div style={btnDivStyle}>
-              <Button text='Show Menu' onClick={this.handleShowBtn} style={{width: "182px"}}/>
-              <Button text='Hide Menu' onClick={this.handleHideBtn} style={{width: "182px"}}/>
-            </div>
-            <div style={menuDivStyle} id="evu_PopUpMenu_example_icon">
-              <PopUpMenu parentId="evu_PopUpMenu_example_icon" options={options} isOpen={this.state.isMenuOpen}
-                         width={'120'} onClick={this.handleMenuClick} onBlur={this.handleHideBtn}></PopUpMenu>
-            </div>
-            <div>
-              {this.state.msg ? <DivMessage text={this.state.msg} type="success"
-                                            style={{marginTop: "10px", width: "800px", marginLeft: "93px"}}/> : ''}
-            </div>
-          </div>
-        </ConfigProvider>
-      )
-    }
-}
-
-ReactDOM.render(<PopUpMenuIconExample />, mountNode);
-
+<PopUpMenu
+  parentId="evu_PopUpMenu_example_icon"
+  options={options}
+  isOpen={false}
+  width="120"
+  onClick={(evt) => {
+    // evt: { event, text, value, clickItem }
+  }}
+  onBlur={() => {}}
+/>
 ```
 

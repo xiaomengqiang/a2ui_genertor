@@ -151,158 +151,8 @@ interface TreeNode {
 
 ```jsx
 import Tree from "eview-ui/Tree";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TreeExample extends React.Component {
-  state = {
-    radioKey: "",
-    radioSelectedKeys: [],
-    checkedKeys: [],
-    selectedKeys: [1],
-    expandedKeys: [1],
-    msg: "",
-  };
-
-  handleSelect = (selectedKeys, node, event) => {
-    let eventType = event.type;
-    this.setState({
-      selectedKeys: selectedKeys,
-      msg: `OnSelect event callback: node id is ${node.props.eventKey}, event type is ${eventType}`,
-    });
-  };
-
-  handleCheck = (checkedKeys, node) => {
-    const currentCheckedKeys = Array.isArray(checkedKeys)
-      ? checkedKeys
-      : [checkedKeys];
-    this.setState({
-      checkedKeys: currentCheckedKeys,
-      msg: "OnCheck event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  handleExpand = (expandedKeys, node) => {
-    this.setState({
-      expandedKeys: expandedKeys,
-      msg: "OnExpand event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  radioCheck = (checkedKeys, node) => {
-    const currentSelectedKeys = Array.isArray(checkedKeys)
-      ? checkedKeys
-      : [checkedKeys];
-    this.setState({
-      radioKey: checkedKeys,
-      radioSelectedKeys: currentSelectedKeys,
-    });
-  };
-
-  radioSelect = (selectedKeys, node, event) => {
-    let eventType = event.type;
-    this.setState({ radioSelectedKeys: selectedKeys });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      {
-        text: "Root Node",
-        id: 1,
-        children: [
-          {
-            text: "Subnet0",
-            id: 11,
-            children: [
-              {
-                text: "NE_1",
-                id: 21,
-                children: [
-                  { text: "NE_1", id: 31 },
-                  { text: "NE_2", id: 32 },
-                ],
-              },
-              { text: "NE_2", id: 22 },
-            ],
-          },
-          {
-            text: "NE_3",
-            id: 12,
-            children: [
-              { text: "NE_1", id: 23 },
-              { text: "NE_2", id: 24 },
-            ],
-          },
-        ],
-      },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Tree
-            data={data}
-            nodeKey={"id"}
-            enableCheckbox={true}
-            onSelect={this.handleSelect}
-            onCheck={this.handleCheck}
-            onExpand={this.handleExpand}
-            checkedKeys={this.state.checkedKeys}
-            selectedKeys={this.state.selectedKeys}
-            style={{ width: "200px" }}
-            expandedKeys={this.state.expandedKeys}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "560px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-
-        <br />
-        <br />
-        <div>
-          <h3>单选radio</h3>
-          <Tree
-            data={data}
-            nodeKey={"id"}
-            enableCheckbox={true}
-            selectBoxType={"radio"}
-            onSelect={this.radioSelect}
-            onCheck={this.radioCheck}
-            onExpand={this.handleExpand}
-            radioKey={this.state.radioKey}
-            selectedKeys={this.state.radioSelectedKeys}
-            style={{ width: "200px" }}
-            expandedKeys={this.state.expandedKeys}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TreeExample />, mountNode);
-```
-
-### 更改数据时候监听选中状态
-
-```jsx
-import Tree from "eview-ui/Tree";
-import LinkField from "eview-ui/LinkField";
-import Button from "eview-ui/Button";
-import SearchInput from "eview-ui/SearchInput";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-
-let treeData = [
+const data = [
   {
     text: "Root Node",
     id: 1,
@@ -311,20 +161,217 @@ let treeData = [
         text: "Subnet0",
         id: 11,
         children: [
-          {
-            text: "NE_1",
-            id: 21,
-            children: [
-              { text: "NE_1", id: 31 },
-              { text: "NE_2", id: 32 },
-            ],
-          },
-          { text: "NE_2", id: 22 },
+          { text: "NE_1", id: 31 },
+          { text: "NE_2", id: 32 },
+        ],
+      },
+      { text: "NE_3", id: 12 },
+    ],
+  },
+];
+
+<Tree
+  data={data}
+  nodeKey="id"
+  enableCheckbox={true}
+  onSelect={(selectedKeys, node, event) => {
+    // selectedKeys 是选中节点 id 数组
+  }}
+  onCheck={(checkedKeys, node) => {
+    // checkedKeys 是勾选节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // expandedKeys 是展开节点 id 数组
+  }}
+  checkedKeys={[]}
+  selectedKeys={[1]}
+  expandedKeys={[1]}
+  style={{ width: "200px" }}
+/>
+
+// selectBoxType="radio"：单选勾选框
+<Tree
+  data={data}
+  nodeKey="id"
+  enableCheckbox={true}
+  selectBoxType="radio"
+  onSelect={(selectedKeys, node, event) => {
+    // selectedKeys 是选中节点 id 数组
+  }}
+  onCheck={(checkedKeys, node) => {
+    // checkedKeys 是勾选节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // expandedKeys 是展开节点 id 数组
+  }}
+  radioKey=""
+  selectedKeys={[]}
+  style={{ width: "200px" }}
+  expandedKeys={[1]}
+/>
+```
+
+### 更改数据时候监听选中状态
+
+```jsx
+import Tree from "eview-ui/Tree";
+import SearchInput from "eview-ui/SearchInput";
+import Button from "eview-ui/Button";
+import LinkField from "eview-ui/LinkField";
+
+const treeRef = React.useRef();
+
+const data = [
+  {
+    text: "Root Node",
+    id: 1,
+    children: [
+      {
+        text: "Subnet0",
+        id: 11,
+        treeNodeSuffix: (
+          <LinkField
+            onClick={(e) => {
+              // 删除节点 id
+            }}
+            text={"删除"}
+            disabled={false}
+            style={{ color: "red" }}
+          />
+        ),
+        children: [
+          { text: "NE_1", id: 31 },
+          { text: "NE_2", id: 32 },
+        ],
+      },
+      { text: "NE_3", id: 12 },
+    ],
+  },
+];
+
+<SearchInput
+  value=""
+  onSearch={(searchValue) => {
+    // 按 searchValue 过滤 data 更新
+  }}
+/>
+<Button text="获得AllCheckedKeys" onClick={() => { treeRef.current.getCheckedKeys(); }}/>
+<Tree
+  data={data}
+  nodeKey="id"
+  enableCheckbox={true}
+  onSelect={(selectedKeys, node, event) => {
+    // selectedKeys 选中节点 id 数组
+  }}
+  onCheck={(checkedKeys, node) => {
+    // checkedKeys 勾选节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // expandedKeys 展开节点 id 数组
+  }}
+  checkedKeys={[]}
+  selectedKeys={[1]}
+  expandedKeys={[1]}
+  ref={treeRef}
+/>
+```
+
+### ClassName和节点风格基本设置
+
+```jsx
+import Tree from "eview-ui/Tree";
+
+const data = [
+  {
+    text: "Root Node",
+    id: 1,
+    children: [
+      {
+        text: "Subnet0",
+        id: 11,
+        children: [
+          { text: "NE_1", id: 31 },
+          { text: "NE_2", id: 32 },
+        ],
+      },
+      { text: "NE_3", id: 12 },
+    ],
+  },
+];
+
+const data1 = [
+  {
+    text: "Root Node",
+    id: 1,
+    children: [
+      {
+        text: "Subnet0",
+        id: 11,
+        treeNodeStyle: { background: "red" },
+        children: [
+          { text: "NE_1", id: 31 },
+          { text: "NE_2", id: 32 },
+        ],
+      },
+      { text: "NE_3", id: 12, fontColor: "#f1a047" },
+    ],
+  },
+];
+
+<Tree
+  data={data}
+  nodeKey="id"
+  className="exampleTest"
+  enableCheckbox={true}
+  onSelect={(selectedKeys, node) => {
+    // selectedKeys 选中节点 id 数组
+  }}
+  onCheck={(checkedKeys, node) => {
+    // checkedKeys 勾选节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // expandedKeys 展开节点 id 数组
+  }}
+  lazyLoad={true}
+  checkedKeys={[]}
+  selectedKeys={[1]}
+  expandedKeys={[1]}
+  style={{ width: "200px", height: "200px" }}
+/>
+<Tree
+  data={data1}
+  nodeKey="id"
+  enableCheckbox={true}
+  checkedKeys={[]}
+  selectedKeys={[1]}
+  expandedKeys={[1]}
+  style={{ width: "200px", height: "200px" }}
+/>
+```
+
+### 自定义图标
+
+```jsx
+import Tree from "eview-ui/Tree";
+
+const data = [
+  {
+    text: "Root Node",
+    id: 1,
+    children: [
+      {
+        text: "Subnet0",
+        id: 11,
+        children: [
+          { text: "NE_1", id: 31 },
+          { text: "NE_2", id: 32, iconLeafArr: ["nav-heart-active-url", "success-url"] }, // 图片 url
         ],
       },
       {
         text: "NE_3",
         id: 12,
+        iconExpanded: "success-url", // 图片 url
+        iconCollapsed: "success-url", // 图片 url
         children: [
           { text: "NE_1", id: 23 },
           { text: "NE_2", id: 24 },
@@ -334,595 +381,76 @@ let treeData = [
   },
 ];
 
-const filterTreeData = (node, searchValue) => {
-  const { text, children } = node;
-  if (text.includes(searchValue)) {
-    return true;
-  }
-  if (children && children.length) {
-    node.children = children.filter((childNode) =>
-      filterTreeData(childNode, searchValue),
-    );
-    return node.children.length;
-  }
-  return false;
-};
-
-export default class TreeChangeDataExample extends React.Component {
-  constructor(props) {
-    super(props);
-    let data = JSON.parse(JSON.stringify(treeData));
-    this.addDeleteButtonInTreeNode(data);
-    this.state = {
-      checkedKeys: [],
-      selectedKeys: [1],
-      expandedKeys: [1],
-      msg: "",
-      searchValue: "",
-      data,
-    };
-  }
-
-  addDeleteButtonInTreeNode = (treeData) => {
-    const _self = this;
-    const addDeleteBtn = (treeArr) => {
-      if (Array.isArray(treeData)) {
-        treeArr.forEach((treeNode) => {
-          if (
-            Array.isArray(treeNode.children) &&
-            treeNode.children.length > 0
-          ) {
-            addDeleteBtn(treeNode.children);
-          }
-          const id = treeNode["id"];
-          if (!treeNode["treeNodeSuffix"]) {
-            treeNode["treeNodeSuffix"] = (
-              <LinkField
-                onClick={(e) => {
-                  _self.handleDelete(e, id);
-                }}
-                text={"删除"}
-                disabled={false}
-                style={{ color: "red" }}
-              />
-            );
-          }
-        });
-      }
-    };
-    addDeleteBtn(treeData);
-  };
-
-  handleSelect = (selectedKeys, node, event) => {
-    let eventType = event.type;
-    this.setState({
-      selectedKeys: selectedKeys,
-      msg: `OnSelect event callback: node id is ${node.props.eventKey}, event type is ${eventType}`,
-    });
-  };
-
-  handleCheck = (checkedKeys, node) => {
-    const currentCheckedKeys = Array.isArray(checkedKeys)
-      ? checkedKeys
-      : [checkedKeys];
-    this.setState({
-      checkedKeys: currentCheckedKeys,
-      msg: "OnCheck event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  handleExpand = (expandedKeys, node) => {
-    this.setState({
-      expandedKeys: expandedKeys,
-      msg: "OnExpand event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  handleDelete = (e, id) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const { data } = this.state;
-    this.deleteDataById(data, id);
-    this.setState({ data });
-  };
-
-  deleteDataById = (data, id) => {
-    const deleteNode = (treeDataArr) => {
-      const len = treeDataArr.length;
-      for (let index = 0; index < len; index++) {
-        const treeNode = treeDataArr[index];
-        if (treeNode["id"] === id) {
-          treeDataArr.splice(index, 1);
-          break;
-        } else {
-          if (Array.isArray(treeNode.children) && treeNode.children.length) {
-            deleteNode(treeNode.children);
-          }
-        }
-      }
-    };
-    deleteNode(data);
-  };
-  returnOldData = () => {
-    const data = JSON.parse(JSON.stringify(treeData));
-    this.addDeleteButtonInTreeNode(data);
-    this.setState({ data });
-  };
-  getCheckedKeys = () => {
-    console.log(this.expTree.getCheckedKeys());
-  };
-
-  searchHandle = (searchValue) => {
-    let { newData: data, newCheckedKeys: checkedKeys } =
-      this.getFillterTreeDataAndCheckedKeys(searchValue);
-    this.setState({ searchValue, data, checkedKeys });
-  };
-
-  getFillterTreeDataAndCheckedKeys = (searchValue) => {
-    const checkedKeys = this.state.checkedKeys;
-    let data = JSON.parse(JSON.stringify(treeData));
-    let newData = [];
-    let newCheckedKeys = [];
-    const rootNodeId = data[0].id;
-    newData = JSON.parse(JSON.stringify(data)).filter((item) =>
-      filterTreeData(item, searchValue),
-    );
-    this.addDeleteButtonInTreeNode(newData);
-    newCheckedKeys = JSON.parse(JSON.stringify(checkedKeys)).filter(
-      (item) => item !== rootNodeId,
-    );
-    return { newData, newCheckedKeys };
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <SearchInput
-            value={this.state.searchValue}
-            onSearch={this.searchHandle}
-          />
-          <br />
-          <br />
-          <Button
-            text="恢复原来的数据"
-            onClick={this.returnOldData}
-            style={{ marginRight: "2rem" }}
-          ></Button>
-          <Button
-            text="获得AllCheckedKeys"
-            onClick={this.getCheckedKeys}
-          ></Button>
-
-          <Tree
-            data={this.state.data}
-            nodeKey={"id"}
-            enableCheckbox={true}
-            onSelect={this.handleSelect}
-            onCheck={this.handleCheck}
-            onExpand={this.handleExpand}
-            checkedKeys={this.state.checkedKeys}
-            selectedKeys={this.state.selectedKeys}
-            expandedKeys={this.state.expandedKeys}
-            ref={(tree) => {
-              this.expTree = tree;
-            }}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "560px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TreeChangeDataExample />, mountNode);
-```
-
-### ClassName和节点风格基本设置
-
-```jsx
-import Tree from "eview-ui/Tree";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-
-export default class TreeClassNameDemo extends React.Component {
-  state = {
-    checkedKeys: [],
-    selectedKeys: [1],
-    expandedKeys: [1],
-    msg: "",
-  };
-
-  handleSelect = (selectedKeys, node) => {
-    this.setState({
-      selectedKeys: selectedKeys,
-      msg: "OnSelect event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  handleCheck = (checkedKeys, node) => {
-    const currentCheckedKeys = Array.isArray(checkedKeys)
-      ? checkedKeys
-      : [checkedKeys];
-    this.setState({
-      checkedKeys: currentCheckedKeys,
-      msg: "OnCheck event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  handleExpand = (expandedKeys, node) => {
-    this.setState({
-      expandedKeys: expandedKeys,
-      msg: "OnExpand event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      {
-        text: "Root Node",
-        id: 1,
-        children: [
-          {
-            text: "Subnet0",
-            id: 11,
-            children: [
-              {
-                text: "NE_1",
-                id: 21,
-                children: [
-                  { text: "NE_1", id: 31 },
-                  { text: "NE_2", id: 32 },
-                ],
-              },
-              { text: "NE_2", id: 22 },
-            ],
-          },
-          {
-            text: "NE_3",
-            id: 12,
-            children: [
-              { text: "NE_1", id: 23 },
-              { text: "NE_2", id: 24 },
-            ],
-          },
-        ],
-      },
-    ];
-
-    let data1 = [
-      {
-        text: "Root Node",
-        id: 1,
-        children: [
-          {
-            text: "Subnet0",
-            id: 11,
-            treeNodeStyle: { background: "red" },
-            children: [
-              {
-                text: "NE_1",
-                id: 21,
-                children: [
-                  { text: "NE_1", id: 31 },
-                  { text: "NE_2", id: 32 },
-                ],
-              },
-              { text: "NE_2", id: 22 },
-            ],
-          },
-          {
-            text: "NE_3",
-            id: 12,
-            fontColor: "#f1a047",
-            children: [
-              { text: "NE_1", id: 23 },
-              { text: "NE_2", id: 24 },
-            ],
-          },
-        ],
-      },
-    ];
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Tree
-            data={data}
-            nodeKey={"id"}
-            className="exampleTest"
-            enableCheckbox={true}
-            onSelect={this.handleSelect}
-            onCheck={this.handleCheck}
-            onExpand={this.handleExpand}
-            lazyLoad={true}
-            checkedKeys={this.state.checkedKeys}
-            selectedKeys={this.state.selectedKeys}
-            style={{ width: "200px", height: "200px" }}
-            expandedKeys={this.state.expandedKeys}
-          />
-          <br />
-          <br />
-          <Tree
-            data={data1}
-            nodeKey={"id"}
-            enableCheckbox={true}
-            checkedKeys={this.state.checkedKeys}
-            selectedKeys={this.state.selectedKeys}
-            style={{ width: "200px", height: "200px" }}
-            expandedKeys={this.state.expandedKeys}
-          />
-
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "560px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TreeClassNameDemo />, mountNode);
-```
-
-### 自定义图标
-
-```jsx
-import Tree from "eview-ui/Tree";
-import DivMessage from "eview-ui/DivMessage";
-import success from "@images/success";
-import createDefault from "@images/create_default";
-import navCommon from "@images/nav_common";
-import navHeartActive from "@images/nav_heart_active";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-
-export default class TreeIconExample extends React.Component {
-  state = {
-    checkedKeys: [],
-    selectedKeys: [1],
-    expandedKeys: [1],
-    msg: "",
-  };
-
-  handleSelect = (selectedKeys, node) => {
-    this.setState({
-      selectedKeys: selectedKeys,
-      msg: "OnSelect event callback, node id is : " + node.props.eventKey,
-    });
-    console.log("handleSelect : ", node);
-  };
-
-  handleCheck = (checkedKeys, node) => {
-    const currentCheckedKeys = Array.isArray(checkedKeys)
-      ? checkedKeys
-      : [checkedKeys];
-    this.setState({
-      checkedKeys: currentCheckedKeys,
-      msg: "OnCheck event callback, node id is : " + node.props.eventKey,
-    });
-    console.log("handleCheck : ", node);
-  };
-
-  handleExpand = (expandedKeys, node) => {
-    this.setState({
-      expandedKeys: expandedKeys,
-      msg: "OnExpand event callback, node id is : " + node.props.eventKey,
-    });
-    console.log("handleExpand : ", node);
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      {
-        text: "Root Node",
-        id: 1,
-        extra: "Hello Root Node",
-        children: [
-          {
-            text: "Subnet0",
-            id: 11,
-            extra: "Hello Subnet0",
-            children: [
-              {
-                text: "NE_1",
-                id: 21,
-                children: [
-                  { text: "NE_1", id: 31 },
-                  { text: "NE_2", id: 32 },
-                ],
-              },
-              { text: "NE_2", id: 22, iconLeafArr: [navHeartActive, success] },
-            ],
-          },
-          {
-            text: "NE_3",
-            id: 12,
-            iconExpanded: success,
-            iconCollapsed: success,
-            children: [
-              { text: "NE_1", id: 23 },
-              { text: "NE_2", id: 24 },
-            ],
-          },
-        ],
-      },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Tree
-            data={data}
-            nodeKey={"id"}
-            checkedKeys={this.state.checkedKeys}
-            selectedKeys={this.state.selectedKeys}
-            expandedKeys={this.state.expandedKeys}
-            onSelect={this.handleSelect}
-            onCheck={this.handleCheck}
-            onExpand={this.handleExpand}
-            iconExpanded={navCommon}
-            iconCollapsed={createDefault}
-            iconLeaf={navHeartActive}
-          />
-
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "560px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TreeIconExample />, mountNode);
+<Tree
+  data={data}
+  nodeKey="id"
+  checkedKeys={[]}
+  selectedKeys={[1]}
+  expandedKeys={[1]}
+  onSelect={(selectedKeys, node) => {
+    // selectedKeys 选中节点 id 数组
+  }}
+  onCheck={(checkedKeys, node) => {
+    // checkedKeys 勾选节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // expandedKeys 展开节点 id 数组
+  }}
+  iconExpanded="nav-common-url" // 图片 url
+  iconCollapsed="create-default-url" // 图片 url
+  iconLeaf="nav-heart-active-url" // 图片 url
+/>
 ```
 
 ### 自定义树节点末尾
 
 ```jsx
 import Tree from "eview-ui/Tree";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-// import './css/Tree.less';
 
-export default class TreeTextSuffixDemo extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      checkedKeys: [],
-      selectedKeys: [1],
-      expandedKeys: [1],
-      msg: "",
-    };
-  }
-
-  handleSelect = (selectedKeys, node) => {
-    this.setState({
-      selectedKeys: selectedKeys,
-      msg: "OnSelect event callback, node id is : " + node.props.eventKey,
-    });
-    console.log("handleSelect : ", node);
-  };
-
-  handleCheck = (checkedKeys, node) => {
-    const currentCheckedKeys = Array.isArray(checkedKeys)
-      ? checkedKeys
-      : [checkedKeys];
-    this.setState({
-      checkedKeys: currentCheckedKeys,
-      msg: "OnCheck event callback, node id is : " + node.props.eventKey,
-    });
-    console.log("handleCheck : ", node);
-  };
-
-  handleExpand = (expandedKeys, node) => {
-    this.setState({
-      expandedKeys: expandedKeys,
-      msg: "OnExpand event callback, node id is : " + node.props.eventKey,
-    });
-    console.log("handleExpand : ", node);
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
+const data = [
+  {
+    text: "Root Node",
+    id: 1,
+    children: [
       {
-        text: "Root Node",
-        id: 1,
-        extra: "Hello Root Node",
+        text: "Subnet0",
+        id: 11,
+        treeNodeSuffix: <span className="red">treeNodeSuffix 11</span>,
         children: [
-          {
-            text: "Subnet0",
-            id: 11,
-            extra: "Hello Subnet0",
-            treeNodeSuffix: <span className="red">treeNodeSuffix 11</span>,
-            children: [
-              {
-                text: "NE_1",
-                id: 21,
-                children: [
-                  { text: "NE_1", id: 31 },
-                  { text: "NE_2", id: 32 },
-                ],
-              },
-              {
-                text: "NE_2",
-                id: 22,
-              },
-            ],
-          },
-          {
-            text: "NE_3",
-            id: 12,
-            treeNodeSuffix: <span className="red">treeNodeSuffix 12</span>,
-            children: [
-              { text: "NE_1", id: 23 },
-              { text: "NE_2", id: 24 },
-            ],
-          },
+          { text: "NE_1", id: 31 },
+          { text: "NE_2", id: 32 },
         ],
       },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Tree
-            data={data}
-            nodeKey={"id"}
-            checkedKeys={this.state.checkedKeys}
-            selectedKeys={this.state.selectedKeys}
-            expandedKeys={this.state.expandedKeys}
-            onSelect={this.handleSelect}
-            onCheck={this.handleCheck}
-            onExpand={this.handleExpand}
-            showRightIcon="image/nav-heart-active.png"
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "560px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+      {
+        text: "NE_3",
+        id: 12,
+        treeNodeSuffix: <span className="red">treeNodeSuffix 12</span>,
+        children: [
+          { text: "NE_1", id: 23 },
+          { text: "NE_2", id: 24 },
+        ],
+      },
+    ],
+  },
+];
 
-ReactDOM.render(<TreeTextSuffixDemo />, mountNode);
+<Tree
+  data={data}
+  nodeKey="id"
+  checkedKeys={[]}
+  selectedKeys={[1]}
+  expandedKeys={[1]}
+  onSelect={(selectedKeys, node) => {
+    // selectedKeys 选中节点 id 数组
+  }}
+  onCheck={(checkedKeys, node) => {
+    // checkedKeys 勾选节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // expandedKeys 展开节点 id 数组
+  }}
+  showRightIcon="image/nav-heart-active.png" // 图片 url
+/>
 ```
 
 ### 自定义图标
@@ -931,121 +459,54 @@ Custom RightIcon
 
 ```jsx
 import Tree from "eview-ui/Tree";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TreeRightIconExample extends React.Component {
-  state = {
-    checkedKeys: [],
-    selectedKeys: [1],
-    expandedKeys: [1],
-    msg: "",
-  };
-
-  handleSelect = (selectedKeys, node) => {
-    this.setState({
-      selectedKeys: selectedKeys,
-      msg: "OnSelect event callback, node id is : " + node.props.eventKey,
-    });
-    console.log("handleSelect : ", node);
-  };
-
-  handleCheck = (checkedKeys, node) => {
-    const currentCheckedKeys = Array.isArray(checkedKeys)
-      ? checkedKeys
-      : [checkedKeys];
-    this.setState({
-      checkedKeys: currentCheckedKeys,
-      msg: "OnCheck event callback, node id is : " + node.props.eventKey,
-    });
-    console.log("handleCheck : ", node);
-  };
-
-  handleExpand = (expandedKeys, node) => {
-    this.setState({
-      expandedKeys: expandedKeys,
-      msg: "OnExpand event callback, node id is : " + node.props.eventKey,
-    });
-    console.log("handleExpand : ", node);
-  };
-
-  handleClickRightIcon = (node, event) => {
-    this.setState({
-      msg: "onClickRightIcon event callback : " + node.props.eventKey,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
+const data = [
+  {
+    text: "Root Node",
+    id: 1,
+    children: [
       {
-        text: "Root Node",
-        id: 1,
-        extra: "Hello Root Node",
+        text: "Subnet0",
+        id: 11,
         children: [
-          {
-            text: "Subnet0",
-            id: 11,
-            extra: "Hello Subnet0",
-            children: [
-              {
-                text: "NE_1",
-                id: 21,
-                children: [
-                  { text: "NE_1", id: 31 },
-                  { text: "NE_2", id: 32 },
-                ],
-              },
-              { text: "NE_2", id: 22 },
-            ],
-          },
-          {
-            text: "NE_3",
-            id: 12,
-            iconExpanded: "image/success.png",
-            iconCollapsed: "image/success.png",
-            children: [
-              { text: "NE_1", id: 23 },
-              { text: "NE_2", id: 24 },
-            ],
-          },
+          { text: "NE_1", id: 31 },
+          { text: "NE_2", id: 32 },
         ],
       },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Tree
-            data={data}
-            nodeKey={"id"}
-            checkedKeys={this.state.checkedKeys}
-            selectedKeys={this.state.selectedKeys}
-            expandedKeys={this.state.expandedKeys}
-            onSelect={this.handleSelect}
-            onCheck={this.handleCheck}
-            onExpand={this.handleExpand}
-            showRightIcon="./image/salescatalog.svg"
-            onClickRightIcon={this.handleClickRightIcon}
-          />
+      {
+        text: "NE_3",
+        id: 12,
+        iconExpanded: "image/success.png", // 图片 url
+        iconCollapsed: "image/success.png", // 图片 url
+        children: [
+          { text: "NE_1", id: 23 },
+          { text: "NE_2", id: 24 },
+        ],
+      },
+    ],
+  },
+];
 
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "560px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TreeRightIconExample />, mountNode);
+<Tree
+  data={data}
+  nodeKey="id"
+  checkedKeys={[]}
+  selectedKeys={[1]}
+  expandedKeys={[1]}
+  onSelect={(selectedKeys, node) => {
+    // selectedKeys 选中节点 id 数组
+  }}
+  onCheck={(checkedKeys, node) => {
+    // checkedKeys 勾选节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // expandedKeys 展开节点 id 数组
+  }}
+  showRightIcon="./image/salescatalog.svg" // 图片 url
+  onClickRightIcon={(node, event) => {
+    // node 是点击节点的信息
+  }}
+/>
 ```
 
 ### Icon class demos
@@ -1054,131 +515,50 @@ Custom RightIcon
 
 ```jsx
 import Tree from "eview-ui/Tree";
-import DivMessage from "eview-ui/DivMessage";
-import "./css/TreeExampleStyle.css";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TreeIconClassDemo extends React.Component {
-  state = {
-    checkedKeys: [],
-    selectedKeys: [1],
-    expandedKeys: [1],
-    msg: "",
-  };
-
-  handleSelect = (selectedKeys, node) => {
-    this.setState({
-      selectedKeys: selectedKeys,
-      msg: "OnSelect event callback, node id is : " + node.props.eventKey,
-    });
-  };
-
-  handleCheck = (checkedKeys, node) => {
-    const currentCheckedKeys = Array.isArray(checkedKeys)
-      ? checkedKeys
-      : [checkedKeys];
-    this.setState({
-      checkedKeys: currentCheckedKeys,
-      msg: "OnCheck event callback, node id is : " + node.props.eventKey,
-    });
-  };
-
-  handleExpand = (expandedKeys, node) => {
-    this.setState({
-      expandedKeys: expandedKeys,
-      msg: "OnExpand event callback, node id is : " + node.props.eventKey,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
+const data = [
+  {
+    text: "Root Node",
+    id: 1,
+    iconExpandedClassName: "treeexampleOpenIcon",
+    iconCollapsedClassName: "treeexampleCloseIcon",
+    children: [
       {
-        text: "Root Node",
-        id: 1,
+        text: "Subnet0",
+        id: 11,
         iconExpandedClassName: "treeexampleOpenIcon",
         iconCollapsedClassName: "treeexampleCloseIcon",
         children: [
           {
-            text: "Subnet0",
-            id: 11,
-            iconExpandedClassName: "treeexampleOpenIcon",
-            iconCollapsedClassName: "treeexampleCloseIcon",
+            text: "NE_1",
+            id: 21,
             children: [
-              {
-                text: "NE_1",
-                id: 21,
-                iconExpandedClassName: "treeexampleOpenIcon",
-                iconCollapsedClassName: "treeexampleCloseIcon",
-                children: [
-                  {
-                    text: "NE_1",
-                    id: 31,
-                    iconLeafClassName: "treeexampleLeafIcon",
-                  },
-                  {
-                    text: "NE_2",
-                    id: 32,
-                    iconLeafClassName: "treeexampleLeafIcon",
-                  },
-                ],
-              },
-              { text: "NE_2", id: 22 },
-            ],
-          },
-          {
-            text: "NE_3",
-            id: 12,
-            iconExpandedClassName: "treeexampleOpenIcon",
-            iconCollapsedClassName: "treeexampleCloseIcon",
-            children: [
-              {
-                text: "NE_1",
-                id: 23,
-                iconLeafClassName: "treeexampleLeafIcon",
-              },
-              {
-                text: "NE_2",
-                id: 24,
-                iconLeafClassName: "treeexampleLeafIcon",
-              },
+              { text: "NE_1", id: 31, iconLeafClassName: "treeexampleLeafIcon" },
+              { text: "NE_2", id: 32, iconLeafClassName: "treeexampleLeafIcon" },
             ],
           },
         ],
       },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Tree
-            data={data}
-            nodeKey={"id"}
-            checkedKeys={this.state.checkedKeys}
-            selectedKeys={this.state.selectedKeys}
-            expandedKeys={this.state.expandedKeys}
-            onSelect={this.handleSelect}
-            onCheck={this.handleCheck}
-            onExpand={this.handleExpand}
-          />
+    ],
+  },
+];
 
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "560px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TreeIconClassDemo />, mountNode);
+<Tree
+  data={data}
+  nodeKey="id"
+  checkedKeys={[]}
+  selectedKeys={[1]}
+  expandedKeys={[1]}
+  onSelect={(selectedKeys, node) => {
+    // selectedKeys 选中节点 id 数组
+  }}
+  onCheck={(checkedKeys, node) => {
+    // checkedKeys 勾选节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // expandedKeys 展开节点 id 数组
+  }}
+/>
 ```
 
 ### Lazy loading of Nodes
@@ -1187,106 +567,28 @@ Custom RightIcon
 
 ```jsx
 import Tree from "eview-ui/Tree";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-// import './css/Tree.less';
 
-export default class TreeLazyLoadDemo extends React.Component {
-  state = {
-    selectedKeys: [],
-    expandedKeys: [],
-    msg: "",
-    data: [
-      {
-        id: 1,
-        text: "RootNode",
-        children: [],
-        isLeaf: false,
-      },
-    ],
-  };
+const data = [
+  {
+    id: 1,
+    text: "RootNode",
+    children: [],
+    isLeaf: false,
+  },
+];
 
-  lazyGenerateData = (id) => {
-    // Since we know the tree is created with a single root element, the traversal can begin with the first element of the data array without any check. But this will totally depend on your data set.
-    // This approach is only for demo purpose and not recommended for data heavy cases.
-    let foundNode = this.findNode(id, this.state.data[0]);
-    foundNode.children = [];
-    for (let i = 0; i < 5; i++) {
-      let nodeid = parseInt("" + id + (i + 1));
-      let isNodeLeaf = i % 2 == 0;
-      let newNode = {
-        id: nodeid,
-        text: "New_Node_" + nodeid,
-        isLeaf: isNodeLeaf,
-        children: isNodeLeaf ? undefined : [],
-      };
-      foundNode.children.push(newNode);
-    }
-  };
-  findNode = (id, node) => {
-    if (node.id === id) {
-      return node;
-    }
-    let foundNode;
-    if (node.children && node.children.length) {
-      for (let i = 0; i < node.children.length; i++) {
-        foundNode = this.findNode(id, node.children[i]);
-        if (foundNode) {
-          return foundNode;
-        }
-      }
-    }
-    return foundNode;
-  };
-  handleSelect = (selectedKeys, node) => {
-    this.setState({
-      selectedKeys: selectedKeys,
-      msg: "OnSelect event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  handleExpand = (expandedKeys, node) => {
-    this.lazyGenerateData(node.props.eventKey);
-    let newData = this.state.data.concat();
-    this.setState({
-      expandedKeys: expandedKeys,
-      msg: "OnExpand event callback: node id is" + node.props.eventKey,
-      data: newData,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = this.state.data;
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Tree
-            data={data}
-            nodeKey={"id"}
-            onSelect={this.handleSelect}
-            onExpand={this.handleExpand}
-            selectedKeys={this.state.selectedKeys}
-            expandedKeys={this.state.expandedKeys}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "560px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TreeLazyLoadDemo />, mountNode);
+<Tree
+  data={data}
+  nodeKey="id"
+  onSelect={(selectedKeys, node) => {
+    // selectedKeys 选中节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // 异步加载：按 node.props.eventKey 拉取子节点更新 data
+  }}
+  selectedKeys={[]}
+  expandedKeys={[]}
+/>
 ```
 
 ### Search in Tree
@@ -1294,175 +596,48 @@ ReactDOM.render(<TreeLazyLoadDemo />, mountNode);
 ```jsx
 import Tree from "eview-ui/Tree";
 import SearchInput from "eview-ui/SearchInput";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TreeSearchDemo extends React.Component {
-  state = {
-    checkedKeys: [],
-    selectedKeys: [1],
-    expandedKeys: [1],
-    msg: "",
-  };
-  constructor(props) {
-    super(props);
-    this.state.data = this.getInitialData();
-  }
-  getInitialData = () => {
-    let rootnode = {
-      text: "Root Node",
-      id: 1,
-      children: this.getChildren(10, "root_chld_", "Root Child_", true),
-    };
-    return [rootnode];
-  };
-  getChildren = (nodeCount, idPrefix, nodenamePrefix, needChildren) => {
-    let data = [];
-    let namePrefix = nodenamePrefix ? nodenamePrefix : "Child Node_";
-    for (let i = 1; i <= nodeCount; i++) {
-      let node = {
-        id: idPrefix + i,
-        text: namePrefix + i,
-      };
-      if (needChildren) {
-        node.children = this.getChildren(3, node.id + "_");
-      }
-      data.push(node);
-    }
-    return data;
-  };
-  handleSelect = (selectedKeys, node) => {
-    this.setState({
-      selectedKeys: selectedKeys,
-      msg: "OnSelect event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  handleCheck = (checkedKeys, node) => {
-    const currentCheckedKeys = Array.isArray(checkedKeys)
-      ? checkedKeys
-      : [checkedKeys];
-    this.setState({
-      checkedKeys: currentCheckedKeys,
-      msg: "OnCheck event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  handleExpand = (expandedKeys, node) => {
-    this.setState({
-      expandedKeys: expandedKeys,
-      msg: "OnExpand event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  handleSearch = (value) => {
-    let filteredData = this.filterData(value);
-    this.setState(() => ({ data: filteredData }));
-  };
-
-  filterData = (searchString) => {
-    let data = this.getInitialData();
-    let newRoot = this.matchFilterData(data[0], searchString);
-    return newRoot ? [newRoot] : [];
-  };
-  matchFilterData = (node, searchString) => {
-    if (node.text.indexOf(searchString) > -1) {
-      return Object.assign({}, node);
-    }
-    let newNode;
-    if (node.children && node.children.length) {
-      let children = [];
-      for (let j = 0; j < node.children.length; j++) {
-        let matchedChild = this.matchFilterData(node.children[j], searchString);
-        if (node.text == "Root Node") {
-        }
-        if (matchedChild) {
-          children.push(matchedChild);
-        }
-      }
-      if (children.length) {
-        newNode = Object.assign({}, node);
-        newNode.children = children;
-      }
-    }
-    return newNode;
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
+const data = [
+  {
+    text: "Root Node",
+    id: 1,
+    children: [
       {
-        text: "Root Node",
-        id: 1,
+        text: "Subnet0",
+        id: 11,
         children: [
-          {
-            text: "Subnet0",
-            id: 11,
-            children: [
-              {
-                text: "NE_1",
-                id: 21,
-                children: [
-                  { text: "NE_1", id: 31 },
-                  { text: "NE_2", id: 32 },
-                ],
-              },
-              { text: "NE_2", id: 22 },
-            ],
-          },
-          {
-            text: "NE_3",
-            id: 12,
-            children: [
-              { text: "NE_1", id: 23 },
-              { text: "NE_2", id: 24 },
-            ],
-          },
+          { text: "NE_1", id: 31 },
+          { text: "NE_2", id: 32 },
         ],
       },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <p className="note">
-            This example does the search on the data set passed by the
-            application component, filters out the rest of the nodes and
-            displays only found nodes and their children.
-          </p>
-          <SearchInput
-            placeholder="Enter to search tree"
-            onSearch={this.handleSearch}
-            inputStyle={{ width: "15rem" }}
-          />
-          <Tree
-            ref={(tree) => (this.searchTree = tree)}
-            data={this.state.data}
-            nodeKey={"id"}
-            onSelect={this.handleSelect}
-            onCheck={this.handleCheck}
-            onExpand={this.handleExpand}
-            checkedKeys={this.state.checkedKeys}
-            selectedKeys={this.state.selectedKeys}
-            expandedKeys={this.state.expandedKeys}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "560px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+      { text: "NE_3", id: 12 },
+    ],
+  },
+];
 
-ReactDOM.render(<TreeSearchDemo />, mountNode);
+<SearchInput
+  placeholder="Enter to search tree"
+  onSearch={(value) => {
+    // 按 value 过滤 data 更新
+  }}
+  inputStyle={{ width: "15rem" }}
+/>
+<Tree
+  data={data}
+  nodeKey="id"
+  onSelect={(selectedKeys, node) => {
+    // selectedKeys 选中节点 id 数组
+  }}
+  onCheck={(checkedKeys, node) => {
+    // checkedKeys 勾选节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // expandedKeys 展开节点 id 数组
+  }}
+  checkedKeys={[]}
+  selectedKeys={[1]}
+  expandedKeys={[1]}
+/>
 ```
 
 ### 'Search in Tree: API'
@@ -1470,145 +645,51 @@ ReactDOM.render(<TreeSearchDemo />, mountNode);
 ```jsx
 import Tree from "eview-ui/Tree";
 import SearchInput from "eview-ui/SearchInput";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TreeSearchAPIDemo extends React.Component {
-  state = {
-    checkedKeys: [],
-    selectedKeys: [1],
-    expandedKeys: [1],
-    msg: "",
-  };
-  constructor(props) {
-    super(props);
-    this.state.data = this.getInitialData();
-  }
-  getInitialData = () => {
-    let rootnode = {
-      text: "Root Node",
-      id: 1,
-      children: this.getChildren(10, "root_chld_", "Root Child_", true),
-    };
-    return [rootnode];
-  };
-  getChildren = (nodeCount, idPrefix, nodenamePrefix, needChildren) => {
-    let data = [];
-    let namePrefix = nodenamePrefix ? nodenamePrefix : "Child Node_";
-    for (let i = 1; i <= nodeCount; i++) {
-      let node = {
-        id: idPrefix + i,
-        text: namePrefix + i,
-      };
-      if (needChildren) {
-        node.children = this.getChildren(3, node.id + "_");
-      }
-      data.push(node);
-    }
-    return data;
-  };
-  handleSelect = (selectedKeys, node) => {
-    this.setState({
-      selectedKeys: selectedKeys,
-      msg: "OnSelect event callback: node id is" + node.props.eventKey,
-    });
-  };
+const treeRef = React.useRef();
 
-  handleCheck = (checkedKeys, node) => {
-    const currentCheckedKeys = Array.isArray(checkedKeys)
-      ? checkedKeys
-      : [checkedKeys];
-    this.setState({
-      checkedKeys: currentCheckedKeys,
-      msg: "OnCheck event callback: node id is" + node.props.eventKey,
-    });
-  };
+const data = [
+  {
+    text: "Root Node",
+    id: 1,
+    children: [
+      {
+        text: "Subnet0",
+        id: 11,
+        children: [
+          { text: "NE_1", id: 31 },
+          { text: "NE_2", id: 32 },
+        ],
+      },
+      { text: "NE_3", id: 12 },
+    ],
+  },
+];
 
-  handleExpand = (expandedKeys, node) => {
-    this.setState({
-      expandedKeys: expandedKeys,
-      msg: "OnExpand event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  handleSearch = (value) => {
-    let filteredData = this.filterData(value);
-    this.setState(() => ({ data: filteredData }));
-  };
-
-  filterData = (resultnodes) => {
-    let data = this.getInitialData();
-    let newRoot = this.matchFilterData(data[0], resultnodes);
-    return newRoot ? [newRoot] : [];
-  };
-  matchFilterData = (node, resultnodes) => {
-    if (node.text.indexOf(resultnodes) > -1) {
-      return Object.assign({}, node);
-    }
-    let newNode;
-    if (node.children && node.children.length) {
-      let children = [];
-      for (let j = 0; j < node.children.length; j++) {
-        let matchedChild = this.matchFilterData(node.children[j], resultnodes);
-        if (node.text == "Root Node") {
-        }
-        if (matchedChild) {
-          children.push(matchedChild);
-        }
-      }
-      if (children.length) {
-        newNode = Object.assign({}, node);
-        newNode.children = children;
-      }
-    }
-    return newNode;
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <p className="note">
-            This example calls the <code>findNodes</code> API of the tree and
-            filters out the rest of the nodes and displayes only found nodes and
-            their children.
-          </p>
-          <SearchInput
-            placeholder="Enter to search tree"
-            onSearch={this.handleSearch}
-            inputStyle={{ width: "15rem" }}
-          />
-          <Tree
-            ref={(tree) => (this.searchTree = tree)}
-            data={this.state.data}
-            nodeKey={"id"}
-            onSelect={this.handleSelect}
-            onCheck={this.handleCheck}
-            onExpand={this.handleExpand}
-            checkedKeys={this.state.checkedKeys}
-            selectedKeys={this.state.selectedKeys}
-            expandedKeys={this.state.expandedKeys}
-          />
-          {this.state.msg ? (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "560px" }}
-            />
-          ) : (
-            ""
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<TreeSearchAPIDemo />, mountNode);
+<SearchInput
+  placeholder="Enter to search tree"
+  onSearch={(value) => {
+    // 调用 treeRef.current.findNodes(value) 过滤节点
+  }}
+  inputStyle={{ width: "15rem" }}
+/>
+<Tree
+  ref={treeRef}
+  data={data}
+  nodeKey="id"
+  onSelect={(selectedKeys, node) => {
+    // selectedKeys 选中节点 id 数组
+  }}
+  onCheck={(checkedKeys, node) => {
+    // checkedKeys 勾选节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // expandedKeys 展开节点 id 数组
+  }}
+  checkedKeys={[]}
+  selectedKeys={[1]}
+  expandedKeys={[1]}
+/>
 ```
 
 ### Expand All - Collapse All- Disable
@@ -1616,394 +697,107 @@ ReactDOM.render(<TreeSearchAPIDemo />, mountNode);
 ```jsx
 import Tree from "eview-ui/Tree";
 import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TreeExpandCollapseDemo extends React.Component {
-  state = {
-    checkedKeys: [],
-    expandedKeys: [1],
-    selectedKeys: [],
-    disable: false,
-  };
+const treeRef = React.useRef();
 
-  handleExpandAll = () => {
-    const expandAllKeys = [1, 11, 21, 31, 32, 22, 12, 23, 24];
-    const treeStatevalue = this.expTree.getValue();
-    const selectedKeys = treeStatevalue.selectedKeys;
-    const checkedKeys = treeStatevalue.checkedKeys;
-    // Set state with an array of all the parent nodes to the  expandedkeys.
-    this.setState(() => ({
-      expandedKeys: expandAllKeys,
-      selectedKeys: selectedKeys,
-      checkedKeys: checkedKeys,
-    }));
-  };
-
-  handleCollapseAll = () => {
-    // Set state with an empty array of expandedkeys.
-    const treeStatevalue = this.expTree.getValue();
-    const selectedKeys = treeStatevalue.selectedKeys;
-    const checkedKeys = treeStatevalue.checkedKeys;
-    this.setState(() => ({
-      expandedKeys: [],
-      selectedKeys: selectedKeys,
-      checkedKeys: checkedKeys,
-    }));
-  };
-
-  handleGetValue = () => {
-    console.log(this.expTree.getValue());
-  };
-
-  handleGetSelectedKeys = () => {
-    console.log(this.expTree.getSelectedKeys());
-  };
-
-  handleGetCheckedKeys = () => {
-    console.log(this.expTree.getCheckedKeys());
-  };
-
-  handleGetExpandedKeys = () => {
-    console.log(this.expTree.getExpandedKeys());
-  };
-  handleDisable = () => {
-    console.log(this.state.disable);
-    this.setState(() => ({ disable: !this.state.disable }));
-  };
-
-  handleSelect = () => {
-    const checkedKeys = [1];
-    this.setState(() => ({ checkedKeys: checkedKeys }));
-  };
-
-  handleTreeDoubleClick = (eventKey, node, event) => {
-    console.log("handleTreeDoubleClick");
-    console.log(eventKey, node, event);
-  };
-
-  handleTreeRightClick = (eventKey, node, event) => {
-    console.log("handleTreeRightClick");
-    console.log(eventKey);
-    console.log(node);
-    console.log(event);
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const buttonStyle = { marginRight: "0.5rem", marginBottom: "0.5rem" };
-    let data = [
+const data = [
+  {
+    text: "Root Node",
+    id: 1,
+    hideRootCheckbox: true,
+    children: [
       {
-        text: "Root Node",
-        id: 1,
-        extra: "hello world",
-        hideRootCheckbox: true,
+        text: "Subnet0",
+        id: 11,
         children: [
-          {
-            text: "Subnet0",
-            id: 11,
-            extra: "hello Subnet0",
-            children: [
-              {
-                text: "NE_1",
-                id: 21,
-                children: [
-                  { text: "NE_1", id: 31 },
-                  { text: "NE_2", id: 32 },
-                ],
-              },
-              { text: "NE_2", id: 22 },
-            ],
-          },
-          {
-            text: "NE_3",
-            id: 12,
-            children: [
-              { text: "NE_1", id: 23 },
-              { text: "NE_2", id: 24 },
-            ],
-          },
+          { text: "NE_1", id: 31 },
+          { text: "NE_2", id: 32 },
         ],
       },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Button
-            text="Expand All"
-            onClick={this.handleExpandAll}
-            style={buttonStyle}
-          />
-          <Button
-            text="Collapse All"
-            onClick={this.handleCollapseAll}
-            style={buttonStyle}
-          />
-          <Button
-            text="getValue API"
-            onClick={this.handleGetValue}
-            style={buttonStyle}
-          />
-          <Button
-            text="getSelectedKeys API"
-            onClick={this.handleGetSelectedKeys}
-            style={buttonStyle}
-          />
-          <Button
-            text="getCheckedKeys API"
-            onClick={this.handleGetCheckedKeys}
-            style={buttonStyle}
-          />
-          <Button
-            text="getExpandedKeys API"
-            onClick={this.handleGetExpandedKeys}
-            style={buttonStyle}
-          />
-          <Button
-            text="Disable"
-            onClick={this.handleDisable}
-            style={buttonStyle}
-          />
-          <Button
-            text="Check Root Node"
-            onClick={this.handleSelect}
-            style={buttonStyle}
-          />
-          <br />
-          <br />
-          <br />
+      { text: "NE_3", id: 12 },
+    ],
+  },
+];
 
-          <Tree
-            ref={(tree) => {
-              this.expTree = tree;
-            }}
-            data={data}
-            nodeKey={"id"}
-            enableCheckbox={true}
-            checkedKeys={this.state.checkedKeys}
-            expandedKeys={this.state.expandedKeys}
-            selectedKeys={this.state.selectedKeys}
-            disabled={this.state.disable}
-            onNodeDoubleClick={this.handleTreeDoubleClick}
-            onNodeRightClick={this.handleTreeRightClick}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+<Button text="Expand All" onClick={() => { /* 设置 expandedKeys 为全部父节点 */ }} style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}/>
+<Button text="Collapse All" onClick={() => { /* 设置 expandedKeys 为 [] */ }} style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}/>
+<Button text="getValue API" onClick={() => { treeRef.current.getValue(); }} style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}/>
+<Button text="getSelectedKeys API" onClick={() => { treeRef.current.getSelectedKeys(); }} style={{ marginRight: "0.5rem", marginBottom: "0.5rem" }}/>
 
-ReactDOM.render(<TreeExpandCollapseDemo />, mountNode);
+<Tree
+  ref={treeRef}
+  data={data}
+  nodeKey="id"
+  enableCheckbox={true}
+  checkedKeys={[]}
+  expandedKeys={[1]}
+  selectedKeys={[]}
+  disabled={false}
+  onNodeDoubleClick={(eventKey, node, event) => {
+    // eventKey 双击节点 id
+  }}
+  onNodeRightClick={(eventKey, node, event) => {
+    // eventKey 右键节点 id
+  }}
+/>
 ```
 
 ### Tree with or without scroll
 
 ```jsx
 import Tree from "eview-ui/Tree";
-import SearchInput from "eview-ui/SearchInput";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class TreeScrollDemo extends React.Component {
-  state = {
-    checkedKeys: [],
-    selectedKeys: [1],
-    expandedKeys: [1],
-    checkedKeysOne: [],
-    selectedKeysOne: [1],
-    expandedKeysOne: [1],
-    msg: "",
-    msg1: "",
-    height: "400px",
-    height1: "400px",
-  };
-  constructor(props) {
-    super(props);
-    this.state.data = this.getInitialData();
-  }
-  getInitialData = () => {
-    let rootnode = {
-      text: "Root Node Example Test 1234567890",
-      id: 1,
-      children: this.getChildren(10, "root_chld_", "Root Child_", true),
-    };
-    return [rootnode];
-  };
-  getChildren = (nodeCount, idPrefix, nodenamePrefix, needChildren) => {
-    let data = [];
-    let namePrefix = nodenamePrefix ? nodenamePrefix : "Child Node_";
-    for (let i = 1; i <= nodeCount; i++) {
-      let node = {
-        id: idPrefix + i,
-        text: namePrefix + i,
-      };
-      if (needChildren) {
-        node.children = this.getChildren(3, node.id + "_");
-      }
-      data.push(node);
-    }
-    return data;
-  };
-  handleSelect = (selectedKeys, node) => {
-    this.setState({
-      selectedKeys: selectedKeys,
-      msg: "OnSelect event callback: node id is" + node.props.eventKey,
-    });
-  };
-  handleSelectOne = (selectedKeys, node) => {
-    this.setState({
-      selectedKeysOne: selectedKeys,
-      msg1: "OnSelect event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  handleCheck = (checkedKeys, node) => {
-    const currentCheckedKeys = Array.isArray(checkedKeys)
-      ? checkedKeys
-      : [checkedKeys];
-    this.setState({
-      checkedKeys: currentCheckedKeys,
-      msg: "OnCheck event callback: node id is" + node.props.eventKey,
-    });
-  };
-  handleCheckOne = (checkedKeys, node) => {
-    const currentCheckedKeys = Array.isArray(checkedKeys)
-      ? checkedKeys
-      : [checkedKeys];
-    this.setState({
-      checkedKeysOne: currentCheckedKeys,
-      msg1: "OnCheck event callback: node id is" + node.props.eventKey,
-    });
-  };
-
-  handleExpand = (expandedKeys, node) => {
-    let ht = this.state.height;
-    if (node.props.expanded) {
-      ht =
-        parseInt(this.state.height, 10) > 1500
-          ? "300px"
-          : parseInt(this.state.height, 10) - 110 + "px";
-    } else {
-      ht =
-        parseInt(this.state.height, 10) > 1500
-          ? "300px"
-          : parseInt(this.state.height, 10) + 110 + "px";
-    }
-    this.setState({
-      expandedKeys: expandedKeys,
-      msg: "OnExpand event callback: node id is" + node.props.eventKey,
-      height: ht,
-    });
-  };
-  handleExpandOne = (expandedKeys, node) => {
-    let ht = this.state.height1;
-    if (node.props.expanded) {
-      ht =
-        parseInt(this.state.height1, 10) > 1500
-          ? "300px"
-          : parseInt(this.state.height1, 10) - 110 + "px";
-    } else {
-      ht =
-        parseInt(this.state.height1, 10) > 1500
-          ? "300px"
-          : parseInt(this.state.height1, 10) + 110 + "px";
-    }
-    this.setState({
-      expandedKeysOne: expandedKeys,
-      msg1: "OnExpand event callback: node id is" + node.props.eventKey,
-      height1: ht,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
+const data = [
+  {
+    text: "Root Node Example Test",
+    id: 1,
+    children: [
       {
-        text: "Root Node Example Test",
-        id: 1,
+        text: "Subnet0",
+        id: 11,
         children: [
-          {
-            text: "Subnet0",
-            id: 11,
-            children: [
-              {
-                text: "NE_1",
-                id: 21,
-                children: [
-                  { text: "NE_1", id: 31 },
-                  { text: "NE_2", id: 32 },
-                ],
-              },
-              { text: "NE_2", id: 22 },
-            ],
-          },
-          {
-            text: "NE_3",
-            id: 12,
-            children: [
-              { text: "NE_1", id: 23 },
-              { text: "NE_2", id: 24 },
-            ],
-          },
+          { text: "NE_1", id: 31 },
+          { text: "NE_2", id: 32 },
         ],
       },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <div style={{ display: "inline-block" }}>
-            <div
-              style={{
-                width: "200px",
-                backgroundColor: "transparent",
-                padding: "5px",
-                height: "400px",
-              }}
-            >
-              <Tree
-                ref={(tree) => (this.searchTree = tree)}
-                enableScroll={true}
-                style={{ overflow: "auto", height: "95%" }}
-                data={this.state.data}
-                nodeKey={"id"}
-                onSelect={this.handleSelect}
-                onCheck={this.handleCheck}
-                onExpand={this.handleExpand}
-                checkedKeys={this.state.checkedKeys}
-                selectedKeys={this.state.selectedKeys}
-                expandedKeys={this.state.expandedKeys}
-              />
-            </div>
-          </div>
-          <div style={{ float: "right", paddingRight: "300px" }}>
-            <div
-              style={{
-                width: "200px",
-                backgroundColor: "transparent",
-                padding: "5px",
-                height: this.state.height1,
-              }}
-            >
-              <Tree
-                ref={(tree) => (this.searchTree = tree)}
-                data={this.state.data}
-                nodeKey={"id"}
-                onSelect={this.handleSelectOne}
-                onCheck={this.handleCheckOne}
-                onExpand={this.handleExpandOne}
-                checkedKeys={this.state.checkedKeysOne}
-                selectedKeys={this.state.selectedKeysOne}
-                expandedKeys={this.state.expandedKeysOne}
-              />
-            </div>
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+      { text: "NE_3", id: 12 },
+    ],
+  },
+];
 
-ReactDOM.render(<TreeScrollDemo />, mountNode);
+<Tree
+  enableScroll={true}
+  style={{ overflow: "auto", height: "400px", width: "200px" }}
+  data={data}
+  nodeKey="id"
+  onSelect={(selectedKeys, node) => {
+    // selectedKeys 选中节点 id 数组
+  }}
+  onCheck={(checkedKeys, node) => {
+    // checkedKeys 勾选节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // expandedKeys 展开节点 id 数组
+  }}
+  checkedKeys={[]}
+  selectedKeys={[1]}
+  expandedKeys={[1]}
+/>
+<Tree
+  style={{ height: "400px", width: "200px" }}
+  data={data}
+  nodeKey="id"
+  onSelect={(selectedKeys, node) => {
+    // selectedKeys 选中节点 id 数组
+  }}
+  onCheck={(checkedKeys, node) => {
+    // checkedKeys 勾选节点 id 数组
+  }}
+  onExpand={(expandedKeys, node) => {
+    // expandedKeys 展开节点 id 数组
+  }}
+  checkedKeys={[]}
+  selectedKeys={[1]}
+  expandedKeys={[1]}
+/>
 ```

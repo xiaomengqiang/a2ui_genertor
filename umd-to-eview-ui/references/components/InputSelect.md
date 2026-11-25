@@ -292,145 +292,103 @@ interface InputSelect {
 
 ```jsx
 import InputSelect from 'eview-ui/InputSelect';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class InputSelectExample extends React.Component {
+const options = [
+  { text: "China is very big country", value: 1 },
+  { text: "UK", value: 2 },
+  { text: "USA", value: 3 },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    let style = { marginRight: "1rem" };
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    let options = [{ text: "China is very very big country", value: 1 }, { text: "UK is small country & in Europe", value: 2 }, { text: "USA", value: 3 }, { text: "USAB", value: 4 }, { text: "USAC", value: 5 }, { text: "USAD", value: 6 }, { text: "USAE", value: 7 }, { text: "USAF", value: 8 }, { text: "USAG", value: 9 }];
-    let options1 = [{ text: "BeiJIng", value: 1 }, { text: "UK", value: 2 }, { text: "USA hjnm ghyh ", value: 3 }];
-    let options2 = [{ text: "China", value: 1 }, { text: "A quick brown fox jumps over the white lazy dog", value: 2 }, { text: "USA", value: 3 }, { text: "USAB", value: 4 }, { text: "USAC", value: 5 }, { text: "USAD", value: 6 }, { text: "USAE", value: 7 }, { text: "USAF", value: 8 }, { text: "USAG", value: 9 }];
+<InputSelect
+  options={options}
+  label="默认状态"
+  labelStyle={{ display: "block", paddingLeft: "0px" }}
+  selectStyle={{ width: '150px' }}
+  selectedIndex={0}
+  style={{ marginRight: "1rem" }}
+/>;
 
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_InputSelect_example" style={{ marginLeft: "20px" }}>
-            <InputSelect options={options} label="默认状态" labelStyle={labelStyle} selectStyle={{width: '150px'}} selectedIndex={0} style={style}/>
-            <InputSelect options={options1} label="禁用状态" labelStyle={labelStyle} value={1} disabled={true} style={style} />
-            <InputSelect options={options2} label="弹出窗口设置水平滚动条" labelStyle={labelStyle} selectedIndex={0} style={style} optionStyle={{width: '300px'}} enablHorzScroll={true} maxLength={15}/>
-        </div>
-      </ConfigProvider>
-    )
-  }
-}
+<InputSelect
+  options={options}
+  label="禁用状态"
+  value={1}
+  disabled={true}
+  style={{ marginRight: "1rem" }}
+/>;
 
-ReactDOM.render(<InputSelectExample />, mountNode);
-
+<InputSelect
+  options={options}
+  label="弹出窗口设置水平滚动条"
+  selectedIndex={0}
+  optionStyle={{ width: '300px' }}
+  enablHorzScroll={true} // 拼写注意：enablHorzScroll
+  maxLength={15}
+  style={{ marginRight: "1rem" }}
+/>;
 ```
 
 ### 大小写不敏感过滤与自定义输入
 
 ```jsx
 import InputSelect from 'eview-ui/InputSelect';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class InputSelectFilterExample extends React.Component {
+const options = [
+  { text: "Apple", value: 1 },
+  { text: "Banana", value: 2 },
+  { text: "Cherry", value: 3 },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    let options = [{ text: "Apple", value: 1 }, { text: "Banana", value: 2 }, { text: "Cherry", value: 3 }];
+<InputSelect
+  options={options}
+  label="大小写不敏感过滤(caseInsensitiveFilter=true)"
+  caseInsensitiveFilter={true} // 默认 true
+  style={{ marginRight: "1rem" }}
+/>;
 
-    return (
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "20px" }}>
-            <InputSelect options={options} label="大小写不敏感过滤(caseInsensitiveFilter=true)" caseInsensitiveFilter={true} style={{ marginRight: "1rem" }} />
-            <InputSelect options={options} label="大小写敏感过滤(caseInsensitiveFilter=false)" caseInsensitiveFilter={false} style={{ marginRight: "1rem" }} />
-            <InputSelect options={options} label="自定义输入(showCustomInput=true)" showCustomInput={true} onInputChange={(val) => console.log('输入变化:', val)} />
-        </div>
-      </ConfigProvider>
-    )
-  }
-}
+<InputSelect
+  options={options}
+  label="大小写敏感过滤(caseInsensitiveFilter=false)"
+  caseInsensitiveFilter={false}
+  style={{ marginRight: "1rem" }}
+/>;
 
-ReactDOM.render(<InputSelectFilterExample />, mountNode);
-
+<InputSelect
+  options={options}
+  label="自定义输入(showCustomInput=true)"
+  showCustomInput={true}
+  onInputChange={(val) => {
+    // val: 输入框当前值
+  }}
+/>;
 ```
 
 ### API使用
 
 ```jsx
 import InputSelect from 'eview-ui/InputSelect';
-import Button from 'eview-ui/Button';
-import DivMessage from 'eview-ui/DivMessage';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class InputSelectEvent extends React.Component {
+const options = [
+  { text: "All", value: -1 },
+  { text: "Shelf0-12-53ND2-1(IN1/OUT1)", value: 0 },
+  { text: "Shelf0-13-11LEM24-3(IN3/OUT3)", value: 2 },
+  { text: "USA", value: 3 },
+];
 
-  state = {
-    msg: '',
-    selectedValue: ''
-  };
-
-  handleChange = (value) => {
-    this.setState({msg: "onChange event callback, Selected value : " + value, selectedValue: value});
-  };
-  handleKeyUp = (value) => {
-    console.log(value);
-  }
-
-  handleClick = () => {
-    this.setState({msg: "getValue API, Current value : " + this.select.getValue()});
-  };
-
-  handleClickValidate = (result) => {
-    if (this.select.validate()) {
-      this.setState({
-        msg: "Validated, Current value : " + this.select.getValue(),
-        selectedValue: this.select.getValue()
-      });
-    }
-  };
-
-  handleClickFocus = () => {
-    this.select.focus();
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let options = [{text: "All", value: -1},
-      {text: "Shelf0-12-53ND2-1(IN1/OUT1)", value: 0},
-      {text: "Shelf0-12-53ND2-2(IN2/OUT2)", value: 1},
-      {text: "Shelf0-13-11LEM24-3(IN3/OUT3)", value: 2},
-      {text: "USA", value: 3},
-      {text: "a1", value: 4},
-      {text: "a2", value: 5},
-      {text: "a3", value: 6},
-      {text: "a4", value: 7},
-      {text: "a5", value: 8},
-      {text: "a6", value: 9},
-      {text: "a7", value: 10},
-      {text: "a8", value: 11},
-      {text: "a9", value: 12},
-      {text: "a10", value: 13},
-      {text: "a11", value: 14},
-      {text: "a12", value: 15},];
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_InputSelect_example">
-          <div style={{marginLeft: "20px"}}>
-            <InputSelect id={"ID_InputSelect"} label="Event callback function" options={options} required
-                         value={this.state.selectedValue} onChange={this.handleChange} onInputKeyUp={this.handleKeyUp} ref={(select) => this.select = select}/>&nbsp;&nbsp;
-            <Button text="Value" onClick={this.handleClick} style={{marginRight: "5px"}}></Button>
-            <Button text="Verification" onClick={this.handleClickValidate} style={{marginRight: "5px"}}></Button>
-            <Button text="Focusing" onClick={this.handleClickFocus} style={{marginRight: "5px"}}></Button>
-            {this.state.msg ?
-              <DivMessage text={this.state.msg} type="success" style={{marginTop: '10px', width: '500px',}}/> : ''}
-          </div>
-        </div>
-      </ConfigProvider>
-    )
-  }
-}
-
-ReactDOM.render(<InputSelectEvent />, mountNode);
-
+<InputSelect
+  id="ID_InputSelect"
+  label="Event callback function"
+  options={options}
+  required
+  value={1}
+  onChange={(value, oldValue) => {
+    // value: 当前选中值, oldValue: 上一次选中值（两参）
+  }}
+  onInputKeyUp={(value) => {
+    // value: 输入框当前值
+  }}
+  ref={(select) => {
+    // select.getValue() 取选中值, select.validate() 非空校验, select.focus() 聚焦
+  }}
+/>;
 ```
 

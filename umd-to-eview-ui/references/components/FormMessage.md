@@ -62,52 +62,9 @@ static defaultProps = {
 
 ```jsx
 import FormMessage from "eview-ui/FormMessage";
-import imgPicture from "@images/filter.png";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class FormMessageExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div style={{ marginLeft: "10px" }}>
-          <div>
-            <FormMessage
-              type="default"
-              text="Default style"
-              style={{ width: "200px" }}
-            />
-          </div>
-          <div>
-            <FormMessage
-              type="success"
-              text="Success"
-              style={{ width: "200px" }}
-            />
-          </div>
-          <div>
-            <FormMessage
-              type="error"
-              text="Failure"
-              style={{ width: "200px" }}
-            />
-          </div>
-          <div>
-            <FormMessage
-              type="error"
-              text="Support custom icons"
-              style={{ width: "200px" }}
-              icon={imgPicture}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<FormMessageExample />, mountNode);
+<FormMessage type="default" text="Default style" />
+<FormMessage type="success" text="Success" />
+<FormMessage type="error" text="Failure" />
+<FormMessage type="error" text="Support custom icons" icon="filter.png" /* 图片 url */ />
 ```

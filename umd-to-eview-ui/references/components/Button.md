@@ -51,34 +51,12 @@
 
 ```jsx
 import { Button } from "eview-ui";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ButtonExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Button
-            text="Primary Button"
-            status="primary"
-            style={{ marginRight: "16px" }}
-          />
-          <Button
-            text="Default Button"
-            tipShow="overflow"
-            style={{ marginRight: "16px" }}
-          />
-          <Button text="Risk Button" status="risk" />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-ReactDOM.render(<ButtonExample />, mountNode);
+<div>
+  <Button text="Primary Button" status="primary" style={{ marginRight: "16px" }} />
+  <Button text="Default Button" tipShow="overflow" style={{ marginRight: "16px" }} />
+  <Button text="Risk Button" status="risk" />
+</div>
 ```
 
 ### 不可用状态
@@ -87,68 +65,17 @@ ReactDOM.render(<ButtonExample />, mountNode);
 
 ```jsx
 import Button from "eview-ui/Button";
-import LabelField from "eview-ui/LabelField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class IconButtonStyle extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    let divStyle = { margin: "20px 0px 20px 20px" };
-    let iconButtonStyle = { marginRight: "5px", width: "90px" };
-    let labelStyle = {
-      display: "block",
-      fontSize: "14px",
-      marginBottom: "10px",
-      paddingLeft: "0px",
-    };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_button_example">
-          <div style={divStyle}>
-            <Button
-              text="Primary"
-              status="primary"
-              style={{ marginRight: "1rem", marginBottom: "20px" }}
-            />
-            <Button
-              text="Disable Primary"
-              status="primary"
-              disabled={true}
-              style={{ marginBottom: "20px" }}
-            />
-            <br />
-            <Button
-              text="Default"
-              tipShow="overflow"
-              style={{ marginRight: "1rem", marginBottom: "20px" }}
-            />
-            <Button
-              text="Disable Default"
-              disabled={true}
-              style={{ marginBottom: "20px" }}
-            />
-            <br />
-            <Button
-              text="Risk"
-              status="risk"
-              style={{ marginRight: "1rem", marginBottom: "20px" }}
-            />
-            <Button
-              text="Disable Risk"
-              status="risk"
-              disabled={true}
-              style={{ marginBottom: "20px" }}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<IconButtonStyle />, mountNode);
+<div>
+  <Button text="Primary" status="primary" style={{ marginRight: "1rem", marginBottom: "20px" }} />
+  <Button text="Disable Primary" status="primary" disabled={true} style={{ marginBottom: "20px" }} />
+  <br />
+  <Button text="Default" tipShow="overflow" style={{ marginRight: "1rem", marginBottom: "20px" }} />
+  <Button text="Disable Default" disabled={true} style={{ marginBottom: "20px" }} />
+  <br />
+  <Button text="Risk" status="risk" style={{ marginRight: "1rem", marginBottom: "20px" }} />
+  <Button text="Disable Risk" status="risk" disabled={true} style={{ marginBottom: "20px" }} />
+</div>
 ```
 
 ### 带图标的按钮
@@ -158,89 +85,46 @@ ReactDOM.render(<IconButtonStyle />, mountNode);
 
 ```jsx
 import Button from "eview-ui/Button";
-import { getIconBase64 } from "@/shared/SvgIcon";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class IconButtonStyle extends React.Component {
-  state = { iconsSvg: {} };
+// leftIcon/rightIcon 收 base64 data URL 字符串（可用 getIconBase64 异步预载）
+const plusIcon = "data:image/svg+xml;base64,..."; // 图标 base64 url
+const delIcon = "data:image/svg+xml;base64,..."; // 图标 base64 url
 
-  componentDidMount() {
-    let alive = true;
-    // leftIcon/rightIcon 收 string（base64 data URL），用 getIconBase64 异步预载
-    Promise.all([
-      getIconBase64("plus", { size: 16 }).then(url => ["plus", url]),
-      getIconBase64("del", { size: 16 }).then(url => ["del", url]),
-    ]).then(entries => {
-      if (!alive) return;
-      const iconsSvg = Object.fromEntries(entries.filter(([, url]) => url));
-      this.setState({ iconsSvg });
-    });
-    return () => { alive = false; };
-  }
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    const { iconsSvg } = this.state;
-    let divStyle = { display: "flex" };
-    let iconButtonStyle = { flex: "1", marginRight: "0.5rem" };
-    let labelStyle = {
-      display: "block",
-      fontSize: "14px",
-      marginBottom: "10px",
-      paddingLeft: "0px",
-    };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_button_example">
-          <div style={divStyle}>
-            <Button
-              leftIcon={iconsSvg.plus}
-              leftIconProps={{
-                leftHoverIcon: iconsSvg.del,
-                leftIconClass: "my-icon-class",
-              }}
-              onClick={() => {
-                alert(123);
-              }}
-              style={{
-                padding: 0,
-                border: 0,
-                height: "100%",
-                margin: "0.5rem 1rem 0 0",
-              }}
-            />
-            <Button
-              text="Primary Button"
-              tipShow="overflow"
-              tipData={"Hello React"}
-              status="primary"
-              rightIcon={iconsSvg.plus}
-              style={iconButtonStyle}
-            />
-            <Button
-              text="Default Button"
-              tipShow="overflow"
-              leftIcon={iconsSvg.plus}
-              style={iconButtonStyle}
-            />
-            <Button
-              text="Risk Button"
-              tipShow="overflow"
-              tipData={"Hello React"}
-              status="risk"
-              style={iconButtonStyle}
-              leftIcon={iconsSvg.del}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<IconButtonStyle />, mountNode);
+<div style={{ display: "flex" }}>
+  <Button
+    leftIcon={plusIcon}
+    leftIconProps={{
+      leftHoverIcon: delIcon,
+      leftIconClass: "my-icon-class",
+    }}
+    onClick={() => {
+      // 点击回调
+    }}
+    style={{ padding: 0, border: 0, height: "100%", margin: "0.5rem 1rem 0 0" }}
+  />
+  <Button
+    text="Primary Button"
+    tipShow="overflow"
+    tipData={"Hello React"}
+    status="primary"
+    rightIcon={plusIcon}
+    style={{ flex: "1", marginRight: "0.5rem" }}
+  />
+  <Button
+    text="Default Button"
+    tipShow="overflow"
+    leftIcon={plusIcon}
+    style={{ flex: "1", marginRight: "0.5rem" }}
+  />
+  <Button
+    text="Risk Button"
+    tipShow="overflow"
+    tipData={"Hello React"}
+    status="risk"
+    leftIcon={delIcon}
+    style={{ flex: "1", marginRight: "0.5rem" }}
+  />
+</div>
 ```
 
 ### 按钮尺寸
@@ -250,78 +134,16 @@ ReactDOM.render(<IconButtonStyle />, mountNode);
 
 ```jsx
 import Button from "eview-ui/Button";
-import LabelField from "eview-ui/LabelField";
-import Radio from "eview-ui/Radio";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class IconButtonStyle extends React.Component {
-  state = {
-    size: "normal",
-  };
+// size: "large" | "normal"（默认）| "small"
+const size = "normal";
+const btnStyle = { marginRight: "1rem", marginTop: "0.5rem" };
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    const { size } = this.state;
-    const btnStyle = {
-      marginRight: "1rem",
-      marginTop: "0.5rem",
-    };
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_button_example">
-          <div style={{ marginBottom: "1rem", display: "flex" }}>
-            <LabelField text="尺寸:" />
-            <Radio
-              value="large"
-              label="large"
-              checked={size === "large"}
-              onChange={(value) => this.setState({ size: value })}
-              style={{ marginRight: "0.5rem" }}
-            />
-            <Radio
-              value="normal"
-              label="normal"
-              checked={size === "normal"}
-              onChange={(value) => this.setState({ size: value })}
-              style={{ marginRight: "0.5rem" }}
-            />
-            <Radio
-              value="small"
-              label="small"
-              checked={size === "small"}
-              onChange={(value) => this.setState({ size: value })}
-            />
-          </div>
-          <div>
-            <Button
-              text="Primary Button"
-              status="primary"
-              size={size}
-              style={btnStyle}
-            />
-            <Button
-              text="Default Button"
-              tipShow="overflow"
-              size={size}
-              style={btnStyle}
-            />
-            <Button
-              text="Risk Button"
-              status="risk"
-              size={size}
-              style={btnStyle}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<IconButtonStyle />, mountNode);
+<div>
+  <Button text="Primary Button" status="primary" size={size} style={btnStyle} />
+  <Button text="Default Button" tipShow="overflow" size={size} style={btnStyle} />
+  <Button text="Risk Button" status="risk" size={size} style={btnStyle} />
+</div>
 ```
 
 ### 提示功能
@@ -330,43 +152,13 @@ ReactDOM.render(<IconButtonStyle />, mountNode);
 
 ```jsx
 import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class IconButtonStyle extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    let divStyle = { margin: "20px 0px 20px 20px" };
-    let iconButtonStyle = { marginRight: "5px", width: "90px" };
-    let labelStyle = {
-      display: "block",
-      fontSize: "14px",
-      marginBottom: "10px",
-      paddingLeft: "0px",
-    };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_button_example">
-          <div style={divStyle}>
-            <Button
-              text="带提示的按钮"
-              tipData="Hello eViews!"
-              tipShow="always"
-              style={{
-                width: "8rem",
-                marginRight: "1rem",
-                marginBottom: "20px",
-              }}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<IconButtonStyle />, mountNode);
+<Button
+  text="带提示的按钮"
+  tipData="Hello eViews!"
+  tipShow="always"
+  style={{ width: "8rem", marginRight: "1rem", marginBottom: "20px" }}
+/>
 ```
 
 ### 自动聚焦
@@ -375,20 +167,6 @@ ReactDOM.render(<IconButtonStyle />, mountNode);
 
 ```jsx
 import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class IconButtonStyle extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <Button text="自动聚焦按钮" focused={true} />;
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<IconButtonStyle />, mountNode);
+<Button text="自动聚焦按钮" focused={true} />
 ```

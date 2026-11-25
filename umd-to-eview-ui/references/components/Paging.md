@@ -102,264 +102,118 @@ export interface PaginationProps {
 
 ```jsx
 import Paging from "eview-ui/Paging";
-import LabelField from "eview-ui/LabelField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class PagingBasic extends React.Component {
-  constructor(props) {
-    super(props);
+// 默认 list 类型，未设 onPageChange → 不受控，按钮默认翻页生效
+<Paging
+  recordCount={100}
+  pageSize={10}
+  currentPage={2}
+  pageSizeOptions={[10, 30, 90]}
+  onPageSizeChange={(pageSize) => {
+    // pageSize: 新分页尺寸
+  }}
+/>;
 
-    this.state = {
-      total: 100,
-      pageSize: 10,
+// type='select'
+<Paging
+  type="select"
+  recordCount={100}
+  pageSize={10}
+  currentPage={2}
+  pageSizeOptions={[10, 30, 90]}
+  onPageChange={(currentPage) => {
+    // currentPage: 新页码；onPageChange 一旦设置即完全受控
+  }}
+/>;
 
-      curPageForSelectType: 2,
-      pageSizeForSelectType: 10,
+// type='simple' + hideConfig 隐藏分区（精简分页器）
+<Paging
+  type="simple"
+  recordCount={100}
+  pageSize={10}
+  currentPage={2}
+  pageSizeOptions={[10, 30, 90]}
+  hideConfig={["totalRecord", "pageSize", "gotoPage"]}
+  onPageChange={(currentPage) => {}}
+/>;
 
-      curPageForTextType: 2,
-      pageSizeForTextType: 10,
+// type='simple' 复杂分页器（不隐藏分区）
+<Paging
+  type="simple"
+  recordCount={100}
+  pageSize={10}
+  currentPage={2}
+  pageSizeOptions={[10, 30, 90]}
+  onPageChange={(currentPage) => {}}
+/>;
 
-      pageSizeForCustomType: 10,
-    };
-  }
-
-  handlePageSizeChange = (pageSize) => {
-    this.setState({ pageSize });
-  };
-
-  handlePageChangeForSelectType = (curPageForSelectType) => {
-    this.setState({ curPageForSelectType });
-  };
-
-  handlePageChangeForTextType = (curPageForTextType) => {
-    this.setState({ curPageForTextType });
-  };
-
-  handlePageSizeChangeForCustomType = (pageSizeForCustomType) => {
-    this.setState({ pageSizeForCustomType });
-  };
-
-  render() {
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <LabelField text="Default Type:" style={labelStyle} />
-          <Paging
-            recordCount={this.state.total}
-            pageSize={this.state.pageSize}
-            currentPage={2}
-            onPageSizeChange={this.handlePageSizeChange}
-            pageSizeOptions={[10, 30, 90]}
-          />
-          <br /> <br />
-          <LabelField text="Select Type:" style={labelStyle} />
-          <Paging
-            type={"select"}
-            recordCount={this.state.total}
-            pageSize={this.state.pageSizeForSelectType}
-            currentPage={this.state.curPageForSelectType}
-            onPageChange={this.handlePageChangeForSelectType}
-            pageSizeOptions={[10, 30, 90]}
-          />
-          <br /> <br />
-          <LabelField
-            text="Simple Type: 精简分页器（配置hideConfig为['totalRecord', 'pageSize', 'gotoPage']）"
-            style={labelStyle}
-          />
-          <Paging
-            type={"simple"}
-            recordCount={this.state.total}
-            pageSize={this.state.pageSizeForTextType}
-            currentPage={this.state.curPageForTextType}
-            onPageChange={this.handlePageChangeForTextType}
-            pageSizeOptions={[10, 30, 90]}
-            hideConfig={["totalRecord", "pageSize", "gotoPage"]}
-          />
-          <br /> <br />
-          <LabelField text="Simple Type: 复杂分页器" style={labelStyle} />
-          <Paging
-            type={"simple"}
-            recordCount={this.state.total}
-            pageSize={this.state.pageSizeForTextType}
-            currentPage={this.state.curPageForTextType}
-            onPageChange={this.handlePageChangeForTextType}
-            pageSizeOptions={[10, 30, 90]}
-          />
-          <br /> <br />
-          <LabelField text="Custom Total Record Count" style={labelStyle} />
-          <Paging
-            recordCount={this.state.total}
-            recordCountDisp={"100+"}
-            pageSize={this.state.pageSizeForCustomType}
-            splitPagination={false}
-            currentPage={2}
-            onPageSizeChange={this.handlePageSizeChangeForCustomType}
-            pageSizeOptions={[10, 30, 90]}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<PagingBasic />, mountNode);
+// recordCountDisp 自定义总记录数显示（页数计算仍基于 recordCount）
+<Paging
+  recordCount={100}
+  recordCountDisp="100+"
+  pageSize={10}
+  currentPage={2}
+  splitPagination={false}
+  pageSizeOptions={[10, 30, 90]}
+  onPageSizeChange={(pageSize) => {}}
+/>
 ```
 
 ### 事件处理
 
 ```jsx
 import Paging from "eview-ui/Paging";
-import DivMessage from "eview-ui/DivMessage";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class PagingAction extends React.Component {
-  state = {
-    msg: null,
-    pageSize: 10,
-    currentPage: 1,
-    recordCount: 10000,
-  };
-
-  handlePageChange = (currentPage) => {
-    this.setState({
-      msg: "onPageChange Callback, currentPage: " + currentPage,
-      currentPage,
-    });
-  };
-
-  handlePageSizeChange = (pageSize) => {
-    this.setState({
-      msg: "onPageSizeChange Callback, pageSize: " + pageSize,
-      pageSize,
-    });
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <Paging
-            recordCount={this.state.recordCount}
-            pageSize={this.state.pageSize}
-            currentPage={this.state.currentPage}
-            onPageChange={this.handlePageChange}
-            onPageSizeChange={this.handlePageSizeChange}
-            pageSizeOptions={[10, 30, 90]}
-          />
-
-          {this.state.msg && (
-            <DivMessage
-              text={this.state.msg}
-              type="success"
-              style={{ marginTop: "10px", width: "100%" }}
-            />
-          )}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<PagingAction />, mountNode);
+// 受控式：onPageChange + onPageSizeChange 同时设置，按钮默认行为被禁用
+<Paging
+  recordCount={10000}
+  pageSize={10}
+  currentPage={1}
+  pageSizeOptions={[10, 30, 90]}
+  onPageChange={(currentPage) => {
+    // currentPage: 新页码，需维护 currentPage
+  }}
+  onPageSizeChange={(pageSize) => {
+    // pageSize: 新分页尺寸
+  }}
+/>
 ```
 
 ### 拆分样式
 
 ```jsx
 import Paging from "eview-ui/Paging";
-import LabelField from "eview-ui/LabelField";
-import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class PagingSplitStyle extends React.Component {
-  state = {
-    total: 100,
-    pageSize: 10,
+// splitPagination={true}：分页切换器浮动到右侧
+<Paging
+  recordCount={100}
+  pageSize={10}
+  currentPage={2}
+  pageSizeOptions={[10, 30, 90]}
+  splitPagination
+  style={{ width: "50rem" }}
+  onPageSizeChange={(pageSize) => {}}
+/>;
 
-    curPageForSelectType: 2,
-    pageSizeForSelectType: 10,
+<Paging
+  type="select"
+  recordCount={100}
+  pageSize={10}
+  currentPage={2}
+  pageSizeOptions={[10, 30, 90]}
+  splitPagination
+  style={{ width: "50rem" }}
+  onPageChange={(currentPage) => {}}
+/>;
 
-    pageSizeForCustomType: 10,
-
-    pagingStyle: {},
-  };
-
-  handlePageSizeChange = (pageSize) => {
-    this.setState({ pageSize });
-  };
-
-  handlePageChangeForSelectType = (curPageForSelectType) => {
-    this.setState({ curPageForSelectType });
-  };
-
-  handlePageSizeChangeForCustomType = (pageSizeForCustomType) => {
-    this.setState({ pageSizeForCustomType });
-  };
-
-  handleChangeWidth = () => {
-    this.setState({
-      pagingStyle: { width: "50rem" },
-    });
-  };
-
-  render() {
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    const [version, theme] = getDemoVersion();
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <LabelField text="Default Type:" style={labelStyle} />
-          <Paging
-            recordCount={this.state.total}
-            pageSize={this.state.pageSize}
-            currentPage={2}
-            onPageSizeChange={this.handlePageSizeChange}
-            pageSizeOptions={[10, 30, 90]}
-            style={this.state.pagingStyle}
-            splitPagination
-          />
-          <br /> <br />
-          <LabelField text="Select Type:" style={labelStyle} />
-          <Paging
-            type={"select"}
-            recordCount={this.state.total}
-            pageSize={this.state.pageSizeForSelectType}
-            currentPage={this.state.curPageForSelectType}
-            onPageChange={this.handlePageChangeForSelectType}
-            pageSizeOptions={[10, 30, 90]}
-            style={this.state.pagingStyle}
-            splitPagination
-          />
-          <br /> <br />
-          <LabelField text="Custom Total Record Count" style={labelStyle} />
-          <Paging
-            recordCount={this.state.total}
-            recordCountDisp={"100+"}
-            pageSize={this.state.pageSizeForCustomType}
-            currentPage={4}
-            onPageSizeChange={this.handlePageSizeChangeForCustomType}
-            pageSizeOptions={[10, 30, 90]}
-            style={this.state.pagingStyle}
-            splitPagination
-          />
-          <br /> <br />
-          <Button text="change width" onClick={this.handleChangeWidth}></Button>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<PagingSplitStyle />, mountNode);
+<Paging
+  recordCount={100}
+  recordCountDisp="100+"
+  pageSize={10}
+  currentPage={4}
+  pageSizeOptions={[10, 30, 90]}
+  splitPagination
+  style={{ width: "50rem" }}
+  onPageSizeChange={(pageSize) => {}}
+/>
 ```

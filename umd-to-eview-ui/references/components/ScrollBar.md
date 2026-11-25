@@ -106,57 +106,20 @@ interface VerticalScrollbar {
 
 ```jsx
 import ScrollBar from "eview-ui/ScrollBar";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class ScrollBarExample extends React.Component {
-  handleScrollEvent = () => {
-    console.log("scrollEvent Fired.");
-  };
+const scrollbarStyle = {
+  maxWidth: 550, // 水平滚动最大宽度
+  minWidth: 300,
+  maxHeight: 200, // 垂直滚动最大高度
+};
 
-  render() {
-    const myScrollbar = {
-      maxWidth: 550,
-      minWidth: 300,
-      maxHeight: 200,
-    };
+const block = { background: "#2196F3", width: "150px", height: "150px", display: "inline-block", margin: "15px" };
 
-    const kolom = {
-      background: "#2196F3",
-      width: "150px",
-      height: "150px",
-      display: "inline-block",
-      margin: "15px",
-    };
-    const [version, theme] = getDemoVersion();
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <ScrollBar style={myScrollbar} scrollEvent={this.handleScrollEvent}>
-          <div className="scroll-content">
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div style={kolom} />
-            <div className="clearfix" />
-          </div>
-        </ScrollBar>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ScrollBarExample />, mountNode);
+<ScrollBar style={scrollbarStyle} scrollEvent={(data) => { /* 滚动后回调 */ }}>
+  <div className="scroll-content">
+    <div style={block} />
+    <div style={block} />
+    <div style={block} />
+  </div>
+</ScrollBar>
 ```

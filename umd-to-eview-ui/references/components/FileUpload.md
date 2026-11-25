@@ -166,563 +166,157 @@ type FileUploadProps = {
 
 ```jsx
 import FileUpload from "eview-ui/FileUpload";
-import LabelField from "eview-ui/LabelField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class FileUploadExample1 extends React.Component {
-  static defaultProps = {
-    disable: false,
-    display: true,
-    enableProgress: false,
-    fileUploadStatus: "loading",
-  };
-  constructor(props) {
-    super(props);
-    this.state = {
-      value: {},
-      fileUploadStatus: {},
-      disable: false,
-      fileList: [],
-    };
-  }
+// 受控上传：fileUploadStatus 控制每文件状态，updateProgressStatus 控制进度百分比
+const fileUploadStatus = { "1.jpg": "success" }; // 文件名: 'loading'/'fail'/'success'/'added'/''
+const updateProgressStatus = { "1.jpg": 100 }; // 文件名: 百分比数字
 
-  handleCancel = () => {
-    console.log("onCancelUpload callback.");
-  };
+<FileUpload
+  type="single"
+  width="450px"
+  accept=".png"
+  maxSize="100000"
+  placeHolder="select the file to upload"
+  buttonText="Upload File"
+  disable={false}
+  fileUploadStatus={fileUploadStatus}
+  updateProgressStatus={updateProgressStatus}
+  fileList={[]}
+  handleSubmit={({ event, data }) => {
+    // 业务自行发请求；data: File[]，取 data[0].name 更新 fileUploadStatus/updateProgressStatus
+  }}
+  onChange={(event, itemList) => {
+    // event: React.ChangeEvent, itemList: File[]
+  }}
+  onCancelUpload={() => {
+    // 取消上传
+  }}
+  onFileClose={(event) => {
+    // event.title 为被移除文件名
+  }}
+  onReload={({ event, data }) => {
+    // event.title 为重传文件名, data: File[]
+  }}
+/>;
 
-  handleChange = () => {
-    console.log("onchange event callback.");
-  };
+// validator 自定义校验：返回 { result, message }
+<FileUpload
+  type="single"
+  width="450px"
+  accept=".png"
+  placeHolder="select the file to upload"
+  buttonText="Upload File"
+  validator={(itemList) => {
+    // itemList: File[]
+    return { result: false, message: "Custom Validator for Fileupload" };
+  }}
+  handleSubmit={({ event, data }) => {
+    // 业务自行发请求
+  }}
+/>;
 
-  handleFileClose = (event) => {
-    console.log("onFileClose CallBack: ", event);
-  };
-
-  validate = (value) => {
-    console.log("files info", this.fileupload.getValue());
-    let validationReturnMap = {};
-    let validationResult = false;
-    validationReturnMap["result"] = validationResult;
-    validationReturnMap["message"] = "Custom Validator for Fileupload";
-    return validationReturnMap;
-  };
-
-  getNameAndVal = (fileName, progress, loadingStatus) => {
-    let createVal = { value: {}, fileUploadStatus: {} };
-    createVal.value[fileName] = progress;
-    if (
-      progress < 100 &&
-      loadingStatus != "fail" &&
-      this.state.fileUploadStatus[fileName] != "fail"
-    ) {
-      createVal.fileUploadStatus[fileName] = "loading";
-    } else if (
-      progress == 100 &&
-      this.state.fileUploadStatus[fileName] != "fail"
-    ) {
-      createVal.fileUploadStatus[fileName] = "success";
-    } else if (
-      progress != 100 ||
-      this.state.fileUploadStatus[fileName] == "fail"
-    ) {
-      createVal.fileUploadStatus[fileName] = "fail";
-      createVal.value[fileName] = 100;
-    }
-    return createVal;
-  };
-
-  uploadCallback = (obj) => {
-    console.log("uploadCallback: ", this.fileupload.getValue());
-
-    if (obj) {
-      let fileName = obj.data[0].name;
-      setTimeout(() => this.setState(this.getNameAndVal(fileName, 10)), 500);
-      setTimeout(() => this.setState(this.getNameAndVal(fileName, 20)), 1000);
-      setTimeout(() => this.setState(this.getNameAndVal(fileName, 30)), 1500);
-      setTimeout(() => this.setState(this.getNameAndVal(fileName, 40)), 2000);
-      setTimeout(() => this.setState(this.getNameAndVal(fileName, 50)), 2500);
-      setTimeout(() => this.setState(this.getNameAndVal(fileName, 60)), 5000);
-      setTimeout(() => this.setState(this.getNameAndVal(fileName, 70)), 5500);
-      setTimeout(() => this.setState(this.getNameAndVal(fileName, 100)), 6000);
-    }
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <LabelField text="Default Type:" style={labelStyle} />
-          <FileUpload
-            type="single"
-            width={"450px"}
-            enableProgress={true}
-            disable={this.state.disable}
-            fileUploadStatus={this.state.fileUploadStatus}
-            accept=".png"
-            updateProgressStatus={this.state.value}
-            buttonText="Upload File"
-            ref={(fileupload) => {
-              this.fileupload = fileupload;
-            }}
-            maxSize={"100000"}
-            placeHolder="select the file to upload"
-            handleSubmit={this.uploadCallback}
-            onChange={this.handleChange}
-            onCancelUpload={this.handleCancel}
-            onFileClose={this.handleFileClose}
-            onReload={this.handleReload}
-            fileList={this.state.fileList}
-          />
-
-          <br />
-          <br />
-          <LabelField text="Validation Input Type:" style={labelStyle} />
-          <FileUpload
-            type="single"
-            width={"450px"}
-            enableProgress={true}
-            disable={this.state.disable}
-            fileUploadStatus={this.state.fileUploadStatus}
-            accept=".png"
-            updateProgressStatus={this.state.value}
-            buttonText="Upload File"
-            ref={(fileupload) => {
-              this.fileupload = fileupload;
-            }}
-            validator={this.validate}
-            placeHolder="select the file to upload"
-            handleSubmit={this.uploadCallback}
-            onChange={this.handleChange}
-            onCancelUpload={this.handleCancel}
-            onFileClose={this.handleFileClose}
-            onReload={this.handleReload}
-          />
-
-          <br />
-          <br />
-          <LabelField text="Disabled Type:" style={labelStyle} />
-          <FileUpload
-            type="single"
-            buttonText="Upload"
-            disable={true}
-            accept=".png"
-            placeHolder="Disabled Single Upload"
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<FileUploadExample1 />, mountNode);
+// 禁用态：disable（注意拼写，不是 disabled）
+<FileUpload
+  type="single"
+  buttonText="Upload"
+  disable={true}
+  accept=".png"
+  placeHolder="Disabled Single Upload"
+/>
 ```
 
 ### 多选
 
 ```jsx
 import FileUpload from "eview-ui/FileUpload";
-import Button from "eview-ui/Button";
-import ButtonGroup from "eview-ui/ButtonGroup";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class FileUploadExample2 extends React.Component {
-  static defaultProps = {
-    disable: false,
-    display: true,
-    enableProgress: false,
-    fileUploadStatus: "loading",
-  };
+// 多文件上传：maxFileCount 控制最大数量（默认 10）
+const fileUploadStatus = { "a.png": "loading", "b.png": "fail" }; // 文件名: 'loading'/'fail'/'success'
+const updateProgressStatus = { "a.png": 60, "b.png": 100 }; // 文件名: 百分比数字
 
-  constructor(props) {
-    super(props);
-    this.state = { value: {}, fileUploadStatus: {} };
-  }
+<FileUpload
+  type="multi"
+  maxFileCount={5}
+  disable={false}
+  buttonText="Upload Multiple Files"
+  fileUploadStatus={fileUploadStatus}
+  updateProgressStatus={updateProgressStatus}
+  handleSubmit={({ event, data }) => {
+    // data: File[]，业务自行发请求；遍历 data 逐个上传并更新进度
+  }}
+  onFileClose={(event) => {
+    // event.title 为被移除文件名
+  }}
+  onCancelUpload={() => {
+    // 取消上传
+  }}
+  onReload={({ event, data }) => {
+    // event.title 为重传目标文件名, data: File[]
+  }}
+  ref={(fileUpload) => {
+    // fileUpload.getValue() 返回文件名列表，fileUpload.getValueEx() 返回 File[]
+  }}
+/>;
 
-  handleCancel = (event) => {
-    console.log("onCancelUpload callback: ", event);
-    this.setState({ value: {}, fileUploadStatus: {} });
-  };
-  handleReload = (obj) => {
-    let fileName = "";
-    for (let i = 0; i < obj.data.length; i++) {
-      console.log("onReload callback: ", obj.data[i]);
-      if (obj.data[i].name == obj.event.title) {
-        fileName = obj.data[i].name;
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 10)), 500);
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 20)), 1000);
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 30)), 1500);
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 40)), 2000);
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 50)), 2500);
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 60)), 3000);
-        setTimeout(
-          () => this.setState(this.getNameAndVal(fileName, 100)),
-          3500,
-        );
-      }
-    }
-  };
-
-  getNameAndVal = (fileName, progress, loadingStatus) => {
-    let createVal = { value: {}, fileUploadStatus: {} };
-    createVal.value[fileName] = progress;
-    if (progress < 100 && loadingStatus != "fail") {
-      createVal.fileUploadStatus[fileName] = "loading";
-    } else if (progress != 100) {
-      createVal.fileUploadStatus[fileName] = "fail";
-    } else if (progress == 100) {
-      createVal.fileUploadStatus[fileName] = "success";
-    }
-    return createVal;
-  };
-
-  getNameAndValMulti = (files, progress, isFailed) => {
-    let createVal = { value: {}, fileUploadStatus: {} };
-    for (let file in files) {
-      createVal.value[files[file].name] = progress;
-      if (isFailed == true && file == 0) {
-        createVal.value[files[file].name] = progress;
-        createVal.fileUploadStatus[files[file].name] = "fail";
-      } else if (progress < 100) {
-        createVal.fileUploadStatus[files[file].name] = "loading";
-      } else if (progress == 100) {
-        createVal.value[files[file].name] = progress;
-        createVal.fileUploadStatus[files[file].name] = "success";
-      }
-    }
-    return createVal;
-  };
-
-  successfullyUploaded = (evt) => {
-    console.log(evt);
-  };
-
-  changeReadyState = (xhr, files) => {
-    setTimeout(() => this.setState(this.getNameAndValMulti(files, 25)), 500);
-    setTimeout(() => this.setState(this.getNameAndValMulti(files, 40)), 1000);
-    setTimeout(() => this.setState(this.getNameAndValMulti(files, 50)), 1500);
-    setTimeout(() => this.setState(this.getNameAndValMulti(files, 65)), 2000);
-    setTimeout(() => this.setState(this.getNameAndValMulti(files, 80)), 2500);
-    setTimeout(
-      () => this.setState(this.getNameAndValMulti(files, 100, true)),
-      2500,
-    );
-  };
-
-  uploadMultiCallback = (obj) => {
-    console.log("handleSubmit callback: ", obj);
-    var files = obj.data;
-    var xhr = new XMLHttpRequest();
-    var formData = new FormData();
-    xhr.onload = this.successfullyUploaded;
-    xhr.open("POST", "url", true);
-    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    for (var file in files) {
-      formData.append("uploads", files[file].data);
-      console.log(files[file]);
-    }
-    xhr.onreadystatechange = this.changeReadyState(xhr, files);
-    xhr.send(formData);
-  };
-
-  handleClickGetValue = () => {
-    console.log("getValue API : ", this.fileUpload.getValue());
-  };
-
-  handleClickGetValueEx = () => {
-    console.log("getValueEx API : ", this.fileUpload.getValueEx());
-  };
-
-  handleFileClose = (event) => {
-    console.log("onFileClose CallBack: ", event);
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      { text: "getValue", onClick: this.handleClickGetValue },
-      { text: "getValueEx", onClick: this.handleClickGetValueEx },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <div>
-            <FileUpload
-              type="multi"
-              maxFileCount={5}
-              enableProgress={true}
-              disable={false}
-              handleSubmit={this.uploadMultiCallback}
-              onFileClose={this.handleFileClose}
-              fileUploadStatus={this.state.fileUploadStatus}
-              updateProgressStatus={this.state.value}
-              buttonText="Upload Multiple Files"
-              onCancelUpload={this.handleCancel}
-              onReload={this.handleReload}
-              ref={(fileUpload) => (this.fileUpload = fileUpload)}
-            />
-          </div>
-          <br />
-          <br />
-          <ButtonGroup data={data} />
-          <br />
-          <br />
-          <FileUpload
-            type="multi"
-            buttonText="Upload"
-            disable={true}
-            accept=".png"
-            placeHolder="Disabled Multi Upload"
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<FileUploadExample2 />, mountNode);
+// 禁用态
+<FileUpload
+  type="multi"
+  buttonText="Upload"
+  disable={true}
+  accept=".png"
+  placeHolder="Disabled Multi Upload"
+/>
 ```
 
 ### 用户传入FileList
 
 ```jsx
 import FileUpload from "eview-ui/FileUpload";
-import LabelField from "eview-ui/LabelField";
-import Button from "eview-ui/Button";
-import ButtonGroup from "eview-ui/ButtonGroup";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default class FileUploadExampleFileList extends React.Component {
-  static defaultProps = {
-    disable: false,
-    display: true,
-    enableProgress: false,
-    fileUploadStatus: "loading",
-  };
-  constructor(props) {
-    super(props);
-    this.state = {
-      value: {},
-      fileUploadStatus: {},
-      disable: false,
-      fileList: [],
-      _fileList: [],
-    };
-    this.ids = [];
-  }
+// 受控 fileList：业务直接传入 File 对象数组
+const fileList = [
+  { name: "1.jpg", size: 3210897, type: "image/jpeg" },
+  { name: "02.jpg", size: 426239, type: "image/jpeg" },
+  { name: "03.jpg", size: 376224, type: "image/jpeg" },
+];
 
-  handleCancel = () => {
-    console.log("onCancelUpload callback.");
-    this.ids.forEach((id) => {
-      clearTimeout(id);
-    });
-    this.setState({ fileList: [], fileUploadStatus: {}, value: {} });
-  };
+const fileUploadStatus = { "1.jpg": "success", "02.jpg": "fail" }; // 文件名: 'loading'/'fail'/'success'
+const updateProgressStatus = { "1.jpg": 100, "02.jpg": 100 }; // 文件名: 百分比数字
 
-  handleChange = (event, fileList) => {
-    console.log("onchange event callback.");
-    const list = this.fileupload.state.fileItems;
-    console.log("fileItems", list);
-    console.log("fileList", fileList);
-    this.setState({ _fileList: list });
-  };
+<FileUpload
+  type="multi"
+  width="450px"
+  maxFileCount={5}
+  accept=".png"
+  maxSize="100000"
+  placeHolder="select the file to upload"
+  buttonText="Upload File"
+  disable={false}
+  fileList={fileList}
+  fileUploadStatus={fileUploadStatus}
+  updateProgressStatus={updateProgressStatus}
+  handleSubmit={({ event, data }) => {
+    // 业务自行发请求
+  }}
+  onChange={(event, itemList) => {
+    // itemList: File[]
+  }}
+  onCancelUpload={() => {}}
+  onFileClose={(event) => {
+    // event.title 为被移除文件名，需同步从 fileList 中移除
+  }}
+  onReload={({ event, data }) => {}}
+/>;
 
-  handleFileClose = (event) => {
-    console.log("onFileClose CallBack: ", event);
-    const itemList = [...this.state.fileList];
-    const fileUploadStatus = { ...this.state.fileUploadStatus };
-    this.state.fileList.forEach((item, key) => {
-      if (item.name === event.title) {
-        itemList.splice(key, 1);
-        fileUploadStatus[item.name] && delete fileUploadStatus[item.name];
-      }
-    });
-    this.setState({ fileList: itemList, fileUploadStatus });
-  };
-
-  validate = (value) => {
-    console.log("files info", this.fileupload.getValue());
-    let validationReturnMap = {};
-    let validationResult = false;
-    validationReturnMap["result"] = validationResult;
-    validationReturnMap["message"] = "Custom Validator for Fileupload";
-    return validationReturnMap;
-  };
-
-  getNameAndVal = (fileName, progress, loadingStatus) => {
-    let createVal = { value: {}, fileUploadStatus: {} };
-    createVal.value[fileName] = progress;
-    if (
-      progress < 100 &&
-      loadingStatus != "fail" &&
-      this.state.fileUploadStatus[fileName] != "fail"
-    ) {
-      createVal.fileUploadStatus[fileName] = "loading";
-    } else if (
-      progress == 100 &&
-      this.state.fileUploadStatus[fileName] != "fail"
-    ) {
-      createVal.fileUploadStatus[fileName] = "success";
-    } else if (
-      progress != 100 ||
-      this.state.fileUploadStatus[fileName] == "fail"
-    ) {
-      createVal.fileUploadStatus[fileName] = "fail";
-      createVal.value[fileName] = 100;
-    }
-    return createVal;
-  };
-
-  uploadCallback = (obj) => {
-    console.log("uploadCallback: ", this.fileupload.getValue());
-
-    if (obj) {
-      let fileName = obj.data[0].name;
-      this.ids.push(
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 10)), 500),
-      );
-      this.ids.push(
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 20)), 1000),
-      );
-      this.ids.push(
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 30)), 1500),
-      );
-      this.ids.push(
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 40)), 2000),
-      );
-      this.ids.push(
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 50)), 2500),
-      );
-      this.ids.push(
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 60)), 5000),
-      );
-      this.ids.push(
-        setTimeout(() => this.setState(this.getNameAndVal(fileName, 70)), 5500),
-      );
-      this.ids.push(
-        setTimeout(
-          () => this.setState(this.getNameAndVal(fileName, 100)),
-          6000,
-        ),
-      );
-    }
-  };
-  chanegFileList = () => {
-    this.setState({
-      fileList: [
-        {
-          lastModified: 1482992252295,
-          name: "1.jpg",
-          size: 3210897,
-          type: "image/jpeg",
-          webkitRelativePath: "",
-          width: "43px",
-        },
-        {
-          lastModified: 1465174942171,
-          name: "02.jpg",
-          size: 426239,
-          type: "image/jpeg",
-          webkitRelativePath: "",
-          width: "52px",
-        },
-        {
-          lastModified: 1482992252307,
-          name: "03.jpg",
-          size: 376224,
-          type: "image/jpeg",
-          webkitRelativePath: "",
-          width: "52px",
-        },
-      ],
-    });
-  };
-  clearFileList = () => {
-    this.setState({ fileList: [] });
-  };
-  render() {
-    const [version, theme] = getDemoVersion();
-    let labelStyle = { display: "block", paddingLeft: "0px" };
-    let data = [
-      {
-        text:
-          window.eui_oh_locale === "zh"
-            ? "用户传入FileList"
-            : "User custom Filelist",
-        onClick: this.chanegFileList,
-      },
-      {
-        text:
-          window.eui_oh_locale === "zh"
-            ? "清空FileList"
-            : "User clear Filelist",
-        onClick: this.clearFileList,
-      },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <ButtonGroup data={data} />
-          <div>
-            <LabelField text="Default Type:" style={labelStyle} />
-          </div>
-          <FileUpload
-            type="multi"
-            width={"450px"}
-            maxFileCount={5}
-            enableProgress={true}
-            disable={this.state.disable}
-            fileUploadStatus={this.state.fileUploadStatus}
-            accept=".png"
-            updateProgressStatus={this.state.value}
-            buttonText="Upload File"
-            ref={(fileupload) => {
-              this.fileupload = fileupload;
-            }}
-            maxSize={"100000"}
-            placeHolder="select the file to upload"
-            handleSubmit={this.uploadCallback}
-            onChange={this.handleChange}
-            onCancelUpload={this.handleCancel}
-            onFileClose={this.handleFileClose}
-            onReload={this.handleReload}
-            fileList={this.state.fileList}
-          />
-          <br />
-          <br />
-          <FileUpload
-            type="multi"
-            width={"450px"}
-            maxFileCount={5}
-            enableProgress={true}
-            disable={this.state.disable}
-            fileUploadStatus={this.state.fileUploadStatus}
-            accept=".png"
-            updateProgressStatus={this.state.value}
-            buttonText="Upload File"
-            ref={(fileupload) => {
-              this.fileupload = fileupload;
-            }}
-            maxSize={"100000"}
-            placeHolder="select the file to upload"
-            handleSubmit={this.uploadCallback}
-            onChange={this.handleChange}
-            onCancelUpload={this.handleCancel}
-            onFileClose={this.handleFileClose}
-            onReload={this.handleReload}
-          />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<FileUploadExampleFileList />, mountNode);
+// 不传 fileList：由组件内部管理
+<FileUpload
+  type="multi"
+  width="450px"
+  maxFileCount={5}
+  accept=".png"
+  maxSize="100000"
+  placeHolder="select the file to upload"
+  buttonText="Upload File"
+  handleSubmit={({ event, data }) => {}}
+/>
 ```

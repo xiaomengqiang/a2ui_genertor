@@ -123,240 +123,86 @@ type AnimationType = 'opening' | 'closing';
 ```jsx
 import Drawer from "eview-ui/Drawer";
 import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-export default function DrawerBasicDemo() {
-  const [visible, setVisible] = React.useState(false);
-  const open = () => setVisible(true);
-  const close = () => setVisible(false);
-  const [version, theme] = getDemoVersion();
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <>
-        <Button text={"Open The Drawer"} onClick={open}></Button>
-        <Drawer visible={visible} onClose={close} title={"Basic Drawer"} />
-      </>
-    </ConfigProvider>
-  );
-}
-
-ReactDOM.render(<DrawerBasicDemo />, mountNode);
+// visible 受控：true 显示 / false 隐藏，onClose 中置 false
+<Button text={"Open The Drawer"} onClick={() => { /* setVisible(true) 打开 */ }} />
+<Drawer visible={false} onClose={() => { /* setVisible(false) 关闭 */ }} title={"Basic Drawer"} />
 ```
 
 ### 位置设置
 
 ```tsx
-import React from "react";
 import Drawer from "eview-ui/Drawer";
-import Button from "eview-ui/Button";
-import ButtonGroup from "eview-ui/ButtonGroup";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const buttonStyle: React.CSSProperties = {
-  marginRight: "1rem",
-};
-
-type Placement = "left" | "right" | "top" | "bottom";
-
-export default function DrawerPlacementDemo() {
-  const [visible, setVisible] = React.useState(false);
-  const [width, setWidth] = React.useState("40rem");
-  const [height, setHeight] = React.useState("40rem");
-  const [placement, setPlacement] = React.useState("right" as Placement);
-  const close = () => setVisible(false);
-  const open = (newPlacement: Placement) => {
-    if (newPlacement === "left" || newPlacement === "right") {
-      setWidth("40rem");
-      setHeight("100%");
-    } else {
-      setWidth("100%");
-      setHeight("40rem");
-    }
-    setPlacement(newPlacement);
-    setVisible(true);
-  };
-  const [version, theme] = getDemoVersion();
-  let data = [
-    { text: "left", onClick: () => open("left") },
-    { text: "right", onClick: () => open("right") },
-    { text: "top", onClick: () => open("top") },
-    { text: "bottom", onClick: () => open("bottom") },
-  ];
-
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <>
-        <ButtonGroup data={data} />
-        <Drawer
-          visible={visible}
-          placement={placement}
-          onClose={close}
-          width={width}
-          height={height}
-          title={`Drawer placed at ${placement}`}
-        ></Drawer>
-      </>
-    </ConfigProvider>
-  );
-}
-
-ReactDOM.render(<DrawerPlacementDemo />, mountNode);
+// placement: "left" | "right" | "top" | "bottom"
+// left/right 用 width；top/bottom 用 height
+<Drawer
+  visible={false}
+  placement={"right"}
+  onClose={() => { /* setVisible(false) 关闭 */ }}
+  width={"40rem"}
+  height={"100%"}
+  title={`Drawer placed at right`}
+/>
 ```
 
 ### 内容设置
 
 ```tsx
-import React from "react";
 import Form from "eview-ui/FormPro";
 import Drawer from "eview-ui/Drawer";
 import Button from "eview-ui/Button";
-import { Row, Col } from "eview-ui/GridLayout";
 import TextField from "eview-ui/TextField";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const buttonStyle: React.CSSProperties = {
-  width: "4.5rem",
-  paddingLeft: "0rem",
-  paddingRight: "0rem",
-  borderRadius: "0.3125rem",
-  marginLeft: "0.3125rem",
-  marginRight: "0.3125rem",
-};
+const footer = (
+  <>
+    <Button text={"Ok"} status="primary" onClick={() => { /* 关闭 */ }} />
+    <Button text={"Cancel"} onClick={() => { /* 关闭 */ }} />
+  </>
+);
 
-export default function DrawerBasicDemo() {
-  const [visible, setVisible] = React.useState(false);
-  const open = () => setVisible(true);
-  const close = () => setVisible(false);
-
-  const footer: React.ReactNode = (
-    <>
-      <Button
-        text={"Ok"}
-        onClick={close}
-        status="primary"
-        style={buttonStyle}
-      ></Button>
-      <Button text={"Cancel"} onClick={close} style={buttonStyle}></Button>
-    </>
-  );
-
-  const [version, theme] = getDemoVersion();
-
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <>
-        <Button text={"Fill in the form"} onClick={open}></Button>
-        <Drawer
-          visible={visible}
-          onClose={close}
-          title={"Basic Drawer"}
-          footer={footer}
-          width={"40rem"}
-          height={"100%"}
-        >
-          <Form>
-            <Form.Item label="Name" name="username">
-              <TextField />
-            </Form.Item>
-            <Form.Item label="Id" name="Id">
-              <TextField />
-            </Form.Item>
-          </Form>
-        </Drawer>
-      </>
-    </ConfigProvider>
-  );
-}
-
-ReactDOM.render(<DrawerBasicDemo />, mountNode);
+<Drawer
+  visible={false}
+  onClose={() => { /* setVisible(false) 关闭 */ }}
+  title={"Basic Drawer"}
+  footer={footer}
+  width={"40rem"}
+  height={"100%"}
+>
+  <Form>
+    <Form.Item label="Name" name="username">
+      <TextField />
+    </Form.Item>
+    <Form.Item label="Id" name="Id">
+      <TextField />
+    </Form.Item>
+  </Form>
+</Drawer>
 ```
 
 ### 容器设置
 
 ```tsx
-import React from "react";
 import Drawer from "eview-ui/Drawer";
 import Button from "eview-ui/Button";
-import ButtonGroup from "eview-ui/ButtonGroup";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const containerStyle: React.CSSProperties = {
-  position: "relative",
-  height: "9rem",
-  border: "1px solid #808080",
-};
+const footer = (
+  <>
+    <Button text={"Ok"} status="primary" onClick={() => { /* 关闭 */ }} />
+    <Button text={"Cancel"} onClick={() => { /* 关闭 */ }} />
+  </>
+);
 
-const buttonStyle: React.CSSProperties = {
-  marginRight: "0.5rem",
-};
-
-const content =
-  "This component is a panel that slides in from one side of its container.";
-
-export default function DrawerContainerDemo() {
-  const [visible, setVisible] = React.useState(false);
-  const [inContainer, setInContainer] = React.useState(false);
-  const [title, setTitle] = React.useState("");
-  const close = () => setVisible(false);
-
-  const clickByContainer = (newTitle: string, newInContainer?: boolean) => {
-    if (!visible) {
-      setInContainer(newInContainer);
-      setTitle(newTitle);
-    }
-    setVisible(!visible);
-  };
-
-  const footer: React.ReactNode = (
-    <>
-      <Button
-        text={"Ok"}
-        onClick={close}
-        status="primary"
-        style={buttonStyle}
-      ></Button>
-      <Button text={"Cancel"} onClick={close} style={buttonStyle}></Button>
-    </>
-  );
-  const [version, theme] = getDemoVersion();
-  let data = [
-    {
-      text: "Default (window)",
-      onClick: () => clickByContainer("Default (window)", false),
-    },
-    {
-      text: "On this container",
-      onClick: () => clickByContainer("On this container", true),
-    },
-  ];
-
-  return (
-    // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-    <ConfigProvider version={version} theme={theme}>
-      <div style={containerStyle}>
-        <ButtonGroup data={data} />
-        <Drawer
-          visible={visible}
-          onClose={close}
-          title={title}
-          width={"40rem"}
-          height={"100%"}
-          inContainer={inContainer}
-          footer={footer}
-        >
-          <div>{content}</div>
-        </Drawer>
-      </div>
-    </ConfigProvider>
-  );
-}
-
-ReactDOM.render(<DrawerContainerDemo />, mountNode);
+// inContainer: true 挂载到父容器内 / false 挂载到 window
+<Drawer
+  visible={false}
+  onClose={() => { /* setVisible(false) 关闭 */ }}
+  title={"On this container"}
+  width={"40rem"}
+  height={"100%"}
+  inContainer={true}
+  footer={footer}
+>
+  <div>This component is a panel that slides in from one side of its container.</div>
+</Drawer>
 ```

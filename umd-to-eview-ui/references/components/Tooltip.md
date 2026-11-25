@@ -59,20 +59,10 @@ A: 此场景下一般可滚动的元素不为window，需要使用`getPopupConta
 
 ```jsx
 import Tooltip from "eview-ui/Tooltip";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const [version, theme] = getDemoVersion();
-
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <Tooltip content="prompt text" trigger={["hover", "focus"]}>
-      <span>Tooltip will show on mouse enter.</span>
-    </Tooltip>
-  </ConfigProvider>,
-  mountNode,
-);
+<Tooltip content="prompt text" trigger={["hover", "focus"]}>
+  <span>Tooltip will show on mouse enter.</span>
+</Tooltip>
 ```
 
 ### 触发开关方式
@@ -81,10 +71,6 @@ ReactDOM.render(
 
 ```jsx
 import Tooltip from "eview-ui/Tooltip";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-
-const [version, theme] = getDemoVersion();
 
 const content = (
   <div>
@@ -100,23 +86,18 @@ const style = {
   borderRadius: "3px",
   padding: "4px 8px",
 };
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <div>
-      <Tooltip content={content} trigger="hover">
-        <button style={style}>Hover me</button>
-      </Tooltip>
-      <Tooltip content={content} trigger="focus">
-        <button style={style}>Focus me</button>
-      </Tooltip>
-      <Tooltip content={content} trigger="click">
-        <button style={style}>Click me</button>
-      </Tooltip>
-    </div>
-  </ConfigProvider>,
-  mountNode,
-);
+
+<div>
+  <Tooltip content={content} trigger="hover">
+    <button style={style}>Hover me</button>
+  </Tooltip>
+  <Tooltip content={content} trigger="focus">
+    <button style={style}>Focus me</button>
+  </Tooltip>
+  <Tooltip content={content} trigger="click">
+    <button style={style}>Click me</button>
+  </Tooltip>
+</div>
 ```
 
 ### 位置处理
@@ -126,13 +107,8 @@ ReactDOM.render(
 
 ```jsx
 import Tooltip from "eview-ui/Tooltip";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
-
-const [version, theme] = getDemoVersion();
 
 const text = "Tooltip Text!";
-const buttonWidth = 70;
 const style = {
   width: 70,
   margin: 4,
@@ -141,92 +117,22 @@ const style = {
   borderRadius: "3px",
   padding: "4px 8px",
 };
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <div>
-      <div style={{ marginLeft: buttonWidth, whiteSpace: "nowrap" }}>
-        <Tooltip
-          placement="topLeft"
-          content={text}
-          trigger={["hover", "focus"]}
-        >
-          <button style={style}>上左</button>
-        </Tooltip>
-        <Tooltip placement="top" content={text} trigger={["hover", "focus"]}>
-          <button style={style}>上</button>
-        </Tooltip>
-        <Tooltip
-          placement="topRight"
-          content={text}
-          trigger={["hover", "focus"]}
-        >
-          <button style={style}>上右</button>
-        </Tooltip>
-      </div>
-      <div style={{ width: buttonWidth, float: "left" }}>
-        <Tooltip
-          placement="leftTop"
-          content={text}
-          trigger={["hover", "focus"]}
-        >
-          <button style={style}>左上</button>
-        </Tooltip>
-        <Tooltip placement="left" content={text} trigger={["hover", "focus"]}>
-          <button style={style}>左</button>
-        </Tooltip>
-        <Tooltip
-          placement="leftBottom"
-          content={text}
-          trigger={["hover", "focus"]}
-        >
-          <button style={style}>左下</button>
-        </Tooltip>
-      </div>
-      <div style={{ width: buttonWidth, marginLeft: buttonWidth * 4 + 24 }}>
-        <Tooltip
-          placement="rightTop"
-          content={text}
-          trigger={["hover", "focus"]}
-        >
-          <button style={style}>右上</button>
-        </Tooltip>
-        <Tooltip placement="right" content={text} trigger={["hover", "focus"]}>
-          <button style={style}>右</button>
-        </Tooltip>
-        <Tooltip
-          placement="rightBottom"
-          content={text}
-          trigger={["hover", "focus"]}
-        >
-          <button style={style}>右下</button>
-        </Tooltip>
-      </div>
-      <div
-        style={{ marginLeft: buttonWidth, clear: "both", whiteSpace: "nowrap" }}
-      >
-        <Tooltip
-          placement="bottomLeft"
-          content={text}
-          trigger={["hover", "focus"]}
-        >
-          <button style={style}>下左</button>
-        </Tooltip>
-        <Tooltip placement="bottom" content={text} trigger={["hover", "focus"]}>
-          <button style={style}>下</button>
-        </Tooltip>
-        <Tooltip
-          placement="bottomRight"
-          content={text}
-          trigger={["hover", "focus"]}
-        >
-          <button style={style}>下右</button>
-        </Tooltip>
-      </div>
-    </div>
-  </ConfigProvider>,
-  mountNode,
-);
+
+// placement: topLeft | top | topRight | left | right | bottom | ...（共 12 个方位）
+<div>
+  <Tooltip placement="top" content={text} trigger={["hover", "focus"]}>
+    <button style={style}>上</button>
+  </Tooltip>
+  <Tooltip placement="left" content={text} trigger={["hover", "focus"]}>
+    <button style={style}>左</button>
+  </Tooltip>
+  <Tooltip placement="right" content={text} trigger={["hover", "focus"]}>
+    <button style={style}>右</button>
+  </Tooltip>
+  <Tooltip placement="bottom" content={text} trigger={["hover", "focus"]}>
+    <button style={style}>下</button>
+  </Tooltip>
+</div>
 ```
 
 ### 箭头指向中心
@@ -235,8 +141,6 @@ ReactDOM.render(
 
 ```jsx
 import Tooltip from "eview-ui/Tooltip";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
 const style = {
   margin: 4,
@@ -245,69 +149,16 @@ const style = {
   borderRadius: "3px",
   padding: "4px 8px",
 };
-const [version, theme] = getDemoVersion();
 
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <div>
-      <div style={{ textAlign: "center" }}>
-        <Tooltip
-          placement="topLeft"
-          content="Prompt Text"
-          trigger={["hover", "focus"]}
-        >
-          <button style={style}>Align edge / 边缘对齐</button>
-        </Tooltip>
-        <Tooltip
-          placement="topLeft"
-          content="Prompt Text"
-          arrowPointAtCenter
-          trigger={["hover", "focus"]}
-        >
-          <button style={style}>Arrow points to center / 箭头指向中心</button>
-        </Tooltip>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <div>
-          <Tooltip
-            placement="rightTop"
-            content="Prompt Text"
-            trigger={["hover", "focus"]}
-          >
-            <button style={{ ...style, width: 16 }}> 边缘对齐</button>
-          </Tooltip>
-          <Tooltip
-            placement="rightTop"
-            content="Prompt Text"
-            arrowPointAtCenter
-            trigger={["hover", "focus"]}
-          >
-            <button style={{ ...style, width: 16 }}> 箭头指向中心</button>
-          </Tooltip>
-        </div>
-        <div>
-          <Tooltip
-            placement="leftTop"
-            content="Prompt Text"
-            trigger={["hover", "focus"]}
-          >
-            <button style={{ ...style, width: 16 }}> 边缘对齐</button>
-          </Tooltip>
-          <Tooltip
-            placement="leftTop"
-            content="Prompt Text"
-            arrowPointAtCenter
-            trigger={["hover", "focus"]}
-          >
-            <button style={{ ...style, width: 16 }}> 箭头指向中心</button>
-          </Tooltip>
-        </div>
-      </div>
-    </div>
-  </ConfigProvider>,
-  mountNode,
-);
+<div style={{ textAlign: "center" }}>
+  <Tooltip placement="topLeft" content="Prompt Text" trigger={["hover", "focus"]}>
+    <button style={style}>Align edge / 边缘对齐</button>
+  </Tooltip>
+  {/* arrowPointAtCenter: 气泡箭头指向元素中心 */}
+  <Tooltip placement="topLeft" content="Prompt Text" arrowPointAtCenter trigger={["hover", "focus"]}>
+    <button style={style}>Arrow points to center / 箭头指向中心</button>
+  </Tooltip>
+</div>
 ```
 
 ### Help Tooltip
@@ -317,25 +168,16 @@ ReactDOM.render(
 ```jsx
 import Tooltip from "eview-ui/Tooltip";
 import { SvgIcon } from "@/shared/SvgIcon";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const [version, theme] = getDemoVersion();
-
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <Tooltip
-      content="Help text!!"
-      arrowPointAtCenter
-      placement="topLeft"
-      trigger={["hover", "focus"]}
-    >
-      <SvgIcon src="help" size={16} tabIndex={0} />
-    </Tooltip>
-  </ConfigProvider>,
-  mountNode,
-);
+// trigger 含 focus 满足无障碍需求
+<Tooltip
+  content="Help text!!"
+  arrowPointAtCenter
+  placement="topLeft"
+  trigger={["hover", "focus"]}
+>
+  <SvgIcon src="help" size={16} tabIndex={0} />
+</Tooltip>
 ```
 
 ### 多种颜色
@@ -343,49 +185,19 @@ ReactDOM.render(
 ```jsx
 import Tooltip from "eview-ui/Tooltip";
 import Button from "eview-ui/Button";
-import ConfigProvider from "eview-ui/ConfigProvider";
-import { getDemoVersion } from "eview-ui/ThemeProvider";
 
-const [version, theme] = getDemoVersion();
-
-ReactDOM.render(
-  // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-  <ConfigProvider version={version} theme={theme}>
-    <div style={{ display: "flex", justifyContent: "space-around" }}>
-      <Tooltip
-        content="Text!!"
-        overlayStyle={{ color: "#fff" }}
-        color="#f50"
-        trigger={["hover", "focus"]}
-      >
-        <Button text="#ff5500"></Button>
-      </Tooltip>
-      <Tooltip
-        content="Text!!"
-        overlayStyle={{ color: "#fff" }}
-        color="#2db7f5"
-        trigger={["hover", "focus"]}
-      >
-        <Button text="#2db7f5"></Button>
-      </Tooltip>
-      <Tooltip
-        content="Text!!"
-        overlayStyle={{ color: "#fff" }}
-        color="#87d068"
-        trigger={["hover", "focus"]}
-      >
-        <Button text="#87d068"></Button>
-      </Tooltip>
-      <Tooltip
-        content="Text!!"
-        overlayStyle={{ color: "#fff" }}
-        color="#108ee9"
-        trigger={["hover", "focus"]}
-      >
-        <Button text="#108ee9"></Button>
-      </Tooltip>
-    </div>
-  </ConfigProvider>,
-  mountNode,
-);
+<div style={{ display: "flex", justifyContent: "space-around" }}>
+  <Tooltip content="Text!!" overlayStyle={{ color: "#fff" }} color="#f50" trigger={["hover", "focus"]}>
+    <Button text="#ff5500"></Button>
+  </Tooltip>
+  <Tooltip content="Text!!" overlayStyle={{ color: "#fff" }} color="#2db7f5" trigger={["hover", "focus"]}>
+    <Button text="#2db7f5"></Button>
+  </Tooltip>
+  <Tooltip content="Text!!" overlayStyle={{ color: "#fff" }} color="#87d068" trigger={["hover", "focus"]}>
+    <Button text="#87d068"></Button>
+  </Tooltip>
+  <Tooltip content="Text!!" overlayStyle={{ color: "#fff" }} color="#108ee9" trigger={["hover", "focus"]}>
+    <Button text="#108ee9"></Button>
+  </Tooltip>
+</div>
 ```

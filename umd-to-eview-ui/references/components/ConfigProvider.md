@@ -145,21 +145,12 @@ interface IntlProviderProps {
 基本国际化与主题配置
 
 ```jsx
-import { ConfigProvider } from 'eview-ui';
+import { ConfigProvider } from "eview-ui";
 
-export default class App extends React.Component {
-  render() {
-    return (
-      <ConfigProvider locale="zh" version="aui3-1" theme="lightday">
-        <div>
-          {/* 子组件自动获取全局语言、主题、版本配置 */}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<App />, mountNode);
+// 业务中由 scaffold 的 ThemeProvider 预制唯一一个 ConfigProvider（见硬约束 2）
+<ConfigProvider locale="zh" version="aui3-1" theme="lightday">
+  <div>{/* 子组件自动获取全局语言、主题、版本配置 */}</div>
+</ConfigProvider>
 ```
 
 ### 主题切换
@@ -167,31 +158,13 @@ ReactDOM.render(<App />, mountNode);
 通过state动态切换日间/夜间主题
 
 ```jsx
-import { ConfigProvider } from 'eview-ui';
-import Button from 'eview-ui/Button';
+import { ConfigProvider } from "eview-ui";
+import Button from "eview-ui/Button";
 
-export default class ThemeSwitchApp extends React.Component {
-  state = {
-    isDark: false,
-  };
-
-  toggleTheme = () => {
-    this.setState(prevState => ({ isDark: !prevState.isDark }));
-  };
-
-  render() {
-    const { isDark } = this.state;
-    return (
-      <ConfigProvider locale="zh" version="aui3-1" theme={isDark ? 'evening' : 'lightday'}>
-        <div>
-          <Button text={isDark ? '切换为日间模式' : '切换为夜间模式'} onClick={this.toggleTheme} />
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ThemeSwitchApp />, mountNode);
+// isDark / toggleTheme 由业务状态驱动（如 useState 或全局主题 store）
+<ConfigProvider locale="zh" version="aui3-1" theme={isDark ? "evening" : "lightday"}>
+  <Button text={isDark ? "切换为日间模式" : "切换为夜间模式"} onClick={toggleTheme} />
+</ConfigProvider>
 ```
 
 ### 局部主题与产品定制
@@ -199,59 +172,40 @@ ReactDOM.render(<ThemeSwitchApp />, mountNode);
 使用localTheme实现局部主题隔离，使用primaryTheme进行产品定制换肤
 
 ```jsx
-import { ConfigProvider } from 'eview-ui';
+import { ConfigProvider } from "eview-ui";
 
-export default class LocalThemeApp extends React.Component {
-  render() {
-    return (
-      <div>
-        {/* 全局使用日间主题 */}
-        <ConfigProvider locale="zh" version="aui3-1" theme="lightday">
-          <div>日间主题区域</div>
-        </ConfigProvider>
+// 全局日间主题
+<ConfigProvider locale="zh" version="aui3-1" theme="lightday">
+  <div>日间主题区域</div>
+</ConfigProvider>
 
-        {/* 局部区域使用夜间主题，不影响全局body class */}
-        <ConfigProvider locale="zh" version="aui3-1" theme="lightday" localTheme="evening">
-          <div>局部夜间主题区域</div>
-        </ConfigProvider>
+// localTheme：局部主题隔离（version="aui3-1" 时，不修改 body 全局 class，仅在内部包裹带主题 class 的容器）
+<ConfigProvider locale="zh" version="aui3-1" theme="lightday" localTheme="evening">
+  <div>局部夜间主题区域</div>
+</ConfigProvider>
 
-        {/* 产品定制主主题，primaryTheme优先级高于theme */}
-        <ConfigProvider locale="zh" version="aui3-1" theme="lightday" primaryTheme="evening">
-          <div>产品定制主题区域</div>
-        </ConfigProvider>
-      </div>
-    );
-  }
-}
-
-ReactDOM.render(<LocalThemeApp />, mountNode);
+// primaryTheme：产品定制主主题，优先级高于 theme（3.1 产品定制换肤场景）
+<ConfigProvider locale="zh" version="aui3-1" theme="lightday" primaryTheme="evening">
+  <div>产品定制主题区域</div>
+</ConfigProvider>
 ```
 
 ### 自定义zIndex与Tooltip配置
 
 ```jsx
-import { ConfigProvider } from 'eview-ui';
+import { ConfigProvider } from "eview-ui";
 
-export default class ZIndexApp extends React.Component {
-  render() {
-    return (
-      <ConfigProvider
-        locale="zh"
-        version="aui3-1"
-        theme="lightday"
-        initZIndex={200000}
-        baseZIndexUnit={200}
-        useSingleTooltip={true}
-      >
-        <div>
-          {/* 弹出类组件基础zIndex为200000，每次弹出递增 */}
-          {/* 同一时间只允许显示一个Tooltip */}
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<ZIndexApp />, mountNode);
+// initZIndex：弹出类组件基础 zIndex（需比 Febs 菜单 zIndex 大）；每次弹出按 baseZIndexUnit 递增
+// useSingleTooltip：true 时同一时间只允许显示一个 Tooltip
+<ConfigProvider
+  locale="zh"
+  version="aui3-1"
+  theme="lightday"
+  initZIndex={200000}
+  baseZIndexUnit={200}
+  useSingleTooltip={true}
+>
+  <div>{/* 子组件 */}</div>
+</ConfigProvider>
 ```
 

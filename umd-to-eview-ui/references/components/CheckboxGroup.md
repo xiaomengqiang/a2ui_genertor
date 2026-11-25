@@ -204,42 +204,24 @@ interface CheckboxGroup {
 
 ```jsx
 import CheckboxGroup from 'eview-ui/CheckboxGroup';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CheckboxGroupExample extends React.Component {
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      { value: 1, text: 'MALE', tipText: 'Male' },
-      { value: 2, text: 'FEMALE', tipText: 'Female' },
-      { value: 3, text: 'NONE', tipText: 'None' },
-    ];
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_CheckboxGroup_example">
-          <div>
-            <CheckboxGroup label="Checkgroup of no item is selected:" data={data} labelStyle={{ display: 'block' }} />
-          </div>
-          <div>
-            <CheckboxGroup
-              label="Checkgroup of some selected items:"
-              value={[1]}
-              data={data}
-              tipData={{ placement: 'top', overlayClassName: 'custom-class-name', overlayStyle: { fontWeight: 'bold' } }}
-            />
-          </div>
-          <div>
-            <CheckboxGroup label="Checkgroup of mandatory parameters:" required={true} data={data} />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+const data = [
+  { value: 1, text: 'MALE', tipText: 'Male' },
+  { value: 2, text: 'FEMALE', tipText: 'Female' },
+  { value: 3, text: 'NONE', tipText: 'None' },
+];
 
-ReactDOM.render(<CheckboxGroupExample />, mountNode);
+<CheckboxGroup label="Checkgroup of no item is selected:" data={data} />
+
+// value 设置选中项（数组）
+<CheckboxGroup
+  label="Checkgroup of some selected items:"
+  value={[1]}
+  data={data}
+  tipData={{ placement: 'top', overlayClassName: 'custom-class-name', overlayStyle: { fontWeight: 'bold' } }}
+/>
+
+<CheckboxGroup label="Checkgroup of mandatory parameters:" required={true} data={data} />
 ```
 
 ### 事件处理
@@ -248,57 +230,25 @@ ReactDOM.render(<CheckboxGroupExample />, mountNode);
 
 ```jsx
 import CheckboxGroup from 'eview-ui/CheckboxGroup';
-import Button from 'eview-ui/Button';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CheckboxGroupEvent extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      checkedValue: [3],
-    };
-  }
+const data = [
+  { value: 1, text: "MALE", tipText: "Male", checked: true },
+  { value: 2, text: "FEMALE" },
+  { value: 3, text: "NONE" },
+];
 
-  handleClick = () => {
-    console.log(this.group.getValue());
-  };
-
-  handleChange = (value, oldValue, event) => {
-    console.log(`${value}--${oldValue}--${event}`);
-  };
-
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      {value: 1, text: "MALE", tipText: "Male", checked: true},
-      {value: 2, text: "FEMALE"},
-      {value: 3, text: "NONE"},
-    ];
-
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div>
-          <CheckboxGroup
-            label="Callback event"
-            value={this.state.checkedValue}
-            onChange={this.handleChange}
-            data={data}
-            ref={(group) => (this.group = group)}
-          />
-
-          <Button
-            text="Gets the value of current checkboxGroup"
-            onClick={this.handleClick}
-          ></Button>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
-
-ReactDOM.render(<CheckboxGroupEvent />, mountNode);
+// onChange(newValue, oldValue, event)：前两参是选中值数组（非 event）
+<CheckboxGroup
+  label="Callback event"
+  value={[3]}
+  onChange={(newValue, oldValue, event) => {
+    // newValue 当前选中值数组，oldValue 上次选中值数组
+  }}
+  data={data}
+  ref={(group) => {
+    // group.getValue() 返回选中值数组
+  }}
+/>
 ```
 
 ### 校验器
@@ -307,65 +257,47 @@ ReactDOM.render(<CheckboxGroupEvent />, mountNode);
 
 ```jsx
 import CheckboxGroup from 'eview-ui/CheckboxGroup';
-import ConfigProvider from 'eview-ui/ConfigProvider';
-import { getDemoVersion } from 'eview-ui/ThemeProvider';
 
-export default class CheckboxGroupValidator extends React.Component {
-  handleAllChange = (value, event) => {
-    console.log('Callback All onChange : ' + value);
-  };
+const data = [
+  { value: 0, text: 'Apple', tipText: 'Apple' },
+  { value: 1, text: 'Honor', tipText: 'Honor' },
+  { value: 2, text: 'Oneplus', tipText: 'Oneplus' },
+  { value: 3, text: 'ZTE', tipText: 'ZTE' },
+  { value: 4, text: 'Lenovo', tipText: 'Lenovo' },
+  { value: 5, text: 'Motorola', tipText: 'Motorola' },
+  { value: 6, text: 'Samsung', tipText: 'Samsung' },
+];
 
-  render() {
-    const [version, theme] = getDemoVersion();
-    let data = [
-      { value: 0, text: 'Apple', tipText: 'Apple' },
-      { value: 1, text: 'Honor', tipText: 'Honor' },
-      { value: 2, text: 'Oneplus', tipText: 'Oneplus' },
-      { value: 3, text: 'ZTE', tipText: 'ZTE' },
-      { value: 4, text: 'Lenovo', tipText: 'Lenovo' },
-      { value: 5, text: 'Motorola', tipText: 'Motorola' },
-      { value: 6, text: 'Samsung', tipText: 'Samsung' },
-    ];
+const data1 = [
+  { value: 1, text: 'USA' },
+  { value: 2, text: 'UK' },
+  { value: 3, text: 'CHINA' },
+];
 
-    let data1 = [
-      { value: 1, text: 'USA' },
-      { value: 2, text: 'UK' },
-      { value: 3, text: 'CHINA' },
-      { value: 4, text: 'BRAZIL' },
-      { value: 5, text: 'GERMANY' },
-    ];
+// validtor：最小/最大选择数量校验
+const validtorRule = { minSelect: 2, minSelectMsg: 'Min Select : 2', maxSelect: 4, maxSelectMsg: 'Max Select : 4' };
 
-    let selectAll = { text: 'All', onChange: this.handleAllChange };
-    let validtorRule = { minSelect: 2, minSelectMsg: 'Min Select : 2', maxSelect: 4, maxSelectMsg: 'Max Select : 4' };
+// selectAll 是对象 {text, checked, onChange}，onChange(selectedValues, event)
+const selectAll = {
+  text: 'All',
+  onChange: (selectedValues, event) => {
+    // selectedValues 是全选后的选中值数组
+  },
+};
 
-    return (
-      // 【重要】业务中使用当前组件不需要添加引用ConfigProvider组件的代码（ConfigProvider是全局组件,当前demo引用ConfigProvider仅用作ICT 3.0 组件样式演示使用）
-      <ConfigProvider version={version} theme={theme}>
-        <div id="evu_CheckboxGroup_example">
-          <div>
-            <CheckboxGroup value={[2, 4]} data={data1} validtor={validtorRule} />
-          </div>
-          <br />
-          <br />
-          <div>
-            <CheckboxGroup
-              label="Example with label : "
-              value={[2, 4]}
-              selectAll={selectAll}
-              tipData={{ placement: 'topRight', overlayStyle: { fontWeight: 'bold' } }}
-              data={data}
-              rows={'0:2|3:5|6'}
-              tipStyle={{ color: 'red' }}
-              tipValidatorClass="custom-validator-tip"
-              validtor={validtorRule}
-            />
-          </div>
-        </div>
-      </ConfigProvider>
-    );
-  }
-}
+<CheckboxGroup value={[2, 4]} data={data1} validtor={validtorRule} />
 
-ReactDOM.render(<CheckboxGroupValidator />, mountNode);
+// rows 多行排列："0:2|3:5|6" 表示第 0-2 项第一行，第 3-5 项第二行，第 6 项第三行
+<CheckboxGroup
+  label="Example with label : "
+  value={[2, 4]}
+  selectAll={selectAll}
+  tipData={{ placement: 'topRight', overlayStyle: { fontWeight: 'bold' } }}
+  data={data}
+  rows={'0:2|3:5|6'}
+  tipStyle={{ color: 'red' }}
+  tipValidatorClass="custom-validator-tip"
+  validtor={validtorRule}
+/>
 ```
 
