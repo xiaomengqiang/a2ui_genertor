@@ -63,6 +63,7 @@ const SHELL_COMPONENTS = [
   'Select', 'TextField', 'InputSelect', 'MultipleSelect', 'SearchInput', 'TextArea',
   'Tag', 'DatePicker', 'Spinner', 'Cascader', 'TreeSelector', 'IPInput', 'TimePicker',
   'Crumbs', 'Accordion', 'Timeline',
+  'Table',
   'Accordion',
 ];
 

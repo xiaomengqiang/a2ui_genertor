@@ -36,7 +36,7 @@ const EXTS = new Set(['.js', '.jsx', '.ts', '.tsx']);
 const SHELL_COMPONENTS = [
   'Tag', 'Select', 'TextField', 'InputSelect', 'MultipleSelect', 'SearchInput',
   'TextArea', 'DatePicker', 'Spinner', 'Cascader', 'TreeSelector',
-  'IPInput', 'TimePicker', 'Crumbs', 'Accordion', 'Timeline',
+  'IPInput', 'TimePicker', 'Crumbs', 'Accordion', 'Timeline', 'Table',
 ];
 
 // @/shared/<X> 合法导入清单 = 包壳组件 + Icon shim（方案A 运行时 fetch shim，scaffold 预置，
