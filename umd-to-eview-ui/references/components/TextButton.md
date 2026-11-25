@@ -10,7 +10,7 @@
 
 | antd 写法            | eview 写法   | 迁移要点                                     |
 | -------------------- | ------------ | -------------------------------------------- |
-| `Button type="text"` | `TextButton` | `text` prop + `onClick(event)`；或手写 `<a>` |
+| `Button type="text"` | `TextButton` | `text` prop（**`string`\|`ReactNode`，支持富文本**）；**不支持 children**（同 Button）；`onClick(event)`；或手写 `<a>` |
 
 ## API
 
@@ -21,7 +21,7 @@
 | id        | 自定义id                                     | string                                | -     |
 | className | 自定义class                                  | string                                | -     |
 | style     | 自定义组件样式                               | React.CSSProperties                   | -     |
-| text      | 显示文字                                     | string                                | ''    |
+| text      | 显示文字（支持富文本，可传 ReactNode）       | string\|ReactNode                    | ''    |
 | disabled  | 组件的灰化状态                               | bool                                  | false |
 | onClick   | 组件的点击事件<br>_event: 原生dom的点击事件_ | function:<br> (event: object) => void | -     |
 
