@@ -58,7 +58,7 @@ const handleMenuClick = (node: object) => {
 />
 ```
 
-- **两种形态**：固定导航用 `enableExpand={false}` + `hideIcons`（demo 同时设置）；可收起导航用 `enableExpand` + `expanded` / `onExpand`，一级菜单都配 `icon`。官方 demo 都设了 `hideTitleBar`，页面标题放在导航之外
+- **两种形态**：固定导航用 `enableExpand={false}` + `hideIcons={true}`（demo 同时设置）；可收起导航（antd `inlineCollapsed`）用 `expanded={true}` + `enableExpand={true}` + `hideIcons={false}`，一级菜单都配 `icon`。官方 demo 都设了 `hideTitleBar`，页面标题放在导航之外
 - `enableMultiOpen` 默认 false：展开一个一级菜单会收起其他一级菜单；需要同时展开多个时设为 true
 - ⚠️ 外部按钮直接改 `expanded`、用 `isControlSelectedValue` 做切换前拦截，都没有 demo，已登记待实测，不作为默认写法
 
@@ -201,7 +201,7 @@ export default function ConfigCenterNav() {
 // ❌ 字段名按 antd 写成 key / label（应为 value / title）——嵌套 children 里的子项也要逐层映射，不能只改外层
 <Accordion data={[{ key: 'net', label: '网络', children: [{ key: 'acl', label: '访问控制' }] }]} />
 
-// ❌ 迁移 antd Menu 漏加 hideIcons / hideTitleBar：样式与官网不一致，默认必须带（见 §10）
+// ❌ 迁移 antd Menu 漏配 hideIcons / hideTitleBar：单层平铺漏设 hideIcons={true}、可收起导航漏设 hideIcons={false}，都会导致样式与官网不一致（见 §10）
 <Accordion data={menuData} selectedValue={v} onClick={onClick} />
 
 // ❌ selectedValue 传数组（它是单个 string，不是 selectedKeys）
@@ -233,7 +233,7 @@ export default function ConfigCenterNav() {
 | `onExpand` | `(flag: boolean) => void` | 展开→收起 `flag=false`，收起→展开 `flag=true` |
 | `enableExpand` | `boolean`，默认 `true` | 是否允许展开 / 折叠面板 |
 | `enableIconExpand` | `boolean`，默认 `true` | 面板折叠时点击节点图标能否展开面板 |
-| `hideIcons` | `boolean`，默认 `false` | 隐藏底部展开收起图标，显示右侧展开收起 dom。**迁移 antd Menu 时默认设 `true`**（见 §10） |
+| `hideIcons` | `boolean`，默认 `false` | 隐藏底部展开收起图标，显示右侧展开收起 dom。**迁移 antd Menu**：单层平铺菜单设 `true`；可收起导航（`inlineCollapsed`）设 `false`（见 §10） |
 | `hideTitleBar` | `boolean`，默认 `false` | 隐藏标题栏。**迁移 antd Menu 时默认设 `true`**（见 §10） |
 | `enableMultiOpen` | `boolean`，默认 `false` | 允许同时展开多个一级菜单 |
 | `keepExpandState` | `boolean`，默认 `false` | data 变更后保留上一次的展开收起状态 |
@@ -246,9 +246,9 @@ export default function ConfigCenterNav() {
 | 配置项 | 默认值 | 适用形态 | 说明 |
 |--------|--------|---------|------|
 | `hideTitleBar` | `true` | 单层平铺 + 可收起导航 | 隐藏标题栏，页面标题放在导航之外（官方 demo 均设） |
-| `hideIcons` | `true` | 单层平铺 + 可收起导航 | 隐藏底部展开收起图标、改为右侧 dom；不影响收起功能 |
-| `enableExpand` | `false`（单层平铺）/ 默认 `true`（可收起导航） | 视形态 | 单层平铺菜单固定 `false`；可收起侧边导航用默认 `true` + `expanded`/`onExpand` |
+| `hideIcons` | `true`（单层平铺）/ `false`（可收起导航） | 视形态 | 单层平铺隐藏底部展开收起图标、改为右侧 dom；可收起导航（`inlineCollapsed`）保留底部图标，设 `false` |
+| `enableExpand` | `false`（单层平铺）/ `true`（可收起导航） | 视形态 | 单层平铺菜单固定 `false`；可收起侧边导航固定 `true` + `expanded={true}`（见 §10） |
 
-- **单层平铺菜单**（antd Menu 无嵌套）：`enableExpand={false}` + `hideIcons` + `hideTitleBar` + 单层 `data`（无 `children`），见 §2
-- **可收起侧边导航**（antd `inlineCollapsed`）：`enableExpand`（默认 `true`）+ `expanded={collapsed}` + `onExpand={(flag) => setCollapsed(!flag)}` + `hideIcons` + `hideTitleBar`，见 §4
+- **单层平铺菜单**（antd Menu 无嵌套）：`enableExpand={false}` + `hideIcons={true}` + `hideTitleBar` + 单层 `data`（无 `children`），见 §2
+- **可收起侧边导航**（antd `<Menu mode="inline" inlineCollapsed>`）：`expanded={true}` + `enableExpand={true}` + `hideIcons={false}` + `hideTitleBar`。⚠️ `expanded` 语义反转，`true` 即收起态——antd bare `inlineCollapsed`（无值即 `true`）本就是恒收起，故硬编码 `expanded={true}`、**不接 `onExpand`/state**；若 antd 源是 `inlineCollapsed={someState}` 动态收起，则改回 `expanded={collapsed}` + `onExpand={(flag) => setCollapsed(!flag)}`。见 §4
 - **横向菜单不走 Accordion**：antd `Menu mode="horizontal"`（横向顶部导航）eview-react 无对应组件，**不转 Accordion**，按 [handwrite-templates.md](../handwrite-templates.md) §9 手写（横排 + hover 子菜单下拉用 `DropDown`）。本节默认配置仅适用于垂直菜单（`mode="inline"` / 默认垂直）。**机器验证**：`check-accordion.cjs` 只扫 `<Accordion>` 不扫横向 Menu，横向手写不会被拦；横向 Menu 残留由 LLM 步骤 2 按 mode 判定处理
