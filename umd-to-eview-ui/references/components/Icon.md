@@ -21,13 +21,13 @@ eview-ui **其他组件**涉及图标的配置 prop 按类型分两种消费形�
 源 antd 图标 = **name + size + color** 三参。`@/shared/SvgIcon` 接收这三参，按 eview-ui 组件 prop 类型转换为两种产物：
 
 ```jsx
-import { SvgIcon, getIconBase64, getIconSvg } from '@/shared/SvgIcon';
+import { SvgIcon, getIconBase64, getIconSvg, useIcon } from '@/shared/SvgIcon';
 ```
 
 | 产物 | 形态 | 用于 | 生成方式 |
 |---|---|---|---|
 | **图标组件** | ReactNode | 二类组件 ReactNode 型 icon prop（Menu.SubMenu.icon / Menu.MenuItem.icon / PopUpMenu.icon）；独立 `<Icon name>` 调用点 | `<SvgIcon src={name} size={n} color={...}/>`（renderMode 默认 `'svg'` 内联） |
-| **图标字符串** | string（base64 data URL；亦可为图片路径） | 一类组件 string 型 icon prop（leftIcon/rightIcon/icon/iconUrl/iconLeaf/options[].icon 等，渲染 `<img src>` 或 `background-image: url()`） | `getIconBase64(src,{color,size})` 异步取 base64 data URL |
+| **图标字符串** | string（base64 data URL；亦可为图片路径） | 一类组件 string 型 icon prop（leftIcon/rightIcon/icon/iconUrl/iconLeaf/options[].icon 等，渲染 `<img src>` 或 `background-image: url()`） | `useIcon(name,{size,color?})` 主题响应式预载（底层 `getIconBase64(src,{color,size})` 异步原语） |
 | 原始 SVG 文本 | string | 需要直接操作 SVG markup 的场景 | `getIconSvg(src,{color,size})` |
 
 ### 三件套 API
@@ -66,29 +66,51 @@ import { SvgIcon, getIconBase64, getIconSvg } from '@/shared/SvgIcon';
 
 **`getIconSvg(src, options)` → `Promise<string>`**：返回原始 SVG 文本（options 同上）。模块另导出 `fetchSvg`/`setIconApiConfig`/`clearIconCache`/`isIconName` 等 core 工具（`setIconApiConfig` 可改图标 API 接口地址）。
 
-### string 型 icon prop 的 async 预载模式
+### string 型 icon prop 的主题响应式预载（`useIcon`）
 
-`getIconBase64` 是异步的，**不可同步赋值**给 string 型 prop。预载模式：
+string 型 icon prop 收图片路径 / base64 data URL，由 eview-ui 渲染成 `<img src>` 或 `background-image: url()`。`<img>`/`background-image` 是隔离文档，**SVG 里的 `currentColor` 无法继承宿主页面的 `color`**（解析成黑色），所以 base64 路径不能依赖 `currentColor`——颜色必须烘焙进 data URL，且需要随主题切换重新烘焙。
+
+统一用 `useIcon` hook 预载，**不要手写 `getIconBase64` + useEffect**：
 
 ```jsx
-import { getIconBase64 } from '@/shared/SvgIcon';
+import { useIcon } from '@/shared/SvgIcon';
 
-function MyButton() {
-  const [iconUrl, setIconUrl] = useState('');
-  useEffect(() => {
-    let alive = true;
-    getIconBase64('search', { color: '#0072e8', size: 16 }).then(url => {
-      if (alive && url) setIconUrl(url);
-    });
-    return () => { alive = false; };
-  }, []);
-  return <Button text="搜索" leftIcon={iconUrl} />;  // leftIcon 收 string（路径/base64）
+// Button 彩色 status：传 color，固定烘焙（primary 传 '#fff'，light/dark 两套主题都对）
+function SearchButton() {
+  const leftIcon = useIcon('search', { size: 16, color: '#fff' });
+  return <Button status="primary" text="搜索" leftIcon={leftIcon} />;
+}
+
+// 其他图标组件 / default Button：不传 color，默认跟随主题文本色翻转
+function MyCard() {
+  const icon = useIcon('star', { size: 14 });
+  return <Card icon={icon} />;
 }
 ```
 
+**`useIcon(name, options)` → `string`**（base64 data URL，未就绪时 `''`）
+
+| 参数 | 描述 | 类型 | 默认 |
+|---|---|---|---|
+| `name` | icon+ 图标名/关键词（亦可为 URL/路径） | string | — |
+| `options.size` | 尺寸（同 SvgIcon.size） | number \| string | 16 |
+| `options.color` | 图标色 hex。**Button 彩色 status 必传**（primary → `'#fff'`）；不传则跟随主题 | string | 跟随主题 |
+| `options.type` | 变体（默认 `lined`） | string | `lined` |
+| **返回** | base64 data URL 字符串（首次未就绪返回 `''`） | string | — |
+
+**主题响应规则**：
+- **传 `color`**（Button 彩色 status：primary/danger/success/warning 等彩色底按钮）→ 按指定色烘焙，不随主题变（primary 底图标在 light/dark 都是白，固定即可）。
+- **不传 `color`**（Card/Crumbs/Tab/Accordion/PageMessage/Tree 等所有其他图标组件，以及 default Button）→ 默认跟随主题文本色（aui3-1：light `#191919` / dark `#DFDFDF`），主题切换瞬时换色。
+- 语义色图标（PageMessage success/error/warn/info）按需传对应 `color` hex（这类语义色通常两套主题同值，不翻转）。
+- 带激活/选中态的组件（Tab.iconActive、Popup.options[].iconActive、Checkbox/Radio 选中态）默认态不传 color 跟随主题，激活态传 `color: 主色 hex`。
+
+**机制**：base64 按 `(name,color,size,type)` 缓存，命中时 `useIcon` 同步返回（`return cache.get(key) || url`），主题切换那一刻即拿到新色 base64、无空帧闪烁；原始 SVG XML 走 `svgCache`，重烘焙不重新请求网络。
+
+> `getIconBase64(src,{color,size})` 仍是底层异步原语（`Promise<string>`），仅当需要脱离 React 生命周期手动预载（批量 `Promise.all`、模块顶层常量等）时直接用；常规组件调用一律走 `useIcon`。
+
 ## 组件分类表（权威文档映射，已与 skill 实有 doc 核对）
 
-### 一类：string 型 icon prop（收图片路径 / base64 data URL）→ `getIconBase64`
+### 一类：string 型 icon prop（收图片路径 / base64 data URL）→ `useIcon`
 
 | 组件 | 图标属性 | 渲染 |
 |---|---|---|
@@ -159,21 +181,18 @@ const options = [
 <SvgIcon src="search" size={16} color="#0072e8" onClick={handleSearch} title="搜索" />
 ```
 
-### string 型 icon prop（Button.leftIcon）→ getIconBase64 预载
+### string 型 icon prop（Button.leftIcon）→ useIcon 预载
 
 ```jsx
 // before：leftIcon 收 string，源用图片路径
 <Button text="搜索" leftIcon="/assets/search.png" />
 
-// after：用 getIconBase64 把 icon+ 名转 base64 data URL（async 预载）
+// after：用 useIcon 把 icon+ 名转 base64 data URL（主题响应式）
+//   - 彩色 status 传 color（primary → '#fff'，两套主题都对）
+//   - default / 无 status 不传 color，跟随主题翻转
 function SearchButton() {
-  const [leftIcon, setLeftIcon] = useState('');
-  useEffect(() => {
-    let alive = true;
-    getIconBase64('search', { size: 16 }).then(url => { if (alive) setLeftIcon(url); });
-    return () => { alive = false; };
-  }, []);
-  return <Button text="搜索" leftIcon={leftIcon} />;
+  const leftIcon = useIcon('search', { size: 16, color: '#fff' });
+  return <Button status="primary" text="搜索" leftIcon={leftIcon} />;
 }
 ```
 
@@ -197,13 +216,13 @@ function SearchButton() {
 
 ## 硬约束
 
-1. **统一 import**：`import { SvgIcon, getIconBase64, getIconSvg } from '@/shared/SvgIcon'`（scaffold 自带 `src/shared/SvgIcon/`）。
-2. **string 型 icon prop 只收字符串**（图片路径 / base64 data URL）——用 `getIconBase64` 取 base64 传入；**不要塞 ReactNode**（`<SvgIcon>`）否则不渲染。
+1. **统一 import**：`import { SvgIcon, getIconBase64, getIconSvg, useIcon } from '@/shared/SvgIcon'`（scaffold 自带 `src/shared/SvgIcon/`）。
+2. **string 型 icon prop 只收字符串**（图片路径 / base64 data URL）——用 `useIcon` 取 base64 传入；**不要塞 ReactNode**（`<SvgIcon>`）否则不渲染。
 3. **ReactNode 型 icon prop 只收 React 元素**——用 `<SvgIcon>`；**不要塞字符串**否则不渲染。
 4. **interactiveProps 必须原样透传**：源 `<Icon>` 的 onClick/title/aria-*/role/tabIndex/style/className/id/data-* 逐个搬到 `<SvgIcon>`（`iconCallSites[].interactiveProps` 是搬迁依据；具体标签文本读源文件取）。
-5. **async 预载**：`getIconBase64` 是 Promise，string 型 prop 用 useEffect+useState 预载，**不可同步赋值**；批量场景调用方自组 `Promise.all`。
+5. **string 型图标用 `useIcon` 主题响应式预载**：常规组件调用一律 `useIcon(name,{size,color?})`，不要手写 `getIconBase64`+useEffect。**Button 彩色 status 传 `color`**（primary→`'#fff'`，固定不翻转）；**其他图标组件 / default Button 不传 `color`**，默认跟随主题文本色翻转。`<img>`/`background-image` 是隔离文档、`currentColor` 无法继承宿主 `color`——**不可不烘焙颜色依赖 currentColor**。批量脱离 React 生命周期（模块顶层常量等）才直接用 `getIconBase64`（`Promise`，自组 `Promise.all`）。
 6. **禁用**：`eview-ui/Icon`（名体系不同）、`eview-ui/SvgIcon`、`eview-ui/svg-icons/*`（废弃）、`eview-ui/IconButton`（废弃）、源 `@/shared/Icon` 旧 shim（已删除，不再使用）。check-imports.cjs 校验（SHIM_PATH_RESIDUE + EVUI_ICON_FORBIDDEN）。
-7. **图标 API 接口只能在内网访问**：`@/shared/SvgIcon` 运行时经 icon-plus 接口取 SVG，外网环境图标不渲染——属预期行为，不判 FAIL；校验只看 SvgIcon/getIconBase64 是否正确转换（import 路径 + 用法），不校验图标是否实际渲染。
+7. **图标 API 接口只能在内网访问**：`@/shared/SvgIcon` 运行时经 icon-plus 接口取 SVG，外网环境图标不渲染——属预期行为，不判 FAIL；校验只看 SvgIcon/useIcon/getIconBase64 是否正确转换（import 路径 + 用法），不校验图标是否实际渲染。
 
 ---
 
@@ -228,6 +247,6 @@ eview-ui `Icon` 可通过 `name` 取组件库图标，支持 `color`/`hoverColor
 
 `top_angle`→`arrow_up`；`bottom_angle`→`arrow_down`；`right_arrow`→`Right`；`error_close`/`close_active`/`close_hover`/`default_close`/`success_close`→`close`；`default_info`/`infomd`→`info`；`confirmmd`→`confirm`；`errormd`→`error`；`warnmd`→`warn`；`blue_check`/`check_primary`→`check`。
 
-### 图标库（icon+ 名/关键词参考，供 `<SvgIcon src>` / `getIconBase64(src)` 取用）
+### 图标库（icon+ 名/关键词参考，供 `<SvgIcon src>` / `useIcon(name)` 取用）
 
 arrow_down, arrow_up, Left, Right, left_move, right_move, move_all_up, back, asc_sort_icon, desc_sort_icon, no_sort_default_icon, table_no_sort_default_icon, table_row_filter, calender, check, close, close_circle, plus, plus_circle, reduce, edit, feedback, del, operation, search, expand, minus, minus_circle, refresh, help, zoomIn, zoomOut, confirm, info, success, warn, error, risk, high_risk, detail, double_arrow, dropArrow, drop_arrow, file, folder, hover_sort_header_icon, loading, star, start, step_icon, step_icon_disabled, stop, tucked, move, reset, select, exportImg, split, clock。

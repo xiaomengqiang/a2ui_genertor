@@ -102,7 +102,7 @@
 
 | antd | eview-ui | 导入路径 | 关键差异 |
 |------|----------|---------|---------|
-| `@ant-design/icons` | `@/shared/SvgIcon`（scaffold 已提供） | `@/shared/SvgIcon` | 源 `<Icon name size color>` → `<SvgIcon src={name} size={n} color={...}/>`（图标组件）或 `getIconBase64(src,{color,size})`（图标字符串，给 string 型 icon prop）；**禁** eview-ui `Icon`/`SvgIcon`/`svg-icons`/`IconButton`、`@/shared/Icon` 旧路径（见硬约束 8 + [Icon.md](components/Icon.md)） |
+| `@ant-design/icons` | `@/shared/SvgIcon`（scaffold 已提供） | `@/shared/SvgIcon` | 源 `<Icon name size color>` → `<SvgIcon src={name} size={n} color={...}/>`（图标组件）或 `useIcon(name,{size,color?})`（图标字符串，给 string 型 icon prop，主题响应式）；**禁** eview-ui `Icon`/`SvgIcon`/`svg-icons`/`IconButton`、`@/shared/Icon` 旧路径（见硬约束 8 + [Icon.md](components/Icon.md)） |
 
 ## 成员拆解（compound——机器按 import 名定不了，须按文件实际 JSX 子用法定）
 

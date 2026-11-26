@@ -11,7 +11,7 @@
 | antd 写法                         | eview 写法               | 迁移要点                                                                                                                                                                                                                                                                                                                            |
 | --------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Button`（纯文字）                | `Button`                 | 文字用 `text` prop（**`string`\|`ReactNode`，支持富文本**）；**不支持 children**（antd `<Button>文字</Button>` → `<Button text="文字"/>` 或 `<Button text={<span>...</span>}/>）；`type`→`status`（`default`/`primary`/`risk`）；`size` 三档是 `small`/`normal`/`large`（**antd `middle`→`normal`**）；无 `loading`/`htmlType`/`danger`（`danger`→`status="risk"`）；处理中用 `disabled`+文案切换；`onClick(event)` 原生事件（同 antd）                  |
-| `Button icon={<Icon/>}`（带图标） | `Button` + `leftIcon`/`rightIcon` | `leftIcon`/`rightIcon` 收 **string**（图标路径 / base64 data URL）——用 `getIconBase64(src,{color,size})` 异步取 base64 data URL 传入（useEffect+useState 预载，见 [Icon.md](./Icon.md)）；`leftIconProps.{leftHoverIcon,leftDisabledIcon}`、`rightIconProps.*` 同理。源 `<Icon name>` 不要塞进 leftIcon/rightIcon（ReactNode，不渲染） |
+| `Button icon={<Icon/>}`（带图标） | `Button` + `leftIcon`/`rightIcon` | `leftIcon`/`rightIcon` 收 **string**（图标路径 / base64 data URL）——用 `useIcon(name,{size,color?})` 主题响应式预载（见 [Icon.md](./Icon.md)）传入：**彩色 status（`primary`/`risk` 等）传 `color`**（primary→`'#fff'`，固定不翻转）；**`default` 不传 `color`**，跟随主题翻转。`leftIconProps.{leftHoverIcon,leftDisabledIcon}`、`rightIconProps.*` 同理（hover/disabled 色按需各取一份 `useIcon`）。源 `<Icon name>` 不要塞进 leftIcon/rightIcon（ReactNode，不渲染） |
 
 ## API
 
@@ -85,7 +85,7 @@ import Button from "eview-ui/Button";
 ```jsx
 import Button from "eview-ui/Button";
 
-// leftIcon/rightIcon 收 base64 data URL 字符串（可用 getIconBase64 异步预载）
+// leftIcon/rightIcon 收 base64 data URL 字符串（用 useIcon(name,{size,color?}) 主题响应式预载）
 const plusIcon = "data:image/svg+xml;base64,..."; // 图标 base64 url
 const delIcon = "data:image/svg+xml;base64,..."; // 图标 base64 url
 

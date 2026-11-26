@@ -170,7 +170,7 @@ function fallbackRecolor(root, colors) {
 
 export function transformSvgSync(svgXml, options = {}) {
   const { type = 'lined', size, color, weight, filledStrokeColor = '#000000', cleanup = true } = options;
-  const root = createSvgRoot(svgXml);
+  const root = createSvgDom(svgXml);
   const sizeResult = resolveSize(size);
   const colors = normalizeColors(color);
   const realWeight = resolveWeight(sizeResult, weight);

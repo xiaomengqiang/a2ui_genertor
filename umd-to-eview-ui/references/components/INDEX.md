@@ -88,7 +88,7 @@
 | LinkField | [LinkField.md](LinkField.md) | 文字链接（Typography.Link，children/text + href） |
 | ⛔ IconButton | [IconButton.md](IconButton.md) | 图标按钮（废弃，不用） |
 | IconButtonGroup | [IconButtonGroup.md](IconButtonGroup.md) | 图标按钮组（data 驱动） |
-| Icon | [Icon.md](Icon.md) | 图标方法集（源 `<Icon name size color>` → `@/shared/SvgIcon`：图标组件 `<SvgIcon>` / 图标字符串 `getIconBase64`；eview-ui 内置 Icon/SvgIcon/svg-icons/IconButton 均禁用） |
+| Icon | [Icon.md](Icon.md) | 图标方法集（源 `<Icon name size color>` → `@/shared/SvgIcon`：图标组件 `<SvgIcon>` / 图标字符串 `useIcon`（主题响应式）；eview-ui 内置 Icon/SvgIcon/svg-icons/IconButton 均禁用） |
 | ConfigProvider | [ConfigProvider.md](ConfigProvider.md) | 全局配置（locale zh / version aui3 / theme lightday-evening） |
 | performanceDesc | [performanceDesc.md](performanceDesc.md) | 组件性能规格（数据规模上限），非组件 |
 

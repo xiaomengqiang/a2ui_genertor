@@ -108,7 +108,7 @@ import SelectCard from "eview-ui/SelectCard";
 ```jsx
 import SelectCard from "eview-ui/SelectCard";
 
-// leftIcon/rightIcon 收 base64 data URL 字符串，可用 getIconBase64 异步预载
+// leftIcon/rightIcon 收 base64 data URL 字符串，用 useIcon(name,{size,color?}) 主题响应式预载
 const plusIcon = "data:image/svg+xml;base64,..."; // 图标 url
 const delIcon = "data:image/svg+xml;base64,..."; // 图标 url
 

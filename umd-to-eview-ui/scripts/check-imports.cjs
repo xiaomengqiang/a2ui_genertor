@@ -154,7 +154,7 @@ function main() {
       if (/\bfrom\s+['"][^'"]*(?:assets\/shared\/icon|@\/shared\/Icon)['"]/.test(line)) {
         violations.push({
           file: rel, line: ln, code: 'SHIM_PATH_RESIDUE',
-          detail: line.trim() + ' —— 应改为 import { SvgIcon, getIconBase64 } from "@/shared/SvgIcon"',
+          detail: line.trim() + ' —— 应改为 import { SvgIcon, getIconBase64, useIcon } from "@/shared/SvgIcon"',
         });
       }
       // 8. 图标策略违例（eview-ui Icon 名体系不同 / SvgIcon / svg-icons / IconButton 废弃）

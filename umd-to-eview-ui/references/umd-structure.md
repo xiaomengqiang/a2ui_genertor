@@ -97,11 +97,11 @@ index.page.html (~2000 行)
 2. **运行时 fetch icon-plus 在线**：`fetch(getConfig)` 探测 → `fetch(getIconInfo?keyword=xxx)` 查名 → `fetch(getIcon?url=xxx&style=xxx&color=xxx&fileType=svg)` 取 SVG → `dangerouslySetInnerHTML` 注入
 3. **缓存 + 状态管理**：`plusState`、`iconInfoMap`、`svgCache`
 
-> 本 skill **不搬入**源 icon.jsx——其 fetch/color/transform 能力已由 scaffold 自带的 `@/shared/SvgIcon` 模块（`src/shared/SvgIcon/`，含 `SvgIcon.jsx` + `core/` 引擎）提供并增强（getIconBase64/getIconSvg 三件套）。源 `<Icon name>` 调用点由步骤 7 转 `<SvgIcon src=.../>` / `getIconBase64`（见硬约束 8 与 [components/Icon.md](components/Icon.md)）。
+> 本 skill **不搬入**源 icon.jsx——其 fetch/color/transform 能力已由 scaffold 自带的 `@/shared/SvgIcon` 模块（`src/shared/SvgIcon/`，含 `SvgIcon.jsx` + `core/` 引擎）提供并增强（SvgIcon/getIconBase64/getIconSvg/useIcon 四件套）。源 `<Icon name>` 调用点由步骤 7 转 `<SvgIcon src=.../>` / `useIcon`（见硬约束 8 与 [components/Icon.md](components/Icon.md)）。
 
 ### 5.2 转换时用 @/shared/SvgIcon 替换
 
-源 `<Icon name size color>` 调用点**不保留原 shim**（零改动保留策略已废弃）——由步骤 7 的 P 类按 keyDiffs 转 `@/shared/SvgIcon`：独立调用点与 ReactNode 型 icon prop → `<SvgIcon src={name} size color/>`（interactiveProps 原样透传）；string 型 icon prop → `getIconBase64(src,{color,size})` 异步取 base64 data URL（useEffect+useState 预载）。禁止改用 eview-ui 的 `Icon`/`SvgIcon`/`svg-icons`/`IconButton`（均废弃/禁用）。
+源 `<Icon name size color>` 调用点**不保留原 shim**（零改动保留策略已废弃）——由步骤 7 的 P 类按 keyDiffs 转 `@/shared/SvgIcon`：独立调用点与 ReactNode 型 icon prop → `<SvgIcon src={name} size color/>`（interactiveProps 原样透传）；string 型 icon prop → `useIcon(name,{size,color?})` 主题响应式预载 base64 data URL（Button 彩色 status 传 `color`，其余/default 不传自动跟随主题）。禁止改用 eview-ui 的 `Icon`/`SvgIcon`/`svg-icons`/`IconButton`（均废弃/禁用）。
 
 ### 5.3 vite.config.js 的 icon-plus proxy
 

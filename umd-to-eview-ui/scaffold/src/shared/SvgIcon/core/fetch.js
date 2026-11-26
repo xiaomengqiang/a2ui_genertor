@@ -14,7 +14,8 @@ function defaultLoader(src) {
   if (typeof fetch !== 'function') {
     return Promise.reject(new Error('[svg-icon] fetch is not available in this environment'));
   }
-  return fetch(src, { credentials: 'include' }).then((res) => {
+  const ICON_ORIGIN = 'https://octo.hdesign.huawei.com';
+  return fetch(src.slice(ICON_ORIGIN.length), { credentials: 'include' }).then((res) => {
     if (!res.ok) {
       throw new Error(`[svg-icon] load failed: ${res.status} ${res.statusText} (${src})`);
     }
