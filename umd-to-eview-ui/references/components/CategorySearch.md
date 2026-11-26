@@ -57,46 +57,6 @@ interface PopItem {
   text: string;
   value: any;
 }
-
-interface CategorySearch {
-
-  id: string;
-  className: string;
-  version: string;
-  theme: string;
-  style: React.CSSProperties;
-
-  inputClassName: string;
-  inputStyle: React.CSSProperties;
-  inputProps: object;
-
-  selectClassName: string;
-  selectStyle: React.CSSProperties;
-
-  labelClassName: string;
-  labelStyle: React.CSSProperties;
-  label: string;
-  labelPosition: 'before' | 'after';
-
-  categoryOptions: CategoryOption[];
-  category: any;
-  selectedIndex: number;
-
-  value: any;
-  popItems: PopItem[];
-  placeholder: string;
-  showPopUp: boolean;
-  disabled: boolean;
-
-  onSearch: (category: any, value: string) => unknown;
-  onClear: (oldValue: any, newValue: string) => unknown;
-  onCategoryChange: (value: any) => unknown;
-  onSearchChange: (value: string) => unknown;
-  onSuggest: (value: string) => PopItem[] | unknown;
-
-}
-
-export type Props = Partial<CategorySearch>;
 ```
 
 ## 使用示例

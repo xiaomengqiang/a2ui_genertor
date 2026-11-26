@@ -52,50 +52,6 @@ Paging为分页功能提供了基础支持。
 | version          | AUI版本号，通常由ConfigProvider自动提供，一般不需要手动设置                                                                                                                                                                                                          | string                                                        | 由ConfigProvider提供 |
 | theme            | AUI主题名，通常由ConfigProvider自动提供，一般不需要手动设置                                                                                                                                                                                                          | string                                                        | 由ConfigProvider提供 |
 
-## 接口定义
-
-```typescript
-export interface PaginationProps {
-  id?: string;
-
-  style?: object;
-
-  className?: string;
-
-  recordCount?: number;
-
-  recordCountDisp?: string;
-
-  pageSize?: number;
-
-  currentPage?: number;
-
-  splitPagination?: boolean;
-
-  pageSizeOptions?: number[];
-
-  type?: "list" | "select" | "simple";
-
-  onPageChange?: (currentPage: number) => void;
-
-  onPageSizeChange?: (pageSize: number) => void;
-
-  onInputChange?: (value: string) => void;
-
-  popupDirection?: "top" | "bottom";
-
-  selectWidth?: string;
-
-  selectProps?: any;
-
-  hideConfig?: ("totalRecord" | "pageSize" | "gotoPage")[];
-
-  version?: string;
-
-  theme?: string;
-}
-```
-
 ## 使用示例
 
 ### 基本属性设置

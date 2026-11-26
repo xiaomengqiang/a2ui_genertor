@@ -46,29 +46,6 @@
 - **指示点导航**：底部（水平方向）或右侧（垂直方向）显示指示点，点击可跳转到对应轮播项
 - **拖拽切换**：支持拖拽轮播内容区域切换轮播项
 
-## 接口定义
-
-```typescript
-type Direction = 'top' | 'right' | 'bottom' | 'left';
-type Axis = 'horizontal' | 'vertical';
-
-interface CarouselProps {
-
-  id: string;
-  className: string;
-  style: React.CSSProperties;
-  autoplay: boolean;
-  autoplayInterval: number;
-  direction: Direction;
-  axis: Axis;
-  transformTime: number;
-  children?: React.ReactNode;
-
-}
-
-export type Props = Partial<CarouselProps>;
-```
-
 ## 使用示例
 
 ### 基本使用

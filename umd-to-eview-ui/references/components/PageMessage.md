@@ -32,37 +32,6 @@ PageMessage组件主要用于页面内信息提示，支持自定义样式，自
 | version       | AUI版本号，通常由ConfigProvider自动提供，一般不需要手动设置                                                                                                                                | string                                                                                              | 由ConfigProvider提供 |
 | theme         | AUI主题名，通常由ConfigProvider自动提供，一般不需要手动设置                                                                                                                                | string                                                                                              | 由ConfigProvider提供 |
 
-## 接口定义
-
-```typescript
-import { Component, CSSProperties, ReactNode } from "react";
-
-interface IPageMessageProps {
-  id?: string;
-  className?: string;
-  style?: CSSProperties;
-  iconClassName?: string;
-  text?: string | ReactNode;
-  icon?: string;
-  type?:
-    | "info"
-    | "warn"
-    | "default"
-    | "success"
-    | "error"
-    | "risk"
-    | "highRisk";
-  version?: string;
-  theme?: string;
-}
-
-export default class PageMessage extends Component<IPageMessageProps> {
-  static defaultProps: {
-    type: "default";
-  };
-}
-```
-
 ## 使用示例
 
 ### 基本属性设置

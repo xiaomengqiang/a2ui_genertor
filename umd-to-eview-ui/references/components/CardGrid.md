@@ -14,7 +14,7 @@
 | id |  设置CardGrid的id | string |  |
 | className |  通过添加类的方式控制整个CardGrid的样式（控制最外层容器div） | string |  |
 | style |  通过添加style的方式控制CardGrid网格容器的样式（应用于卡片网格区域，非单个卡片） | object |  |
-| data |  支持通过data设置组件中卡片内容 例如：data =[{title:"test", icon:'iconURL',iconLabel:'Label',data:[{ key:'Owner', value:'admin' },{ key:'Update Time', value:new Date().getUTCDate() }]}, ...] | array | [] |
+| data |  支持通过data设置组件中卡片内容 例如：data =[{title:"test", icon:'iconURL',iconLabel:'Label',data:[{ key:'Owner', value:'admin' },{ key:'Update Time', value:new Date().getUTCDate() }]}, ...] | CardGridDataItem[] | [] |
 | enablePagination |  支持通过enablePagination设置组件卡片显示状态，enablePagination=true时，卡片分页显示，否则卡片不分页 | bool | false |
 | pageSizeOptions |  分页选项 | array | [10, 20, 50, 100] |
 | currentPage |  当前页码，点击分页会切换 | number | 1 |
@@ -27,35 +27,12 @@
 ## 接口定义
 
 ```typescript
-import type { MouseEvent } from 'react';
-
 interface CardGridDataItem {
   title: string;
   icon: string;
   iconLabel: string;
   data: Array<{ key: string; value: any }>;
 }
-
-interface CardGrid {
-
-  id: string;
-  className: string;
-  style: React.CSSProperties;
-  data: CardGridDataItem[];
-  onCheckboxClick: (data: CardGridDataItem, isChecked: boolean, e: MouseEvent<HTMLSpanElement>) => unknown;
-  onCardClick: (data: CardGridDataItem, e: MouseEvent<HTMLDivElement>) => unknown;
-  enablePagination: boolean;
-  pageSizeOptions: number[];
-  currentPage: number;
-  pageSize: number;
-
-  version: string;
-
-  theme: string;
-
-}
-
-export type Props = Partial<CardGrid>;
 ```
 
 ## 使用示例

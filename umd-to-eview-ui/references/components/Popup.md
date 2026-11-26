@@ -20,12 +20,12 @@
 | iconStyle |  通过添加style的方式自定义组件下拉项中图标样式 | object |  |
 | display |  设置组件是否显示 | bool | false |
 | enablHorzScroll |  设置弹出窗口的横向滚动条（注意：源码属性名拼写为 enablHorzScroll，非 enableHorzScroll） | bool | false |
-| data | 设置传入数据，数组中每项对象支持以下字段：<br>**text**: 页面展示值（string 或 function）<br>**value**: 数据库存取值（any）<br>**icon**: 下拉项中的图标URL（可选）<br>**iconActive**: 下拉项被选中时的图标URL（可选；同 icon）<br>**tipData**: tooltip 展示值（可选）<br>**disabled**: 是否灰化（可选，bool）<br>**customClassName**: 下拉列表项的自定义样式类名（可选）<br>**label**: 是否为分组标签（可选，bool）<br>**style**: 单项自定义行内样式（可选） | array | [] |
+| data | 设置传入数据，数组中每项对象支持以下字段：<br>**text**: 页面展示值（string 或 function）<br>**value**: 数据库存取值（any）<br>**icon**: 下拉项中的图标URL（可选）<br>**iconActive**: 下拉项被选中时的图标URL（可选；同 icon）<br>**tipData**: tooltip 展示值（可选）<br>**disabled**: 是否灰化（可选，bool）<br>**customClassName**: 下拉列表项的自定义样式类名（可选）<br>**label**: 是否为分组标签（可选，bool）<br>**style**: 单项自定义行内样式（可选） | PopUpDataItem[] | [] |
 | value |  通过value设置组件的选中项 | any |  |
 | popupDirection |  定义弹出方向。属性值auto表示弹出方向将根据屏幕可视区域是否有足够空间显示完整下拉菜单自动选择 | enum:<br>&nbsp;'top'<br>&nbsp;'bottom'<br>&nbsp;'auto' | 'bottom' |
 | popupWidth | 设置弹出框宽度（0表示自动） | number | 0 |
 | displayItems | 设置弹窗中可见的最大下拉项数量 | number | 8 |
-| lazyLoadOptions | 懒加载配置，用于大量数据滚动加载，包含 `totalRecords`（总记录数）和 `onLoadRecords(startIndex)`（加载回调） | object |  |
+| lazyLoadOptions | 懒加载配置，用于大量数据滚动加载，包含 `totalRecords`（总记录数）和 `onLoadRecords(startIndex)`（加载回调） | LazyLoadOptions |  |
 | isScrollAlwaysDisplay | 是否始终显示滚动条 | bool | false |
 | hideTitle | 是否隐藏下拉项的 title 提示 | bool | false |
 | coverItemCls | 是否覆盖item的className，默认为追加模式 | bool | false |
@@ -41,10 +41,10 @@
 ## 接口定义
 
 ```typescript
-import type { MouseEvent } from 'react';
+import type { ReactNode } from 'react';
 
 interface PopUpDataItem {
-  text: string | ((index: number) => React.ReactNode);
+  text: string | ((index: number) => ReactNode);
   value: any;
   icon?: string;
   iconActive?: string;
@@ -60,68 +60,6 @@ interface LazyLoadOptions {
   totalRecords: number;
   onLoadRecords: (startIndex: number) => void;
 }
-
-interface PopUp {
-
-  id?: string;
-
-  className?: string;
-
-  style?: object;
-
-  itemStyle?: object;
-
-  itemClassName?: string;
-
-  iconClassName?: string;
-
-  iconStyle?: object;
-
-  display?: boolean;
-
-  enablHorzScroll?: boolean;
-
-  data?: PopUpDataItem[];
-
-  value?: any;
-
-  onItemClick?: (item: PopUpDataItem, e: MouseEvent<HTMLSpanElement>) => unknown;
-
-  onMouseDown?: (e: MouseEvent<HTMLSpanElement>, index: number) => unknown;
-
-  lazyLoadOptions?: LazyLoadOptions;
-
-  popupDirection?: 'top' | 'bottom' | 'auto';
-
-  popupWidth?: number;
-
-  displayItems?: number;
-
-  isScrollAlwaysDisplay?: boolean;
-
-  onClosePopup?: () => unknown;
-
-  onItemHover?: (item: PopUpDataItem, e: MouseEvent<HTMLSpanElement>) => unknown;
-
-  onItemEnter?: (item: PopUpDataItem, e: MouseEvent<HTMLSpanElement>) => unknown;
-
-  onItemOut?: (item: PopUpDataItem, e: MouseEvent<HTMLSpanElement>) => unknown;
-
-  hideTitle?: boolean;
-
-  coverItemCls?: boolean;
-
-  fromSelect?: boolean;
-
-  version?: string;
-
-  theme?: string;
-
-  nodeLinelHeight?: number;
-
-}
-
-export type PopUpProps = Partial<PopUp>;
 ```
 
 ## 使用示例

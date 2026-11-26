@@ -60,55 +60,6 @@ Checkbox 中的提示气泡采用 Tooltip 实现，样式对应 Tooltip 样式�
 | required | 设置是否为必填项 | boolean | false |
 | text | 设置文本内容（与 label 类似） | string |  |
 
-## 接口定义
-
-```typescript
-import type { KeyboardEventHandler, MouseEvent, ReactNode, FocusEvent, CSSProperties } from 'react';
-
-export interface Props {
-
-  id: string;
-  name: string;
-  className: string;
-  style: CSSProperties;
-  version: string;
-  theme: string;
-
-  checkboxClassName: string;
-  checkboxStyle: CSSProperties;
-  labelClassName: string;
-  labelStyle: CSSProperties;
-  label: string;
-  text: string;
-  children: ReactNode;
-
-  value: any;
-  labelPosition: 'before' | 'after';
-  disabled: boolean;
-  checked: boolean;
-  halfChecked: boolean;
-  halfToChecked: boolean;
-  required: boolean;
-
-  additionalData: object;
-  tipText: string;
-  tipData: object;
-  boxTabIndex: string;
-  icon: string;
-  iconClassName: string;
-  iconStyle: CSSProperties;
-
-  onPreChange: (value: any, newChecked: boolean, e: MouseEvent<HTMLSpanElement>) => boolean | unknown;
-  onChange: (value: any, checked: boolean, e: MouseEvent<HTMLSpanElement>, additionalData?: object) => unknown;
-  onFocus: (value: any, checked: boolean, e: FocusEvent) => unknown;
-  onBlur: (value: any, checked: boolean, e: FocusEvent) => unknown;
-  onKeyDown: KeyboardEventHandler<HTMLSpanElement>;
-
-}
-
-export type OptionalProps = Partial<Props>;
-```
-
 ## 使用示例
 
 ### 基本属性设置

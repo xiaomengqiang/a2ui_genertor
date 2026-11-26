@@ -49,46 +49,10 @@
 ## 接口定义
 
 ```typescript
-import type { ChangeEvent, FocusEvent } from 'react';
-
 interface CategoryOption {
   text: string;
   value: any;
 }
-
-interface CategoryInput {
-
-  id: string;
-  className: string;
-  version: string;
-  theme: string;
-  style: React.CSSProperties;
-  selectClassName: string;
-  selectStyle: React.CSSProperties;
-  categoryOptions: CategoryOption[];
-  category: any;
-  selectedIndex: number;
-  onCategoryChange: (value: any) => unknown;
-  placeholder: string;
-  inputClassName: string;
-  inputStyle: React.CSSProperties;
-  value: any;
-  required: boolean;
-  disabled: boolean;
-  onBlur: (e: FocusEvent<HTMLInputElement>) => unknown;
-  onChange: (value: any, oldValue: any, e: ChangeEvent<HTMLInputElement>) => unknown;
-  onFocus: (e: FocusEvent<HTMLInputElement>) => unknown;
-  labelClassName: string;
-  labelStyle: React.CSSProperties;
-  label: string;
-  labelPosition: 'before' | 'after';
-  inputPosition: 'left' | 'right';
-  format: 'number' | 'any';
-  maxLength: number;
-
-}
-
-export type Props = Partial<CategoryInput>;
 ```
 
 ## 使用示例

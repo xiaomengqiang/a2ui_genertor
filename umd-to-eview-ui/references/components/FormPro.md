@@ -31,7 +31,7 @@ type ChangedFieldEntity = {
 
 type BasicValidateMessage = string | React.ReactNode;
 
-type ValidateMessageType = BasicValidateMessageType | ((name: string) => BasicValidateMessageType)
+type ValidateMessage = BasicValidateMessage | ((name: string) => BasicValidateMessage)
 ```
 ### FormInstance
 formInstance可以用来操作表单，包括获取表单字段值，更新表单，校验表单，提交表单等。在函数式组件中，可以通过useForm创建和使用FormInstance实例，在类组件中，则可以从Form组件的ref获取FormInstance实例
@@ -149,126 +149,6 @@ FormItem可以覆盖Form中的同名属性
 | minLength | BasicValidateMessage \| (name: string, minLength: number) => BasicValidateMessage |
 | maxLength | BasicValidateMessage \| (name: string, maxLength: number) => BasicValidateMessage |
 | rangeLength | BasicValidateMessage \| (name: string, lengthRange: [number, number]) => BasicValidateMessage |
-
-## 接口定义
-
-```typescript
-import React, { ReactNode } from 'react';
-import { FormAction, Store } from './FormStore';
-import { CommonProps } from './Form';
-
-export type NamePath = string | number | Array<string | number>;
-export type InternalNamePath = Array<string | number>;
-export type ValidateError = string | React.ReactNode;
-
-export interface FormInstance {
-  getError: (name: NamePath) => ValidateError[];
-  getErrors: (nameList?: NamePath[]) => Store;
-  getFieldValue: (name: NamePath) => any;
-  getFieldsValue: (nameList?: NamePath[]) => Store;
-  setFieldsValue: (newStore: Store) => void;
-  setInitialValues: (values: Store, init?: boolean) => void;
-  resetFields: (nameList?: NamePath[]) => void;
-  validateFields: (nameList?: NamePath[]) => Promise<Store>;
-  getInternalHooks: (key: string) => InternalHooks | null;
-  submit: () => void;
-}
-
-export interface InternalHooks {
-  register: (fieldEntity: FieldEntity) => () => void;
-  dispatch: (action: FormAction) => void;
-  setCallbacks: (callbacks: Callbacks) => void;
-  setValidateMessages: (validateMessages: ValidatorMessages) => void;
-  setCommonProps: (commonProps: CommonProps) => void;
-  getCommonProps: () => CommonProps;
-  setIsLabelColAuto: (isLabelColAuto: boolean) => void;
-  getIsLabelColAuto: () => boolean;
-  autoSetLabelCol: (labelWidth: number) => void;
-}
-
-export interface ErrorEntity {
-  name: NamePath;
-  errors: ValidateError[];
-}
-
-export type EventArgs = any[];
-export interface ChildProps {
-  [propName: string]: any;
-}
-
-interface ChangedFieldEntity {
-  name: NamePath;
-  prevValue: any;
-  newValue: any;
-}
-export interface Callbacks<Values = any> {
-  onSuccess?: (values: Values) => void;
-  onFailed?: (errorFields: ErrorEntity[], values: Values) => void;
-  onValuesChange?: (changedFields: ChangedFieldEntity[], allNewValues: Values, allPrevValues: Values) => void;
-}
-
-export interface FieldEntity {
-  rulesRef: React.MutableRefObject<Rule[]>;
-  onStoreChange: (prevStore: Store, isNeedtip: boolean) => void;
-  name?: NamePath;
-}
-export interface Rule {
-  required?: boolean;
-  integer?: boolean;
-  float?: boolean;
-  email?: boolean;
-  url?: boolean;
-  alpha?: boolean;
-  ipv4?: boolean;
-  ipv6?: boolean;
-  creditCard?: boolean;
-  enum?: Array<string | number>;
-  pattern?: RegExp;
-  equalTo?: string | number;
-  notEqualTo?: string | number;
-  min?: number;
-  max?: number;
-  range?: number[];
-  minLength?: number;
-  maxLength?: number;
-  rangeLength?: number[];
-  custom?: (value: any, name?: string) => Promise<void>;
-}
-
-type BasicValidatorMessageType = string | ReactNode;
-export type ValidatorMessageType = BasicValidatorMessageType | ((name: string) => BasicValidatorMessageType);
-export interface ValidatorMessages {
-  required?: ValidatorMessageType;
-  integer?: ValidatorMessageType;
-  float?: ValidatorMessageType;
-  email?: ValidatorMessageType;
-  url?: ValidatorMessageType;
-  alpha?: ValidatorMessageType;
-  ipv4?: ValidatorMessageType;
-  ipv6?: ValidatorMessageType;
-  creditCard?: ValidatorMessageType;
-  enum?: BasicValidatorMessageType
-        | ((name: string, enums: Array<string | number>) => BasicValidatorMessageType);
-  pattern?: BasicValidatorMessageType
-        | ((name: string, pattern: string) => BasicValidatorMessageType);
-  equalTo?: BasicValidatorMessageType
-        | ((name: string, valueToEqual: string | number) => BasicValidatorMessageType);
-  notEqualTo?: BasicValidatorMessageType
-              | ((name: string, valueNotToEqual: string | number) => BasicValidatorMessageType);
-  min?: BasicValidatorMessageType
-      | ((name: string, min: number) => BasicValidatorMessageType);
-  max?: BasicValidatorMessageType
-      | ((name: string, max: number) => BasicValidatorMessageType);
-  range?: BasicValidatorMessageType
-        | ((name: string, range: number[]) => BasicValidatorMessageType);
-  minLength?: BasicValidatorMessageType
-            | ((name: string, minlength: number) => BasicValidatorMessageType);
-  maxLength?: BasicValidatorMessageType
-            | ((name: string, maxLength: number) => BasicValidatorMessageType);
-  rangeLength?: BasicValidatorMessageType
-              | ((name: string, lengthRange: number[]) => BasicValidatorMessageType); // eslint-disable-line
-}
-```
 
 ## 使用示例
 

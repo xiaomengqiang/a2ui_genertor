@@ -31,7 +31,7 @@
 | selectStyle               | 为选择容器设置样式                                                                                                                                                                                                                                                                     | object                                                                                                                                                          |                      |
 | inputStyle                | 自定义样式，改变输入框样式（支持rem宽度）                                                                                                                                                                                                                                              | object                                                                                                                                                          |                      |
 | inputClassName            | 为输入框容器增加class                                                                                                                                                                                                                                                                  | string                                                                                                                                                          |                      |
-| options                   | 设置下拉列表的选项<br>&nbsp; options : [{ text: "111", value: 1, optionStyle:{ }, optionClassName: 'customName'}, {text: "222", value: 2, disabled: true}];                                                                                                                            | array                                                                                                                                                           | []                   |
+| options                   | 设置下拉列表的选项<br>&nbsp; options : [{ text: "111", value: 1, optionStyle:{ }, optionClassName: 'customName'}, {text: "222", value: 2, disabled: true}];                                                                                                                            | MultipleSelectOptionItem[]                                                                                                                                                           | []                   |
 | optionStyle               | 配置下拉列表每条选项的样式                                                                                                                                                                                                                                                             | object                                                                                                                                                          |                      |
 | optionClassName           | 配置下拉列表每条选项的className                                                                                                                                                                                                                                                        | string                                                                                                                                                          |                      |
 | selectedIndex             | 设置默认选中的index，此处为数据属性options中对应的index，如果同时设置value，以value为准                                                                                                                                                                                                | number[]                                                                                                                                                        |                      |
@@ -77,168 +77,12 @@
 ## 接口定义
 
 ```typescript
-import type { MouseEvent, FocusEvent, Event as ReactEvent, MouseEventHandler } from 'react';
-
 interface MultipleSelectOptionItem {
   text: string;
   value: any;
   disabled?: boolean;
   optionStyle?: object;
   optionClassName?: string;
-}
-
-interface MultipleSelect {
-
-  id?: string;
-
-  className?: string;
-
-  style?: object;
-
-  inputStyle?: object;
-
-  selectClassName?: string;
-
-  selectStyle?: object;
-
-  inputClassName?: string;
-
-  options?: MultipleSelectOptionItem[];
-
-  selectedIndex?: number[];
-
-  value?: any[];
-
-  disabled?: boolean;
-
-  label?: string;
-
-  labelClassName?: string;
-
-  labelStyle?: object;
-
-  optionStyle?: object;
-
-  optionClassName?: string;
-
-  labelPosition?: 'before' | 'after';
-
-  required?: boolean;
-
-  searchable?: boolean;
-
-  selectAll?: boolean;
-
-  selectAllSearched?: boolean;
-
-  disableToolTip?: boolean;
-
-  delimiter?: string;
-
-  enableCloseIcon?: boolean;
-
-  zIndex?: number;
-
-  toolTipPosition?: 'top' | 'bottom' | 'left' | 'right' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | 'leftTop' | 'leftBottom' | 'rightTop' | 'rightBottom';
-
-  popupDirection?: 'top' | 'bottom';
-
-  dropdownClassName?: string;
-
-  dropdownStyle?: object;
-
-  displayItems?: number;
-
-  listHeight?: number;
-
-  maxLengthInput?: number;
-
-  placeholder?: string;
-
-  hintType?: 'div' | 'tip';
-
-  tipStyle?: object;
-
-  tagStyle?: object;
-
-  alwaysValidate?: boolean;
-
-  showPopUp?: boolean;
-
-  onBlur?: (event: FocusEvent) => unknown;
-
-  onChange?: (selectedValues: any[], changedValue: any, event?: ReactEvent) => unknown;
-
-  onFocus?: (event: FocusEvent) => unknown;
-
-  onSearchTextChange?: (text: string) => unknown;
-
-  onOpenMultipleSelectPopup?: (popupShow: boolean) => unknown;
-
-  isVirtualScroll?: boolean;
-
-  tipTextLimit?: number;
-
-  inputTextDisplayLimit?: number;
-
-  isManualSearch?: boolean;
-
-  version?: string;
-
-  theme?: string;
-}
-
-interface MultipleSelectTag {
-
-  id: string;
-  value: string;
-  text: string;
-  onDelete: (event: MouseEvent, value: string) => unknown;
-  className: string;
-  tagMouseDown: MouseEventHandler<HTMLSpanElement>;
-
-}
-
-
-interface MultipleSelectOption {
-
-  id: string;
-  className: string;
-  selected: boolean;
-  text: string;
-  style: object;
-  disabled: boolean;
-  onClick: (e: MouseEvent, value: string, selected: boolean) => unknown;
-  tipText: string;
-  onMouseDown: (e: MouseEvent, value: string) => unknown;
-  value: any;
-
-}
-
-interface MultipleSelectPopUp {
-  display: boolean;
-  popupDirection?: 'top' | 'bottom';
-  options: any;
-  dropdownClassName: string;
-  itemClassName: string;
-  value: any;
-  searchable: boolean;
-  width: string | number;
-  dropdownStyle: object;
-  onOptionClick: (...value: any[]) => unknown;
-  listHeight: number;
-  maxLengthInput: number;
-  optionStyle: object;
-  selectAll: boolean;
-  selectAllSearched: boolean;
-  optionsChange: (...value: any[]) => unknown;
-  searchTextChange: (...value: any[]) => unknown;
-  version: string;
-  theme: string;
-  isVirtualScroll?: boolean;
-  isManualSearch?: boolean;
-  displayItems?: number;
-  data-test-id?: string;
 }
 ```
 

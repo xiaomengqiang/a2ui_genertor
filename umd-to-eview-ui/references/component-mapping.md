@@ -25,7 +25,7 @@
 | `Input.Search` | `SearchInput` | `@cloudsop/eview-ui/SearchInput` | `onSearch` 值变化也触发（**需防抖**）；`onClear(value)`；`placeholder` 保留 |
 | `Input.Password` | `TextField type="password"` | `@cloudsop/eview-ui/TextField` | `autoComplete="off"` |
 | `InputNumber` | `Spinner` | `@cloudsop/eview-ui/Spinner` | `onChange(value)` 只在有效值触发；`onError(value)` 接无效值；**`onBlur(value)`（值不是事件）** |
-| `Select` | `SelectPro` | `@cloudsop/eview-ui/SelectPro` | **Pro 优先**（旧 `Select` 弃用）；`options` 字段 `label`→`text`；`placeholder` 同名；`onChange(value, options)` 两参；`mode` single/singleSearch/multiple/multiSearch |
+| `Select` | `SelectPro` | `@cloudsop/eview-ui/SelectPro` | **Pro 优先**（旧 `Select` 弃用）；`options` 字段 `label`→`text`；**`optionRender` / `option[].icon` → `options[].node`（非 text，text 是 string）**；`placeholder` 同名；`onChange(value, options)` 两参；`mode` single/singleSearch/multiple/multiSearch |
 | `Select mode="multiple"/"tags"` | `MultipleSelect` | `@cloudsop/eview-ui/MultipleSelect` | 删 `mode`；`value` 数组；`onChange(value[], changeValue[], event)` 三参；`placeholder` 保留；`showSearch`→`searchable`；tags 的「输入新建」能力丢失，需业务自补 |
 | `Select showSearch` | `SelectPro mode="singleSearch"` | `@cloudsop/eview-ui/SelectPro` | `mode="singleSearch"` + `onInputChange(value, e)`（搜索时必填）；`placeholder` 保留；`onChange(value, options)` 两参；输入值可作选中值的 AutoComplete 场景才改用 `InputSelect` |
 | `AutoComplete` | `InputSelect` | `@cloudsop/eview-ui/InputSelect` | 可输入任意值：`showCustomInput={true}`（默认 false，不传则拒绝非 options 值）+ `onInputChange(value)`；`onChange(value, oldValue)` 两参；**无 placeholder prop**（仅原生透传，需外层处理） |

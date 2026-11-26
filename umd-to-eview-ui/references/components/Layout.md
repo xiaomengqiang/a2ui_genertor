@@ -33,55 +33,6 @@
 | leftPanel  | type="horizontal" 时为指定左侧面板内容，type="vertical" 时为指定上方面板内容 | ReactNode                                                           |                         |
 | rightPanel | type="horizontal" 时为指定右侧面板内容，type="vertical" 时为指定下方面板内容 | ReactNode                                                           |                         |
 
-## 接口定义
-
-```typescript
-import type { ReactNode } from "react";
-
-interface Layout {
-  /**
-   *定制组件dom元素id，传入该值可覆盖组件自动生成的id
-   */
-  id: string;
-
-  /**
-   * 定制组件dom元素className
-   */
-  className: string;
-
-  /**
-   * 定制组件的样式
-   */
-  style: object;
-
-  /**
-   * 自定义布局类型：
-   * - 'full': 独占式布局，渲染 children 作为内容
-   * - 'horizontal': 左右布局，渲染 leftPanel + rightPanel
-   * - 'vertical': 上下布局，渲染 leftPanel(上方) + rightPanel(下方)
-   */
-  type: "full" | "horizontal" | "vertical";
-
-  /**
-   * type="full" 时生效，作为内容区域渲染；
-   * type 为 horizontal/vertical 时不生效，内容通过 leftPanel/rightPanel 指定
-   */
-  children: ReactNode;
-
-  /**
-   * type="horizontal"时为指定左侧面板内容， type="vertical"时为指定上方面板内容。
-   * 如需固定栏目宽度/高度，为面板子元素添加 className="eui_layout_fix" 并指定尺寸
-   */
-  leftPanel: ReactNode;
-
-  /**
-   * type="horizontal"时为指定右侧面板内容， type="vertical"时为指定下方面板内容。
-   * 如需固定栏目宽度/高度，为面板子元素添加 className="eui_layout_fix" 并指定尺寸
-   */
-  rightPanel: ReactNode;
-}
-```
-
 ## 使用示例
 
 ### 基本属性设置

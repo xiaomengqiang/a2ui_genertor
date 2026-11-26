@@ -293,7 +293,7 @@ B 类替换时读 <skill目录>/references/handwrite-templates.md；A 类按 ref
 
 | antd 页面模式 | eview-ui 迁移要点 |
 |--------------|-------------------|
-| **筛选列表页** | `Input.Search`→`SearchInput`+**防抖**（onSearch 值变化也触发）；`Select`→**`SelectPro`**（`options` 的 `label`→`text`；`placeholder` 同名保留）；`Table`→**`TablePro`**（`dataset`+`pagination` 对象）；分页翻页回调拆 `onPageChange`+`onPageSizeChange` |
+| **筛选列表页** | `Input.Search`→`SearchInput`+**防抖**（onSearch 值变化也触发）；`Select`→**`SelectPro`**（`options` 的 `label`→`text`；**`optionRender` / `option[].icon` →`options[].node`**；`placeholder` 同名保留）；`Table`→**`TablePro`**（`dataset`+`pagination` 对象）；分页翻页回调拆 `onPageChange`+`onPageSizeChange` |
 | **列表 CRUD** | `Modal`→**`DialogPro`**（`open`→`isOpen`；**无 buttons prop——footer 自写**：children 排 Button + 自己 `setIsOpen(false)`）；`Modal.confirm()`→**`MessageDialogPro`**（受控形态 buttons 是 `{ok,cancel}` 对象；或 `.confirm(config)` 静态——**脱离 context，慎用**） |
 | **多步向导** | `Steps current={i}`→`Wizards currentStep={data[i].value}`（**对应 value 不是下标**）；`items`→`data=[{text, value}]` |
 | **表单提交页** | 输入组件逐个替换（源项目 div+组件拼合结构**原样保留**，不用 label/labelPosition 重排）；真用了 antd Form 的迁 `FormPro`（rules 扁平化重写） |
