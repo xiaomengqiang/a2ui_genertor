@@ -18,7 +18,7 @@
 |方法名|描述|参数|返回值|
 |---|---|---|---|
 |getValue|用来获取下拉框中被选中项的value值|无|下拉框选中项的值|
-|validate|用来校验下拉选项是否被选中，返回是否通过校验|无|校验结果，bool类型|
+|validate|用来校验下拉选项是否被选中，返回是否通过校验|无|校验结果，boolean类型|
 |focus|用来设置下拉框聚焦|无|无|
 
 ### 属性
@@ -43,12 +43,12 @@
 | labelPosition |  设置输入框的名称文字的位置 before代表名称文字在输入框的左边，after代表名称文字在输入框的右边 | enum:<br>&nbsp;"before"<br>&nbsp;"after"<br> | "before" |
 | value |  设置默认的value值,若同时设置了selectedIndex则以value为准 | any |  |
 | selectedIndex |  设置默认的index,此处为数据属性options中对应的index | number | -1 |
-| disabled |  设置inputSelect的灰化 | bool | false |
-| enablHorzScroll | 是否为弹出窗口设置水平滚动条 | bool | false |
-| showSearchTip |  是否启用"未找到"提示 | bool | true |
-| showCustomInput | 是否展示自定义输入值，开启后允许输入不在下拉列表中的值 | bool | false |
-| caseInsensitiveFilter | 是否启用大小写不敏感过滤，为true时输入框过滤忽略大小写 | bool | true |
-| required |  设置组件是否为必填项 | bool | false |
+| disabled |  设置inputSelect的灰化 | boolean | false |
+| enablHorzScroll | 是否为弹出窗口设置水平滚动条 | boolean | false |
+| showSearchTip |  是否启用"未找到"提示 | boolean | true |
+| showCustomInput | 是否展示自定义输入值，开启后允许输入不在下拉列表中的值 | boolean | false |
+| caseInsensitiveFilter | 是否启用大小写不敏感过滤，为true时输入框过滤忽略大小写 | boolean | true |
+| required |  设置组件是否为必填项 | boolean | false |
 | zIndex | 设置InputSelect弹出层的zIndex | number | getBaseZIndex() + getBaseZIndexUnit() |
 | popupDirection |  下拉框弹出方向(注:当弹出方向空间不够时会自动切换到其他方向) | "top"<br>"bottom" | "bottom" |
 | onChange |  设置inputSelect的onChange事件,监听inputSelect选中值得变化<br><br>**签名:**<br>`function(value: any, oldValue: any) => void`<br>*value:* 当前选中的选项的value值<br>*oldValue:* 组件上一次选中值 | function |  |

@@ -78,7 +78,7 @@ const columns = [
 | onHeaderRow         | 设置头部行属性                                                                                                                       | function(column, index)                                                      | -                                                                  |
 | onRow               | 设置行属性                                                                                                                           | function(record, index)                                                      | -                                                                  |
 | enableZebraCrossing | 表格是否显示斑马纹(aui3.0有效)                                                                                                       | boolean                                                                      | false                                                              |
-| fixColumnsAfterDrag | 是否固定columns。如果设置为true，默认columns为固定值，表格刷新不在刷新表头。                                                         | bool                                                                         | false                                                              |
+| fixColumnsAfterDrag | 是否固定columns。如果设置为true，默认columns为固定值，表格刷新不在刷新表头。                                                         | boolean                                                                         | false                                                              |
 
 #### 自定义表格内部组件 用法
 

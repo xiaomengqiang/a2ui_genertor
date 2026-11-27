@@ -26,7 +26,7 @@ Loader 是指示灯，显示项或状态为 in progress。
 | 属性名称 | 描述 | 输入 | 默认 |
 |:-----|:-----|:-----|:-----|
 | id | 设置元素的id，不传则自动生成 (evu_Loader_N) | string | 自动生成 |
-| isOpen | 定制加载是否显示。E.g: `isOpen={true}` | bool | false |
+| isOpen | 定制加载是否显示。E.g: `isOpen={true}` | boolean | false |
 | type | 元素的类型：<br>&nbsp;"global" - 全屏遮罩加载<br>&nbsp;"local" - 容器内加载（需父容器 position:relative）<br>&nbsp;"micro" - 行内小 spinner | enum:<br>&nbsp;"global"<br>&nbsp;"local"<br>&nbsp;"micro"<br> | "global" |
 | iconUrl | 自定义图标路径，将作为加载/刷新图标显示。不传则使用默认旋转图标 | string | |
 | desc | 设置加载过程说明文字 | string | |

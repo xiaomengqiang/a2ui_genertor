@@ -22,9 +22,9 @@
 | className      | 通过自定义class改变rating的整体样式，作用于最外层div 例如： margin、padding、font | string                         |                            |
 | value          | 设置rating的值                                                                    | number                         | 0                          |
 | starCount      | 设置rating的最大值                                                                | number                         | 5                          |
-| disabled       | 设置rating是否灰化                                                                | bool                           | false                      |
-| half           | 设置rating是否支持半星评分                                                        | bool                           | false                      |
-| allowClear     | 是否允许再次点击后清除                                                            | bool                           | false                      |
+| disabled       | 设置rating是否灰化                                                                | boolean                           | false                      |
+| half           | 设置rating是否支持半星评分                                                        | boolean                           | false                      |
+| allowClear     | 是否允许再次点击后清除                                                            | boolean                           | false                      |
 | starColor      | 设置rating选中的颜色                                                              | string                         | '#fed900'                  |
 | emptyStarColor | 设置rating未选中的颜色                                                            | string                         | '#808080'                  |
 | iconName       | 通过传入name的方式，使用组件库中的已有图标                                        | string                         |                            |

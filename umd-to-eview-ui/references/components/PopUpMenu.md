@@ -17,7 +17,7 @@ PopUpMenu组件提供弹出菜单功能，支持多级子菜单、图标、自�
 | className |  菜单内容的类名 | string |  |
 | style |  通过style设置组件样式 | React.CSSProperties |  |
 | options|  菜单数据，参见Option接口定义（注：同一菜单只使用同一份options，如需给同一菜单传入不同options，应为所有option设唯一id） | Option[] | [] |
-| isOpen |  指定菜单是否显示（打开或关闭） | bool | false |
+| isOpen |  指定菜单是否显示（打开或关闭） | boolean | false |
 | offset |  指定菜单上方的X和Y坐标（已废弃，建议使用X和Y分别指定） | object |  |
 | X |  菜单的X坐标（与Y同时指定时，菜单将挂载在body下的绝对定位div上并依附） | number |  |
 | Y |  菜单的Y坐标（与X同时指定时，菜单将挂载在body下的绝对定位div上并依附） | number |  |
@@ -29,7 +29,7 @@ PopUpMenu组件提供弹出菜单功能，支持多级子菜单、图标、自�
 | direction |  设置菜单的弹出方向 | enum:<br>&nbsp;'up'<br>&nbsp;'down'<br>&nbsp;'auto' | 'down' |
 | zIndex |  菜单的z-index层级 | number |  |
 | space | 弹出后与依附元素的距离，单位px | number | 5 |
-| hasScroll | 是否启用滚动条 | bool | false |
+| hasScroll | 是否启用滚动条 | boolean | false |
 | size | 菜单尺寸 | enum:<br>&nbsp;'normal'<br>&nbsp;'small' | 'normal' |
 | container | 设置弹窗的容器元素获取函数 | `() => HTMLElement` |  |
 

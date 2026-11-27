@@ -18,17 +18,17 @@
 | itemClassName |  通过添加class的方式自定义组件下拉项样式 | string |  |
 | iconClassName |  通过添加class的方式自定义组件下拉项中图标样式 | string |  |
 | iconStyle |  通过添加style的方式自定义组件下拉项中图标样式 | object |  |
-| display |  设置组件是否显示 | bool | false |
-| enablHorzScroll |  设置弹出窗口的横向滚动条（注意：源码属性名拼写为 enablHorzScroll，非 enableHorzScroll） | bool | false |
-| data | 设置传入数据，数组中每项对象支持以下字段：<br>**text**: 页面展示值（string 或 function）<br>**value**: 数据库存取值（any）<br>**icon**: 下拉项中的图标URL（可选）<br>**iconActive**: 下拉项被选中时的图标URL（可选；同 icon）<br>**tipData**: tooltip 展示值（可选）<br>**disabled**: 是否灰化（可选，bool）<br>**customClassName**: 下拉列表项的自定义样式类名（可选）<br>**label**: 是否为分组标签（可选，bool）<br>**style**: 单项自定义行内样式（可选） | PopUpDataItem[] | [] |
+| display |  设置组件是否显示 | boolean | false |
+| enablHorzScroll |  设置弹出窗口的横向滚动条（注意：源码属性名拼写为 enablHorzScroll，非 enableHorzScroll） | boolean | false |
+| data | 设置传入数据，数组中每项对象支持以下字段：<br>**text**: 页面展示值（string 或 function）<br>**value**: 数据库存取值（any）<br>**icon**: 下拉项中的图标URL（可选）<br>**iconActive**: 下拉项被选中时的图标URL（可选；同 icon）<br>**tipData**: tooltip 展示值（可选）<br>**disabled**: 是否灰化（可选，boolean）<br>**customClassName**: 下拉列表项的自定义样式类名（可选）<br>**label**: 是否为分组标签（可选，boolean）<br>**style**: 单项自定义行内样式（可选） | PopUpDataItem[] | [] |
 | value |  通过value设置组件的选中项 | any |  |
 | popupDirection |  定义弹出方向。属性值auto表示弹出方向将根据屏幕可视区域是否有足够空间显示完整下拉菜单自动选择 | enum:<br>&nbsp;'top'<br>&nbsp;'bottom'<br>&nbsp;'auto' | 'bottom' |
 | popupWidth | 设置弹出框宽度（0表示自动） | number | 0 |
 | displayItems | 设置弹窗中可见的最大下拉项数量 | number | 8 |
 | lazyLoadOptions | 懒加载配置，用于大量数据滚动加载，包含 `totalRecords`（总记录数）和 `onLoadRecords(startIndex)`（加载回调） | LazyLoadOptions |  |
-| isScrollAlwaysDisplay | 是否始终显示滚动条 | bool | false |
-| hideTitle | 是否隐藏下拉项的 title 提示 | bool | false |
-| coverItemCls | 是否覆盖item的className，默认为追加模式 | bool | false |
+| isScrollAlwaysDisplay | 是否始终显示滚动条 | boolean | false |
+| hideTitle | 是否隐藏下拉项的 title 提示 | boolean | false |
+| coverItemCls | 是否覆盖item的className，默认为追加模式 | boolean | false |
 | onItemClick | 点击下拉项时的回调<br><br>**签名:**<br>`function(item: object, e: MouseEvent) => void`<br>*item:* 被点击的下拉项数据对象<br>*e:* 原生鼠标事件 | function |  |
 | onMouseDown | 鼠标按下时的回调<br><br>**签名:**<br>`function(e: MouseEvent, index: number) => void`<br>*e:* 原生鼠标事件<br>*index:* 下拉项索引 | function |  |
 | onItemHover | 鼠标在下拉项中移动时的回调<br><br>**签名:**<br>`function(item: object, e: MouseEvent) => void` | function |  |

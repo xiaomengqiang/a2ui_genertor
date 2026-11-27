@@ -28,13 +28,13 @@
 | titleStyle        |  title样式定制 | React.CSSProperties | {} |
 | content           |  支持通过content设置组件内容 例如：content =[{ <br>text: "ID", // 必填，控制组件内容区域文本提示 <br>value: "test-node", // 必填，控制文本对应的值 <br> }, ...] | array |  |
 | type              |  支持通过type设置组件类型 | enum:<br>&nbsp;'resource'<br>&nbsp;'detail'<br>&nbsp;'add'<br> | "detail" |
-| selected          |  支持通过selected设置组件选中状态，selected=true时，组件外边框变色，否则保持不变 selected属性仅支持type=detail,resource两种类型，type=add时selected不起作用 | bool | false |
+| selected          |  支持通过selected设置组件选中状态，selected=true时，组件外边框变色，否则保持不变 selected属性仅支持type=detail,resource两种类型，type=add时selected不起作用 | boolean | false |
 | menuTitle         |  设置下拉菜单的标题文本 | string |  |
 | menuItemStyle     |  通过添加style的方式，设置组件下拉列表项的样式,作用于下拉的最外层div,可通过后代选择器控制下拉项的样式 | React.CSSProperties |  |
 | menuItemClassName |  通过添加class的方式，设置组件下拉列表项的样式,作用于下拉的最外层div,可通过后代选择器控制下拉项的样式 | string |  |
 | menuPosition      |  设置下拉菜单的位置 | enum:<br>&nbsp;'left'<br>&nbsp;'right'<br> | 'right' |
 | menuData          |  支持通过menuData设置子组件下拉菜单数据 例如：menuData = [ <br/>{ <br/>text: "China",  //下拉菜单项展示值 <br/>value: 1        //菜单项存取值，点击时作为回调参数传入 <br/>},{...}]; | array |  |
-| enableAdd         |  支持通过enableAdd设置组件底部添加按钮是否显示（仅在type="resource"且title不为空时有效） | bool | false |
+| enableAdd         |  支持通过enableAdd设置组件底部添加按钮是否显示（仅在type="resource"且title不为空时有效） | boolean | false |
 | onAdd             |  支持设置组件onAdd添加事件： <br/>1.type=resource时，点击底部+号按钮添加事件； <br/>2.type=add时，组件+号点击添加事件；<br><br>**签名:**<br>`function() => void`<br>回调函数无参数 | function |  |
 | onMenuItemClick   |  支持设置菜单子组件的onClick事件<br><br>**签名:**<br>`function(text: string, value: any) => void`<br>*text* ：菜单项的text属性<br>*value* ：菜单项的value属性 | function |  |
 | version           |  aui版本 | string |  |
