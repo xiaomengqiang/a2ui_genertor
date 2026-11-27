@@ -1,0 +1,12 @@
+.ev_drag_select_container.evDragInput-custom {
+    display: inline-flex;
+}
+
+.ev_drag_select_container.evDragInput-custom .ev_drag_select_cloumn:not(.ev_drag_input) {
+    flex: 1;
+    margin-left: unset;
+}
+
+.evDragInput-custom .ev_drag_select {
+    width: 100%;
+}

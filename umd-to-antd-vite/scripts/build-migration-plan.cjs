@@ -63,7 +63,7 @@ const SHELL_COMPONENTS = [
   'Select', 'TextField', 'InputSelect', 'MultipleSelect', 'SearchInput', 'TextArea',
   'Tag', 'DatePicker', 'Spinner', 'Cascader', 'TreeSelector', 'IPInput', 'TimePicker',
   'Crumbs', 'Accordion', 'Timeline',
-  'Table',
+  'Table', 'DragInput',
   'Accordion',
 ];
 
@@ -330,6 +330,7 @@ const globalRef = {
     { component: 'Radio', signature: 'onChange(value, event)', note: '参数顺序有冲突，用兼容写法' },
     { component: 'DragInput', signature: 'onChange(value[])', note: 'value 永远是数组' },
     { component: 'TreeSelector', signature: 'onChange(value: string|string[], checkedKeys?)', note: '首参是 id' },
+    { component: 'DatePicker', signature: 'onChange(dateString, date?, target?, dstDate?)', note: '首参是字符串非 dayjs 对象——与 antd (date, dateString) 顺序相反，须换序；range 模式 target 为 from/to；value 类型 dayjs→native Date 须 .toDate()' },
   ],
 };
 

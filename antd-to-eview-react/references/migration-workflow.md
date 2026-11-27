@@ -540,7 +540,31 @@ node <skill目录>/scripts/check-select-form.cjs <目标工程根>
 
 硬 FAIL，exit≠0 即 FAIL。无需在 result 写决策（纯残留检查，非 advisory）。工程无 Select 系 → PASS 不报。依赖 `@babel/parser`（同其他 AST check）。
 
-### 4.23 常见报错对照
+### 4.23 DatePicker format + range type + antd prop 残留检查（硬 FAIL + advisory 必跑）
+
+> 对应 component-mapping.md DatePicker / DatePicker.RangePicker / RangePicker 行 + components/DatePicker.md §2（format 映射规则 + antd prop 映射差异）。本脚本拦三类 LLM 常见误改：
+> ① **format 逐 token 转换**——eview-react DatePicker 的 `format` 只接受按 type 固定的几种模式（`yyyy-MM-dd` / `yyyy-MM-dd HH:mm:ss` / `yyyy-MM-dd HH:mm` / `yyyy-MM` / `yyyy-QQ` / `yyyy` / `yyyy-wo`），不支持 antd/dayjs 任意 token；LLM 把 dayjs format 逐字符转换（如 `M/D`→`M/d`、`YYYY-MM-DD`→`yyyy-mm-dd`）产出的既非 antd 原值也非 eview 合法模式，组件异常。正确做法：按 type 整体替换为 eview 固定模式（见 DatePicker.md §2 映射表）。
+> ② **range 模式用了不支持的 type**——antd RangePicker 是从 DatePicker 解构出的**单独组件**，eview-react **没有 RangePicker 导出**，范围选择是同一 DatePicker 加 `range` prop；且 **range 模式只支持 `type="date"` / `"datetime"`**，month/quarter/year/week 在 range 模式下不可用。RangePicker 的 type 仅由源 `showTime` 决定（有→datetime，无→date），**不涉及 `picker`**。LLM 可能把源普通 DatePicker 的 `picker=month` 等误带到 range 形态，本脚本兜底拦。
+> ③ **antd-only prop 残留**——`disabledDate`/`ranges`/`allowClear`/`open`/`disabledTime`/`status`/`cellRender`/`separator`/`inputReadOnly`/`placement` 等 antd prop 在 eview-react 无对等或需重命名（见 DatePicker.md §2 antd prop 映射差异表），LLM 漏改即残留。
+> ⚠️ **onChange 参数换序（antd `(date, dateString)`→eview `(dateString, date, target?, dstDate?)`）与 value 类型（dayjs→native Date）难静态判定，不在本检查内**——须按 DatePicker.md §2 + globalRef `callbackSignatures` DatePicker 行人工保证。
+
+脚本 `scripts/check-datepicker-format.cjs`，用 AST（@babel/parser，复用 `lib/ast-helpers.cjs`）扫描产物 `<DatePicker>`：
+
+1. `FORMAT_INVALID` — `format` 是字符串字面量但值不在 eview 固定模式集合内（如 `M/d` / `M/D` / `YYYY-MM-DD` / `yyyy-mm-dd` 等任何 token 残留 / 错大小写）——**硬 FAIL**
+2. `FORMAT_DYNAMIC` — `format` 是动态表达式（变量 / 模板串 / 成员访问），静态无法判定——advisory，需人工复核运行时值为 eview 固定模式
+3. `RANGE_TYPE_INVALID` — `<DatePicker range={...} type="month|quarter|year|week">`：range 模式只支持 type=date/datetime——**硬 FAIL**
+4. `RANGE_TYPE_DYNAMIC` — `<DatePicker range={...} type={动态}>`：type 动态表达式，静态无法判定是否 date/datetime——advisory
+5. `ANTD_PROP_RESIDUE` — `<DatePicker>` 上残留 antd-only prop（`disabledDate`/`ranges`/`allowClear`/`open`/`onOpenChange`/`disabledTime`/`status`/`variant`/`cellRender`/`separator`/`inputReadOnly`/`placement`/`suffixIcon`/`onOk` 等）——advisory，按 DatePicker.md §2 antd prop 映射差异表逐条确认处理（丢弃 / 重命名 / 改 `dateRange`）
+
+> 注：跳过 `src/shared/`（包壳实现，非业务代码，同 check-imports 惯例）。无 `format` 属性的 `<DatePicker>` 跳过 format 检查（用组件默认 `yyyy-MM-dd`，合法）；无 `type` 属性的 range 形态跳过 type 检查（默认 date，range 合法）。`range` 含 boolean shorthand（`<DatePicker range>`）与 `range={...}` 两种均识别。spread `{...props}` 跳过（静态无法判定，同其他 check 惯例）。`<RangePicker>` JSX 残留由 check-rangepicker.cjs（§4.18）拦，本脚本只管已改 `<DatePicker>` 的 format 值 + range type + antd prop 残留。
+
+```bash
+node <skill目录>/scripts/check-datepicker-format.cjs <目标工程根>
+```
+
+FORMAT_INVALID / RANGE_TYPE_INVALID 硬 FAIL，exit≠0 即 FAIL；FORMAT_DYNAMIC / RANGE_TYPE_DYNAMIC / ANTD_PROP_RESIDUE advisory，exit=0 但需把人工复核结论写进 result 的 `datePickerFormatReviews`。工程无 `<DatePicker>` → PASS 不报。依赖 `@babel/parser`（同其他 AST check）。
+
+### 4.24 常见报错对照
 
 | 报错 | 原因 | 修复 |
 |------|------|------|
@@ -551,11 +575,11 @@ node <skill目录>/scripts/check-select-form.cjs <目标工程根>
 | `MISSING_TRANSLATION: Missing message "gateway" for locale "zh"`（消息 id 是短代码如 "gateway"/"shanghai"） | Table 列 `render` 用 `t(value, value)` 但 `data.js` 里 value 是短代码、i18n key 带前缀 | 在 render 里补命名空间前缀：`t("deviceType." + value, value)`；详见 §3.5 |
 | `undefined is not a function` | ref 还没挂载就调方法 | 检查 `?.` 可选链 + 组件是否已渲染 |
 
-### 4.24 验证
+### 4.25 验证
 
 跑验证脚本，把结果写入 `<目标工程根>/.migration-result.json`。
 
-> **二十一个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨/Accordion expand 语义反转+字段残留/Crumbs items+separator+字段残留/Dropdown menu-items-options 残留+字段 key-label-children 残留+disable 拼错+trigger 数组/placement/open/value/onChange 残留/**Select 系 options/data label→text 残留**/**RangePicker JSX 残留**/**Checkbox.Group/Radio.Group 残留**/**DivMessage 非法 type + 命令式 message 残留**/**Select 系形态错配（check-select-form）**/**.js/.ts 承载 JSX（check-jsx-extension）**是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/accordion/dropdown/css/token/props-preserved advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
+> **二十二个脚本均为机器兜底，对抗 AI 在长任务中遗忘 skill 硬约束**。导入路径/图表 option/Provider/token 值漂移/dark-mode 双轨/Accordion expand 语义反转+字段残留/Crumbs items+separator+字段残留/Dropdown menu-items-options 残留+字段 key-label-children 残留+disable 拼错+trigger 数组/placement/open/value/onChange 残留/**Select 系 options/data label→text 残留**/**RangePicker JSX 残留**/**Checkbox.Group/Radio.Group 残留**/**DivMessage 非法 type + 命令式 message 残留**/**Select 系形态错配（check-select-form）**/**.js/.ts 承载 JSX（check-jsx-extension）**/**DatePicker format 非固定模式（check-datepicker-format，FORMAT_INVALID 硬 FAIL）**是硬约束，脚本 exit≠0 即 FAIL；i18n-keys/table-defaults/steps-defaults/messagedialog-defaults/accordion/dropdown/css/token/props-preserved/datepicker-format（FORMAT_DYNAMIC/RANGE_TYPE_DYNAMIC/ANTD_PROP_RESIDUE）advisory 项 exit=0 但需把人工核对结论写进 result 的对应字段，未逐条回应视同 FAIL。**`check-icon-names.cjs`（§4.13）为方案 C 专属条件跑，不在无条件必跑之列**——见下方「方案 C 专属加跑」。
 
 **验证步骤**（全部必跑，按序）：
 1. 相对导入检查**跳过**（见 §4.1）
@@ -580,9 +604,10 @@ node <skill目录>/scripts/check-select-form.cjs <目标工程根>
 20. 跑 `node <skill目录>/scripts/check-select-form.cjs <目标工程根>`（§4.22，**硬 FAIL**，exit≠0 即 FAIL——Select 系形态错配：`<Select>` 残留 showSearch/mode/onlySelect/searchable/placeholder、`<InputSelect>` 残留 defaultLabel、`<MultipleSelect>` 残留 defaultLabel/mode/showSearch）
 21. 跑 `node <skill目录>/scripts/check-icon-shim.cjs <目标工程根> --strict`（**硬 FAIL**，B/C 都跑——UNJUSTIFIED 闭集误留 / STALE-SHIM-IMPORT / UNCONVERTED-ICON-SOURCE 数据源半改 / PROP_DROPPED_ON_ICON_REWRITE 丢 handler props / TERNARY_WRAP_LOST 条件式漏包 `{}` 任一，见 [Icon.md](components/Icon.md) 步 7 + §3.0）。**与阶段 2 §3.0 步 7 同闸门、幂等**——stage 3 重测兜底防阶段 2 后续 LLM 临场手改图标站点引入回归（正是 TERNARY_WRAP_LOST 要防的"偶尔丢 `{}`"类），并让 `.migration-result.json` 的 `icon-shim` 键权威实测（非沿用阶段 2 旧结果）。复用阶段 2 步 7 生成的 `.icon-shim-justified.json`（无残留 `<Icon>` shim 站点则不需该文件、0 处直接 PASS）。`PROP_DROPPED`/`TERNARY_WRAP_LOST` 的非 handler props（title/aria-*/role/tabIndex）与箭头函数 handler 是已知盲区，须人工复核（residual 手改 / Button 外壳剥离站点在 `confirmedSiteRepairs` 逐条回应）。
 22. 跑 `node <skill目录>/scripts/check-jsx-extension.cjs <目标工程根>`（§4.19，**硬 FAIL**，exit≠0 即 FAIL——`.js`/`.ts` 文件承载 JSX，Vite 不对 `.js`/`.ts` 启用 JSX loader 项目启动报错；拦 icon 步骤 / 步骤 2 组件替换 / LLM 手改向 `.js`/`.ts` 注入 JSX 漏改扩展名。命中可跑 `--fix` 自动 `.js→.jsx` / `.ts→.tsx` + 修引用后重跑）
-23. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
+23. 跑 `node <skill目录>/scripts/check-datepicker-format.cjs <目标工程根>`（§4.23，硬 FAIL + advisory——① `<DatePicker format=...>` 字面量 format 非 eview 固定模式（`yyyy-MM-dd` / `yyyy-MM-dd HH:mm:ss` / `yyyy-MM-dd HH:mm` / `yyyy-MM` / `yyyy-QQ` / `yyyy` / `yyyy-wo`）硬 FAIL（FORMAT_INVALID），拦 LLM 把 antd dayjs token 逐字符转换如 `M/D`→`M/d`；② `<DatePicker range={...} type="month|quarter|year|week">` range 模式用了不支持的 type 硬 FAIL（RANGE_TYPE_INVALID，range 只支持 type=date/datetime，antd RangePicker 是单独组件而 eview 用 range prop）；③ `<DatePicker>` 残留 antd-only prop（`disabledDate`/`ranges`/`allowClear`/`status`/`cellRender`/`separator`/`inputReadOnly`/`placement` 等）advisory（ANTD_PROP_RESIDUE）；动态 format / 动态 type / antd prop 残留 advisory 逐条回应写入 `datePickerFormatReviews`；onChange 换序与 value 类型（dayjs→Date）难静态判，须人工保证）
+24. `cd <目标工程根> && npm install`（bash 工具 timeout=30000）；超时/失败（外网无法访问 `@nce` 内网源）记 `SKIP`
 
-**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 21（check-icon-shim）之后、npm install（步骤 23）之前**加跑）：
+**方案 C 专属加跑**（项目级图标方案为 C / 外网 octo 不可达时，**在步骤 21（check-icon-shim）之后、npm install（步骤 24）之前**加跑）：
 - 跑 `node <skill目录>/scripts/check-icon-names.cjs <目标工程根>`（§4.13，**硬 FAIL**，exit≠0 即 FAIL——拦 LLM residual 臆造的非 catalog 实有 IconPlusIc* 名）。
 - **方案 B（内网）项目不跑此闸门**：其图标名真值是在线 `getIconInfo` 接口（实包），非离线 catalog 快照，跑会误报实包有而快照无的名。方案 A 产物无 `IconPlusIc*` 名，跑了亦 no-op。
 
@@ -611,6 +636,7 @@ node <skill目录>/scripts/check-select-form.cjs <目标工程根>
     "dropdown": "PASS/FAIL",
     "select-options": "PASS/FAIL",
     "rangepicker": "PASS/FAIL",
+    "datepicker-format": "PASS/FAIL/ADVISORY",
     "icon-shim": "PASS/FAIL",
     "npm-install": "PASS/SKIP"
   },
@@ -643,6 +669,9 @@ node <skill目录>/scripts/check-select-form.cjs <目标工程根>
   "dropdownReviews": [
     { "file": "src/views/.../list.jsx", "line": 45, "code": "ONCLICK_USED", "decision": "已改 onClick→onItemClick(item, event)，按 item.value 派发" },
     { "file": "src/views/.../list.jsx", "line": 52, "code": "VALUE_BOOLEAN_CHECK", "decision": "已改 if(!item.value)→item.value===undefined，放行 value=0" }
+  ],
+  "datePickerFormatReviews": [
+    { "file": "src/views/.../filter.jsx", "line": 30, "code": "FORMAT_DYNAMIC", "format": "变量 fmtStr", "decision": "追源 const fmtStr='yyyy-MM-dd'，eview 固定模式，合法" }
   ],
   "confirmedSiteRepairs": [
     { "file": "src/views/.../header.jsx", "line": 12, "site": "residual 手改主题切换 <IconPlusIcPublicSun/>", "repair": "补回 onClick={toggleDark}（源 <Icon onClick={toggleDark}/> 漏搬）" },
