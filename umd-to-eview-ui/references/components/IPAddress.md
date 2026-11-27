@@ -22,9 +22,9 @@ IPAddress组件实现ipv4和ipv6, mac格式的输入。
 | version | string |  | 传入该值可定制当前组件匹配的ucd规范，不传则默认aui2规范。例如：version='aui3' |
 | theme | string |  | 传入该值可定制当前组件匹配的主题模式样式，不传则默认白天模式。例如：theme='evening' |
 | type | enum:<br>&nbsp;"v4"<br>&nbsp;"v6"<br>&nbsp;"mac" | "v4" |  设置输入框类型，默认为v4 |
-| disabled | bool | false |  设置组件初始状态是否禁用，默认为否 |
-| readOnly | bool | false |  该属性直接赋给input，作为原生属性使用，仅隐藏了光标，并不能真正防止用户输入，建议使用disabled属性 |
-| required | bool | false |  支持设置组件值是否必须，若为必须，则input前的label文字前加*，同时支持非空校验 |
+| disabled | boolean | false |  设置组件初始状态是否禁用，默认为否 |
+| readOnly | boolean | false |  该属性直接赋给input，作为原生属性使用，仅隐藏了光标，并不能真正防止用户输入，建议使用disabled属性 |
+| required | boolean | false |  支持设置组件值是否必须，若为必须，则input前的label文字前加*，同时支持非空校验 |
 | value | string |  |  设置输入框组件默认值 |
 | delimiter | string |  |  分隔符，ipv4分隔符默认为"."，ipv6分隔符默认为":"，mac分隔符默认为"-" |
 | labelPosition | enum:<br>&nbsp;"before"<br>&nbsp;"after"<br> | "before" |  设置文本内容与组件子节点的位置，before：表示文本内容在组件子节点的左边，after：表示文本内容在组件子节点的右边 |

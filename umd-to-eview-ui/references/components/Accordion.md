@@ -23,24 +23,24 @@
 | selectedValue      | 默认被选中的项的 value，不设置，则为第一项的 value                                                                                                       | string                                    | ''    |
 | headerText         | 手风琴标题文字                                                                                                                                           | ReactNode                                 |       |
 | headerIcon         | 手风琴标题图标的 url                                                                                                                                     | string                                    |       |
-| enableTooltip      | 是否使用提示                                                                                                                                             | bool                                      | true  |
+| enableTooltip      | 是否使用提示                                                                                                                                             | boolean                                      | true  |
 | toolTipProps       | 自定义手风琴菜单的Tooltip属性(6.0.x版本支持)，需要将enableTooltip设置为true，参考Tooltip组件文档来设置                                                   | [CustomTooltipType](/components/Tooltip/) |       |
-| forceShowTip       | 强制展示tip，设置为 'title'，使用浏览器默认的title属性。此时会忽略enableTooltip属性；enableTooltip只会在有溢出时才展示。                                 | string \| bool                            | false |
+| forceShowTip       | 强制展示tip，设置为 'title'，使用浏览器默认的title属性。此时会忽略enableTooltip属性；enableTooltip只会在有溢出时才展示。                                 | string \| boolean                            | false |
 | defaultOpenKeys    | 默认展示项的key                                                                                                                                          | string[]                                  |       |
 | disabledItemKeys   | 禁用项的key                                                                                                                                              | string[]                                  |       |
-| hideTitleBar       | 隐藏标题栏。                                                                                                                                             | bool                                      | false |
+| hideTitleBar       | 隐藏标题栏。                                                                                                                                             | boolean                                      | false |
 | headerIconPosition | 控制头部 Icon 布局，可选值有 'top'、'left'                                                                                                               | string                                    | top   |
-| enableMultiOpen    | 是否允许同时展开多个一级菜单                                                                                                                             | bool                                      | false |
-| showArrow          | 收起态时使用图标模式展示菜单项，为 true 时不显示菜单文字只显示图标，配合 enableExpand 使用                                                               | bool                                      | false |
-| enableExpand       | 是否允许展开/折叠面板                                                                                                                                    | bool                                      | false |
-| expanded           | 默认是否展开                                                                                                                                             | bool                                      | true  |
-| allowResize        | 是否允许拖动                                                                                                                                             | bool                                      | false |
+| enableMultiOpen    | 是否允许同时展开多个一级菜单                                                                                                                             | boolean                                      | false |
+| showArrow          | 收起态时使用图标模式展示菜单项，为 true 时不显示菜单文字只显示图标，配合 enableExpand 使用                                                               | boolean                                      | false |
+| enableExpand       | 是否允许展开/折叠面板                                                                                                                                    | boolean                                      | false |
+| expanded           | 默认是否展开                                                                                                                                             | boolean                                      | true  |
+| allowResize        | 是否允许拖动                                                                                                                                             | boolean                                      | false |
 | maxResizableWidth  | 最大可拖动宽度，支持 px 和 rem 单位                                                                                                                      | string                                    | 16rem |
 | style              | 通过 style 控制组件最外层样式                                                                                                                            | object                                    |       |
 | className          | 通过 class 控制组件最外层样式                                                                                                                            | string                                    |       |
 | onClick            | 手风琴元素被点击后的回调函数<br><br>**签名:**<br>`function(node: object) => void`<br>_node:_ 被点击项对应 data 中的原始数据                              | function                                  |       |
 | onItemRightClick   | 右键点击菜单项的回调<br><br>**签名:**<br>`function(event: MouseEvent, { data }: { data: object }) => void`<br>_data:_ 被右键点击项对应 data 中的原始数据 | function                                  |       |
-| onExpand           | 设置面板收起展开回调<br><br>**签名:**<br>`function(bool: flag) => void`<br>_bool:_ 面板展开时为 true，收起时为 false                                     | function                                  |       |
+| onExpand           | 设置面板收起展开回调<br><br>**签名:**<br>`function(boolean: flag) => void`<br>_bool:_ 面板展开时为 true，收起时为 false                                     | function                                  |       |
 | onResize           | 拖动回调函数`resizeData:{oldWidth: string;newWidth: string;}) => void;`<br>                                                                              | function                                  |       |
 
 ## 使用示例

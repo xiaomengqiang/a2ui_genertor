@@ -22,7 +22,7 @@
 | className | 自定义class                                  | string                                | -     |
 | style     | 自定义组件样式                               | React.CSSProperties                   | -     |
 | text      | 显示文字（支持富文本，可传 ReactNode）       | string\|ReactNode                    | ''    |
-| disabled  | 组件的灰化状态                               | bool                                  | false |
+| disabled  | 组件的灰化状态                               | boolean                                  | false |
 | onClick   | 组件的点击事件<br>_event: 原生dom的点击事件_ | function:<br> (event: object) => void | -     |
 
 ## 使用示例

@@ -10,7 +10,7 @@
 
 | antd 写法                    | eview 写法   | 迁移要点                                                                                                                                                                                                                                                                                                    |
 | ---------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Radio.Button` / `Segmented` | `SelectCard` | `data=[{value, text}]`；`onChange(value, event)`（首参即选中值）；`defaultValue`→初始 `value` state（**`value=null` 时取消所有选择**）；`size`→`type`（`default`/`small`，值域不同）；禁用是 **`disable`**（不是 disabled，拼写异常表）；仅适合 ≤7 项的单行展示（文档警告）；`block` 无对应（宽度走 style） |
+| `Radio.Button` / `Segmented` | `SelectCard` | `data=[{value, text}]`；`onChange(value, event)`（首参即选中值）；`defaultValue`→初始 `value` state（**`value=null` 时取消所有选择**）；`size`→`type`（`default`/`small`，值域不同）；禁用是 **`disable`**（不是 disabled，拼写异常表）；仅适合 ≤7 项的单行展示（文档警告）；`block` 无对应（宽度走 style）；选项带 `icon` → 并入 `text`（`data` 无 `icon` 字段，`text` 可传 ReactNode，用 `<SvgIcon>` 包 inline-flex `<div>`，见 §选项级图标） |
 
 ## API
 
@@ -30,11 +30,11 @@
 | labelClassName | 通过添加class的方式自定义label的名称的样式                                                                                                                                                                                                                                                    | string                                        |           |
 | labelStyle     | 通过添加style的方式自定义label的名称的样式                                                                                                                                                                                                                                                    | object                                        |           |
 | type           | 设置组件的类型，默认为大尺寸单选块                                                                                                                                                                                                                                                            | enum:<br>&nbsp;"default"<br>&nbsp;"small"<br> | "default" |
-| data           | 设置组件的数据，例如：[{value:1,text:"100MB"},{value:2,text:"200MB"},{value:3,text:"500MB"},{value:3,text:"800MB"}]。注意：该组件适用于单行展示少量单选块（一般不超过七项），如果选项较多（如果容器宽度不够，可能导致选项文字显示不完整），可使用下拉框组件或者通过自定义样式的方式更好的展示 | array                                         |           |
+| data           | 设置组件的数据，例如：[{value:1,text:"100MB"},{value:2,text:"200MB"},{value:3,text:"500MB"},{value:3,text:"800MB"}]。其中 text 可传 string 或 ReactNode（选项带图标时把图标并入 text，见 §选项级图标）。| array                                         |           |
 | value          | 通过value设置组件的选中项                                                                                                                                                                                                                                                                     | any                                           |           |
 | label          | 设置下拉框的名称文字                                                                                                                                                                                                                                                                          | string                                        |           |
 | labelPosition  | 设置组件名称文字的位置 before代表名称文字在组件的前面，after代表名称文字在组件的后面                                                                                                                                                                                                          | enum:<br>&nbsp;"before"<br>&nbsp;"after"<br>  | "before"  |
-| required       | 设置组件是否需要                                                                                                                                                                                                                                                                              | bool                                          |           |
+| required       | 设置组件是否需要                                                                                                                                                                                                                                                                              | boolean                                          |           |
 | onChange       | 设置组件的onChange事件<br><br>**签名:**<br>`function(value: any, event: object) => void`<br>_value:_ 当前选中的选项值<br>_event:_ 原生dom的点击事件                                                                                                                                           | function                                      |           |
 
 ## 使用示例
@@ -101,32 +101,36 @@ import SelectCard from "eview-ui/SelectCard";
 />
 ```
 
-### 带图标的单选块
 
-通过 `leftIcon` `leftIconProps` 设置左图标，`rightIcon` `rightIconProps` 设置右图标。
+
+### 选项级图标（data 项 icon 并入 text）
+
+SelectCard 的 `data` 形状是 `{ value, text }`——**没有 `icon` 字段**。源 antd `Segmented` / `Radio.Button` 选项里的 `icon` **不能原样保留为独立 `icon` key**，否则会被 SelectCard 静默丢弃、图标不渲染。`text` 既可以是字符串又可以是 ReactNode，所以把图标**并入 `text`**，包一个 inline-flex 的 `<div>`（图标在前、文字在后）。
+
+**recipe**：
+
+1. 先按 [Icon.md](Icon.md) 把选项里的 `icon` 名解析为 `<SvgIcon src={name} size={14} />`。
+2. 把该 `<SvgIcon>` 与原 `text` 文字拼进一个 `<div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>` 作为新的 `text`——图标在前、空格、文字在后。
+3. **删除独立的 `icon` 字段**。
 
 ```jsx
 import SelectCard from "eview-ui/SelectCard";
+import { SvgIcon } from "@/shared/SvgIcon";
 
-// leftIcon/rightIcon 收 base64 data URL 字符串，用 useIcon(name,{size,color?}) 主题响应式预载
-const plusIcon = "data:image/svg+xml;base64,..."; // 图标 url
-const delIcon = "data:image/svg+xml;base64,..."; // 图标 url
-
-const data = [
-  { value: 1, text: "100MB" },
-  { value: 2, text: "200MB" },
-  { value: 3, text: "500MB" },
+// 前（源 antd Segmented / Radio.Button 选项带 icon）
+const viewOpts = [
+  { text: "列表", value: "list", icon: "lists" },
+  { text: "卡片", value: "card", icon: "app" },
 ];
 
-<SelectCard label="Left Icon" data={data} value={1} leftIcon={plusIcon} />
-<SelectCard label="Right Icon" data={data} value={2} rightIcon={delIcon} />
-<SelectCard
-  label="Both Icons"
-  data={data}
-  value={3}
-  leftIcon={plusIcon}
-  rightIcon={delIcon}
-  leftIconProps={{ leftIconClass: "my-icon-class" }}
-  rightIconProps={{ rightIconClass: "my-icon-class" }}
-/>
+// 后（迁移为 SelectCard：icon 并入 text，删独立 icon 字段）
+const viewOpts = [
+  { text: (<div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><SvgIcon src="lists" size={14} /> 列表</div>), value: "list" },
+  { text: (<div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}><SvgIcon src="app" size={14} /> 卡片</div>), value: "card" },
+];
+
+const [view, setView] = useState("list");   // defaultValue → 初始 value
+<SelectCard data={viewOpts} value={view} onChange={(v) => setView(v)} />
 ```
+
+> **反面示例**：`{ text: "列表", value: "list", icon: <SvgIcon src="lists" size={14} /> }`——独立 `icon` 字段会被 SelectCard 静默丢弃、图标不渲染。必须并入 `text`（且 `icon` 名是字符串时先转 `<SvgIcon>` 元素再并入，不要留 `icon: "lists"` 字符串）。

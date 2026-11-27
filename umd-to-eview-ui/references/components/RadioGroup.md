@@ -17,7 +17,7 @@ This component is used to define a set of radio boxes that can customize the sel
 | 方法名   | 描述                                   | 参数 | 返回值             |
 | -------- | -------------------------------------- | ---- | ------------------ |
 | getValue | 用来获取一组单选框中被选中的值         | 无   | 单选框组的值       |
-| validate | 用来手动进行非空校验，返回是否通过校验 | 无   | 校验结果，bool类型 |
+| validate | 用来手动进行非空校验，返回是否通过校验 | 无   | 校验结果，boolean类型 |
 
 ### 属性
 
@@ -32,8 +32,8 @@ This component is used to define a set of radio boxes that can customize the sel
 | labelStyle     | 通过添加style的方式控制label的样式，可用来调节单选组和单选组文本名字之间的间距                                                                                                                              | object                                       |          |
 | labelPosition  | 设置radioGroup文本值对于radioGroup的位置 before代表文本值在radioGroup的左边，after代表文本值在radioGroup的右边                                                                                              | enum:<br>&nbsp;'before'<br>&nbsp;'after'<br> | "before" |
 | value          | 设置选中的value值                                                                                                                                                                                           | any                                          |          |
-| required       | 设置组件是否为必填项                                                                                                                                                                                        | bool                                         | false    |
-| disabled       | 设置组件的灰化状态                                                                                                                                                                                          | bool                                         | false    |
+| required       | 设置组件是否为必填项                                                                                                                                                                                        | boolean                                         | false    |
+| disabled       | 设置组件的灰化状态                                                                                                                                                                                          | boolean                                         | false    |
 | onChange       | 设置RadioGroup的onClick事件，会传递参数为：<br><br>**签名:**<br>`function(value: any, oldValue: any, event: object) => void`<br>_value:_ 当前选中值<br>_oldValue:_ 上次选中值<br>_event:_ 原生dom的点击事件 | function                                     |          |
 
 ## 使用示例

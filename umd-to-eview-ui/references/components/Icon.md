@@ -44,7 +44,7 @@ import { SvgIcon, getIconBase64, getIconSvg, useIcon } from '@/shared/SvgIcon';
 | `weight` | 描边粗细 | number | — |
 | `filledStrokeColor` | filled 类型的描边色 | string | — |
 | `rotate` | 旋转角度（deg） | number | — |
-| `spin` | 是否旋转动画（loading 态） | bool | false |
+| `spin` | 是否旋转动画（loading 态） | boolean | false |
 | `hoverColor` | 悬浮色（仅单色类型 lined/filled 生效） | string | — |
 | `className` / `style` | 外层 `<span>` 样式 | string / object | — |
 | `onClick` | 点击回调（设了后 cursor 变 pointer） | function | — |

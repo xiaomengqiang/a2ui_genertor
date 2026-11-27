@@ -28,8 +28,8 @@ Panel组件，页面内面板常用于显示或隐藏页面信息，常用于表
 | onExpand |  自定义点击打开折叠时的回调方法，不传则无回调<br><br>**签名:**<br>`function(index: number, event: object) => void`<br>*index:* 被展开的PanelItem的下标<br>*event:* 原生dom事件 | function |  |
 | onClose |  自定义点击关闭/折叠子面板时的回调方法，不传则无回调<br><br>**签名:**<br>`function(index: number, event: object, collapsed: boolean) => void`<br>*index:* 被关闭的PanelItem的下标<br>*event:* 原生dom事件（通过关闭图标触发时event为undefined）<br>*collapsed:* true表示点击标题折叠面板，false表示点击关闭图标移除面板 | function |  |
 | selectedIndex |  设置默认展开的index数组,此index是传入数据数组下标 例如: selectedIndex=[0] | number[] |  |
-| enableMultiExpand |  设置是否允许多个展开 | bool | false |
-| keepAlive |  设置收缩时是否卸载PanelItem内容，为true时折叠时仅隐藏而非卸载 | bool | false |
+| enableMultiExpand |  设置是否允许多个展开 | boolean | false |
+| keepAlive |  设置收缩时是否卸载PanelItem内容，为true时折叠时仅隐藏而非卸载 | boolean | false |
 | version |  支持通过version设置组件版本 | string |  |
 | theme |  支持通过theme设置组件主题 | string |  |
 
@@ -46,10 +46,10 @@ Panel的子标签和Panel一起使用。
 | containerStyle |  定制组件容器样式 例如: containerStyle={width:500,height:100} | object | {} |
 | containerClassName |  定制组件容器元素className，传入该值可追加组件自动生成的className 例如: containerClassName='PanelItemContainerClassName' | string |  |
 | title |  定制组件标题，不传则为null 例如: title=&lt;div&gt;这是标题描述&lt;/div&gt; | any |  |
-| expanded |  定制组件是否展开显示（非受控初始态），受控展开请使用Panel的selectedIndex 例如: expanded=true | bool | true |
-| closable |  定制组件是否附带关闭移除功能 例如: closable=true | bool | true |
-| disabled |  是否禁用面板交互 | bool | false |
-| keepAlive |  收缩时是否保留内容不卸载（由Panel统一传递，也可单独设置） | bool |  |
+| expanded |  定制组件是否展开显示（非受控初始态），受控展开请使用Panel的selectedIndex 例如: expanded=true | boolean | true |
+| closable |  定制组件是否附带关闭移除功能 例如: closable=true | boolean | true |
+| disabled |  是否禁用面板交互 | boolean | false |
+| keepAlive |  收缩时是否保留内容不卸载（由Panel统一传递，也可单独设置） | boolean |  |
 
 ## 使用示例
 

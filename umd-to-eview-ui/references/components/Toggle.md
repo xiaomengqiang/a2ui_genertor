@@ -30,8 +30,8 @@
 | data           | 切换框不同状态下的值集合，默认圆圈在左边时表示关闭状态，圆圈在右边时表示开启状态， 比如["33","44"],第一个值表示关闭状态下的值，第二个值表示开启状态下的值， 这个属性可选，推荐设置默认值。 | array                                        |          |
 | label          | 设置组件的展示文本值                                                                                                                                                                       | string                                       |          |
 | labelPosition  | 设置组件的文本值在组件图标的左侧还是右侧 before代表文本在组件的左边，after表示文本在组件的右边                                                                                             | enum:<br>&nbsp;'before'<br>&nbsp;'after'<br> | "before" |
-| toggled        | 设置开启切换框，默认关闭。                                                                                                                                                                 | bool                                         | false    |
-| disabled       | 设置禁用切换框，默认关闭。                                                                                                                                                                 | bool                                         | false    |
+| toggled        | 设置开启切换框，默认关闭。                                                                                                                                                                 | boolean                                         | false    |
+| disabled       | 设置禁用切换框，默认关闭。                                                                                                                                                                 | boolean                                         | false    |
 | onToggle       | 点击切换框时的回调。使用时需传data。并且此时toggled属性由用户维护。<br><br>**签名:**<br>`function(value: any) => void`<br>_value:_ 点击文本切换框时当前状态值                              | function                                     |          |
 
 ## 使用示例

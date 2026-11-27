@@ -39,7 +39,7 @@
 | labelFormat | 数值转换函数<br><br>**签名:**<br>`function(value: number) => { formatValue: string }`<br>*value:* 当前需要转换的数值<br> *returns* ({ formatValue: string }): 根据当前数值转换的带单位的字符串 | function |  |
 | formatter | 格式化当前组件的所有数字，保持同一个格式显示。签名:`(value: number, precision: number) => string` | function | `(value, precision) => value.toFixed(precision)` |
 | onChange | 定义组件内容改变时的事件<br><br>**签名:**<br>`function(value: number[], changeValue?: number[]) => void`<br>*value:* 当前组件中选中的项的value集合（数组）<br>*changeValue:* 当前改变的值 | function |  |
-| displayInput | 是否显示输入框                                                                                                                                      | bool | true |
+| displayInput | 是否显示输入框                                                                                                                                      | boolean | true |
 | type | 选择器类型 single：数值选择器，range：区间选择器                                                                                                               | enum:<br>&nbsp;"single"<br>&nbsp;"range"<br> | "single" |
 | label | 设置标题文字                                                                                                                                       | string |  |
 | labelPosition | 设置标题文字的位置 before代表文字在左边，after代表文字在右边                                                                                                         | enum:<br>&nbsp;"before"<br>&nbsp;"after"<br> | "before" |

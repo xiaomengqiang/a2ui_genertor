@@ -8,7 +8,7 @@ Browse Button组件提供浏览元,用于触发组件选择对话框,更新和�
 
 | 方法名   | 描述                                     | 参数 | 返回值             |
 | -------- | ---------------------------------------- | ---- | ------------------ |
-| validate | 用于手动进行非空检查，并返回是否通过校验 | -    | 校验结果，bool类型 |
+| validate | 用于手动进行非空检查，并返回是否通过校验 | -    | 校验结果，boolean类型 |
 
 ### 属性
 
@@ -16,15 +16,15 @@ Browse Button组件提供浏览元,用于触发组件选择对话框,更新和�
 | :------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------- | :------ |
 | id             | 元素的id                                                                                                                                                                                         | string                                  |         |
 | label          | 自定义按钮的标签                                                                                                                                                                                 | string                                  | `· · ·` |
-| readOnly       | 设置文本框只读                                                                                                                                                                                   | bool                                    | `false` |
+| readOnly       | 设置文本框只读                                                                                                                                                                                   | boolean                                    | `false` |
 | className      | 为组件增加className                                                                                                                                                                              | string                                  |         |
-| buttonDisabled | 禁用按钮                                                                                                                                                                                         | bool                                    | `false` |
-| inputDisabled  | 禁用输入框                                                                                                                                                                                       | bool                                    | `false` |
+| buttonDisabled | 禁用按钮                                                                                                                                                                                         | boolean                                    | `false` |
+| inputDisabled  | 禁用输入框                                                                                                                                                                                       | boolean                                    | `false` |
 | value          | 设置需要显示的默认值。                                                                                                                                                                           | string                                  |         |
 | placeHolder    | 字符串占位符                                                                                                                                                                                     | string                                  |         |
 | inputStyle     | 定制输入框样式                                                                                                                                                                                   | object                                  |         |
 | buttonStyle    | 定制按钮样式                                                                                                                                                                                     | object                                  |         |
-| required       | 支持设置组件值是否必须，若为必须，支持非空校验                                                                                                                                                   | bool                                    | `false` |
+| required       | 支持设置组件值是否必须，若为必须，支持非空校验                                                                                                                                                   | boolean                                    | `false` |
 | hintType       | 显示提示信息                                                                                                                                                                                     | enum:<br>&nbsp;"div"<br>&nbsp;"tip"<br> | 'div'   |
 | onClick        | 定义按钮点击事件<br>`function(event: React.MouseEvent, value: string) => void`<br>_event:_ 原生dom的event<br>_value:_ new value                                                                  | function                                |         |
 | onChange       | 定义输入框内容改变时的事件<br>`function(newValue: string, oldValue: string, event: React.ChangeEvent) => void`<br>_newValue:_ new value<br>_oldValue:_ previous value<br>_event:_ 原生dom的event | function                                |         |
@@ -33,7 +33,7 @@ Browse Button组件提供浏览元,用于触发组件选择对话框,更新和�
 | onKeyUp        | 定义输入框在放开键盘键时的事件<br>`function(event: React.KeyboardEvent) => void`<br>_event:_ 原生dom的event                                                                                      | function                                |         |
 | onFocus        | 定义输入框聚焦时的事件<br>`function(event: React.FocusEvent) => void`<br>_event:_ 原生dom的event                                                                                                 | function                                |         |
 | onBlur         | 定义输入框的失去焦点时的事件<br>`function(event: React.FocusEvent) => void`<br>_event:_ 原生dom的event                                                                                           | function                                |         |
-| useLatestValue | 设置文本框的useLatestValue属性，具体作用参考TextField                                                                                                                                            | bool                                    | false   |
+| useLatestValue | 设置文本框的useLatestValue属性，具体作用参考TextField                                                                                                                                            | boolean                                    | false   |
 | inputProps     | 设置文本框的属性，具体作用参考TextField                                                                                                                                                          | object                                  |         |
 | version        | aui版本                                                                                                                                                                                          | string                                  |         |
 | theme          | 主题                                                                                                                                                                                             | string                                  |         |

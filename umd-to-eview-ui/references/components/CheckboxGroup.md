@@ -41,8 +41,8 @@
 | value | 设置所选值的值 | array |  |
 | tipStyle | 校验提示气泡框的样式 | object |  |
 | tipValidatorClass | 校验提示框的自定义className | string |  |
-| required | 设置组件是否为必填项 | bool | false |
-| disabled | 设置组件的灰化状态 | bool | false |
+| required | 设置组件是否为必填项 | boolean | false |
+| disabled | 设置组件的灰化状态 | boolean | false |
 | onChange | 设置CheckboxGroup的onChange事件，会传递参数为：<br><br>**签名:**<br>`function(newValue: array, oldValue: array, event: Object) => void`<br>*newValue:* 当前复选框选中的值<br>*oldValue:* 上一次复选框选中的值<br>*event:* 原生点击事件 | function |  |
 | selectAll | 提供"全选"复选框功能。格式为对象：`{text: "全选", checked: true, onChange: this.handleAllChange}`，其中text为全选复选框的标签文本（默认为"All"），checked设置初始选中状态，onChange为全选复选框变化时的回调函数。回调参数为`(selectedValues, event)`。如果设置了selectAll.checked，其优先级高于单个项的checked和value值。 | object |  |
 | rows | 指定checkbox元素在多行多列中的排列方式。例如：`rows="0:1 \| 2:4 \| 6"` 表示第0到1个checkbox在第一行，第2到4个checkbox在第二行，第6个checkbox在第三行；若未设置rows属性，则checkbox按行内排列。也支持逗号分隔的网格模式，如 `rows="0,3 \| 2,4 \| 5"` 表示第0和3个checkbox在第一行，第2和4个在第二行，第5个在第三行。两种格式不可混用。 | string |  |

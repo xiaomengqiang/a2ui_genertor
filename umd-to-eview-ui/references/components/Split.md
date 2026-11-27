@@ -24,7 +24,7 @@
 | 属性名称          | 描述                                                          | 输入                                                | 默认       |
 | :---------------- | :------------------------------------------------------------ | :-------------------------------------------------- | :--------- |
 | id                | 指定拆分窗口的id                                              | string                                              |            |
-| allowResize       | 指定窗格的大小是否开启                                        | bool                                                | true       |
+| allowResize       | 指定窗格的大小是否开启                                        | boolean                                                | true       |
 | className         | 指定类名提到风格拆分窗口                                      | string                                              |            |
 | minSize           | 设置最小可调整大小的窗口大小;支持rem                          | union:<br>&nbsp;string<br>&nbsp;number<br>          | 50         |
 | maxSize           | 设置最大大小可调的窗口大小;支持rem                            | union:<br>&nbsp;string<br>&nbsp;number<br>          | 720        |
@@ -38,7 +38,7 @@
 | style             | 指定拆分窗格的风格                                            | object                                              |            |
 | pane1Style        | 指定样式的第一子画面                                          | object                                              |            |
 | pane2Style        | 指定第二窗格的风格                                            | object                                              |            |
-| isOverflowY       | overflow-Y是否开启                                            | bool                                                | true       |
+| isOverflowY       | overflow-Y是否开启                                            | boolean                                                | true       |
 | splitResizerWidth | 设置resizer区域宽度                                           | union:<br>&nbsp;string<br>&nbsp;number<br>          |            |
 
 ## 使用示例

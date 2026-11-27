@@ -35,8 +35,8 @@
 | tipText        | 配置radio气泡提示内容                                                                                                                                           | string                                       |         |
 | tipData        | 配置radio气泡提示 ，参考[Tooltip](./Tooltip.md)                                                                                                         | object                                       | {}      |
 | value          | 设置radio的存入数据库的value值                                                                                                                                  | any                                          |         |
-| checked        | 设置radio是否选中                                                                                                                                               | bool                                         | false   |
-| disabled       | 设置radio是否灰化                                                                                                                                               | bool                                         | false   |
+| checked        | 设置radio是否选中                                                                                                                                               | boolean                                         | false   |
+| disabled       | 设置radio是否灰化                                                                                                                                               | boolean                                         | false   |
 | onChange       | 设置radio的选中事件<br><br>**签名:**<br>`function(value: any, event: object) => void`<br>_value:_ 用户在properties中传入的value值<br>_event:_ 原生dom的点击事件 | function                                     |         |
 | onFocus        | 设置radio的聚焦事件<br><br>**签名:**<br>`function(value: any, event: object) => void`<br>_value:_ 用户在properties中传入的value值<br>_event:_ 原生dom的聚焦事件 | function                                     |         |
 

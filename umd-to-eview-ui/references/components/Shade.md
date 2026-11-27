@@ -17,7 +17,7 @@
 | position  | 阴影的布局方式       | string                                     | fixed |
 | left      | 阴影距元素的左边距离 | union:<br>&nbsp;string<br>&nbsp;number<br> | 0     |
 | top       | 阴影距元素的顶边距离 | union:<br>&nbsp;string<br>&nbsp;number<br> | 0     |
-| isShow    | 是否显示阴影         | bool                                       | true  |
+| isShow    | 是否显示阴影         | boolean                                       | true  |
 
 ## 使用示例
 

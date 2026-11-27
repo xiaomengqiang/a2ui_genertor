@@ -24,8 +24,8 @@
 | disabled        | 是否禁用                                                                                                                                                                                                                               | boolean |       |
 | currentStep     | 当前进行到的步骤,对应 data 中的 value 值，默认为第一步                                                                                                                                                                                 | string  |       |
 | data            | 导航内容，data = [{text: "Basic Information",value:"1", description:"1"},{text: "Condition",value:"2",description:"2"},{text: "Action",value:"3",description:"2"}] 不配置 value 时序号默认为 1、2、3..., description为辅助文本（可选） | array   |       |
-| isCustomStep    | 是否自定义步骤条                                                                                                                                                                                                                       | bool    | false |
-| isBacktrackable | 是否回溯步骤，仅箭头型步骤条支持(需业务限制中间无跳过步骤) ，且data中的value为主键不重复。                                                                                                                                             | bool    | false |
+| isCustomStep    | 是否自定义步骤条                                                                                                                                                                                                                       | boolean    | false |
+| isBacktrackable | 是否回溯步骤，仅箭头型步骤条支持(需业务限制中间无跳过步骤) ，且data中的value为主键不重复。                                                                                                                                             | boolean    | false |
 
 ### 自定义步骤条属性
 
@@ -39,7 +39,7 @@
 | descriptionStyle | 可以设置所有辅助文本样， 注意设置 maxwidth 要适配不同分辨率。                                                                                                                                                                 | React.CSSProperties |          |
 | size             | 设置步骤条尺寸，包括大中小与 最小,配置值'large'（大）,'medium'(中）,'small'(小),'mini'(最小)                                                                                                                                  | string              | 'medium' |
 | orientation      | 设置步骤条尺寸，包括水平与垂直，配置值'horizontal'(水平),'vertical'(垂直)                                                                                                                                                     | string              |          |
-| isArrowType      | 是否支持箭头型步骤条， 仅支持水平。                                                                                                                                                                                           | bool                | false    |
+| isArrowType      | 是否支持箭头型步骤条， 仅支持水平。                                                                                                                                                                                           | boolean                | false    |
 
 ### 自定义步骤条 data 属性
 

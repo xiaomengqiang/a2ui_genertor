@@ -51,11 +51,11 @@ import { FormattedMessage } from 'eview-ui';
 | baseZIndexUnit | 区分弹出容器和二级弹出组件的zIndex差 | number | 100 |
 | theme | 主题配置，支持 `lightday`（日间）、`evening`（夜间）（3.0/3.1特性）| string | `lightday` |
 | version | 组件AUI规范版本，支持 `aui2`、`aui3`、`aui3-1` | string | `aui2` |
-| listenTheme | 是否监听主题切换。该值为true时，version必须等于`aui3`，且theme必须传值，组件会动态切换CSS样式文件（3.0特性）| bool | `false` |
-| useSingleTooltip | 是否只允许同时出现一个Tooltip | bool | `false` |
+| listenTheme | 是否监听主题切换。该值为true时，version必须等于`aui3`，且theme必须传值，组件会动态切换CSS样式文件（3.0特性）| boolean | `false` |
+| useSingleTooltip | 是否只允许同时出现一个Tooltip | boolean | `false` |
 | localTheme | 局部主题配置。当version为`aui3-1`时，设置localTheme后组件不会修改body的全局class，而是在ConfigProvider内部包裹一个带主题class的div容器，实现局部主题隔离 | string |  |
 | primaryTheme | 产品定制主主题。当产品需要覆盖平台样式进行换肤时使用，优先级高于theme。适用于3.1版本产品定制换肤场景 | string |  |
-| changeTheme | 是否将主题变更应用到body的全局class。当version为`aui3-1`时生效。设为false则不会修改body的class，避免与其他主题配置冲突 | bool | `true` |
+| changeTheme | 是否将主题变更应用到body的全局class。当version为`aui3-1`时生效。设为false则不会修改body的class，避免与其他主题配置冲突 | boolean | `true` |
 
 ## antd 迁移注意事项
 

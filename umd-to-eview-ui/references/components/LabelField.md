@@ -23,8 +23,8 @@
 | style      | 通过style的方式自定义样式，作用于label元素                                                                        | object    |       |
 | text       | 支持通过text设置组件文本内容                                                                                      | string    |       |
 | children   | 支持设置组件的子标签                                                                                              | ReactNode |       |
-| required   | 设置是否是必填项，为true时，文字前面加星号                                                                        | bool      | false |
-| useFakeCls | 是否使用伪类表示必填星号。为true时使用CSS伪类渲染星号样式，为false时使用独立span元素渲染星号（兼容Firefox）       | bool      | false |
+| required   | 设置是否是必填项，为true时，文字前面加星号                                                                        | boolean      | false |
+| useFakeCls | 是否使用伪类表示必填星号。为true时使用CSS伪类渲染星号样式，为false时使用独立span元素渲染星号（兼容Firefox）       | boolean      | false |
 | onClick    | 设置组件的点击事件<br><br>**签名:**<br>`function(event: React.MouseEvent) => void`<br>_event:_ React 合成鼠标事件 | function  |       |
 | version    | 传入该值可定制当前组件匹配的ucd规范，不传则默认aui2规范，例如 `version='aui3'`                                    | string    |       |
 | theme      | 传入该值可定制当前组件匹配的主题模式样式，不传则默认白天模式，例如 `theme='evening'`                              | string    |       |
